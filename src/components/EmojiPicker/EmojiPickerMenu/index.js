@@ -260,7 +260,8 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
             const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
-            const shouldEmojiBeHighlighted = index === focusedIndex && highlightEmoji || (Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
+            const shouldEmojiBeHighlighted =
+                (index === focusedIndex && highlightEmoji) || (Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
             const shouldFirstEmojiBeHighlighted = index === 0 && highlightFirstEmoji;
 
             return (
