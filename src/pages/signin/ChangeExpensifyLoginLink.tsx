@@ -42,5 +42,7 @@ function ChangeExpensifyLoginLink({credentials, onPress}: ChangeExpensifyLoginLi
 ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
 export default withOnyx<ChangeExpensifyLoginLinkProps, ChangeExpensifyLoginLinkOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
+    credentials: {
+        key: ONYXKEYS.CREDENTIALS,
+    },
 })(ChangeExpensifyLoginLink);
