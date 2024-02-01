@@ -44,9 +44,10 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     /** Height of the list which the composer is part of */
     listHeight?: number;
 
-    /** Whetjer the report is ready for display */
+    /** Whether the report is ready for display */
     isReportReadyForDisplay?: boolean;
 
+    /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 };
 
