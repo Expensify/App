@@ -167,7 +167,7 @@ function InitialSettingsPage(props) {
                 },
                 {
                     translationKey: 'initialSettingsPage.goToExpensifyClassic',
-                    icon: Expensicons.NewExpensify,
+                    icon: Expensicons.ExpensifyLogoNew,
                     action: () => {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
