@@ -1,12 +1,7 @@
-import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Sound from 'react-native-sound';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-const prefix = Platform.select({
-    web: '/sounds/',
-    default: '',
-});
+import config from './config';
 
 let isMuted = false;
 
@@ -55,7 +50,7 @@ function withMinimalExecutionTime<F extends (...args: Parameters<F>) => ReturnTy
 }
 
 const playSound = (soundFile: string) => {
-    const sound = new Sound(`${prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE, (error) => {
+    const sound = new Sound(`${config.prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE, (error) => {
         if (error || isMuted) {
             return;
         }
