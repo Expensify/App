@@ -57,6 +57,8 @@ type PrivateNotesForm = Form<{
 
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
+type ReportFieldEditForm = Form<Record<string, string>>;
+
 type CloseAccountForm = Form<{
     reasonForLeaving: string;
     phoneOrEmail: string;
@@ -75,5 +77,6 @@ export type {
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PersonalBankAccountForm,
+    ReportFieldEditForm,
     CloseAccountForm,
 };
