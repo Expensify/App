@@ -96,23 +96,28 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
         return undefined;
     }
 
-    let brickRoad: BrickRoad | undefined;
-
+    // If policyID is undefined, then all reports are checked whether they contain any brick road
     const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
-    const hasChatTabRBR = policyReports.some((report) => report && getBrickRoadForPolicy(report) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    let hasChatTabGBR = false;
+
+    const hasChatTabRBR = policyReports.some((report) => {
+        const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
+        if (!hasChatTabGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            hasChatTabGBR = true;
+        }
+        return brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    });
 
     if (hasChatTabRBR) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
 
-    const hasChatTabGBR = policyReports.some((report) => report && getBrickRoadForPolicy(report) === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
-
     if (hasChatTabGBR) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
-    return brickRoad;
+    return undefined;
 }
 
 function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
