@@ -59,7 +59,7 @@ export default function subscribeToReportCommentPushNotifications() {
 
                         Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
                         if (!reportBelongsToWorkspace) {
-                            Navigation.navigateWithSwitchPolicyID({policyID: undefined, route: ROUTES.HOME});
+                            Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
                         }
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                     } catch (error) {

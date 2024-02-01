@@ -192,7 +192,7 @@ function WorkspaceSwitcherPage({policies}) {
                 </View>
                 <View>
                     <OptionRow
-                        option={{...option, brickRoadIndicator: !activeWorkspaceID ? undefined : option.brickRoadIndicator}}
+                        option={option}
                         onSelectRow={selectPolicy}
                         showTitleTooltip={false}
                         shouldShowSubscript={false}
