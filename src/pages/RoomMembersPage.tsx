@@ -11,9 +11,8 @@ import type {User} from '@components/SelectionList/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithLocalizeProps} from '@components/withLocalize';
-import withLocalize from '@components/withLocalize';
-import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -26,14 +25,15 @@ import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithLocalizeProps & WindowDimensionsProps & WithCurrentUserPersonalDetailsProps;
+type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
-function RoomMembersPage({report, session, formatPhoneNumber, policies, translate}: RoomMembersPageProps) {
+function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();
+    const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
@@ -94,13 +94,7 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
         setSelectedMembers((prevSelected) => prevSelected.filter((selected) => selected !== accountID));
     }, []);
 
-    /**
-     * Toggle user from the selectedMembers list
-     *
-     * @param {String} accountID
-     * @param {String} pendingAction
-     *
-     */
+    /** Toggle user from the selectedMembers list */
     const toggleUser = useCallback(
         ({accountID, pendingAction}: User) => {
             if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !accountID) {
@@ -117,12 +111,9 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
         [selectedMembers, addUser, removeUser],
     );
 
-    /**
-     * Add or remove all users passed from the selectedMembers list
-     * @param memberList
-     */
+    /** Add or remove all users passed from the selectedMembers list */
     const toggleAllUsers = (memberList: User[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled && member.accountID);
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
         const everyoneSelected = enabledAccounts.every((member) => {
             if (!member.accountID) {
                 return false;
@@ -133,7 +124,7 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
         if (everyoneSelected) {
             setSelectedMembers([]);
         } else {
-            const everyAccountId = enabledAccounts.map((member) => member.accountID) as number[];
+            const everyAccountId = enabledAccounts.map((member) => member.accountID).filter((accountID): accountID is number => !!accountID);
             setSelectedMembers(everyAccountId);
         }
     };
@@ -182,7 +173,7 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
 
             result.push({
                 keyForList: String(accountID),
-                accountID: Number(accountID),
+                accountID,
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
@@ -208,7 +199,7 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
         if (!report?.policyID || policies === null) {
             return false;
         }
-        return PolicyUtils.isPolicyMember(report.policyID, policies as Record<string, Policy>);
+        return PolicyUtils.isPolicyMember(report.policyID, policies);
     }, [report?.policyID, policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
@@ -219,8 +210,8 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={!report || !isPolicyMember}
-                subtitleKey={!report ? undefined : 'roomMembersPage.notAuthorized'}
+                shouldShow={isEmptyObject(report) || !isPolicyMember}
+                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
                     if (!report) {
                         return;
@@ -233,9 +224,10 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
                     subtitle={ReportUtils.getReportName(report)}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        if (report) {
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                        if (!report) {
+                            return;
                         }
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                     }}
                 />
                 <ConfirmModal
@@ -289,4 +281,4 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
 
 RoomMembersPage.displayName = 'RoomMembersPage';
 
-export default withLocalize(withWindowDimensions(withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage))));
+export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));
