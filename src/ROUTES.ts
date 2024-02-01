@@ -441,7 +441,7 @@ const ROUTES = {
     },
     WORKSPACE_SETTINGS: {
         route: 'workspace/:policyID/settings',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings` as const,
+        getRoute: (policyID: string, currency: string) => `workspace/${policyID}/settings?currency=${currency}` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
@@ -449,7 +449,7 @@ const ROUTES = {
     },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'workspace/:policyID/settings/currency',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
+        getRoute: (policyID: string, currency: string) => `workspace/${policyID}/settings/currency?currency=${currency}` as const,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',

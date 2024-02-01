@@ -1,78 +1,48 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, {useCallback} from 'react';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
-    /** Constant, list of available currencies */
-    currencyList: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Symbol of the currency */
-            symbol: PropTypes.string.isRequired,
-        }),
-    ),
     isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
 };
 
 const defaultProps = {
-    currencyList: {},
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Focused currency code */
+            currency: PropTypes.string,
+
+            /** ID of a policy */
+            policyID: PropTypes.string,
+        }),
+    }).isRequired,
     isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
-const getDisplayText = (currencyCode, currencySymbol) => `${currencyCode} - ${currencySymbol}`;
-
-function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportData}) {
+function WorkspaceSettingsCurrencyPage({route, policy, isLoadingReportData}) {
     const {translate} = useLocalize();
-    const [searchText, setSearchText] = useState('');
-    const trimmedText = searchText.trim().toLowerCase();
-    const currencyListKeys = _.keys(currencyList);
-
-    const filteredItems = _.filter(currencyListKeys, (currencyCode) => {
-        const currency = currencyList[currencyCode];
-        return getDisplayText(currencyCode, currency.symbol).toLowerCase().includes(trimmedText);
-    });
-
-    let initiallyFocusedOptionKey;
-
-    const currencyItems = _.map(filteredItems, (currencyCode) => {
-        const currency = currencyList[currencyCode];
-        const isSelected = policy.outputCurrency === currencyCode;
-
-        if (isSelected) {
-            initiallyFocusedOptionKey = currencyCode;
-        }
-
-        return {
-            text: getDisplayText(currencyCode, currency.symbol),
-            keyForList: currencyCode,
-            isSelected,
-        };
-    });
-
-    const sections = [{data: currencyItems, indexOffset: 0}];
-
-    const headerMessage = searchText.trim() && !currencyItems.length ? translate('common.noResultsFound') : '';
-
-    const onBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)), [policy.id]);
+    const currencyParam = lodashGet(route, 'params.currency', '').toUpperCase();
+    const selectedCurrencyCode = CurrencyUtils.isValidCurrencyCode(currencyParam) ? currencyParam : policy.outputCurrency;
+    const onBackButtonPress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id, selectedCurrencyCode)), [policy.id, selectedCurrencyCode]);
 
     const onSelectCurrency = (item) => {
-        Policy.updateGeneralSettings(policy.id, policy.name, item.keyForList);
-        Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id, item.currencyCode));
     };
 
     return (
@@ -90,15 +60,10 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
                     onBackButtonPress={onBackButtonPress}
                 />
 
-                <SelectionList
-                    sections={sections}
+                <CurrencySelectionList
                     textInputLabel={translate('workspace.editor.currencyInputLabel')}
-                    textInputValue={searchText}
-                    onChangeText={setSearchText}
-                    onSelectRow={onSelectCurrency}
-                    headerMessage={headerMessage}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                    showScrollIndicator
+                    onSelect={onSelectCurrency}
+                    initiallySelectedCurrencyCode={selectedCurrencyCode}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -109,9 +74,4 @@ WorkspaceSettingsCurrencyPage.displayName = 'WorkspaceSettingsCurrencyPage';
 WorkspaceSettingsCurrencyPage.propTypes = propTypes;
 WorkspaceSettingsCurrencyPage.defaultProps = defaultProps;
 
-export default compose(
-    withPolicyAndFullscreenLoading,
-    withOnyx({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    }),
-)(WorkspaceSettingsCurrencyPage);
+export default withPolicyAndFullscreenLoading(WorkspaceSettingsCurrencyPage);

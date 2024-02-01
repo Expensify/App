@@ -53,10 +53,10 @@ const defaultProps = {
 };
 
 /**
- * @param {string} policyID
+ * @param {Object} policy
  */
-function openEditor(policyID) {
-    Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policyID));
+function openEditor(policy) {
+    Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id, policy.outputCurrency));
 }
 
 /**
@@ -161,7 +161,7 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.settings',
             icon: Expensicons.Gear,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id, policy.outputCurrency)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {
@@ -281,7 +281,7 @@ function WorkspaceInitialPage(props) {
                                             <PressableWithoutFeedback
                                                 disabled={hasPolicyCreationError || isExecuting}
                                                 style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
+                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy)))}
                                                 accessibilityLabel={translate('workspace.common.settings')}
                                                 role={CONST.ROLE.BUTTON}
                                             >
@@ -301,7 +301,7 @@ function WorkspaceInitialPage(props) {
                                                 <PressableWithoutFeedback
                                                     disabled={hasPolicyCreationError || isExecuting}
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                    onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
+                                                    onPress={singleExecution(waitForNavigate(() => openEditor(policy)))}
                                                     accessibilityLabel={translate('workspace.common.settings')}
                                                     role={CONST.ROLE.BUTTON}
                                                 >
