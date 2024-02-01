@@ -23,6 +23,7 @@ type ThemeColors = {
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    syntax: Color;
     link: Color;
     linkHover: Color;
     buttonDefaultBG: Color;

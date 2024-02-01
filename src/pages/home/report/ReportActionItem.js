@@ -41,6 +41,7 @@ import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
@@ -108,7 +109,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
 
     /** IOU report for this action, if any */
@@ -151,7 +151,8 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
-    const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
+    const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
+
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -664,6 +665,7 @@ function ReportActionItem(props) {
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
+                        policy={props.policy}
                         policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
@@ -751,7 +753,7 @@ function ReportActionItem(props) {
                                     !_.isUndefined(props.draftMessage) ? null : props.action.pendingAction || (props.action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : '')
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(props.action, props.report.reportID)}
-                                errors={props.action.errors}
+                                errors={ErrorUtils.getLatestErrorMessageField(props.action)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
                                 shouldDisableStrikeThrough
@@ -824,6 +826,10 @@ export default compose(
             key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
             initialValue: [],
         },
+        policy: {
+            key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` : undefined),
+            initialValue: {},
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
@@ -867,6 +873,7 @@ export default compose(
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields),
+            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            _.isEqual(prevProps.policy, nextProps.policy),
     ),
 );
