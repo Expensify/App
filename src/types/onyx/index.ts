@@ -19,6 +19,7 @@ import type {
     PrivateNotesForm,
     ReportFieldEditForm,
     WelcomeMessageForm,
+    WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -153,6 +154,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceSettingsForm,
     ReportUserIsTyping,
     PolicyReportField,
     PolicyReportFields,

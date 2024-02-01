@@ -39,6 +39,7 @@ function WorkspaceBillsFirstSection({session, policyID, user}: WorkspaceBillsFir
         <Section
             title={translate('workspace.bills.manageYourBills')}
             icon={Illustrations.PinkBill}
+            isCentralPane
             menuItems={[
                 {
                     title: translate('workspace.bills.viewAllBills'),
@@ -50,7 +51,7 @@ function WorkspaceBillsFirstSection({session, policyID, user}: WorkspaceBillsFir
                     link: () => Link.buildOldDotURL(manageYourBillsUrl),
                 },
             ]}
-            containerStyles={styles.cardSection}
+            containerStyles={styles.cardSectionContainer}
         >
             <View style={styles.mv3}>
                 <Text>
