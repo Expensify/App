@@ -130,6 +130,6 @@ ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 export default withOnyx<ExitSurveyResponsePageProps, ExitSurveyResponsePageOnyxProps>({
     draftResponse: {
         key: FormUtils.getDraftKey(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM),
-        selector: (value: OnyxEntry<OnyxTypes.ExitSurveyResponseForm>) => value?.response ?? '',
+        selector: (value: OnyxEntry<OnyxTypes.ExitSurveyResponseForm>) => value?.[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID] ?? '',
     },
 })(ExitSurveyResponsePage);

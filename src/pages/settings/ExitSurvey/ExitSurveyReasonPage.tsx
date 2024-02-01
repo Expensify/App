@@ -1,5 +1,4 @@
 import React, {useMemo, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,18 +10,17 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as ExitSurvey from '@userActions/ExitSurvey';
+import type {ExitReason} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type Reason = ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
-
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reason, setReason] = useState<Reason>();
+    const [reason, setReason] = useState<ExitReason>();
     const reasons: Choice[] = useMemo(
         () =>
             Object.values(CONST.EXIT_SURVEY.REASONS).map((value) => ({
@@ -67,7 +65,7 @@ function ExitSurveyReasonPage() {
                         InputComponent={RadioButtons}
                         inputID={CONST.EXIT_SURVEY.REASON_INPUT_ID}
                         items={reasons}
-                        onPress={(value) => setReason(value as Reason)}
+                        onPress={(value) => setReason(value as ExitReason)}
                     />
                 </>
             </FormProvider>

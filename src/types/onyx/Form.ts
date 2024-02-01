@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {ExitReason} from '@userActions/ExitSurvey';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalBankAccount from './PersonalBankAccount';
@@ -60,7 +60,7 @@ type PrivateNotesForm = Form<{
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
 type ExitSurveyReasonForm = Form<{
-    [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+    [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ExitReason;
 }>;
 
 type ExitSurveyResponseForm = Form<{

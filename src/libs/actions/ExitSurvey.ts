@@ -6,7 +6,9 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-let exitReason: ValueOf<typeof CONST.EXIT_SURVEY.REASONS> | undefined;
+type ExitReason = ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+
+let exitReason: ExitReason | undefined;
 let exitSurveyResponse: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
@@ -17,7 +19,7 @@ Onyx.connect({
     callback: (value) => (exitSurveyResponse = value?.[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]),
 });
 
-function saveExitReason(reason: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>) {
+function saveExitReason(reason: ExitReason) {
     Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {[CONST.EXIT_SURVEY.REASON_INPUT_ID]: reason});
 }
 
@@ -68,3 +70,4 @@ function switchToOldDot() {
 }
 
 export {saveExitReason, saveResponse, switchToOldDot};
+export type {ExitReason};
