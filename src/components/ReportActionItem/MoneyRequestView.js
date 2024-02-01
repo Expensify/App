@@ -249,7 +249,6 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 isLocalFile={receiptURIs.isLocalFile}
                                 transaction={transaction}
                                 enablePreviewModal
-                                canEditReceipt={canEditReceipt}
                             />
                         </View>
                     </OfflineWithFeedback>

@@ -3,7 +3,6 @@ import React from 'react';
 import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -33,9 +32,6 @@ type ReportActionItemImageProps = {
 
     /** whether thumbnail is refer the local file or not */
     isLocalFile?: boolean;
-
-    /** whether the receipt can be replaced */
-    canEditReceipt?: boolean;
 };
 
 /**
@@ -44,7 +40,7 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false}: ReportActionItemImageProps) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, isLocalFile = false}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
