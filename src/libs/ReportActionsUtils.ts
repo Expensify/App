@@ -416,7 +416,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
  * For policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
  */
-function replaceBaseURL(reportAction: ReportAction): ReportAction {
+function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): ReportAction {
     if (!reportAction?.message || !policyChangeActionsSet.has(reportAction?.actionName)) {
         return reportAction;
     }
@@ -488,7 +488,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null, s
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
-    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
+    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true, shouldMarkTheFirstItemAsNewest);
 }
 
