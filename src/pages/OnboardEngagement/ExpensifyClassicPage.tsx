@@ -18,7 +18,7 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function ToExpensifyClassicModal() {
+function ExpensifyClassicModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,7 +38,7 @@ function ToExpensifyClassicModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ToExpensifyClassicModal.displayName}
+            testID={ExpensifyClassicModal.displayName}
         >
             <View style={[styles.flex1]}>
                 <View style={[StyleUtils.getBackgroundColorStyle(theme.success), StyleUtils.getHeight(iconWrapperHeight), styles.alignItemsCenter, styles.justifyContentCenter, styles.mb4]}>
@@ -84,6 +84,6 @@ function ToExpensifyClassicModal() {
     );
 }
 
-ToExpensifyClassicModal.displayName = 'ToExpensifyClassicModal';
+ExpensifyClassicModal.displayName = 'ExpensifyClassicModal';
 
-export default ToExpensifyClassicModal;
+export default ExpensifyClassicModal;
