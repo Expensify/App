@@ -5,7 +5,7 @@ type ActiveWorkspaceContextType = {
     setActiveWorkspaceID: (activeWorkspaceID?: string) => void;
 };
 
-const ActiveWorkspaceContext = createContext<ActiveWorkspaceContextType | null>(null);
+const ActiveWorkspaceContext = createContext<ActiveWorkspaceContextType>({activeWorkspaceID: undefined, setActiveWorkspaceID: () => undefined});
 
 export default ActiveWorkspaceContext;
 export {type ActiveWorkspaceContextType};
