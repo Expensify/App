@@ -519,8 +519,10 @@ function AttachmentModal({
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
                         ) : (
-                            ((TransactionUtils.isDistanceRequest(transaction) && Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) ||
-                                (!!sourceForAttachmentView && shouldLoadAttachment && !isLoading && !shouldShowNotFoundPage)) && (
+                            (!!sourceForAttachmentView || Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) &&
+                            shouldLoadAttachment &&
+                            !isLoading &&
+                            !shouldShowNotFoundPage && (
                                 <AttachmentView
                                     // @ts-expect-error TODO: Remove this once Attachments (https://github.com/Expensify/App/issues/24969) is migrated to TypeScript.
                                     containerStyles={[styles.mh5]}
