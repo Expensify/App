@@ -369,5 +369,8 @@ export default memo(
             },
             selector: (policy) => _.pick(policy, ['role']),
         },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
     })(HeaderView),
 );
