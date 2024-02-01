@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -25,13 +25,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as IOU from '@userActions/IOU';
-import * as store from '@userActions/ReimbursementAccount/store';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type ReportPreviewOnyxProps = {
@@ -229,14 +228,8 @@ function ReportPreview({
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const paymentType = (action.originalMessage as IOUMessage).paymentType;
-    const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(iouReportID) && !ReportUtils.isSettled(iouReportID);
 
-    const shouldPromptUserToAddBankAccount =
-        action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED &&
-        isSubmitterOfUnsettledReport &&
-        !store.hasCreditBankAccount() &&
-        paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+    const shouldPromptUserToAddBankAccount = ReportUtils.hasAddBankAccountAction(iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
 
     return (

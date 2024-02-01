@@ -25,6 +25,7 @@ import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -4613,6 +4614,22 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+/**
+ * Checks if report chat contains add bank account action
+ */
+function hasAddBankAccountAction(iouReportID: string): boolean {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(iouReportID) && !isSettled(iouReportID);
+    const hasCreditBankAccount = store.hasCreditBankAccount();
+    return !!Object.values(reportActions).find(
+        (action) =>
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED &&
+            isSubmitterOfUnsettledReport &&
+            !hasCreditBankAccount &&
+            (action.originalMessage as IOUMessage)?.paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4798,6 +4815,7 @@ export {
     isReportParticipant,
     isValidReport,
     isReportFieldOfTypeTitle,
+    hasAddBankAccountAction,
 };
 
 export type {
