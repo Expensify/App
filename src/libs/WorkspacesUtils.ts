@@ -162,13 +162,12 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
         }
     });
 
-    Object.keys(allReports).forEach((reportID) => {
-        const policyID = allReports?.[reportID]?.policyID ?? CONST.POLICY.EMPTY;
-        const policyReport = allReports ? allReports[reportID] : null;
-        if (!policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+    Object.values(allReports).forEach((report) => {
+        const policyID = report?.policyID ?? CONST.POLICY.EMPTY;
+        if (!report || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
             return;
         }
-        const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
+        const workspaceBrickRoad = getBrickRoadForPolicy(report);
 
         if (!workspaceBrickRoad && !!workspacesBrickRoadsMap[policyID]) {
             return;
@@ -190,14 +189,13 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
 
     const workspacesUnreadStatuses: Record<string, boolean> = {};
 
-    Object.keys(allReports).forEach((reportID) => {
-        const policyID = allReports?.[reportID]?.policyID;
-        const policyReport = allReports ? allReports[reportID] : null;
-        if (!policyID || (!policyReport && workspacesUnreadStatuses[policyID])) {
+    Object.values(allReports).forEach((report) => {
+        const policyID = report?.policyID;
+        if (!policyID || workspacesUnreadStatuses[policyID]) {
             return;
         }
 
-        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(policyReport);
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report);
     });
 
     return workspacesUnreadStatuses;
