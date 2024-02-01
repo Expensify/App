@@ -226,7 +226,7 @@ function InitialSettingsPage(props) {
              */
             const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
 
-            const onSecondaryInteraction = (link, event) => {
+            const openPopover = (link, event) => {
                 if (typeof link === 'function') {
                     link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
                 } else if (link) {
@@ -268,7 +268,7 @@ function InitialSettingsPage(props) {
                                 ref={popoverAnchor}
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
-                                onSecondaryInteraction={item.link ? (event) => onSecondaryInteraction(item.link, event) : undefined}
+                                onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
                                 isPaneMenu
                             />
