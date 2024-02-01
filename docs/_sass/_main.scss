@@ -458,6 +458,26 @@ button {
                 opacity: 0.8;
             }
         }
+
+        .selector {
+            background-color: $color-highlightBG;
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 20px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            height: 28px;
+            border-radius: 20px;
+            padding: 0px 12px;
+            background-color: $color-button-background;
+            color: $color-text;
+            font-size: 11px;
+            font-weight: 700;
+        }
     }
 
 }
@@ -845,21 +865,4 @@ button {
 
 .hidden {
     display: none;
-}
-
-.selector {
-    background-color: $color-highlightBG;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-select {
-    height: 28px;
-    border-radius: 20px;
-    padding: 0px 12px;
-    background-color: $color-button-background;
-    font-size: 11px;
-    font-weight: 700;
-    align-items: center;
 }
