@@ -60,7 +60,7 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
         const errors: Errors = {};
 
         if (values.welcomeMessage.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'welcomeMessage', ['common.error.characterLimitExceedCounter', {length: values.welcomeMessage.length, limit: CONST.DESCRIPTION_LIMIT}]);
+            errors.welcomeMessage = ['common.error.characterLimitExceedCounter', {length: values.welcomeMessage.length, limit: CONST.DESCRIPTION_LIMIT}].toLocaleString();
         }
 
         return errors;
