@@ -1437,7 +1437,7 @@ function getOptions(
         actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
         actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
         actionTypeForParticipants === CONST.IOU.TYPE.SPLIT;
-    const recentChatReportIDsForActionType: string[] = [];
+    const reportIDsForTaskReport: string[] = [];
     orderedReports.forEach((report) => {
         if (!report) {
             return;
@@ -1463,25 +1463,11 @@ function getOptions(
             return;
         }
 
-        // // During task assignment, we collect the top most chat report ids of the task reports
-        // // for display in the recent reports list
-        // if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
-        //     let parentReportID = report.parentReportID;
-        //     let topmostChatReportID = report.parentReportID;
-        //     while (parentReportID) {
-        //         const parentReport = ReportUtils.getReport(parentReportID);
-        //         if (parentReport?.parentReportID) {
-        //             topmostChatReportID = parentReport?.parentReportID;
-        //         }
-        //         parentReportID = parentReport?.parentReportID;
-        //     }
-        //     if (!recentChatReportIDsForActionType.some((reportID: string) => topmostChatReportID === reportID)) {
-        //         if (topmostChatReportID) {
-        //             recentChatReportIDsForActionType.push(topmostChatReportID);
-        //         }
-        //     }
-        //     return;
-        // }
+        // Save the task report ids in an array for finding out recent reports based on task action type
+        if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
+            reportIDsForTaskReport.push(report.reportID);
+            return;
+        }
 
         if (isTaskReport && !includeTasks) {
             return;
@@ -1547,6 +1533,7 @@ function getOptions(
     optionsToExcludeByActions.push(...optionsToExclude);
 
     if (includeRecentReports) {
+        const recentChatReportIDsForActionType: string[] = [];
         // During money request generation, we collect chat report ids
         // of the money request report's parent for display in the recent reports list
         if (isMoneyRequestActionTypeForParticipants) {
@@ -1559,6 +1546,29 @@ function getOptions(
                 }
                 return true;
             });
+        }
+
+        // During task assignment, we collect the top most chat report ids of the task reports
+        // for display in the recent reports list
+        if (isTaskActionTypeForParticipants) {
+            const parentReportIDs: string[] = [];
+            reportIDsForTaskReport.every((taskReportID) => {
+                const taskReport = ReportUtils.getReport(taskReportID);
+                let parentReportID = taskReport?.parentReportID;
+                let topmostChatReportID = taskReport?.parentReportID;
+                while (parentReportID) {
+                    const parentReport = ReportUtils.getReport(parentReportID);
+                    if (parentReport?.parentReportID) {
+                        topmostChatReportID = parentReport?.parentReportID;
+                    }
+                    parentReportID = parentReport?.parentReportID;
+                }
+                if (topmostChatReportID) {
+                    parentReportIDs.push(topmostChatReportID);
+                }
+                return true;
+            });
+            recentChatReportIDsForActionType.push(...parentReportIDs.filter((reportID, reportIDIndex) => parentReportIDs.indexOf(reportID) === reportIDIndex));
         }
 
         for (const reportOption of allReportOptions) {
