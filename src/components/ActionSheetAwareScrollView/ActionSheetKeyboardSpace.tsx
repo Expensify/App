@@ -186,7 +186,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     // });
                     console.log("TRANSITION #3 -> withTiming(elementOffset + invertedKeyboardHeight, {", { elementOffset, invertedKeyboardHeight, popoverHeight, composerHeight, keyboard: keyboard.height.value });
                     // return 374;
-                    return Math.max(elementOffset, 0);
+                    return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0) + Math.max(elementOffset, 0);
                     return withSequence(
                         withTiming(elementOffset + invertedKeyboardHeight, {
                             duration: 0,
