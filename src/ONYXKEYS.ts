@@ -549,8 +549,8 @@ type OnyxValues = {
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
-    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT]: OnyxTypes.PersonalBankAccount;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT]: OnyxTypes.Form;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
