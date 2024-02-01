@@ -27,6 +27,7 @@ import type SCREENS from '@src/SCREENS';
 type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
 function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
+    const reportID = report?.reportID ?? '';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
@@ -59,7 +60,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID ?? ''))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
@@ -67,7 +68,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report?.reportID ?? ''))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID ?? ''))}
                         />
                     )}
                     {shouldShowRoomName && (
@@ -75,7 +76,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             pendingAction={report?.pendingFields?.reportName}
                             errors={report?.errorFields?.reportName}
                             errorRowStyles={[styles.ph5]}
-                            onClose={() => ReportActions.clearPolicyRoomNameErrors(report?.reportID ?? '')}
+                            onClose={() => ReportActions.clearPolicyRoomNameErrors(reportID ?? '')}
                         >
                             {shouldDisableRename ? (
                                 <View style={[styles.ph5, styles.pv3]}>
@@ -98,7 +99,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                     shouldShowRightIcon
                                     title={report?.reportName}
                                     description={translate('newRoomPage.roomName')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(report?.reportID ?? ''))}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID ?? ''))}
                                 />
                             )}
                         </OfflineWithFeedback>
@@ -109,7 +110,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(report?.reportID ?? ''))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID ?? ''))}
                             />
                         ) : (
                             <View style={[styles.ph5, styles.pv3]}>
@@ -167,7 +168,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                         <MenuItem
                             title={translate('welcomeMessagePage.welcomeMessage')}
                             icon={Expensicons.ChatBubble}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WELCOME_MESSAGE.getRoute(report?.reportID ?? ''))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WELCOME_MESSAGE.getRoute(reportID ?? ''))}
                             shouldShowRightIcon
                         />
                     )}
