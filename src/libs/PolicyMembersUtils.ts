@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyMembers} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
+import {getPolicyMembersByIdWithoutCurrentUser} from './PolicyUtils';
 
 let policyMembers: OnyxCollection<PolicyMembers>;
 Onyx.connect({
@@ -17,11 +18,8 @@ function getPolicyMemberAccountIDs(policyID?: string) {
     }
 
     const currentUserAccountID = getCurrentUserAccountID();
-    return policyMembers
-        ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {})
-              .map((policyMemberAccountID) => Number(policyMemberAccountID))
-              .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID)
-        : [];
+
+    return getPolicyMembersByIdWithoutCurrentUser(policyMembers, policyID, currentUserAccountID);
 }
 
 export default getPolicyMemberAccountIDs;
