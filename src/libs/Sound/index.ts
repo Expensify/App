@@ -10,7 +10,6 @@ const prefix = Platform.select({
 
 let isMuted = false;
 
-// eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
 Onyx.connect({
     key: ONYXKEYS.USER,
     callback: (val) => (isMuted = !!val?.isMutedAllSounds),

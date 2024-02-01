@@ -11,7 +11,6 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
 import TestToolRow from './TestToolRow';
