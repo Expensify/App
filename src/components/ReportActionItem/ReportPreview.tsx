@@ -159,8 +159,8 @@ function ReportPreview({
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy?.isHarvestingEnabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy?.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !(policy?.harvesting?.enabled ?? policy?.isHarvestingEnabled),
+        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled, policy?.isHarvestingEnabled],
     );
 
     const getDisplayAmount = (): string => {
