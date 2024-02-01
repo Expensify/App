@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
-import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
@@ -129,6 +129,20 @@ function removeErrorsWithNullMessage(errors: Errors | ReceiptErrors | null | und
     return Object.fromEntries(nonNullEntries);
 }
 
+/** Check if the error includes a receipt. */
+function isReceiptError(message: unknown): message is ReceiptError {
+    if (typeof message === 'string') {
+        return false;
+    }
+    if (Array.isArray(message)) {
+        return false;
+    }
+    if (Object.keys(message as Record<string, unknown>).length === 0) {
+        return false;
+    }
+    return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
+}
+
 export {
     getAuthenticateErrorMessage,
     getMicroSecondOnyxError,
@@ -138,4 +152,5 @@ export {
     getEarliestErrorField,
     addErrorMessage,
     removeErrorsWithNullMessage,
+    isReceiptError,
 };

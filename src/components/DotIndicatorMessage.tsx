@@ -5,9 +5,10 @@ import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
 import type {MaybePhraseKey} from '@libs/Localize';
+import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
@@ -34,20 +35,6 @@ type DotIndicatorMessageProps = {
     /** Additional styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
 };
-
-/** Check if the error includes a receipt. */
-function isReceiptError(message: unknown): message is ReceiptError {
-    if (typeof message === 'string') {
-        return false;
-    }
-    if (Array.isArray(message)) {
-        return false;
-    }
-    if (Object.keys(message as Record<string, unknown>).length === 0) {
-        return false;
-    }
-    return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
-}
 
 function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndicatorMessageProps) {
     const theme = useTheme();

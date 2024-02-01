@@ -20,6 +20,7 @@ import type {ViolationField} from '@hooks/useViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -35,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {ReceiptError, ReceiptErrors, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {ReceiptErrors, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewTransactionOnyxProps = {
@@ -207,15 +208,18 @@ function MoneyRequestView({
         const transactionErrors = transaction.errors;
 
         if (transactionErrors) {
-            const errorKeys = Object.keys(transactionErrors) as Array<keyof typeof transaction.errors>;
+            const errorKeys = Object.keys(transactionErrors);
 
-            if (typeof transactionErrors[errorKeys[0]] === 'string') {
-                // transactionErrors is of type "Errors"
+            const firstError = transactionErrors[errorKeys[0]];
+
+            if (!isReceiptError(firstError) && typeof firstError === 'string') {
+                // transactionErrors is of type "Errors", but we need to assert it here
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                 return transactionErrors as Errors;
             }
             // transactionErrors is of type "ReceiptErrors"
             return errorKeys.reduce((acc, key) => {
-                const receiptError: ReceiptError = (transactionErrors as ReceiptErrors)[key];
+                const receiptError = (transactionErrors as ReceiptErrors)[key];
                 acc[key] = receiptError.error ?? '';
                 return acc;
             }, {} as Errors);
