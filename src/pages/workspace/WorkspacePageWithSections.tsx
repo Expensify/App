@@ -65,6 +65,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Should show the back button. It is used when in RHP. */
         shouldShowBackButton?: boolean;
 
+        /** Whether the offline indicator should be shown in wide screen devices */
         shouldShowOfflineIndicatorInWideScreen?: boolean;
 
         /** Whether to show this page to non admin policy members */

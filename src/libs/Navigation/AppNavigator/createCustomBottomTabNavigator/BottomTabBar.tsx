@@ -57,9 +57,7 @@ function BottomTabBar() {
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {chatTabBrickRoad && (
-                            <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
-                        )}
+                        {chatTabBrickRoad && <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD.GBR ? theme.iconSuccessFill : theme.danger)} />}
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
