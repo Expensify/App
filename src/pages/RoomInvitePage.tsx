@@ -38,6 +38,8 @@ type RoomInvitePageOnyxProps = {
 
 type RoomInvitePageProps = RoomInvitePageOnyxProps & WithReportOrNotFoundProps;
 
+type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
+
 function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -92,7 +94,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     }, []);
 
     const sections = useMemo(() => {
-        const sectionsArr: Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>> = [];
+        const sectionsArr: Sections = [];
         let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
@@ -103,8 +105,8 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         let filterSelectedOptions = selectedOptions;
         if (searchTerm !== '') {
             filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option.accountID;
-                const isOptionInPersonalDetails = invitePersonalDetails.filter((personalDetail) => personalDetail.accountID === accountID);
+                const accountID = option?.accountID;
+                const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail.accountID && personalDetail.accountID === accountID);
                 const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
                 const isPartOfSearchTerm = option.text?.toLowerCase().includes(searchValue) ?? option.login?.toLowerCase().includes(searchValue);
@@ -192,11 +194,16 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         if (!userToInvite && expensifyEmails.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(searchValue)) {
+        if (
+            !userToInvite &&
+            excludedUsers.includes(
+                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+            )
+        ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [excludedUsers, translate, searchTerm, userToInvite, invitePersonalDetails, reportName]);
+    }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
