@@ -482,16 +482,15 @@ button {
             font-weight: 700;
             text-align: center;
             cursor: pointer;
-
-            appearance: none;
-            -moz-appearance: none;
-            -webkit-appearance: none;
         }
 
         select {
             background: url("/assets/images/down.svg") no-repeat right $color-button-background;
             background-size: 12px;
             background-position-x: 85%;
+            appearance: none !important;
+            -moz-appearance: none !important;
+            -webkit-appearance: none !important;
         }
     }
 
