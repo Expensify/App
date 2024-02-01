@@ -34,7 +34,7 @@ function BottomTabBar() {
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
-    const showWorkspaceRedBrickRoad = checkIfWorkspaceSettingsTabHasRBR(activeWorkspaceID) && currentTabName === SCREENS.HOME;
+    const shouldShowWorkspaceRedBrickRoad = checkIfWorkspaceSettingsTabHasRBR(activeWorkspaceID) && currentTabName === SCREENS.HOME;
 
     const chatTabBrickRoad = currentTabName !== SCREENS.HOME ? getChatTabBrickRoad(activeWorkspaceID) : undefined;
 
@@ -83,7 +83,7 @@ function BottomTabBar() {
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {showWorkspaceRedBrickRoad && <View style={styles.bottomTabStatusIndicator(theme.danger)} />}
+                        {shouldShowWorkspaceRedBrickRoad && <View style={styles.bottomTabStatusIndicator(theme.danger)} />}
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
