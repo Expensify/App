@@ -30,8 +30,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/onyx';
-import {BankIcon} from '@src/types/onyx/Bank';
-import {Errors} from '@src/types/onyx/OnyxCommon';
+import type {BankIcon} from '@src/types/onyx/Bank';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type IconAsset from '@src/types/utils/IconAsset';
 
