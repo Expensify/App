@@ -1,8 +1,11 @@
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {Freeze} from 'react-freeze';
 
-const Freeze = (props: ChildrenProps) => props.children;
-
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    Freeze,
+type ReactFreezeMock = {
+    Freeze: typeof Freeze;
 };
+
+const reactFreezeMock: ReactFreezeMock = {
+    Freeze: (props) => props.children as JSX.Element,
+};
+
+export default reactFreezeMock;
