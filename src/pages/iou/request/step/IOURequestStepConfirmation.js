@@ -226,6 +226,7 @@ function IOURequestStepConfirmation({
                     transaction.tag,
                     receiptFile,
                     report.reportID,
+                    transaction.billable,
                 );
                 return;
             }
@@ -244,6 +245,7 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     report.reportID,
+                    transaction.billable,
                 );
                 return;
             }
@@ -260,6 +262,7 @@ function IOURequestStepConfirmation({
                     transaction.merchant,
                     transaction.category,
                     transaction.tag,
+                    transaction.billable,
                 );
                 return;
             }
