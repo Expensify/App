@@ -474,50 +474,54 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     try {
         const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
-        const flatten = flattenDeep(reportActionsOnly.map((update) => Object.keys(update.value).map((key) => update.value[key])));
+        const flatten = flattenDeep(reportActionsOnly.map((update) => Object.keys(update.value || {}).map((key) => update.value[key])));
         const types = flatten.map((data) => data.originalMessage).filter(Boolean);
 
-        // Someone completes a task
-        if (flatten.find((data) => data.actionName === 'TASKCOMPLETED')) {
-            return playSound('success');
+        for (const data of flatten) {
+            // Someone completes a task
+            if (data.actionName === 'TASKCOMPLETED') {
+                return playSound('success');
+            }
+
+            // Someone completes a money request
+            if (data.actionName === 'IOU') {
+                return playSound('success');
+            }
         }
 
-        // Someone completes a money request
-        if (flatten.find((data) => data.actionName === 'IOU')) {
-            return playSound('success');
-        }
+        for (const message of types) {
+            // someone sent money
+            if (message.IOUDetails) {
+                return playSound('success');
+            }
 
-        // someone sent money
-        if (types.find((message) => message.IOUDetails)) {
-            return playSound('success');
-        }
+            // mention user
+            if (message.html?.includes('<mention-user>')) {
+                return playSound('attention');
+            }
 
-        // mention user
-        if (types.find((message) => message.html?.includes('<mention-user>'))) {
-            return playSound('attention');
-        }
+            // mention @here
+            if (message.html?.includes('<mention-here>')) {
+                return playSound('attention');
+            }
 
-        // mention @here
-        if (types.find((message) => message.html?.includes('<mention-here>'))) {
-            return playSound('attention');
-        }
+            // assign a task
+            if (message.taskReportID) {
+                return playSound('attention');
+            }
 
-        // assign a task
-        if (types.find((message) => message.taskReportID)) {
-            return playSound('attention');
-        }
+            // request money
+            if (message.IOUTransactionID) {
+                return playSound('attention');
+            }
 
-        // request money
-        if (types.find((message) => message.IOUTransactionID)) {
-            return playSound('attention');
-        }
-
-        // plain message
-        if (types.find((message) => message.html)) {
-            return playSound('receive');
+            // plain message
+            if (message.html) {
+                return playSound('receive');
+            }
         }
     } catch (e) {
-        // do nothing
+        Log.client(`Unexpected error occurred while parsing the data to play a sound: ${e}`);
     }
 }
 
