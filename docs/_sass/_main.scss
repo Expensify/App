@@ -501,6 +501,26 @@ button {
             -moz-appearance: none !important;
             -webkit-appearance: none !important;
         }
+
+        .info {
+            padding: 12px;
+            border-radius: 8px;
+            background-color: $color-highlightBG;
+            color: $color-text;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        
+            img {
+                height: 16px;
+                width: 16px;
+            }
+
+            * {
+                padding: 0;
+                margin: 0;
+            }
+        }
     }
 
 }

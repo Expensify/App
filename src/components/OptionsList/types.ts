@@ -108,13 +108,13 @@ type OptionsListProps = {
     renderFooterContent?: () => JSX.Element;
 
     /** Whether to show a button pill instead of a standard tickbox */
-    shouldShowMultipleOptionSelectorAsButton: boolean;
+    shouldShowMultipleOptionSelectorAsButton?: boolean;
 
     /** Text for button pill */
-    multipleOptionSelectorButtonText: string;
+    multipleOptionSelectorButtonText?: string;
 
     /** Callback to fire when the multiple selector (tickbox or button) is clicked */
-    onAddToSelection: () => void;
+    onAddToSelection?: () => void;
 
     /** Safe area style */
     safeAreaPaddingBottomStyle?: StyleProp<ViewStyle>;

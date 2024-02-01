@@ -9,7 +9,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
-import type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, IKnowATeacherForm, IntroSchoolPrincipalForm, NewRoomForm, PrivateNotesForm} from './Form';
+import type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, IKnowATeacherForm, IntroSchoolPrincipalForm, NewRoomForm, PrivateNotesForm, ReportFieldEditForm} from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -151,4 +151,5 @@ export type {
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
+    ReportFieldEditForm,
 };
