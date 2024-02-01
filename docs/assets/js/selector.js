@@ -18,7 +18,7 @@ function selectOption(s) {
     const selectedValue = s.options[s.selectedIndex].value;
 
     // Hide section that isn't selected, and show section that is selected.
-    allOptions.forEach(option => {
+    allOptions.forEach((option) => {
         if (option.value === selectedValue) {
             const toShow = document.getElementsByClassName(option.value);
             for (e of toShow) {
@@ -26,7 +26,7 @@ function selectOption(s) {
             }
             return;
         }
-        
+
         const toHide = document.getElementsByClassName(option.value);
         for (e of toHide) {
             e.classList.add('hidden');
