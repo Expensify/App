@@ -2573,6 +2573,12 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        sectionMenuItemTopDescription: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
