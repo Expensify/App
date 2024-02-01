@@ -201,6 +201,7 @@ function ReportScreen({
             isOwnPolicyExpenseChat: reportProp.isOwnPolicyExpenseChat,
             notificationPreference: reportProp.notificationPreference,
             isPinned: reportProp.isPinned,
+            chatReportID: reportProp.chatReportID,
         }),
         [
             reportProp.lastReadTime,
@@ -232,6 +233,7 @@ function ReportScreen({
             reportProp.isOwnPolicyExpenseChat,
             reportProp.notificationPreference,
             reportProp.isPinned,
+            reportProp.chatReportID,
         ],
     );
 
@@ -662,6 +664,7 @@ export default compose(
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             prevProps.currentReportID === nextProps.currentReportID &&
             prevProps.report.notificationPreference === nextProps.report.notificationPreference &&
-            prevProps.report.isPinned === nextProps.report.isPinned,
+            prevProps.report.isPinned === nextProps.report.isPinned &&
+            prevProps.report.chatReportID === nextProps.report.chatReportID,
     ),
 );
