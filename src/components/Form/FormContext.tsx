@@ -1,6 +1,8 @@
 import {createContext} from 'react';
-import type {RegisterInput} from './types';
+import type {Form} from '@src/types/onyx';
+import type {InputComponentBaseProps} from './types';
 
+type RegisterInput = (inputID: keyof Form, inputProps: InputComponentBaseProps) => InputComponentBaseProps;
 type FormContext = {
     registerInput: RegisterInput;
 };
