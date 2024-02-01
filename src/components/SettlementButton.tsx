@@ -160,9 +160,10 @@ function SettlementButton({
             return [approveButtonOption];
         }
 
-        // To achieve the one tap pay experience we need to choose the correct payment type as default,
-        // if user already paid for some request or expense, let's use the last payment method or use default.
-        const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
+        // To achieve the one tap pay experience we need to choose the correct payment type as default.
+        // If the user has previously chosen a specific payment option or paid for some request or expense,
+        // let's use the last payment method or use default.
+        const paymentMethod = nvpLastPaymentMethod?.[policyID] || '';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
@@ -175,12 +176,14 @@ function SettlementButton({
             buttonOptions.push(approveButtonOption);
         }
 
-        // Put the preferred payment method to the front of the array so its shown as default
+        // Put the preferred payment method to the front of the array, so it's shown as default
         if (paymentMethod) {
             return buttonOptions.sort((method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [currency, formattedAmount, iouReport, nvpLastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
+        // We don't want to reorder the options when the preferred payment method changes while the button is still visible
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
@@ -195,6 +198,10 @@ function SettlementButton({
         }
 
         onPress(iouPaymentType);
+    };
+
+    const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {
+        IOU.savePreferredPaymentMethod(id, value);
     };
 
     return (
@@ -218,6 +225,7 @@ function SettlementButton({
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
+                    onOptionSelected={(option) => savePreferredPaymentMethod(policyID, option.value)}
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}

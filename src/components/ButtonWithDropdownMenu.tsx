@@ -35,6 +35,9 @@ type ButtonWithDropdownMenuProps = {
     /** Callback to execute when the main button is pressed */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: PaymentType) => void;
 
+    /** Callback to execute when a dropdown option is selected */
+    onOptionSelected?: (option: DropdownOption) => void;
+
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
 
@@ -75,6 +78,7 @@ function ButtonWithDropdownMenu({
     buttonRef,
     onPress,
     options,
+    onOptionSelected,
 }: ButtonWithDropdownMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -177,6 +181,7 @@ function ButtonWithDropdownMenu({
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: () => {
+                            onOptionSelected?.(item);
                             setSelectedItemIndex(index);
                         },
                     }))}
