@@ -1525,9 +1525,17 @@ function getOptions(
     optionsToExcludeByActions.push(...optionsToExclude);
 
     if (includeRecentReports) {
-        let recentTransactions: Array<OnyxEntry<Transaction>> = [];
+        const recentChatReportIDsForMoneyRequestActionType: string[] = [];
         if (isMoneyRequestActionTypeForParticipants) {
-            recentTransactions = TransactionUtils.getTransactionsByActionType(actionTypeForParticipants);
+            TransactionUtils.getTransactionsByActionType(actionTypeForParticipants).every((recentTransaction) => {
+                const iouReport = ReportUtils.getReport(recentTransaction?.reportID);
+                if (!recentChatReportIDsForMoneyRequestActionType.some((reportID: string) => iouReport?.parentReportID === reportID)) {
+                    if (iouReport?.parentReportID) {
+                        recentChatReportIDsForMoneyRequestActionType.push(iouReport?.parentReportID);
+                    }
+                }
+                return true;
+            });
         }
 
         for (const reportOption of allReportOptions) {
@@ -1561,7 +1569,7 @@ function getOptions(
             }
 
             let isActionTypeOptionForParticipants = false;
-            if (isMoneyRequestActionTypeForParticipants && recentTransactions.some((transaction: OnyxEntry<Transaction>) => transaction?.reportID === String(reportOption.iouReportID))) {
+            if (isMoneyRequestActionTypeForParticipants && recentChatReportIDsForMoneyRequestActionType.some((reportID: string) => reportID === String(reportOption.reportID))) {
                 isActionTypeOptionForParticipants = true;
             }
 
