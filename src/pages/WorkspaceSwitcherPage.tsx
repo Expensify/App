@@ -60,7 +60,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
-
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
 
