@@ -1,7 +1,5 @@
+import type {FormValue} from '@components/Form/types';
 import type * as OnyxCommon from './OnyxCommon';
-import type PersonalBankAccount from './PersonalBankAccount';
-
-type FormValueType = string | boolean | Date | OnyxCommon.Errors;
 
 type BaseForm = {
     /** Controls the loading state of the form */
@@ -14,7 +12,8 @@ type BaseForm = {
     errorFields?: OnyxCommon.ErrorFields | null;
 };
 
-type Form<TFormValues extends Record<string, FormValueType> = Record<string, FormValueType>> = TFormValues & BaseForm;
+type FormValues = Record<string, FormValue>;
+type Form<TFormValues extends FormValues = FormValues> = TFormValues & BaseForm;
 
 type AddDebitCardForm = Form<{
     /** Whether the form has been submitted */
@@ -55,22 +54,8 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
-type PersonalBankAccountForm = Form<PersonalBankAccount>;
-
 type ReportFieldEditForm = Form<Record<string, string>>;
 
 export default Form;
 
-export type {
-    AddDebitCardForm,
-    DateOfBirthForm,
-    PrivateNotesForm,
-    DisplayNameForm,
-    FormValueType,
-    NewRoomForm,
-    BaseForm,
-    IKnowATeacherForm,
-    IntroSchoolPrincipalForm,
-    PersonalBankAccountForm,
-    ReportFieldEditForm,
-};
+export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm, ReportFieldEditForm};
