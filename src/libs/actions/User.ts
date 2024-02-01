@@ -483,7 +483,6 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
             return Object.values(value);
         }) as ReportAction[];
-        const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
 
         for (const data of flatten) {
             // Someone completes a task
@@ -491,6 +490,8 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 return playSound('success');
             }
         }
+
+        const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
 
         for (const message of types) {
             // someone sent money
