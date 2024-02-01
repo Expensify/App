@@ -137,7 +137,7 @@ function MoneyRequestPreview(props) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-    const parser = new ExpensiMark();
+    const parser = new ExpensiMark(); 
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
