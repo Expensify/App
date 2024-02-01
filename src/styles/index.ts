@@ -340,10 +340,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        verticalAlignMiddle: {
-            verticalAlign: 'middle',
-        },
-
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -1467,7 +1463,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -3920,26 +3916,30 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiStatusLHN: {
-            fontSize: 22,
-        },
-        sidebarStatusAvatarContainer: {
-            height: 44,
-            width: 84,
-            backgroundColor: theme.componentBG,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderRadius: 42,
-            paddingHorizontal: 2,
-            marginVertical: -2,
-            marginRight: -2,
-        },
-        sidebarStatusAvatar: {
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontSize: 9,
         },
 
+        sidebarStatusAvatarContainer: {
+            height: 40,
+            width: 40,
+            backgroundColor: theme.componentBG,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 20,
+        },
+        sidebarStatusAvatar: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.border,
+            height: 20,
+            width: 20,
+            borderRadius: 10,
+            position: 'absolute',
+            right: -4,
+            bottom: -4,
+            borderColor: theme.highlightBG,
+            borderWidth: 2,
+        },
         moneyRequestViewImage: {
             ...spacing.mh5,
             ...spacing.mv3,
