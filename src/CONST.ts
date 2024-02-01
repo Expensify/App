@@ -718,6 +718,15 @@ const CONST = {
             RIGHT: 'right',
         },
         POPOVER_MENU_PADDING: 8,
+        BUSINESS_TYPE: {
+            DEFAULT: 'default',
+            ATTACHMENT: 'attachment',
+        },
+        RESTORE_FOCUS_TYPE: {
+            DEFAULT: 'default',
+            DELETE: 'delete',
+            PRESERVE: 'preserve',
+        },
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',

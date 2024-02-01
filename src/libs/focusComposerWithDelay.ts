@@ -1,6 +1,7 @@
 import type {TextInput} from 'react-native';
 import * as EmojiPickerAction from './actions/EmojiPickerAction';
 import ComposerFocusManager from './ComposerFocusManager';
+import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type FocusComposerWithDelay = (shouldDelay?: boolean) => void;
 /**
@@ -22,12 +23,14 @@ function focusComposerWithDelay(textInput: TextInput | null): FocusComposerWithD
             textInput.focus();
             return;
         }
-        ComposerFocusManager.isReadyToFocus().then(() => {
-            if (!textInput) {
-                return;
-            }
-            textInput.focus();
-        });
+        ComposerFocusManager.isReadyToFocus()
+            .then(isWindowReadyToFocus)
+            .then(() => {
+                if (!textInput) {
+                    return;
+                }
+                textInput.focus();
+            });
     };
 }
 
