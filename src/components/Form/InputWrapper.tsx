@@ -23,22 +23,15 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     if (validTextInputComponents.includes(InputComponent)) {
         const isEffectivelyMultiline = Boolean(multiline) || Boolean(autoGrowHeight);
 
-        // We calculate the effective requested value of `shouldSubmitForm`, assuming that the default value should be
-        // `true` for single-line inputs and `false` for multi-line inputs.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const shouldSubmitFormOrDefault = shouldSubmitForm || !isEffectivelyMultiline;
-
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
         // (like a Shift+Enter keyboard shortcut). For simplicity, we assume that when there's no touch screen, it's a
         // desktop setup with a keyboard.
         const canUseHardwareKeyboard = !canUseTouchScreen();
 
-        // We want to avoid a situation when the user can't insert a new line. For single line inputs, it's not a
-        // problem. For multi-line inputs, ensure there are alternative ways to add a newline.
-        const canInputSubmitForm = isEffectivelyMultiline ? canUseHardwareKeyboard : true;
-
-        // We only honor the provided property if it's reasonable on this platform
-        const shouldReallySubmitForm = canInputSubmitForm && shouldSubmitFormOrDefault;
+        // We want to avoid a situation when the user can't insert a new line. For single-line inputs, it's not a problem and we
+        // force-enable form submission. For multi-line inputs, ensure that it was requested to enable form submission for this specific
+        // input and that alternative ways exist to add a new line.
+        const shouldReallySubmitForm = isEffectivelyMultiline ? Boolean(shouldSubmitForm) && canUseHardwareKeyboard : true;
 
         return {
             // There are inputs that don't have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to
