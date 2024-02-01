@@ -83,7 +83,8 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
+                        console.log(displayNames);
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
@@ -127,7 +128,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
