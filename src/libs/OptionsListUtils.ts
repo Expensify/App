@@ -18,7 +18,6 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import * as Task from './actions/Task';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
@@ -580,7 +579,6 @@ function createOption(
     report: OnyxEntry<Report>,
     reportActions: ReportActions,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    isTaskActionTypeForParticipants = false,
 ): ReportUtils.OptionData {
     const result: ReportUtils.OptionData = {
         text: undefined,
@@ -626,7 +624,7 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
 
-    if (report && !isTaskActionTypeForParticipants) {
+    if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -681,11 +679,6 @@ function createOption(
         result.keyForList = String(accountIDs[0]);
 
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
-    }
-
-    if (isTaskActionTypeForParticipants && report) {
-        result.reportID = report.reportID;
-        result.isTaskReport = ReportUtils.isTaskReport(report);
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
@@ -1438,7 +1431,6 @@ function getOptions(
     orderedReports.reverse();
 
     const allReportOptions: ReportUtils.OptionData[] = [];
-    const isTaskActionTypeForParticipants = !includeTasks && actionTypeForParticipants === CONST.REPORT.TYPE.TASK;
     const isMoneyRequestActionTypeForParticipants =
         actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
         actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
@@ -1454,10 +1446,7 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs =
-            isTaskReport && isTaskActionTypeForParticipants
-                ? report.participantAccountIDs?.filter((accountID) => accountID !== currentUserAccountID) ?? []
-                : report.visibleChatMemberAccountIDs ?? [];
+        const accountIDs = report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1472,7 +1461,7 @@ function getOptions(
             return;
         }
 
-        if (isTaskReport && !(includeTasks || isTaskActionTypeForParticipants)) {
+        if (isTaskReport && !includeTasks) {
             return;
         }
 
@@ -1493,17 +1482,10 @@ function getOptions(
         }
 
         allReportOptions.push(
-            createOption(
-                accountIDs,
-                personalDetails,
-                report,
-                reportActions,
-                {
-                    showChatPreviewLine,
-                    forcePolicyNamePreview,
-                },
-                isTaskActionTypeForParticipants,
-            ),
+            createOption(accountIDs, personalDetails, report, reportActions, {
+                showChatPreviewLine,
+                forcePolicyNamePreview,
+            }),
         );
     });
     // We're only picking personal details that have logins set
@@ -1514,17 +1496,10 @@ function getOptions(
         ? {}
         : Object.fromEntries(Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail));
     let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
-        createOption(
-            [personalDetail?.accountID ?? -1],
-            personalDetails,
-            reportMapForAccountIDs[personalDetail?.accountID ?? -1],
-            reportActions,
-            {
-                showChatPreviewLine,
-                forcePolicyNamePreview,
-            },
-            isTaskActionTypeForParticipants,
-        ),
+        createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], reportActions, {
+            showChatPreviewLine,
+            forcePolicyNamePreview,
+        }),
     );
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -1586,13 +1561,6 @@ function getOptions(
             }
 
             let isActionTypeOptionForParticipants = false;
-            if (actionTypeForParticipants === CONST.REPORT.TYPE.TASK && reportOption.isTaskReport) {
-                const taskReport = ReportUtils.getReport(reportOption.reportID);
-                if (!(!isEmptyObject(taskReport) && Task.getTaskAssigneeAccountID(taskReport) === currentUserAccountID)) {
-                    isActionTypeOptionForParticipants = true;
-                }
-            }
-
             if (isMoneyRequestActionTypeForParticipants && recentTransactions.some((transaction: OnyxEntry<Transaction>) => transaction?.reportID === String(reportOption.iouReportID))) {
                 isActionTypeOptionForParticipants = true;
             }
