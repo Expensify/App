@@ -1008,6 +1008,17 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+function getOpacityStyle(opacity: number) {
+    return {opacity};
+}
+
+function getMultiGestureCanvasContainerStyle(canvasWidth: number): ViewStyle {
+    return {
+        width: canvasWidth,
+        overflow: 'hidden',
+    };
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1071,6 +1082,8 @@ const staticStyleUtils = {
     getEReceiptColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
+    getOpacityStyle,
+    getMultiGestureCanvasContainerStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
