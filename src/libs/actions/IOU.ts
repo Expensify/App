@@ -708,7 +708,7 @@ function getMoneyRequestInformation(
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = parentChatReport?.reportID ? parentChatReport : null;
+    let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
 
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
@@ -728,12 +728,12 @@ function getMoneyRequestInformation(
 
     // STEP 2: Get the money request report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic money request report.
-    let iouReport = null;
+    let iouReport: OnyxEntry<OnyxTypes.Report> = null;
     const shouldCreateNewMoneyRequestReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
     if (moneyRequestReportID > 0) {
-        iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`];
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!shouldCreateNewMoneyRequestReport) {
-        iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
     // Check if the Scheduled Submit is enabled in case of expense report
@@ -743,7 +743,7 @@ function getMoneyRequestInformation(
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
 
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        needsToBeManuallySubmitted = isFromPaidPolicy && !(lodashGet(policy, 'harvesting.enabled', policy.isHarvestingEnabled) || false);
+        needsToBeManuallySubmitted = isFromPaidPolicy && !(policy?.harvesting?.enabled ?? policy?.isHarvestingEnabled);
 
         // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
         if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
@@ -3670,12 +3670,8 @@ function navigateToStartStepIfScanFileCannotBeRead(
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
-/**
- * Save the preferred payment method for a policy
- * @param {String} policyID
- * @param {String} paymentMethod
- */
-function savePreferredPaymentMethod(policyID, paymentMethod) {
+/** Save the preferred payment method for a policy */
+function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType) {
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
 }
 

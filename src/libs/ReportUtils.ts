@@ -312,6 +312,7 @@ type OptimisticIOUReport = Pick<
     | 'chatReportID'
     | 'currency'
     | 'managerID'
+    | 'policyID'
     | 'ownerAccountID'
     | 'participantAccountIDs'
     | 'visibleChatMemberAccountIDs'

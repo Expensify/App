@@ -11,6 +11,7 @@ type StartSplitBillParams = {
     tag: string;
     isFromGroupDM: boolean;
     createdReportActionID?: string;
+    billable: boolean;
 };
 
 export default StartSplitBillParams;

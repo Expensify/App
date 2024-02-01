@@ -7,6 +7,7 @@ type SplitBillParams = {
     merchant: string;
     category: string;
     tag: string;
+    billable: boolean;
     transactionID: string;
     reportActionID: string;
     createdReportActionID?: string;
