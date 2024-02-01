@@ -107,7 +107,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
 
     /** IOU report for this action, if any */
@@ -150,7 +149,7 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
-    const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
+    const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
@@ -509,7 +508,6 @@ function ReportActionItem(props) {
                             reportID={props.report.reportID}
                             index={props.index}
                             ref={textInputRef}
-                            report={props.report}
                             // Avoid defining within component due to an existing Onyx bug
                             preferredSkinTone={props.preferredSkinTone}
                             shouldDisableEmojiPicker={
@@ -652,6 +650,7 @@ function ReportActionItem(props) {
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
+                        policy={props.policy}
                         policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
@@ -807,6 +806,10 @@ export default compose(
             key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
             initialValue: [],
         },
+        policy: {
+            key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` : undefined),
+            initialValue: {},
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
@@ -850,6 +853,7 @@ export default compose(
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields),
+            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            _.isEqual(prevProps.policy, nextProps.policy),
     ),
 );
