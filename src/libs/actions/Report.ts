@@ -1969,7 +1969,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
             const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
             const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : false;
             if (!reportBelongsToWorkspace) {
-                Navigation.navigateWithSwitchPolicyID({policyID: undefined, route: ROUTES.HOME});
+                Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         });
