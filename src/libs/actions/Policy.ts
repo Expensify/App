@@ -67,6 +67,13 @@ type OptimisticCustomUnits = {
     outputCurrency: string;
 };
 
+type NewCustomUnit = {
+    customUnitID: string;
+    name: string;
+    attributes: Attributes;
+    rates: Rate;
+};
+
 type PoliciesRecord = Record<string, OnyxEntry<Policy>>;
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -932,7 +939,7 @@ function hideWorkspaceAlertMessage(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
-function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit, lastModified: number) {
+function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: NewCustomUnit, lastModified: number) {
     if (!currentCustomUnit.customUnitID || !newCustomUnit?.customUnitID || !newCustomUnit.rates?.customUnitRateID) {
         return;
     }
@@ -946,7 +953,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID as string]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 ...newCustomUnit.rates,
                                 errors: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -969,7 +976,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                         pendingAction: null,
                         errors: null,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID as string]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -988,7 +995,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                     [currentCustomUnit.customUnitID]: {
                         customUnitID: currentCustomUnit.customUnitID,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID as string]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 ...currentCustomUnit.rates,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
@@ -2018,3 +2025,5 @@ export {
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
 };
+
+export type {NewCustomUnit};

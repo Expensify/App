@@ -4,11 +4,11 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
-type UnitRate = {rate: number};
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -66,7 +66,7 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 
-function getUnitRateValue(customUnitRate: UnitRate, toLocaleDigit: (arg: string) => string) {
+function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate) {
     return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
 }
 

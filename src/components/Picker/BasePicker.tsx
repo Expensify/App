@@ -69,11 +69,11 @@ function BasePicker<TPickerValue>(
      */
     const onValueChange = (inputValue: TPickerValue, index: number) => {
         if (inputID) {
-            onInputChange(inputValue);
+            onInputChange?.(inputValue);
             return;
         }
 
-        onInputChange(inputValue, index);
+        onInputChange?.(inputValue, index);
     };
 
     const enableHighlight = () => {

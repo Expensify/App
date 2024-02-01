@@ -100,7 +100,7 @@ function getDistanceMerchant(
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
-    const ratePerUnit = rate ? PolicyUtils.getUnitRateValue({rate}, toLocaleDigit) : translate('common.tbd');
+    const ratePerUnit = rate ? PolicyUtils.getUnitRateValue(toLocaleDigit, {rate}) : translate('common.tbd');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = rate ? CurrencyUtils.getCurrencySymbol(currency) || `${currency} ` : '';
 

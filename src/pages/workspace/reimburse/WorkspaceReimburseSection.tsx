@@ -1,45 +1,40 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import networkPropTypes from '@components/networkPropTypes';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as Link from '@userActions/Link';
+import type * as OnyxTypes from '@src/types/onyx';
 
-const propTypes = {
+type WorkspaceReimburseSectionProps = {
     /** Policy values needed in the component */
-    policy: PropTypes.shape({
-        id: PropTypes.string,
-    }).isRequired,
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    /** Returns translated string for given locale and phrase */
-    translate: PropTypes.func.isRequired,
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 };
 
-function WorkspaceReimburseSection(props) {
+function WorkspaceReimburseSection({policy, reimbursementAccount}: WorkspaceReimburseSectionProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(true);
-    const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
+    const achState = reimbursementAccount?.achData?.state ?? '';
     const hasVBA = achState === BankAccount.STATE.OPEN;
-    const reimburseReceiptsUrl = `reports?policyID=${props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`;
-    const isLoading = lodashGet(props.reimbursementAccount, 'isLoading', false);
+    const policyId = policy?.id ?? '';
+    const reimburseReceiptsUrl = `reports?policyID=${policyId}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`;
+    const isLoading = reimbursementAccount?.isLoading ?? false;
     const prevIsLoading = usePrevious(isLoading);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (prevIsLoading === isLoading) {
@@ -48,14 +43,14 @@ function WorkspaceReimburseSection(props) {
         setShouldShowLoadingSpinner(isLoading);
     }, [prevIsLoading, isLoading]);
 
-    if (props.network.isOffline) {
+    if (isOffline) {
         return (
             <Section
-                title={props.translate('workspace.reimburse.reimburseReceipts')}
+                title={translate('workspace.reimburse.reimburseReceipts')}
                 icon={Illustrations.MoneyWings}
             >
                 <View style={[styles.mv3]}>
-                    <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
+                    <Text>{`${translate('common.youAppearToBeOffline')} ${translate('common.thisFeatureRequiresInternet')}`}</Text>
                 </View>
             </Section>
         );
@@ -76,35 +71,35 @@ function WorkspaceReimburseSection(props) {
         <>
             {hasVBA ? (
                 <Section
-                    title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                    title={translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                     icon={Illustrations.TreasureChest}
                     menuItems={[
                         {
-                            title: props.translate('workspace.reimburse.reimburseReceipts'),
+                            title: translate('workspace.reimburse.reimburseReceipts'),
                             onPress: () => Link.openOldDotLink(reimburseReceiptsUrl),
                             icon: Expensicons.Bank,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
-                            wrapperStyle: [styles.cardMenuItem],
+                            wrapperStyle: styles.cardMenuItem,
                             link: () => Link.buildOldDotURL(reimburseReceiptsUrl),
                         },
                     ]}
                 >
-                    <View style={[styles.mv3]}>
-                        <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                    <View style={styles.mv3}>
+                        <Text>{translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
                     </View>
                 </Section>
             ) : (
                 <Section
-                    title={props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                    title={translate('workspace.reimburse.unlockNextDayReimbursements')}
                     icon={Illustrations.OpenSafe}
                 >
-                    <View style={[styles.mv3]}>
-                        <Text>{props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                    <View style={styles.mv3}>
+                        <Text>{translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                     </View>
                     <ConnectBankAccountButton
-                        policyID={props.policy.id}
-                        style={[styles.mt4]}
+                        policyID={policyId}
+                        style={styles.mt4}
                     />
                 </Section>
             )}
@@ -112,7 +107,6 @@ function WorkspaceReimburseSection(props) {
     );
 }
 
-WorkspaceReimburseSection.propTypes = propTypes;
 WorkspaceReimburseSection.displayName = 'WorkspaceReimburseSection';
 
 export default WorkspaceReimburseSection;
