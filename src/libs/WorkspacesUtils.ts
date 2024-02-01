@@ -13,7 +13,7 @@ type CheckingMethod = () => boolean;
 
 let allReports: OnyxCollection<Report>;
 
-type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD> | undefined;
+type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -57,7 +57,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     const doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     if (doesReportContainErrors) {
-        return CONST.BRICK_ROAD.RBR;
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
 
     // To determine if the report requires attention from the current user, we need to load the parent report action
@@ -68,7 +68,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     }
     const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};
     const shouldShowGreenDotIndicator = ReportUtils.requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
-    return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD.GBR : undefined;
+    return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
 function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
@@ -98,16 +98,16 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
 
     let brickRoad: BrickRoad | undefined;
 
-    Object.keys(allReports).forEach((report) => {
+    Object.keys(allReports).forEach((reportID) => {
         if (brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
             return;
         }
 
-        if (policyID && policyID !== allReports?.[report]?.policyID) {
+        if (policyID && policyID !== allReports?.[reportID]?.policyID) {
             return;
         }
 
-        const policyReport = allReports ? allReports[report] : null;
+        const policyReport = allReports ? allReports[reportID] : null;
 
         if (!policyReport) {
             return;
@@ -152,22 +152,20 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
     // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
 
-    const cleanPolicies = Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, policy]) => !!policy));
-
-    Object.values(cleanPolicies).forEach((policy) => {
+    Object.values(allPolicies ?? {}).forEach((policy) => {
         if (!policy) {
             return;
         }
 
         if (hasWorkspaceSettingsRBR(policy)) {
-            workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD.RBR;
+            workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
     });
 
-    Object.keys(allReports).forEach((report) => {
-        const policyID = allReports?.[report]?.policyID ?? CONST.POLICY.EMPTY;
-        const policyReport = allReports ? allReports[report] : null;
-        if (!policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
+    Object.keys(allReports).forEach((reportID) => {
+        const policyID = allReports?.[reportID]?.policyID ?? CONST.POLICY.EMPTY;
+        const policyReport = allReports ? allReports[reportID] : null;
+        if (!policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
             return;
         }
         const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
@@ -192,20 +190,14 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
 
     const workspacesUnreadStatuses: Record<string, boolean> = {};
 
-    Object.keys(allReports).forEach((report) => {
-        const policyID = allReports?.[report]?.policyID;
-        const policyReport = allReports ? allReports[report] : null;
-        if (!policyID || !policyReport) {
+    Object.keys(allReports).forEach((reportID) => {
+        const policyID = allReports?.[reportID]?.policyID;
+        const policyReport = allReports ? allReports[reportID] : null;
+        if (!policyID || (!policyReport && workspacesUnreadStatuses[policyID])) {
             return;
         }
 
-        const unreadStatus = ReportUtils.isUnread(policyReport);
-
-        if (unreadStatus) {
-            workspacesUnreadStatuses[policyID] = true;
-        } else {
-            workspacesUnreadStatuses[policyID] = false;
-        }
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(policyReport);
     });
 
     return workspacesUnreadStatuses;

@@ -3104,10 +3104,6 @@ const CONST = {
         DEFAULT: 5,
         CAROUSEL: 3,
     },
-    BRICK_ROAD: {
-        GBR: 'info',
-        RBR: 'error',
-    },
 
     /**
      * Constants for types of violations.
