@@ -17,7 +17,7 @@ const RootStack = createStackNavigator<PublicScreensParamList>();
 function PublicScreens() {
     return (
         <RootStack.Navigator>
-            {/* The structure for the HOME route have to be the same in public and auth screens. That's why the name for SignInPage is BOTTOM_TAB_NAVIGATOR. */}
+            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is BOTTOM_TAB_NAVIGATOR. */}
             <RootStack.Screen
                 name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                 options={defaultScreenOptions}

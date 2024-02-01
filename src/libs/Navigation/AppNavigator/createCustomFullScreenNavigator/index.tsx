@@ -9,7 +9,6 @@ import SCREENS from '@src/SCREENS';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
-// TODO-IDEAL: Extract to utils with ./createCustomStackNavigator/index.tsx
 type Routes = StackNavigationState<ParamListBase>['routes'];
 function reduceReportRoutes(routes: Routes): Routes {
     const result: Routes = [];

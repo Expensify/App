@@ -25,7 +25,6 @@ function BottomTabBar() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const {activeWorkspaceID} = useActiveWorkspace();
 
     // Parent navigator of the bottom tab bar is the root navigator.

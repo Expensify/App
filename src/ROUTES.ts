@@ -12,8 +12,10 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 }
 
 const ROUTES = {
+    // If the user opens this route, we'll redirect them to the path saved in the last visited path or to the home page if the last visited path is empty.
     ROOT: '',
 
+    // This route renders the list of reports.
     HOME: 'home',
 
     ALL_SETTINGS: 'all-settings',
