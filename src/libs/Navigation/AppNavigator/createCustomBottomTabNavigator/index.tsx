@@ -17,6 +17,7 @@ type CustomNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigati
 
 function getStateToRender(state: StackNavigationState<ParamListBase>): StackNavigationState<ParamListBase> {
     const routesToRender = [state.routes.at(-1)] as NavigationStateRoute[];
+
     // We need to render at least one HOME screen to make sure everything load properly.
     if (routesToRender[0].name !== SCREENS.HOME) {
         const routeToRender = state.routes.find((route) => route.name === SCREENS.HOME);

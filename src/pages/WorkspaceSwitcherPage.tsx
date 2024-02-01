@@ -55,8 +55,8 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [selectedOption, setSelectedOption] = useState<SimpleWorkspaceItem | undefined>(undefined);
-    const [searchTerm, setSearchTerm] = useState<string>();
+    const [selectedOption, setSelectedOption] = useState<SimpleWorkspaceItem>();
+    const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
@@ -70,12 +70,12 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 return brickRoadsForPolicies[policyId];
             }
 
-            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.RBR)) {
-                return CONST.BRICK_ROAD.RBR;
+            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
 
-            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.GBR)) {
-                return CONST.BRICK_ROAD.GBR;
+            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO)) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
             }
 
             return undefined;
@@ -161,6 +161,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
 
     const everythingSection = useMemo(() => {
         const option = {
+            reportID: '',
             text: CONST.WORKSPACE_SWITCHER.NAME,
             icons: [
                 {
@@ -185,7 +186,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 </View>
                 <View>
                     <OptionRow
-                        option={{...option, brickRoadIndicator: !activeWorkspaceID ? undefined : option.brickRoadIndicator, reportID: ''}}
+                        option={option}
                         onSelectRow={selectPolicy}
                         showTitleTooltip={false}
                         highlightSelected

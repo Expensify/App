@@ -85,13 +85,18 @@ type Policy = {
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
 
-    /** The scheduled submit frequency set up on the this policy */
+    /** The scheduled submit frequency set up on this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-    /** Whether the scheduled submit is enabled */
+    /** @deprecated Whether the scheduled submit is enabled */
     isHarvestingEnabled?: boolean;
 
     /** Whether the scheduled submit is enabled */
+    harvesting?: {
+        enabled: boolean;
+    };
+
+    /** Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
@@ -151,8 +156,10 @@ type Policy = {
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
 
+    /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 
+    /** ReportID of the announce room for this workspace */
     chatReportIDAnnounce?: number;
 };
 
