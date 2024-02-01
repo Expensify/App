@@ -98,32 +98,19 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
 
     let brickRoad: BrickRoad | undefined;
 
-    Object.keys(allReports).forEach((reportID) => {
-        if (brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-            return;
-        }
+    const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
-        if (policyID && policyID !== allReports?.[reportID]?.policyID) {
-            return;
-        }
+    const hasChatTabRBR = policyReports.some((report) => report && getBrickRoadForPolicy(report) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
 
-        const policyReport = allReports ? allReports[reportID] : null;
+    if (hasChatTabRBR) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
 
-        if (!policyReport) {
-            return;
-        }
+    const hasChatTabGBR = policyReports.some((report) => report && getBrickRoadForPolicy(report) === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
 
-        const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
-
-        if (workspaceBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-            brickRoad = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            return;
-        }
-
-        if (!brickRoad && workspaceBrickRoad) {
-            brickRoad = workspaceBrickRoad;
-        }
-    });
+    if (hasChatTabGBR) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
 
     return brickRoad;
 }
