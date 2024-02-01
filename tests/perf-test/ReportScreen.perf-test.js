@@ -15,7 +15,10 @@ import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
 import ReportScreen from '../../src/pages/home/ReportScreen';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import createCollection from '../utils/collections/createCollection';
+import createPersonalDetails from '../utils/collections/personalDetails';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReport from '../utils/collections/reports';
 import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -58,6 +61,7 @@ jest.mock('../../src/hooks/useEnvironment', () =>
 
 jest.mock('../../src/libs/Permissions', () => ({
     canUseLinkPreviews: jest.fn(() => true),
+    canUseDefaultRooms: jest.fn(() => true),
 }));
 jest.mock('../../src/hooks/usePermissions.ts');
 
@@ -104,6 +108,18 @@ afterEach(() => {
     Onyx.clear();
     PusherHelper.teardown();
 });
+
+const policies = createCollection(
+    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+    (index) => createRandomPolicy(index),
+    10,
+);
+
+const personalDetails = createCollection(
+    (item) => item.accountID,
+    (index) => createPersonalDetails(index),
+    20,
+);
 
 /**
  * This is a helper function to create a mock for the addListener function of the react-navigation library.
@@ -154,7 +170,11 @@ function ReportScreenWrapper(args) {
     );
 }
 
-test.skip('[ReportScreen] should render ReportScreen with composer interactions', () => {
+const report = {...createRandomReport(1), policyID: '1'};
+const reportActions = ReportTestUtils.getMockedReportActionsMap(500);
+const mockRoute = {params: {reportID: '1'}};
+
+test('[ReportScreen] should render ReportScreen with composer interactions', () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
         /**
@@ -167,9 +187,6 @@ test.skip('[ReportScreen] should render ReportScreen with composer interactions'
         await screen.findByTestId('ReportScreen');
 
         await act(triggerTransitionEnd);
-
-        // Query for the report list
-        await screen.findByTestId('report-actions-list');
 
         // Query for the composer
         const composer = await screen.findByTestId('composer');
@@ -191,15 +208,6 @@ test.skip('[ReportScreen] should render ReportScreen with composer interactions'
         await screen.findByLabelText(hintHeaderText);
     };
 
-    const policy = {
-        policyID: 1,
-        name: 'Testing Policy',
-    };
-
-    const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
-    const mockRoute = {params: {reportID: '1'}};
-
     const navigation = {addListener};
 
     return waitForBatchedUpdates()
@@ -208,9 +216,9 @@ test.skip('[ReportScreen] should render ReportScreen with composer interactions'
                 [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,
                 },
@@ -227,7 +235,7 @@ test.skip('[ReportScreen] should render ReportScreen with composer interactions'
         );
 });
 
-test.skip('[ReportScreen] should press of the report item', () => {
+test('[ReportScreen] should press of the report item', () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
         /**
@@ -244,9 +252,6 @@ test.skip('[ReportScreen] should press of the report item', () => {
         // Query for the report list
         await screen.findByTestId('report-actions-list');
 
-        // Query for the composer
-        await screen.findByTestId('composer');
-
         const hintReportPreviewText = Localize.translateLocal('iou.viewDetails');
 
         // Query for report preview buttons
@@ -256,15 +261,6 @@ test.skip('[ReportScreen] should press of the report item', () => {
         fireEvent.press(reportPreviewButtons[0]);
     };
 
-    const policy = {
-        policyID: 123,
-        name: 'Testing Policy',
-    };
-
-    const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
-    const mockRoute = {params: {reportID: '2'}};
-
     const navigation = {addListener};
 
     return waitForBatchedUpdates()
@@ -273,9 +269,9 @@ test.skip('[ReportScreen] should press of the report item', () => {
                 [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,
                 },
