@@ -15,7 +15,7 @@ import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteFo
 import replacePathInNestedState from './replacePathInNestedState';
 
 type Metainfo = {
-    // Sometimes modal screens doesn't have information about what should be visible under the overlay.
+    // Sometimes modal screens don't have information about what should be visible under the overlay.
     // That means such screen can have different screens under the overlay depending on what was already in the state.
     // If the screens in the bottom tab and central pane are not mandatory for this state, we want to have this information.
     // It will help us later with creating proper diff betwen current and desired state.
