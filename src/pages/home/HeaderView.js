@@ -193,8 +193,8 @@ function HeaderView(props) {
         }
         return (
             <>
-                <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting, styles.fontWeightNormal]}>{translate('threads.in')}</Text>
-                <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.fontWeightNormal]}> {translate('threads.in')} </Text>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
             </>
         );
     };

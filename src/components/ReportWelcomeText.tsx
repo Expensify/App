@@ -59,7 +59,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                     {isChatRoom ? translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(report)}) : translate('reportActionsView.sayHello')}
                 </Text>
             </View>
-            <Text style={[styles.mt3, styles.mw100]}>
+            <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
                     <>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
@@ -80,6 +80,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     }
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                                 }}
+                                style={styles.mw100}
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             >
                                 <RenderHTML html={report.description} />
@@ -131,7 +132,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
                     <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
                 )}
-            </Text>
+            </View>
         </>
     );
 }
