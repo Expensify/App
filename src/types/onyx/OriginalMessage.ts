@@ -294,6 +294,7 @@ export type {
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageAddComment,
+    OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
     PaymentMethodType,
