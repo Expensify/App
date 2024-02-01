@@ -86,7 +86,6 @@ function LegalNamePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            shouldAwareViewportScroll
             testID={LegalNamePage.displayName}
         >
             <HeaderWithBackButton
