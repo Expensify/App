@@ -10,8 +10,6 @@ import SelectionList from '@components/SelectionList';
 import type {User} from '@components/SelectionList/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithLocalizeProps} from '@components/withLocalize';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
