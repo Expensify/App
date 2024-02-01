@@ -84,12 +84,12 @@ function WorkspaceSwitcherPage({policies}) {
                 return brickRoadsForPolicies[policyId];
             }
 
-            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.RBR)) {
-                return CONST.BRICK_ROAD.RBR;
+            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
 
-            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.GBR)) {
-                return CONST.BRICK_ROAD.GBR;
+            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO)) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
             }
 
             return undefined;

@@ -13,7 +13,7 @@ type CheckingMethod = () => boolean;
 
 let allReports: OnyxCollection<Report>;
 
-type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD> | undefined;
+type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -57,7 +57,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     const doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     if (doesReportContainErrors) {
-        return CONST.BRICK_ROAD.RBR;
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
 
     // To determine if the report requires attention from the current user, we need to load the parent report action
@@ -68,7 +68,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     }
     const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};
     const shouldShowGreenDotIndicator = ReportUtils.requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
-    return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD.GBR : undefined;
+    return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
 function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
@@ -96,36 +96,28 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
         return undefined;
     }
 
-    let brickRoad: BrickRoad | undefined;
+    // If policyID is undefined, then all reports are checked whether they contain any brick road
+    const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
-    Object.keys(allReports).forEach((report) => {
-        if (brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-            return;
+    let hasChatTabGBR = false;
+
+    const hasChatTabRBR = policyReports.some((report) => {
+        const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
+        if (!hasChatTabGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            hasChatTabGBR = true;
         }
-
-        if (policyID && policyID !== allReports?.[report]?.policyID) {
-            return;
-        }
-
-        const policyReport = allReports ? allReports[report] : null;
-
-        if (!policyReport) {
-            return;
-        }
-
-        const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
-
-        if (workspaceBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-            brickRoad = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            return;
-        }
-
-        if (!brickRoad && workspaceBrickRoad) {
-            brickRoad = workspaceBrickRoad;
-        }
+        return brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     });
 
-    return brickRoad;
+    if (hasChatTabRBR) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+
+    if (hasChatTabGBR) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+
+    return undefined;
 }
 
 function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
@@ -152,25 +144,22 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
     // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
 
-    const cleanPolicies = Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, policy]) => !!policy));
-
-    Object.values(cleanPolicies).forEach((policy) => {
+    Object.values(allPolicies ?? {}).forEach((policy) => {
         if (!policy) {
             return;
         }
 
         if (hasWorkspaceSettingsRBR(policy)) {
-            workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD.RBR;
+            workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
     });
 
-    Object.keys(allReports).forEach((report) => {
-        const policyID = allReports?.[report]?.policyID ?? CONST.POLICY.EMPTY;
-        const policyReport = allReports ? allReports[report] : null;
-        if (!policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
+    Object.values(allReports).forEach((report) => {
+        const policyID = report?.policyID ?? CONST.POLICY.EMPTY;
+        if (!report || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
             return;
         }
-        const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
+        const workspaceBrickRoad = getBrickRoadForPolicy(report);
 
         if (!workspaceBrickRoad && !!workspacesBrickRoadsMap[policyID]) {
             return;
@@ -192,20 +181,13 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
 
     const workspacesUnreadStatuses: Record<string, boolean> = {};
 
-    Object.keys(allReports).forEach((report) => {
-        const policyID = allReports?.[report]?.policyID;
-        const policyReport = allReports ? allReports[report] : null;
-        if (!policyID || !policyReport) {
+    Object.values(allReports).forEach((report) => {
+        const policyID = report?.policyID;
+        if (!policyID || workspacesUnreadStatuses[policyID]) {
             return;
         }
 
-        const unreadStatus = ReportUtils.isUnread(policyReport);
-
-        if (unreadStatus) {
-            workspacesUnreadStatuses[policyID] = true;
-        } else {
-            workspacesUnreadStatuses[policyID] = false;
-        }
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report);
     });
 
     return workspacesUnreadStatuses;

@@ -3109,11 +3109,6 @@ const CONST = {
         CAROUSEL: 3,
     },
 
-    BRICK_ROAD: {
-        GBR: 'info',
-        RBR: 'error',
-    },
-
     /**
      * Constants for types of violations.
      * Defined here because they need to be referenced by the type system to generate the
