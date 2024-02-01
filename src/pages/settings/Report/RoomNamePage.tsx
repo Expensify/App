@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -17,13 +18,16 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type RoomNamePageOnyxProps = {
     /** All reports shared with the user */
@@ -33,11 +37,7 @@ type RoomNamePageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type RoomNamePageProps = RoomNamePageOnyxProps &
-    WithReportOrNotFoundProps & {
-        /** The room report for which the name is being edited */
-        report: Report;
-    };
+type RoomNamePageProps = RoomNamePageOnyxProps & WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOM_NAME>;
 
 function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
     const styles = useThemeStyles();
@@ -50,7 +50,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             const errors = {};
 
             // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
-            if (values.roomName === report.reportName) {
+            if (values.roomName === report?.reportName) {
                 return errors;
             }
 
@@ -63,7 +63,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
-            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report.policyID)) {
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID)) {
                 // The room name can't be set to one that already exists on the policy
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
             }
@@ -82,12 +82,12 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                    onSubmit={(values) => ReportActions.updatePolicyRoomNameAndNavigate(report, values.roomName)}
+                    onSubmit={(values) => !isEmptyObject(report) && ReportActions.updatePolicyRoomNameAndNavigate(report, values.roomName)}
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
@@ -97,7 +97,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
                             InputComponent={RoomNameInput}
                             ref={roomNameInputRef}
                             inputID="roomName"
-                            defaultValue={report.reportName}
+                            defaultValue={report?.reportName}
                             isFocused={isFocused}
                         />
                     </View>
@@ -115,7 +115,7 @@ export default withReportOrNotFound()(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
         },
     })(RoomNamePage),
 );

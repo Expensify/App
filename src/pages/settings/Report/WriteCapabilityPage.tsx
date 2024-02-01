@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,13 +9,16 @@ import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WriteCapabilityPageOnyxProps = {
     /** The policy object for the current route */
@@ -22,10 +26,8 @@ type WriteCapabilityPageOnyxProps = {
 };
 
 type WriteCapabilityPageProps = WriteCapabilityPageOnyxProps &
-    WithReportOrNotFoundProps & {
-        /** The report for which we are setting write capability */
-        report: Report;
-    };
+    WithReportOrNotFoundProps &
+    StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY>;
 
 function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
     const {translate} = useLocalize();
@@ -33,7 +35,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
         value,
         text: translate(`writeCapabilityPage.writeCapability.${value}`),
         keyForList: value,
-        isSelected: value === (report.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL),
+        isSelected: value === (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
 
     const isAbleToEdit = ReportUtils.canEditWriteCapability(report, policy);
@@ -47,11 +49,11 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
                 <HeaderWithBackButton
                     title={translate('writeCapabilityPage.label')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''))}
                 />
                 <SelectionList
                     sections={[{data: writeCapabilityOptions}]}
-                    onSelectRow={(option) => ReportActions.updateWriteCapabilityAndNavigate(report, option.value)}
+                    onSelectRow={(option) => !isEmptyObject(report) && ReportActions.updateWriteCapabilityAndNavigate(report, option.value)}
                     initiallyFocusedOptionKey={Object.values(writeCapabilityOptions).find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageNotFoundView>
@@ -64,7 +66,7 @@ WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 export default withReportOrNotFound()(
     withOnyx<WriteCapabilityPageProps, WriteCapabilityPageOnyxProps>({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
         },
     })(WriteCapabilityPage),
 );
