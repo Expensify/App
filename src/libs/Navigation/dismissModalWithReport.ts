@@ -38,7 +38,7 @@ function dismissModalWithReport(targetReport: Report | EmptyObject, navigationRe
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
-            // if we are not in the target report, we need to navigate to it after dismissing the modal
+            // If we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReport.reportID !== getTopmostReportId(state)) {
                 const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReport.reportID));
                 const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
