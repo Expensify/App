@@ -17,6 +17,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
@@ -104,9 +105,9 @@ function HeaderWithBackButton({
                 {icon && (
                     <Icon
                         src={icon}
-                        width={48}
-                        height={48}
-                        additionalStyles={[styles.mr1]}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
                     />
                 )}
                 {shouldShowAvatarWithDisplay ? (
