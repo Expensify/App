@@ -103,4 +103,5 @@ export default function (
         })(React.forwardRef(WithReportOrNotFound));
     };
 }
+
 export type {WithReportOrNotFoundProps};
