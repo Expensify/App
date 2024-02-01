@@ -22,7 +22,6 @@ function WorkspaceNamePage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // TODO: Change this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
     const submit = useCallback(
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
             if (!policy || policy.isPolicyUpdating) {
@@ -36,7 +35,6 @@ function WorkspaceNamePage({policy}: Props) {
         [policy],
     );
 
-    // TODO: Change this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
     const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
         const errors: Record<string, string> = {};
         const name = values.name.trim();
