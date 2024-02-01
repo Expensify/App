@@ -3,6 +3,6 @@
 <div class="selector">
 <select class="platform" onchange="selectOption(this)">
     {% for value in values %}
-        <option value="selector-{{ value | strip | downcase }}">{{ value | strip | capitalize }}</option>
+        <option value="option-{{ value | strip | downcase }}">{{ value | strip | capitalize }}</option>
     {% endfor %}
 </select>
