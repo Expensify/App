@@ -1,56 +1,47 @@
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
-import userPropTypes from '@pages/settings/userPropTypes';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session, User} from '@src/types/onyx';
 
-const propTypes = {
-    /** The policy ID currently being configured */
-    policyID: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
-
-    /* From Onyx */
+type WorkspaceBillsFirstSectionOnyxProps = {
     /** Session of currently logged in user */
-    session: PropTypes.shape({
-        /** Email address */
-        email: PropTypes.string.isRequired,
-    }),
+    session: OnyxEntry<Session>;
 
     /** Information about the logged in user's account */
-    user: userPropTypes,
+    user: OnyxEntry<User>;
 };
 
-const defaultProps = {
-    session: {
-        email: null,
-    },
-    user: {},
+type WorkspaceBillsFirstSectionProps = WorkspaceBillsFirstSectionOnyxProps & {
+    /** The policy ID currently being configured */
+    policyID: string;
 };
 
-function WorkspaceBillsFirstSection(props) {
+function WorkspaceBillsFirstSection({session, policyID, user}: WorkspaceBillsFirstSectionProps) {
     const styles = useThemeStyles();
-    const emailDomain = Str.extractEmailDomain(props.session.email);
-    const manageYourBillsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
+    const {translate} = useLocalize();
+
+    const emailDomain = Str.extractEmailDomain(session?.email ?? '');
+    const manageYourBillsUrl = `reports?policyID=${policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
+
     return (
         <Section
-            title={props.translate('workspace.bills.manageYourBills')}
+            title={translate('workspace.bills.manageYourBills')}
             icon={Illustrations.PinkBill}
             menuItems={[
                 {
-                    title: props.translate('workspace.bills.viewAllBills'),
+                    title: translate('workspace.bills.viewAllBills'),
                     onPress: () => Link.openOldDotLink(manageYourBillsUrl),
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
@@ -59,40 +50,35 @@ function WorkspaceBillsFirstSection(props) {
                     link: () => Link.buildOldDotURL(manageYourBillsUrl),
                 },
             ]}
-            containerStyles={[styles.cardSection]}
+            containerStyles={styles.cardSection}
         >
-            <View style={[styles.mv3]}>
+            <View style={styles.mv3}>
                 <Text>
-                    {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
-                    {props.user.isFromPublicDomain ? (
+                    {translate('workspace.bills.askYourVendorsBeforeEmail')}
+                    {user?.isFromPublicDomain ? (
                         <TextLink onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}>
                             example.com@expensify.cash
                         </TextLink>
                     ) : (
                         <CopyTextToClipboard
                             text={`${emailDomain}@expensify.cash`}
-                            textStyles={[styles.textBlue]}
+                            textStyles={styles.textBlue}
                         />
                     )}
-                    <Text>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
+                    <Text>{translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
                 </Text>
             </View>
         </Section>
     );
 }
 
-WorkspaceBillsFirstSection.propTypes = propTypes;
-WorkspaceBillsFirstSection.defaultProps = defaultProps;
 WorkspaceBillsFirstSection.displayName = 'WorkspaceBillsFirstSection';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(WorkspaceBillsFirstSection);
+export default withOnyx<WorkspaceBillsFirstSectionProps, WorkspaceBillsFirstSectionOnyxProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(WorkspaceBillsFirstSection);
