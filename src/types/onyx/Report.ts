@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
+import type {PolicyReportField} from './PolicyReportField';
 
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
 
@@ -12,6 +13,13 @@ type Note = {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
 };
+
+type Participant = {
+    hidden: boolean;
+    role?: 'admin' | 'member';
+};
+
+type Participants = Record<number, Participant>;
 
 type Report = {
     /** The specific type of chat */
@@ -117,10 +125,12 @@ type Report = {
     lastActorAccountID?: number;
     ownerAccountID?: number;
     ownerEmail?: string;
+    participants?: Participants;
     participantAccountIDs?: number[];
     visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
+    errors?: OnyxCommon.Errors;
     managerEmail?: string;
     parentReportActionIDs?: number[];
     errorFields?: OnyxCommon.ErrorFields;
@@ -158,9 +168,10 @@ type Report = {
     updateReportInLHN?: boolean;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
+    selected?: boolean;
 
     /** If the report contains reportFields, save the field id and its value */
-    reportFields?: Record<string, string>;
+    reportFields?: Record<string, PolicyReportField>;
 };
 
 export default Report;

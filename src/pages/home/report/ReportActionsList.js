@@ -6,7 +6,7 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
-import {withPersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
@@ -78,6 +78,7 @@ const defaultProps = {
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
+    policy: {},
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -130,20 +131,19 @@ function ReportActionsList({
     onScroll,
     mostRecentIOUReportActionID,
     isSmallScreenWidth,
-    personalDetailsList,
     currentUserPersonalDetails,
     loadNewerChats,
     loadOlderChats,
     onLayout,
     isComposerFullSize,
 }) {
+    const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
-    const userInactiveSince = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -388,7 +388,7 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
-    const calculateUnreadMarker = useCallback(() => {
+    useEffect(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
@@ -406,48 +406,7 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, shouldDisplayNewMarker, currentUnreadMarker, report.reportID]);
-
-    useEffect(() => {
-        calculateUnreadMarker();
-    }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
-
-    const onVisibilityChange = useCallback(() => {
-        if (!Visibility.isVisible()) {
-            userInactiveSince.current = DateUtils.getDBTime();
-            return;
-        }
-        // In case the user read new messages (after being inactive) with other device we should
-        // show marker based on report.lastReadTime
-        const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
-        if (
-            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
-            !(
-                sortedVisibleReportActions &&
-                _.some(
-                    sortedVisibleReportActions,
-                    (reportAction) =>
-                        newMessageTimeReference < reportAction.created &&
-                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
-                )
-            )
-        ) {
-            return;
-        }
-
-        Report.readNewestAction(report.reportID, false);
-        userActiveSince.current = DateUtils.getDBTime();
-        lastReadTimeRef.current = newMessageTimeReference;
-        setCurrentUnreadMarker(null);
-        cacheUnreadMarkers.delete(report.reportID);
-        calculateUnreadMarker();
-    }, [calculateUnreadMarker, report, sortedVisibleReportActions]);
-
-    useEffect(() => {
-        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(onVisibilityChange);
-
-        return unsubscribeVisibilityListener;
-    }, [onVisibilityChange]);
+    }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
@@ -556,4 +515,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withWindowDimensions, withPersonalDetails(), withCurrentUserPersonalDetails)(ReportActionsList);
+export default compose(withWindowDimensions, withCurrentUserPersonalDetails)(ReportActionsList);

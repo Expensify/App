@@ -32,7 +32,7 @@ PODS:
     - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
-  - Expo (50.0.0-preview.7):
+  - Expo (50.0.4):
     - ExpoModulesCore
   - ExpoImage (1.10.1):
     - ExpoModulesCore
@@ -40,7 +40,7 @@ PODS:
     - SDWebImageAVIFCoder (~> 0.10.1)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.13.0)
-  - ExpoModulesCore (1.11.4):
+  - ExpoModulesCore (1.11.8):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1176,6 +1176,8 @@ PODS:
     - React-Core
   - react-native-key-command (1.0.6):
     - React-Core
+  - react-native-launch-arguments (4.0.2):
+    - React
   - react-native-netinfo (11.2.1):
     - React-Core
   - react-native-pager-view (6.2.2):
@@ -1522,6 +1524,7 @@ DEPENDENCIES:
   - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
+  - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -1715,6 +1718,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
     :path: "../node_modules/react-native-key-command"
+  react-native-launch-arguments:
+    :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -1831,9 +1836,9 @@ SPEC CHECKSUMS:
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
-  Expo: cd2dc043dd1cc3d9e8e4e035fb9a41b421e8f13f
+  Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
-  ExpoModulesCore: 01c0abfa6cd9c41c4bd76d8a1a079e6b591db10f
+  ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 86de768f89901ef6ed3207cd686362189d64ac88
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
@@ -1909,6 +1914,7 @@ SPEC CHECKSUMS:
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
+  react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
   react-native-pdf: b4ca3d37a9a86d9165287741c8b2ef4d8940c00e
