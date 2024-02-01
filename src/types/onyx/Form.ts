@@ -59,6 +59,12 @@ type PrivateNotesForm = Form<{
 
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
+type WorkspaceSettingsForm = Form<{
+    name: string;
+}>;
+
+type ReportFieldEditForm = Form<Record<string, string>>;
+
 type ExitSurveyReasonForm = Form<{
     [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ExitReason;
 }>;
@@ -82,4 +88,6 @@ export type {
     PersonalBankAccountForm,
     ExitSurveyReasonForm,
     ExitSurveyResponseForm,
+    WorkspaceSettingsForm,
+    ReportFieldEditForm,
 };

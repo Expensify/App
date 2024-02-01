@@ -19,6 +19,8 @@ import type {
     IntroSchoolPrincipalForm,
     NewRoomForm,
     PrivateNotesForm,
+    ReportFieldEditForm,
+    WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -155,6 +157,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceSettingsForm,
     ReportUserIsTyping,
     PolicyReportField,
     PolicyReportFields,
@@ -163,4 +166,5 @@ export type {
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
+    ReportFieldEditForm,
 };
