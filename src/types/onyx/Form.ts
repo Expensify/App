@@ -55,7 +55,7 @@ type PrivateNotesForm = Form<{
 }>;
 
 type RoomNameForm = Form<{
-    roomName?: string;
+    roomName: string;
 }>;
 
 export default Form;
