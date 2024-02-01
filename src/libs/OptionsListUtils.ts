@@ -1431,11 +1431,13 @@ function getOptions(
     orderedReports.reverse();
 
     const allReportOptions: ReportUtils.OptionData[] = [];
+    const isTaskActionTypeForParticipants = actionTypeForParticipants === CONST.REPORT.TYPE.TASK;
     const isMoneyRequestActionTypeForParticipants =
         actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
         actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
         actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
         actionTypeForParticipants === CONST.IOU.TYPE.SPLIT;
+    const recentChatReportIDsForActionType: string[] = [];
     orderedReports.forEach((report) => {
         if (!report) {
             return;
@@ -1458,6 +1460,24 @@ function getOptions(
         }
 
         if (isThread && !includeThreads) {
+            return;
+        }
+
+        if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
+            let parentReportID = report.parentReportID;
+            let topmostChatReportID = report.parentReportID;
+            while (parentReportID) {
+                const parentReport = ReportUtils.getReport(parentReportID);
+                if (parentReport?.parentReportID) {
+                    topmostChatReportID = parentReport?.parentReportID;
+                }
+                parentReportID = parentReport?.parentReportID;
+            }
+            if (!recentChatReportIDsForActionType.some((reportID: string) => topmostChatReportID === reportID)) {
+                if (topmostChatReportID) {
+                    recentChatReportIDsForActionType.push(topmostChatReportID);
+                }
+            }
             return;
         }
 
@@ -1525,13 +1545,12 @@ function getOptions(
     optionsToExcludeByActions.push(...optionsToExclude);
 
     if (includeRecentReports) {
-        const recentChatReportIDsForMoneyRequestActionType: string[] = [];
         if (isMoneyRequestActionTypeForParticipants) {
             TransactionUtils.getTransactionsByActionType(actionTypeForParticipants).every((recentTransaction) => {
                 const iouReport = ReportUtils.getReport(recentTransaction?.reportID);
-                if (!recentChatReportIDsForMoneyRequestActionType.some((reportID: string) => iouReport?.parentReportID === reportID)) {
+                if (!recentChatReportIDsForActionType.some((reportID: string) => iouReport?.parentReportID === reportID)) {
                     if (iouReport?.parentReportID) {
-                        recentChatReportIDsForMoneyRequestActionType.push(iouReport?.parentReportID);
+                        recentChatReportIDsForActionType.push(iouReport?.parentReportID);
                     }
                 }
                 return true;
@@ -1568,11 +1587,9 @@ function getOptions(
                 }
             }
 
-            let isActionTypeOptionForParticipants = false;
-            if (isMoneyRequestActionTypeForParticipants && recentChatReportIDsForMoneyRequestActionType.some((reportID: string) => reportID === String(reportOption.reportID))) {
-                isActionTypeOptionForParticipants = true;
-            }
-
+            const isActionTypeOptionForParticipants =
+                (isMoneyRequestActionTypeForParticipants || isTaskActionTypeForParticipants) &&
+                recentChatReportIDsForActionType.some((reportID: string) => reportID === String(reportOption.reportID));
             if (isActionTypeOptionForParticipants && optionsToExcludeByActions.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)) {
                 continue;
             }
