@@ -641,7 +641,6 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} currency
  * @param {String} created
  * @param {String} merchant
- * @param {Number} [moneyRequestReportID]
  * @param {Number} [payeeAccountID]
  * @param {String} [payeeEmail]
  * @param {Object} [receipt]
