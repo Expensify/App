@@ -80,7 +80,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
         return [...selectedOptions, ...Object.values(policyTagList).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
-    //
     const sections = useMemo(() => {
         const policyRecentlyUsedTagsList = policyRecentlyUsedTags?.tag ?? [];
 
