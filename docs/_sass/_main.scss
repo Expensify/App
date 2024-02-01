@@ -467,6 +467,9 @@ button {
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
+            * > ol {
+                padding: 0;
+            }
         }
 
         select {
