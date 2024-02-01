@@ -151,6 +151,7 @@ type Policy = {
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
 
+    /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 
     chatReportIDAnnounce?: number;

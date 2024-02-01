@@ -1484,6 +1484,10 @@ const CONST = {
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
 
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
+
+        PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
+
+        POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
     },
 
     PRONOUNS: {
@@ -3168,6 +3172,7 @@ const CONST = {
         SUBSCRIPT_ICON_SIZE: 8,
         MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
     },
+
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 } as const;
 
