@@ -338,6 +338,7 @@ function AvatarWithImagePicker({
                     source={previewSource}
                     originalFileName={originalFileName}
                     fallbackSource={fallbackIcon}
+                    maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
