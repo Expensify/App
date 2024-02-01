@@ -22,6 +22,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {singleExecution} = useSingleExecution();
     const {
         allEmojis,
         headerEmojis,
@@ -36,7 +37,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
         listStyle,
         emojiListRef,
     } = useEmojiPickerMenu();
-    const {singleExecution} = useSingleExecution();
     const StyleUtils = useStyleUtils();
 
     /**
@@ -74,7 +74,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
-     * so that the sticky headers function properly
+     * so that the sticky headers function properly.
      *
      * @param {Object} item
      * @returns {*}

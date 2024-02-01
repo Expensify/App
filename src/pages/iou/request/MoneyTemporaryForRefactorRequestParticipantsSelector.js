@@ -13,10 +13,11 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,8 +55,8 @@ const propTypes = {
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
+    /** Whether the parent screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,7 +64,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
-    isSearchingForReports: false,
+    didScreenTransitionEnd: false,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -75,7 +76,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
-    isSearchingForReports,
+    didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -87,6 +88,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -95,6 +97,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
+        if (!didScreenTransitionEnd) {
+            return [newSections, {}];
+        }
         let indexOffset = 0;
 
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -129,9 +134,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             participants,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            maxParticipantsReached,
+            indexOffset,
             personalDetails,
             true,
-            indexOffset,
         );
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
@@ -169,7 +175,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
 
     /**
      * Adds a single participant to the request
@@ -238,14 +244,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             ),
         [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
-
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
-        }
-        setSearchTerm(text);
-    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -328,11 +326,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
+    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
                 onConfirm={handleConfirmSelection}
-                sections={sections}
+                sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
@@ -341,7 +341,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
+                showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
                 rightHandSideComponent={itemRightSideComponent}
             />
         </View>
@@ -358,9 +358,5 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
     },
 })(MoneyTemporaryForRefactorRequestParticipantsSelector);

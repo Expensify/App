@@ -16,11 +16,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
-    Login,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyReportField,
+    PolicyReportFields,
     Report,
     ReportAction,
     ReportMetadata,
@@ -28,13 +28,13 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -76,20 +76,6 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
-};
-
-type Participant = {
-    accountID: number;
-    alternateText: string;
-    firstName: string;
-    icons: Icon[];
-    keyForList: string;
-    lastName: string;
-    login: string;
-    phoneNumber: string;
-    searchText: string;
-    selected: boolean;
-    text: string;
 };
 
 type SpendBreakdown = {
@@ -366,7 +352,7 @@ type CustomIcon = {
 };
 
 type OptionData = {
-    text: string;
+    text?: string;
     alternateText?: string | null;
     allReportErrors?: Errors;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
@@ -396,6 +382,12 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: OnyxEntry<ReportAction>;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    isDefaultRoom?: boolean;
+    isExpenseReport?: boolean;
+    isOptimisticPersonalDetail?: boolean;
+    selected?: boolean;
+    isOptimisticAccount?: boolean;
+    isSelected?: boolean;
     descriptiveText?: string;
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
@@ -460,14 +452,21 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let loginList: OnyxEntry<Login>;
+let allPolicyReportFields: OnyxCollection<PolicyReportFields> = {};
+
 Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (value) => (loginList = value),
+    key: ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicyReportFields = value),
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -1606,7 +1605,7 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 /**
  * Get the displayName for a single report participant.
  */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string | undefined {
+function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string {
     if (!accountID) {
         return '';
     }
@@ -1617,7 +1616,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
-    if (personalDetails.isOptimisticPersonalDetail === true && formattedLogin) {
+    if (personalDetails.isOptimisticPersonalDetail === true) {
         return formattedLogin;
     }
 
@@ -1801,28 +1800,6 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
-    const allAvailableReports = allReportsDict ?? allReports;
-    let moneyRequestReport: OnyxEntry<Report> | undefined;
-    if (isMoneyRequestReport(report)) {
-        moneyRequestReport = report;
-    }
-    if (allAvailableReports && report?.iouReportID) {
-        moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-    }
-    if (moneyRequestReport) {
-        const total = moneyRequestReport?.total ?? 0;
-
-        if (total !== 0) {
-            // There is a possibility that if the Expense report has a negative total.
-            // This is because there are instances where you can get a credit back on your card,
-            // or you enter a negative expense to “offset” future expenses
-            return isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total);
-        }
-    }
-    return 0;
-}
-
 function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
@@ -1900,10 +1877,74 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 }
 
 /**
+ * Given a report field, check if the field is for the report title.
+ */
+function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): boolean {
+    return reportField?.type === 'formula' && reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+}
+
+/**
+ * Given a report field, check if the field can be edited or not.
+ * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
+ * For non title fields, its considered disabled if:
+ * 1. The user is not admin of the report
+ * 2. Report is settled or it is closed
+ */
+function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    const isReportSettled = isSettled(report?.reportID);
+    const isReportClosed = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+    const isTitleField = isReportFieldOfTypeTitle(reportField);
+    const isAdmin = isPolicyAdmin(report?.policyID ?? '', {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id ?? ''}`]: policy});
+    return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
+}
+
+/**
+ * Given a set of report fields, return the field of type formula
+ */
+function getFormulaTypeReportField(reportFields: PolicyReportFields) {
+    return Object.values(reportFields).find((field) => field.type === 'formula');
+}
+
+/**
+ * Get the report fields attached to the policy given policyID
+ */
+function getReportFieldsByPolicyID(policyID: string) {
+    return Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === policyID)?.[1];
+}
+
+/**
+ * Get the report fields that we should display a MoneyReportView gets opened
+ */
+
+function getAvailableReportFields(report: Report, policyReportFields: PolicyReportField[]): PolicyReportField[] {
+    // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
+    const reportFields = Object.values(report.reportFields ?? {});
+    const reportIsSettled = isSettled(report.reportID);
+
+    // If the report is settled, we don't want to show any new field that gets added to the policy.
+    if (reportIsSettled) {
+        return reportFields;
+    }
+
+    // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
+    // are attached to the report.
+    const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
+    return mergedFieldIds.map((id) => report?.reportFields?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
+}
+
+/**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
-    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const isReportSettled = isSettled(report?.reportID ?? '');
+    const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
+    const titleReportField = getFormulaTypeReportField(reportFields ?? {});
+
+    if (titleReportField && report?.reportName && Permissions.canUseReportFields(allBetas ?? [])) {
+        return report.reportName;
+    }
+
+    const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
@@ -2203,7 +2244,7 @@ function getReportPreviewMessage(
         }
     }
 
-    const totalAmount = getMoneyRequestReimbursableTotal(report);
+    const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
@@ -2336,12 +2377,18 @@ function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
  */
 function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
     if (!parentReportAction?.originalMessage) {
-        return '';
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
-    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
+    const participants = participantAccountIDs.map((id) => {
+        const name = getDisplayNameForParticipant(id);
+        if (name && name?.length > 0) {
+            return name;
+        }
+        return Localize.translateLocal('common.hidden');
+    });
     const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
     if (!users) {
         return parentReportActionMessage;
@@ -2792,7 +2839,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReport(iouReportID);
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(!isEmptyObject(report) ? report : null), currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(!isEmptyObject(report) ? report : null).totalDisplaySpend, currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -2864,7 +2911,7 @@ function buildOptimisticIOUReportAction(
     comment: string,
     participants: Participant[],
     transactionID: string,
-    paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>,
+    paymentType: PaymentMethodType,
     iouReportID = '',
     isSettlingUp = false,
     isSendMoneyFlow = false,
@@ -4233,9 +4280,8 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return true;
     }
 
-    // If there is a linked workspace, that means the user is a member of the workspace the report is in.
-    // Still, we only want policy owners and admins to be able to modify the name.
-    return !Object.keys(loginList ?? {}).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+    // If there is a linked workspace, that means the user is a member of the workspace the report is in and is allowed to rename.
+    return false;
 }
 
 /**
@@ -4487,6 +4533,36 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
     );
 }
 
+/**
+ * Assume any report without a reportID is unusable.
+ */
+function isValidReport(report?: OnyxEntry<Report>): boolean {
+    return Boolean(report?.reportID);
+}
+
+/**
+ * Check to see if we are a participant of this report.
+ */
+function isReportParticipant(accountID: number, report: OnyxEntry<Report>): boolean {
+    if (!accountID) {
+        return false;
+    }
+
+    // If we have a DM AND the accountID we are checking is the current user THEN we won't find them as a participant and must assume they are a participant
+    if (isDM(report) && accountID === currentUserAccountID) {
+        return true;
+    }
+
+    const possibleAccountIDs = report?.participantAccountIDs ?? [];
+    if (report?.ownerAccountID) {
+        possibleAccountIDs.push(report?.ownerAccountID);
+    }
+    if (report?.managerID) {
+        possibleAccountIDs.push(report?.managerID);
+    }
+    return possibleAccountIDs.includes(accountID);
+}
+
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
@@ -4553,32 +4629,6 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
- * Given a report field and a report, get the title of the field.
- * This is specially useful when we have a report field of type formula.
- */
-function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField): string {
-    const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
-
-    if (reportField.type !== 'formula') {
-        return value;
-    }
-
-    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
-        if (report && property in report) {
-            return report[property as keyof Report]?.toString() ?? match;
-        }
-        return match;
-    });
-}
-
-/**
- * Given a report field, check if the field is for the report title.
- */
-function isReportFieldOfTypeTitle(reportField: PolicyReportField): boolean {
-    return reportField.type === 'formula' && reportField.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
-}
-
-/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -4616,7 +4666,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return false;
     }
     type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
-    const reimbursableTotal = getMoneyRequestReimbursableTotal(report);
+    const reimbursableTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isGroupPolicy(report) &&
@@ -4663,7 +4713,6 @@ export {
     hasExpensifyGuidesEmails,
     requiresAttentionFromCurrentUser,
     isIOUOwnedByCurrentUser,
-    getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
@@ -4805,12 +4854,15 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
-    getReportFieldTitle,
     shouldDisplayThreadReplies,
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
+    isReportParticipant,
+    isValidReport,
     isReportFieldOfTypeTitle,
+    isReportFieldDisabled,
+    getAvailableReportFields,
 };
 
 export type {
