@@ -1,12 +1,8 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
-import _ from 'underscore';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import refPropTypes from '@components/refPropTypes';
 import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,68 +14,61 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type {TextInput} from 'react-native'
 
-const propTypes = {
-    /** IOU amount saved in Onyx */
-    amount: PropTypes.number,
+type MoneyRequestAmountFormProps = {
+        /** IOU amount saved in Onyx */
+        amount?: number;
 
-    /** Calculated tax amount based on selected tax rate */
-    taxAmount: PropTypes.number,
+        /** Calculated tax amount based on selected tax rate */
+        taxAmount?: number;
+    
+        /** Currency chosen by user or saved in Onyx */
+        currency?: string;
+    
+        /** Whether the amount is being edited or not */
+        isEditing?: boolean;
+    
+        /** Refs forwarded to the TextInputWithCurrencySymbol */
+        forwardedRef?: refPropTypes,
+    
+        /** Fired when back button pressed, navigates to currency selection page */
+        onCurrencyButtonPress: () => void;
+    
+        /** Fired when submit button pressed, saves the given amount and navigates to the next page */
+        onSubmitButtonPress: ({amount, currency}: {amount: string, currency: string}) => void;
+    
+        /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+        selectedTab?: ValueOf<typeof CONST.TAB_REQUEST>;
+}
 
-    /** Currency chosen by user or saved in Onyx */
-    currency: PropTypes.string,
-
-    /** Whether the amount is being edited or not */
-    isEditing: PropTypes.bool,
-
-    /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: refPropTypes,
-
-    /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress: PropTypes.func.isRequired,
-
-    /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: PropTypes.func.isRequired,
-
-    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
-};
-
-const defaultProps = {
-    amount: 0,
-    taxAmount: 0,
-    currency: CONST.CURRENCY.USD,
-    forwardedRef: null,
-    isEditing: false,
-    selectedTab: CONST.TAB_REQUEST.MANUAL,
-};
+type Selection = {
+    start: number;
+    end: number;
+}
 
 /**
  * Returns the new selection object based on the updated amount's length
- *
- * @param {Object} oldSelection
- * @param {Number} prevLength
- * @param {Number} newLength
- * @returns {Object}
  */
-const getNewSelection = (oldSelection, prevLength, newLength) => {
+const getNewSelection = (oldSelection: Selection, prevLength: number, newLength: number): Selection => {
     const cursorPosition = oldSelection.end + (newLength - prevLength);
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount, taxAmount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(taxAmount);
+const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
+const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(taxAmount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CURRENCY.USD, isEditing = false, forwardedRef = null, onCurrencyButtonPress, onSubmitButtonPress, selectedTab = CONST.TAB_REQUEST.MANUAL}: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
-    const textInput = useRef(null);
+    const textInput = useRef<TextInput | null>(null);
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
@@ -100,15 +89,14 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
-     *
-     * @param {Event} event
-     * @param {Array<string>} ids
      */
-    const onMouseDown = (event, ids) => {
-        const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
-        if (!_.contains(ids, relatedTargetId)) {
+    const onMouseDown = (event: MouseEvent, ids: string[]) => {
+        // const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
+        const relatedTargetId = event.nativeEvent.target.id;
+        if (ids.includes(relatedTargetId)) {
             return;
         }
+        
         event.preventDefault();
         if (!textInput.current) {
             return;
@@ -118,7 +106,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
         }
     };
 
-    const initializeAmount = useCallback((newAmount) => {
+    const initializeAmount = useCallback((newAmount: number) => {
         const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
         setCurrentAmount(frontendAmount);
         setSelection({
@@ -141,7 +129,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
      * @param {String} newAmount - Changed amount from user input
      */
     const setNewAmount = useCallback(
-        (newAmount) => {
+        (newAmount: string) => {
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
@@ -188,13 +176,11 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
-     *
-     * @param {String} key
      */
     const updateAmountNumberPad = useCallback(
-        (key) => {
-            if (shouldUpdateSelection && !textInput.current.isFocused()) {
-                textInput.current.focus();
+        (key: string) => {
+            if (shouldUpdateSelection && !textInput.current?.isFocused()) {
+                textInput.current?.focus();
             }
             // Backspace button is pressed
             if (key === '<' || key === 'Backspace') {
@@ -214,12 +200,12 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
     /**
      * Update long press value, to remove items pressing on <
      *
-     * @param {Boolean} value - Changed text from user input
+     * @param value - Changed text from user input
      */
-    const updateLongPressHandlerState = useCallback((value) => {
+    const updateLongPressHandlerState = useCallback((value: boolean) => { // param description looks wrong
         setShouldUpdateSelection(!value);
-        if (!value && !textInput.current.isFocused()) {
-            textInput.current.focus();
+        if (!value && !textInput.current?.isFocused()) {
+            textInput.current?.focus();
         }
     }, []);
 
@@ -261,7 +247,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
         forwardDeletePressedRef.current = key === 'delete' || (_.contains([CONST.OS.MAC_OS, CONST.OS.IOS], getOperatingSystem()) && nativeEvent.ctrlKey && key === 'd');
     };
 
-    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
+    const formattedAmount: string = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
@@ -317,7 +303,8 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
                     <BigNumberPad
                         id={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
-                        longPressHandlerStateChanged={updateLongPressHandlerState}
+                        longPressHandlerStateChanged={updateLongPressHandlerState} // this prop can be named better as onlongPressHandlerStateChanged or as onLongPress 
+                        isLongPressDisabled={false} // I think we should not have this as a required prop 
                     />
                 ) : null}
                 <Button
@@ -335,8 +322,6 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
     );
 }
 
-MoneyRequestAmountForm.propTypes = propTypes;
-MoneyRequestAmountForm.defaultProps = defaultProps;
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 const MoneyRequestAmountFormWithRef = React.forwardRef((props, ref) => (
