@@ -885,7 +885,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    return ReportUtils.isAllowedToComment(taskReport);
+    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
 }
 
 function clearTaskErrors(reportID: string) {
