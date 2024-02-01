@@ -491,6 +491,7 @@ const CONST = {
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
         INBOX: 'inbox',
+        DISMMISSED_REASON: '?dismissedReason=missingFeatures'
     },
 
     SIGN_IN_FORM_WIDTH: 300,
