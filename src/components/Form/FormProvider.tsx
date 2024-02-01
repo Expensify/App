@@ -10,12 +10,10 @@ import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form, Network} from '@src/types/onyx';
-import type {FormValueType} from '@src/types/onyx/Form';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {BaseInputProps, FormProps, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
+import type {FormInputErrors, FormOnyxValues, FormProps, InputComponentBaseProps, InputRefs, OnyxFormKeyWithoutDraft, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -51,10 +49,10 @@ type FormProviderOnyxProps = {
 type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProviderOnyxProps &
     FormProps<TFormID> & {
         /** Children to render. */
-        children: ((props: {inputValues: OnyxFormValues<TFormID>}) => ReactNode) | ReactNode;
+        children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
         /** Callback to validate the form */
-        validate?: (values: OnyxFormValuesFields<TFormID>) => Errors;
+        validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
         /** Should validate function be called when input loose focus */
         shouldValidateOnBlur?: boolean;
@@ -64,7 +62,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
     };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
-    resetForm: (optionalValue: OnyxFormValues<TFormID>) => void;
+    resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
 };
 
 function FormProvider(
@@ -86,11 +84,11 @@ function FormProvider(
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
-    const [errors, setErrors] = useState<Errors>({});
+    const [errors, setErrors] = useState<FormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
 
     const onValidate = useCallback(
-        (values: OnyxFormValuesFields, shouldClearServerError = true) => {
+        (values: FormOnyxValues, shouldClearServerError = true) => {
             const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
@@ -184,13 +182,13 @@ function FormProvider(
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate]);
 
     const resetForm = useCallback(
-        (optionalValue: OnyxFormValuesFields) => {
+        (optionalValue: FormOnyxValues) => {
             Object.keys(inputValues).forEach((inputID) => {
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
 
                     touchedInputs.current[inputID] = false;
-                    copyPrevState[inputID] = optionalValue[inputID as keyof OnyxFormValuesFields] || '';
+                    copyPrevState[inputID] = optionalValue[inputID as keyof FormOnyxValues] || '';
 
                     return copyPrevState;
                 });
@@ -203,9 +201,9 @@ function FormProvider(
         resetForm,
     }));
 
-    const registerInput = useCallback<RegisterInput>(
-        <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps): TInputProps => {
-            const newRef: MutableRefObject<BaseInputProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+    const registerInput = useCallback(
+        (inputID: keyof Form, inputProps: InputComponentBaseProps): InputComponentBaseProps => {
+            const newRef: MutableRefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
@@ -234,7 +232,7 @@ function FormProvider(
                 ...inputProps,
                 ref:
                     typeof inputRef === 'function'
-                        ? (node: BaseInputProps) => {
+                        ? (node: InputComponentBaseProps) => {
                               inputRef(node);
                               newRef.current = node;
                           }
@@ -298,7 +296,7 @@ function FormProvider(
                     }
                     inputProps.onBlur?.(event);
                 },
-                onInputChange: (value: FormValueType, key?: string) => {
+                onInputChange: (value, key) => {
                     const inputKey = key ?? inputID;
                     setInputValues((prevState) => {
                         const newState = {
