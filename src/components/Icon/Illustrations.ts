@@ -50,6 +50,7 @@ import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration_
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
+import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
@@ -118,4 +119,5 @@ export {
     CommentBubbles,
     TrashCan,
     TeleScope,
+    Profile,
 };

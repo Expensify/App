@@ -28,6 +28,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Title color */
     titleColor?: string;
 
+    /** Icon displayed on the left of the title */
+    icon?: IconAsset;
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 

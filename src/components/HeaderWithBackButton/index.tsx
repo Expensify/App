@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
+    icon,
     iconFill,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
@@ -99,6 +100,14 @@ function HeaderWithBackButton({
                             />
                         </PressableWithoutFeedback>
                     </Tooltip>
+                )}
+                {icon && (
+                    <Icon
+                        src={icon}
+                        width={48}
+                        height={48}
+                        additionalStyles={[styles.mr1]}
+                    />
                 )}
                 {shouldShowAvatarWithDisplay ? (
                     <AvatarWithDisplayName
