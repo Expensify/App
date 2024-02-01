@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -15,6 +15,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -143,6 +144,7 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
+    const userInactiveSince = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -177,6 +179,17 @@ function ReportActionsList({
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
+
+    const [isVisible, setIsVisible] = useState(false);
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        const unsubscriber = Visibility.onVisibilityChange(() => {
+            setIsVisible(Visibility.isVisible());
+        });
+
+        return unsubscriber;
+    }, []);
 
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
@@ -387,7 +400,7 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
-    useEffect(() => {
+    const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
@@ -405,7 +418,55 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker]);
+
+    useEffect(() => {
+        calculateUnreadMarker();
+    }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
+
+    useEffect(() => {
+        if (report.reportID !== Navigation.getTopmostReportId()) {
+            return;
+        }
+
+        if (!isVisible || !isFocused) {
+            if (!userInactiveSince.current) {
+                userInactiveSince.current = DateUtils.getDBTime();
+            }
+            return;
+        }
+
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        userInactiveSince.current = null;
+        if (
+            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
+            !(
+                sortedVisibleReportActions &&
+                _.some(
+                    sortedVisibleReportActions,
+                    (reportAction) =>
+                        newMessageTimeReference < reportAction.created &&
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
+                )
+            )
+        ) {
+            return;
+        }
+
+        Report.readNewestAction(report.reportID);
+        userActiveSince.current = DateUtils.getDBTime();
+        lastReadTimeRef.current = newMessageTimeReference;
+        setCurrentUnreadMarker(null);
+        cacheUnreadMarkers.delete(report.reportID);
+        calculateUnreadMarker();
+
+        // This effect is only intended to run either the screen changes to focused or when the App visibility is changed to visible.
+        // This is intended to mark as read a report and indicate new message with the unread marker if there were new
+        // messages received while the user wasn't focused on the report or on another browser tab for web.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
