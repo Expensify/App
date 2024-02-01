@@ -67,6 +67,8 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
                 return;
             }
 
+            event.preventDefault();
+
             const types = event.clipboardData?.types;
             const TEXT_HTML = 'text/html';
 
