@@ -107,7 +107,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
                     />
-                    {isThumbnail && fileExtension && <Text style={{...styles.labelStrong, color: colors.black}}>{fileExtension.toUpperCase()}</Text>}
+                    {isThumbnail && fileExtension && <Text style={{...styles.labelStrong, ...StyleUtils.getTextColorStyle(colors.black)}}>{fileExtension.toUpperCase()}</Text>}
                     {MCCIcon && !isThumbnail ? (
                         <Icon
                             src={MCCIcon}
