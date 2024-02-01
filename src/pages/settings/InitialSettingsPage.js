@@ -188,6 +188,13 @@ function InitialSettingsPage(props) {
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
                 {
+                    translationKey: 'exitSurvey.goToExpensifyClassic',
+                    icon: Expensicons.NewExpensify,
+                    action: () => {
+                        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                    },
+                },
+                {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
                     action: () => {
@@ -199,13 +206,6 @@ function InitialSettingsPage(props) {
                     translationKey: 'initialSettingsPage.about',
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
-                },
-                {
-                    translationKey: 'initialSettingsPage.goToExpensifyClassic',
-                    icon: Expensicons.NewExpensify,
-                    action: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
-                    },
                 },
             ],
         }),

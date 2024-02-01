@@ -806,7 +806,6 @@ export default {
                 label: 'macOS',
             },
         },
-        goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
         signOut: 'Sign out',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
