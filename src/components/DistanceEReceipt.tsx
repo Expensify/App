@@ -88,7 +88,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                                 >
                                     <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
                                     {!!waypoint?.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
-                                    {!!waypoint?.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
+                                    {!!waypoint?.address && <Text style={styles.eReceiptGuaranteed}>{waypoint.address}</Text>}
                                 </View>
                             );
                         })}
