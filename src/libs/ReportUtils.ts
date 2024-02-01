@@ -904,7 +904,7 @@ function doesReportBelongToWorkspace(report: Report, policyMemberAccountIDs: num
 /**
  * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
-function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyMemberAccountIDs: number[] = [], policyID?: string) {
+function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMemberAccountIDs: number[] = [], policyID?: string) {
     return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID));
 }
 
@@ -1004,7 +1004,7 @@ function findLastAccessedReport(
     let reportsValues = Object.values(reports ?? {}) as Report[];
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
-        reportsValues = filterReportsByPolicyIdAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
+        reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
     let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);

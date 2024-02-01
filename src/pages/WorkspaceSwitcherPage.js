@@ -79,9 +79,9 @@ function WorkspaceSwitcherPage({policies}) {
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
 
     const getIndicatorTypeForPolicy = useCallback(
-        (policyId) => {
-            if (policyId && policyId !== activeWorkspaceID) {
-                return brickRoadsForPolicies[policyId];
+        (policyID) => {
+            if (policyID && policyID !== activeWorkspaceID) {
+                return brickRoadsForPolicies[policyID];
             }
 
             if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)) {
@@ -100,9 +100,9 @@ function WorkspaceSwitcherPage({policies}) {
     const hasUnreadData = useCallback(
         // TO DO: Implement checking if policy has some unread data
         // eslint-disable-next-line no-unused-vars
-        (policyId) => {
-            if (policyId) {
-                return unreadStatusesForPolicies[policyId];
+        (policyID) => {
+            if (policyID) {
+                return unreadStatusesForPolicies[policyID];
             }
 
             return _.some(_.values(unreadStatusesForPolicies), (status) => status);

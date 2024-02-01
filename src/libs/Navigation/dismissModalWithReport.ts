@@ -11,7 +11,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getPolicyIdFromState from './getPolicyIdFromState';
+import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -41,7 +41,7 @@ function dismissModalWithReport(targetReport: Report | EmptyObject, navigationRe
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReport.reportID !== getTopmostReportId(state)) {
                 const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReport.reportID));
-                const policyID = getPolicyIdFromState(state as State<RootStackParamList>);
+                const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
                 const policyMemberAccountIDs = getPolicyMemberAccountIDs(policyID);
                 const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 

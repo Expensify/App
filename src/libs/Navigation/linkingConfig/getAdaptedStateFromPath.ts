@@ -33,7 +33,7 @@ type GetAdaptedStateFromPath = (...args: Parameters<typeof getStateFromPath>) =>
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-const addPolicyIdToRoute = (route: NavigationPartialRoute, policyID?: string) => {
+const addPolicyIDToRoute = (route: NavigationPartialRoute, policyID?: string) => {
     const routeWithPolicyID = {...route};
     if (!routeWithPolicyID.params) {
         routeWithPolicyID.params = {policyID};
@@ -54,7 +54,7 @@ function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, 
 
     if (route.name !== SCREENS.HOME) {
         // If the generated state requires tab other than HOME, we need to insert it.
-        routesForBottomTabNavigator.push(addPolicyIdToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
+        routesForBottomTabNavigator.push(addPolicyIDToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
     }
 
     return {

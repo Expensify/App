@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
-import getPolicyIdFromState from './getPolicyIdFromState';
+import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
@@ -134,8 +134,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // Creating path with /w/ included if necessary.
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
-    const policyIdFromState = getPolicyIdFromState(rootState);
-    const policyID = extractedPolicyID ?? policyIdFromState;
+    const policyIDFromState = getPolicyIDFromState(rootState);
+    const policyID = extractedPolicyID ?? policyIDFromState;
 
     const isWorkspaceSettingsOpened = getTopmostBottomTabRoute(rootState as State<RootStackParamList>)?.name === SCREENS.WORKSPACE.INITIAL && path.includes('workspace');
 
