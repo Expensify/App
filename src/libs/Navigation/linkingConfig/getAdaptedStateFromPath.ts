@@ -282,6 +282,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
     const isAnonymous = isAnonymousUser();
+
     // Anonymous users don't have access to workspaces
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
