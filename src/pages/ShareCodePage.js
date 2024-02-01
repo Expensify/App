@@ -6,6 +6,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -88,6 +89,7 @@ class ShareCodePage extends React.Component {
                     title={this.props.translate('common.shareCode')}
                     onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                     shouldShowBackButton={isReport || this.props.isSmallScreenWidth}
+                    icon={Illustrations.QrCode}
                 />
 
                 <ScrollView style={[this.props.themeStyles.flex1]}>
