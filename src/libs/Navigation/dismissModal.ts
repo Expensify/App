@@ -5,7 +5,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {RootStackParamList} from './types';
 
-// This function is in a separate file than Navigation.js to avoid cyclic dependency.
+// This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
 /**
  * Dismisses the last modal stack if there is any

@@ -18,7 +18,7 @@ import linkingConfig from './linkingConfig';
 import switchPolicyID from './switchPolicyID';
 import type {RootStackParamList, StackNavigationAction, State} from './types';
 
-// This function is in a separate file than Navigation.js to avoid cyclic dependency.
+// This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
 /**
  * Dismisses the last modal stack if there is any

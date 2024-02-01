@@ -210,6 +210,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
 
             root.dispatch(actionForBottomTabNavigator);
+
             // If the layout is wide we need to push matching central pane route to the stack.
             if (!getIsSmallScreenWidth()) {
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
