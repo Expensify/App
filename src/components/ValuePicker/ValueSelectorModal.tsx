@@ -1,26 +1,16 @@
-import React, {useEffect, useState} from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {ValuePickerItem, ValueSelectorModalProps} from './types';
+import type {ValueSelectorModalProps} from './types';
 
 function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
-    const [sectionsData, setSectionsData] = useState<ValuePickerItem[]>([]);
 
-    useEffect(() => {
-        const itemsData = items.map((item) => ({
-            value: item?.value,
-            alternateText: item?.description,
-            keyForList: item.value ?? '',
-            text: item?.label ?? '',
-            isSelected: item === selectedItem,
-        }));
-        setSectionsData(itemsData);
-    }, [items, selectedItem]);
+    const sectionsData = useMemo(() => items.map((item) => ({...item, isSelected: item === selectedItem, keyForList: item.value ?? ''})), [items, selectedItem]);
 
     return (
         <Modal

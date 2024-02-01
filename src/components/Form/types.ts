@@ -6,6 +6,7 @@ import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type Picker from '@components/Picker';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type TextInput from '@components/TextInput';
+import type ValuePicker from '@components/ValuePicker';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type Form from '@src/types/onyx/Form';
 import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
@@ -15,9 +16,9 @@ import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
  * when adding new inputs or removing old ones.
  *
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
+ * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput
  */
-type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch;
+type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch | typeof ValuePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 

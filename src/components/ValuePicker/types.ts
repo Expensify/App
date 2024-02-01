@@ -1,9 +1,7 @@
-type ValuePickerItem = {
+import type {ListItem} from '@components/SelectionList/types';
+
+type ValuePickerItem = ListItem & {
     value?: string;
-    label?: string;
-    description?: string;
-    text: string;
-    keyForList: string;
 };
 
 type ValueSelectorModalProps = {

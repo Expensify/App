@@ -107,8 +107,7 @@ function WorkspaceNewRoomPage(props) {
     const workspaceOptions = useMemo(
         () =>
             _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
-                label: policy.name,
-                key: policy.id,
+                text: policy.name,
                 value: policy.id,
             })),
         [props.policies],
@@ -222,7 +221,7 @@ function WorkspaceNewRoomPage(props) {
         () =>
             _.map(CONST.REPORT.WRITE_CAPABILITIES, (value) => ({
                 value,
-                label: translate(`writeCapabilityPage.writeCapability.${value}`),
+                text: translate(`writeCapabilityPage.writeCapability.${value}`),
             })),
         [translate],
     );
@@ -232,9 +231,9 @@ function WorkspaceNewRoomPage(props) {
             _.map(
                 _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
                 (visibilityOption) => ({
-                    label: translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+                    text: translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
                     value: visibilityOption,
-                    description: translate(`newRoomPage.${visibilityOption}Description`),
+                    alternateText: translate(`newRoomPage.${visibilityOption}Description`),
                 }),
             ),
         [translate],

@@ -37,7 +37,7 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
             <MenuItemWithTopDescription
                 ref={forwardedRef}
                 shouldShowRightIcon
-                title={selectedItem?.label ?? placeholder ?? ''}
+                title={selectedItem?.text ?? placeholder ?? ''}
                 descriptionTextStyle={descStyle}
                 description={label}
                 onPress={showPickerModal}
