@@ -34,6 +34,9 @@ const propTypes = {
     /** The ID of the associated request report */
     requestReportID: PropTypes.string.isRequired,
 
+    /** The ID of the current report */
+    reportID: PropTypes.string.isRequired,
+
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
@@ -81,6 +84,7 @@ function MoneyRequestAction({
     action,
     chatReportID,
     requestReportID,
+    reportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive,
@@ -136,6 +140,7 @@ function MoneyRequestAction({
         <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
+            reportID={reportID}
             isBillSplit={isSplitBillAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}

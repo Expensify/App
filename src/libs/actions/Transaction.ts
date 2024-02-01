@@ -3,6 +3,8 @@ import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {GetRouteForDraftParams, GetRouteParams} from '@libs/API/parameters';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -73,6 +75,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                // Clear the existing distance to recalculate next time
+                distance: null,
                 geometry: {
                     coordinates: null,
                 },
@@ -146,6 +150,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
             // Clear the existing route so that we don't show an old route
             routes: {
                 route0: {
+                    // Clear the existing distance to recalculate next time
                     distance: null,
                     geometry: {
                         coordinates: null,
@@ -209,14 +214,12 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
  * Used so we can generate a map view of the provided waypoints
  */
 function getRoute(transactionID: string, waypoints: WaypointCollection) {
-    API.read(
-        'GetRoute',
-        {
-            transactionID,
-            waypoints: JSON.stringify(waypoints),
-        },
-        getOnyxDataForRouteRequest(transactionID),
-    );
+    const parameters: GetRouteParams = {
+        transactionID,
+        waypoints: JSON.stringify(waypoints),
+    };
+
+    API.read(READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID));
 }
 
 /**
@@ -224,14 +227,12 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
  * Used so we can generate a map view of the provided waypoints
  */
 function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) {
-    API.read(
-        'GetRouteForDraft',
-        {
-            transactionID,
-            waypoints: JSON.stringify(waypoints),
-        },
-        getOnyxDataForRouteRequest(transactionID, true),
-    );
+    const parameters: GetRouteForDraftParams = {
+        transactionID,
+        waypoints: JSON.stringify(waypoints),
+    };
+
+    API.read(READ_COMMANDS.GET_ROUTE_FOR_DRAFT, parameters, getOnyxDataForRouteRequest(transactionID, true));
 }
 
 /**
@@ -255,6 +256,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                // Clear the existing distance to recalculate next time
                 distance: null,
                 geometry: {
                     coordinates: null,
@@ -264,4 +266,8 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, updateWaypoints};
+function clearError(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, updateWaypoints, clearError};
