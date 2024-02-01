@@ -14,6 +14,7 @@ const darkTheme = {
     icon: colors.productDark700,
     iconMenu: colors.green400,
     iconHovered: colors.productDark900,
+    iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
     iconReversed: colors.productDark100,
     iconColorfulBackground: `${colors.ivory}cc`,
@@ -45,7 +46,7 @@ const darkTheme = {
     hoverComponentBG: colors.productDark300,
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
-    sidebar: colors.productDark200,
+    sidebar: colors.productDark100,
     sidebarHover: colors.productDark300,
     heading: colors.productDark900,
     textLight: colors.productDark900,
@@ -124,7 +125,11 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productDark200,
+            backgroundColor: colors.productDark100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ABOUT]: {

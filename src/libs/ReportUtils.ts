@@ -355,7 +355,7 @@ type OptionData = {
     text?: string;
     alternateText?: string | null;
     allReportErrors?: Errors;
-    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -895,7 +895,7 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
  * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
  * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
  */
-function doesReportBelongToWorkspace(report: Report, policyID: string, policyMemberAccountIDs: number[]) {
+function doesReportBelongToWorkspace(report: Report, policyMemberAccountIDs: number[], policyID?: string) {
     return (
         isConciergeChatReport(report) || (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : report.policyID === policyID)
     );
@@ -904,8 +904,8 @@ function doesReportBelongToWorkspace(report: Report, policyID: string, policyMem
 /**
  * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
-function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyID = '', policyMemberAccountIDs: number[] = []) {
-    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
+function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMemberAccountIDs: number[] = [], policyID?: string) {
+    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID));
 }
 
 /**
@@ -1004,7 +1004,7 @@ function findLastAccessedReport(
     let reportsValues = Object.values(reports ?? {}) as Report[];
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
-        reportsValues = filterReportsByPolicyIdAndMemberAccountIDs(reportsValues, policyID, policyMemberAccountIDs);
+        reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
     let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
@@ -3694,6 +3694,8 @@ function shouldReportBeInOptionList({
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
+    // Optionally exclude reports that do not belong to currently active workspace
+
     if (
         !report?.reportID ||
         !report?.type ||
