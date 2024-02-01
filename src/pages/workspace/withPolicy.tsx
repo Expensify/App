@@ -6,7 +6,7 @@ import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';

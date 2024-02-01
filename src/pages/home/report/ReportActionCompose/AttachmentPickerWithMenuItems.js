@@ -59,7 +59,7 @@ const propTypes = {
     isBlockedFromConcierge: PropTypes.bool.isRequired,
 
     /** Whether or not the attachment picker is disabled */
-    disabled: PropTypes.bool.isRequired,
+    disabled: PropTypes.bool,
 
     /** Sets the menu visibility */
     setMenuVisibility: PropTypes.func.isRequired,
@@ -100,6 +100,7 @@ const propTypes = {
 
 const defaultProps = {
     reportParticipantIDs: [],
+    disabled: false,
     policy: {},
 };
 

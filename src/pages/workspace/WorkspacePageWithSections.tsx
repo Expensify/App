@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -44,7 +44,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         route: PolicyRoute;
 
         /** Main content of the page */
-        children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
+        children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
