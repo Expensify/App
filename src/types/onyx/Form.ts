@@ -55,6 +55,10 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type WelcomeMessageForm = Form<{
+    welcomeMessage: string;
+}>;
+
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
 type ReportFieldEditForm = Form<Record<string, string>>;
@@ -73,4 +77,5 @@ export type {
     IntroSchoolPrincipalForm,
     PersonalBankAccountForm,
     ReportFieldEditForm,
+    WelcomeMessageForm,
 };

@@ -8,6 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +16,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -25,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -51,12 +54,10 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
     }, []);
 
     /**
-     * @param {Object} values
-     * @param {String} values.title
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback((values) => {
-        const errors = {};
+    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM>) => {
+        const errors: Errors = {};
 
         if (values.welcomeMessage.length > CONST.DESCRIPTION_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'welcomeMessage', ['common.error.characterLimitExceedCounter', {length: values.welcomeMessage.length, limit: CONST.DESCRIPTION_LIMIT}]);
@@ -99,6 +100,7 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
+                    validate={validate}
                     onSubmit={submitForm}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
