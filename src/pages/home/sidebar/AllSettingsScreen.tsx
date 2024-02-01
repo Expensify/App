@@ -33,7 +33,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
-     * Retuns a list of menu items data for "everything" settings
+     * Retuns a list of menu items data for All workspaces settings
      * @returns {Object} object with translationKey, style and items
      */
     const menuItems = useMemo(() => {

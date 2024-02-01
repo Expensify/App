@@ -23,11 +23,11 @@ type GetPartialStateDiffReturnType = {
 };
 
 /**
- * This function returns partial additive diff beteween the two states.
- * The partial diff have information which bottom tab, central pane and full screen screens we need to push to go from state to templateState
+ * This function returns partial additive diff between the two states.
+ * The partial diff has information which bottom tab, central pane and full screen screens we need to push to go from state to templateState.
  * @param state - Current state.
  * @param templateState - Desired state generated with getAdaptedStateFromPath.
- * @param metainfo - Additional info from getAdaptedStateFromPath funciton.
+ * @param metainfo - Additional info from getAdaptedStateFromPath function.
  * @returns The screen options object
  */
 function getPartialStateDiff(state: State<RootStackParamList>, templateState: State<RootStackParamList>, metainfo: Metainfo): GetPartialStateDiffReturnType {
@@ -60,8 +60,8 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
         }
     }
 
-    // This one is heurestic and may need to improved if we will be able to navigate from modal screen with full screen in background to another modal screen with full screen in background.
-    // For now this simple check is enought.
+    // This one is heuristic and may need to be improved if we will be able to navigate from modal screen with full screen in background to another modal screen with full screen in background.
+    // For now this simple check is enough.
     if (metainfo.isFullScreenNavigatorMandatory) {
         const stateTopmostFullScreen = state.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1);
         const templateStateTopmostFullScreen = templateState.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1) as NavigationPartialRoute;

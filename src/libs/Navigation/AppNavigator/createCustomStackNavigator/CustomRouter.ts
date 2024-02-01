@@ -38,7 +38,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
     const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
     const isSmallScreenWidth = getIsSmallScreenWidth();
 
-    // This solutions is heurestis and will work for our cases. We may need to improve it in the future if we will have more cases to handle.
+    // This solutions is heuristics and will work for our cases. We may need to improve it in the future if we will have more cases to handle.
     if (topmostBottomTabRoute && !isSmallScreenWidth) {
         const fullScreenRoute = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
 
@@ -84,7 +84,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
         // If there is central pane route in state and template state has one, we need to check if they are the same.
         if (topmostCentralPaneRouteExtracted && templateCentralPaneRouteExtracted && topmostCentralPaneRouteExtracted.name !== templateCentralPaneRouteExtracted.name) {
             // Not every RHP screen has matching central pane defined. In that case we use the REPORT screen as default for initial screen.
-            // But we don't want to ovverride the central pane for those screens as they may be opened with different central panes under the overlay.
+            // But we don't want to override the central pane for those screens as they may be opened with different central panes under the overlay.
             // e.g. i-know-a-teacher may be opened with different central panes under the overlay
             if (templateCentralPaneRouteExtracted.name === SCREENS.REPORT) {
                 return;

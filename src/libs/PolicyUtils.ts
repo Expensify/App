@@ -208,11 +208,11 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 function extractPolicyIDFromPath(path: string) {
-    return path.match(/\/w\/([a-zA-Z0-9]+)(\/|$)/)?.[1];
+    return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
 }
 
 function getPathWithoutPolicyID(path: string) {
-    return path.replace(/\/w\/[a-zA-Z0-9]+(\/|$)/, '/');
+    return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
 function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<PolicyMembers>, currentPolicyID?: string, currentUserAccountID?: number) {
