@@ -1463,25 +1463,25 @@ function getOptions(
             return;
         }
 
-        // During task assignment, we collect the top most chat report ids of the task reports
-        // for display in the recent reports list
-        if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
-            let parentReportID = report.parentReportID;
-            let topmostChatReportID = report.parentReportID;
-            while (parentReportID) {
-                const parentReport = ReportUtils.getReport(parentReportID);
-                if (parentReport?.parentReportID) {
-                    topmostChatReportID = parentReport?.parentReportID;
-                }
-                parentReportID = parentReport?.parentReportID;
-            }
-            if (!recentChatReportIDsForActionType.some((reportID: string) => topmostChatReportID === reportID)) {
-                if (topmostChatReportID) {
-                    recentChatReportIDsForActionType.push(topmostChatReportID);
-                }
-            }
-            return;
-        }
+        // // During task assignment, we collect the top most chat report ids of the task reports
+        // // for display in the recent reports list
+        // if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
+        //     let parentReportID = report.parentReportID;
+        //     let topmostChatReportID = report.parentReportID;
+        //     while (parentReportID) {
+        //         const parentReport = ReportUtils.getReport(parentReportID);
+        //         if (parentReport?.parentReportID) {
+        //             topmostChatReportID = parentReport?.parentReportID;
+        //         }
+        //         parentReportID = parentReport?.parentReportID;
+        //     }
+        //     if (!recentChatReportIDsForActionType.some((reportID: string) => topmostChatReportID === reportID)) {
+        //         if (topmostChatReportID) {
+        //             recentChatReportIDsForActionType.push(topmostChatReportID);
+        //         }
+        //     }
+        //     return;
+        // }
 
         if (isTaskReport && !includeTasks) {
             return;
@@ -1547,7 +1547,7 @@ function getOptions(
     optionsToExcludeByActions.push(...optionsToExclude);
 
     if (includeRecentReports) {
-        // During money request generation, we collect chat report ids 
+        // During money request generation, we collect chat report ids
         // of the money request report's parent for display in the recent reports list
         if (isMoneyRequestActionTypeForParticipants) {
             TransactionUtils.getTransactionsByActionType(actionTypeForParticipants).every((recentTransaction) => {
@@ -1634,7 +1634,7 @@ function getOptions(
             }
         }
     }
-    // Let us reset the recent list and the options to exclude if we have found 
+    // Let us reset the recent list and the options to exclude if we have found
     // recent reports by action type for setting personal details and for search results.
     if (recentReportOptionsByAction.length > 0) {
         optionsToExclude = [...optionsToExcludeByActions];
