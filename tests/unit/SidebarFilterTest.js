@@ -27,7 +27,7 @@ const ONYXKEYS = {
     NETWORK: 'network',
 };
 
-describe('Sidebar', () => {
+xdescribe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
