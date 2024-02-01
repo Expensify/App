@@ -661,6 +661,7 @@ export default compose(
             prevProps.report.statusNum === nextProps.report.statusNum &&
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             prevProps.currentReportID === nextProps.currentReportID &&
+            prevProps.report.notificationPreference === nextProps.report.notificationPreference &&
             prevProps.report.isPinned === nextProps.report.isPinned,
     ),
 );
