@@ -172,7 +172,7 @@ function MoneyRequestPreview(props) {
 
     /*
      Show the merchant for IOUs and expenses only if:
-     - the merchant is not empty, is custom or not related to scanning smartscan;
+     - the merchant is not empty, is custom, or is not related to scanning smartscan;
      - the request is not a distance request with a pending route and amount = 0 - in this case,
        the merchant says: "Route pending...", which is already shown in the amount field;
     */
