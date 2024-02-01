@@ -33,7 +33,7 @@ const SCREENS = {
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
-        TROUBLESHOOTING: 'Settings_Troubleshooting',
+        TROUBLESHOOT: 'Settings_Troubleshoot',
 
         PROFILE: {
             ROOT: 'Settings_Profile',

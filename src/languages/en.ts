@@ -789,7 +789,7 @@ export default {
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
-            troubleshooting: 'Troubleshoot',
+            troubleshoot: 'Troubleshoot',
         },
         appDownloadLinks: {
             android: {
@@ -802,7 +802,7 @@ export default {
                 label: 'macOS',
             },
         },
-        troubleshooting: {
+        troubleshoot: {
             resetAndRefresh: 'Reset and refresh stashed data',
             viewConsole: 'View debug console',
             description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',

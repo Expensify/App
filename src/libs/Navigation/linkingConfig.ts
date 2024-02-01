@@ -231,8 +231,8 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                                 path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                             },
-                            [SCREENS.SETTINGS.TROUBLESHOOTING]: {
-                                path: ROUTES.SETTINGS_TROUBLESHOOTING,
+                            [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                                path: ROUTES.SETTINGS_TROUBLESHOOT,
                                 exact: true,
                             },
                             [SCREENS.WORKSPACE.INITIAL]: {

@@ -84,9 +84,9 @@ function AboutPage() {
                 link: CONST.UPWORK_URL,
             },
             {
-                translationKey: 'initialSettingsPage.aboutPage.troubleshooting',
+                translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
                 icon: Expensicons.Lightbulb,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOTING)),
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT)),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',

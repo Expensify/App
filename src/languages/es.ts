@@ -783,7 +783,7 @@ export default {
             viewTheCode: 'Ver código',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reportar un error',
-            troubleshooting: 'Solución de problemas',
+            troubleshoot: 'Solución de problemas',
         },
         appDownloadLinks: {
             android: {
@@ -796,7 +796,7 @@ export default {
                 label: 'macOS',
             },
         },
-        troubleshooting: {
+        troubleshoot: {
             resetAndRefresh: 'Restablecer y actualizar los datos almacenados',
             viewConsole: 'Ver la consola de depuración',
             description: 'Utilice las herramientas que aparecen a continuación para solucionar los problemas de Expensify. Si tiene algún problema, por favor',

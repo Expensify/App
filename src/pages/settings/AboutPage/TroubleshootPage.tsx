@@ -40,7 +40,7 @@ type BaseMenuItem = {
     action: () => void;
 };
 
-function TroubleshootingPage() {
+function TroubleshootPage() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -55,7 +55,7 @@ function TroubleshootingPage() {
     const menuItems = useMemo(() => {
         const baseMenuItems: BaseMenuItem[] = [
             {
-                translationKey: 'initialSettingsPage.troubleshooting.resetAndRefresh',
+                translationKey: 'initialSettingsPage.troubleshoot.resetAndRefresh',
                 icon: Expensicons.RotateLeft,
                 action: wipeOnyxData,
             },
@@ -71,20 +71,20 @@ function TroubleshootingPage() {
 
     return (
         <IllustratedHeaderPageLayout
-            title={translate('initialSettingsPage.aboutPage.troubleshooting')}
+            title={translate('initialSettingsPage.aboutPage.troubleshoot')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOTING].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
             illustration={LottieAnimations.Desk}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
-                <Text style={[styles.textHeadline, styles.mb1]}>{translate('initialSettingsPage.aboutPage.troubleshooting')}</Text>
+                <Text style={[styles.textHeadline, styles.mb1]}>{translate('initialSettingsPage.aboutPage.troubleshoot')}</Text>
                 <Text style={styles.mb4}>
-                    <Text>{translate('initialSettingsPage.troubleshooting.description')}</Text>{' '}
+                    <Text>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
                     <TextLink
                         style={styles.link}
                         onPress={() => Report.navigateToConciergeChat()}
                     >
-                        {translate('initialSettingsPage.troubleshooting.submitBug')}
+                        {translate('initialSettingsPage.troubleshoot.submitBug')}
                     </TextLink>
                 </Text>
             </View>
@@ -102,4 +102,4 @@ function TroubleshootingPage() {
     );
 }
 
-export default TroubleshootingPage;
+export default TroubleshootPage;
