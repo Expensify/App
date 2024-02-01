@@ -558,11 +558,6 @@ const mainWindow = () => {
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
                     // This is how synchronous messages work in Electron
                     // eslint-disable-next-line no-param-reassign
-                    event.returnValue = browserWindow && !browserWindow.isDestroyed() && browserWindow.isVisible();
-                });
-
-                ipcMain.on(ELECTRON_EVENTS.REQUEST_HAS_FOCUS, (event) => {
-                    // eslint-disable-next-line no-param-reassign
                     event.returnValue = browserWindow && !browserWindow.isDestroyed() && browserWindow.isFocused();
                 });
 

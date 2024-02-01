@@ -203,11 +203,11 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
-    const readNewestReportActionOnFocus = () => {
+    const readNewestReportAction = () => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-        if (ReportUtils.isUnread(report) && Visibility.hasFocus() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+        if (ReportUtils.isUnread(report) && Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
             Report.readNewestAction(report.reportID);
         } else {
             readActionSkipped.current = true;
@@ -215,7 +215,7 @@ function ReportActionsList({
     };
 
     useEffect(() => {
-        readNewestReportActionOnFocus();
+        readNewestReportAction();
         if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
             return;
         }
@@ -225,8 +225,8 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
 
-    // mark actions as read when the user opens up the tab or app and current report is open
-    useAppFocusEvent(readNewestReportActionOnFocus);
+    // recheck on focus for read, allows notifications to
+    useAppFocusEvent(readNewestReportAction);
 
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
