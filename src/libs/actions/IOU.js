@@ -1495,21 +1495,7 @@ function requestMoney(
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(
-    participants,
-    currentUserLogin,
-    currentUserAccountID,
-    amount,
-    comment,
-    currency,
-    merchant,
-    category,
-    tag,
-    existingSplitChatReportID = '',
-    billable = false,
-    policyTags = undefined,
-    policyCategories = undefined,
-) {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '', billable = false) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1793,9 +1779,6 @@ function createSplitsAndOnyxData(
         const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
-        // Get the policy for the participant to determine if there should be transaction violations
-        const policy = ReportUtils.getPolicy(participant.policyID);
-
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             oneOnOneChatReport,
@@ -1809,12 +1792,9 @@ function createSplitsAndOnyxData(
             optimisticPolicyRecentlyUsedCategories,
             optimisticPolicyRecentlyUsedTags,
             isNewOneOnOneChatReport,
-            shouldCreateNewOneOnOneIOUReport,
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
-            participant.isPolicyExpenseChat && policy,
-            policyTags,
-            policyCategories,
+            shouldCreateNewOneOnOneIOUReport,
         );
 
         const individualSplit = {
@@ -1871,21 +1851,7 @@ function createSplitsAndOnyxData(
  * @param {Array} policyTags
  * @param {Array} policyCategories
  */
-function splitBill(
-    participants,
-    currentUserLogin,
-    currentUserAccountID,
-    amount,
-    comment,
-    currency,
-    merchant,
-    category,
-    tag,
-    existingSplitChatReportID = '',
-    billable = false,
-    policyTags = undefined,
-    policyCategories = undefined,
-) {
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '', billable = false) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1898,8 +1864,6 @@ function splitBill(
         tag,
         existingSplitChatReportID,
         billable,
-        policyTags,
-        policyCategories,
     );
     API.write(
         'SplitBill',

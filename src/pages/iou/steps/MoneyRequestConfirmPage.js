@@ -272,8 +272,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.tag,
                     reportID,
                     props.iou.merchant,
-                    props.policyTags,
-                    props.policyCategories,
+                    false,
                 );
                 return;
             }

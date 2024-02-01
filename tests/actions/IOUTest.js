@@ -987,8 +987,8 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // There should now be 8 reports
-                                    expect(_.size(allReports)).toBe(8);
+                                    // There should now be 10 reports
+                                    expect(_.size(allReports)).toBe(10);
 
                                     // 1. The chat report with Rory + Carlos
                                     carlosChatReport = _.find(allReports, (report) => report.reportID === carlosChatReport.reportID);
@@ -1055,8 +1055,8 @@ describe('actions/IOU', () => {
                                 callback: (allReportActions) => {
                                     Onyx.disconnect(connectionID);
 
-                                    // There should be reportActions on all 5 chat reports + 3 IOU reports in each 1:1 chat
-                                    expect(_.size(allReportActions)).toBe(8);
+                                    // There should be reportActions on all 7 chat reports + 3 IOU reports in each 1:1 chat
+                                    expect(_.size(allReportActions)).toBe(10);
 
                                     const carlosReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${carlosChatReport.iouReportID}`];
                                     const julesReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${julesChatReport.iouReportID}`];

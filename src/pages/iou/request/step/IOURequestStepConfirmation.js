@@ -246,8 +246,6 @@ function IOURequestStepConfirmation({
                     transaction.tag,
                     report.reportID,
                     transaction.billable,
-                    policyTags,
-                    policyCategories,
                 );
                 return;
             }
