@@ -46,7 +46,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
         );
 
-        const header = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(categoryOptions, '[0].data.length', 0) > 0, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(categoryOptions, '[0].data', []).length > 0, debouncedSearchValue);
         const policiesCount = OptionsListUtils.getEnabledCategoriesCount(_.values(policyCategories));
         const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
         const showInput = !isCategoriesCountBelowThreshold;
