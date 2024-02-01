@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -46,18 +46,16 @@ function TroubleshootPage() {
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
 
-    const wipeOnyxData = useCallback(() => {
-        Onyx.clear(keysToPreserve).then(() => {
-            App.openApp();
-        });
-    }, []);
-
     const menuItems = useMemo(() => {
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.resetAndRefresh',
                 icon: Expensicons.RotateLeft,
-                action: wipeOnyxData,
+                action: () => {
+                    Onyx.clear(keysToPreserve).then(() => {
+                        App.openApp();
+                    });
+                },
             },
         ];
 
@@ -67,7 +65,7 @@ function TroubleshootPage() {
             icon: item.icon,
             onPress: item.action,
         }));
-    }, [translate, wipeOnyxData]);
+    }, [translate]);
 
     return (
         <IllustratedHeaderPageLayout
