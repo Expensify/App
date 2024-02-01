@@ -2016,6 +2016,8 @@ export default {
     report: {
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde',
         genericAddCommentFailureMessage: 'Error inesperado al añadir el comentario. Por favor, inténtalo más tarde',
+        genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde',
+        genericUpdateReporNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Vuelva a intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
     },
     chronos: {

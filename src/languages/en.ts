@@ -1989,6 +1989,8 @@ export default {
     report: {
         genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+        genericUpdateReportFieldFailureMessage: 'Unexpected error while updating the field, please try again later',
+        genericUpdateReporNameEditFailureMessage: 'Unexpected error while renaming the report, please try again later',
         noActivityYet: 'No activity yet',
     },
     chronos: {

@@ -122,4 +122,6 @@ export type {default as ReopenTaskParams} from './ReopenTaskParams';
 export type {default as CompleteTaskParams} from './CompleteTaskParams';
 export type {default as CompleteEngagementModalParams} from './CompleteEngagementModalParams';
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
+export type {default as SetReportFieldParams} from './SetReportFieldParams';
+export type {default as SetReportNameParams} from './SetReportNameParams';
 export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';

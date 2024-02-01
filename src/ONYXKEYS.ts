@@ -244,6 +244,9 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    // Stores the recently used report fields
+    RECENTLY_USED_REPORT_FIELDS: 'recentlyUsedReportFields',
+
     /** Indicates whether an forced upgrade is required */
     UPDATE_REQUIRED: 'updateRequired',
 
@@ -260,7 +263,6 @@ const ONYXKEYS = {
         POLICY_TAX_RATE: 'policyTaxRates_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         POLICY_REPORT_FIELDS: 'policyReportFields_',
-        POLICY_RECENTLY_USED_REPORT_FIELDS: 'policyRecentlyUsedReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
@@ -357,8 +359,8 @@ const ONYXKEYS = {
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
         GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
         GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
-        POLICY_REPORT_FIELD_EDIT_FORM: 'policyReportFieldEditForm',
-        POLICY_REPORT_FIELD_EDIT_FORM_DRAFT: 'policyReportFieldEditFormDraft',
+        REPORT_FIELD_EDIT_FORM: 'reportFieldEditForm',
+        REPORT_FIELD_EDIT_FORM_DRAFT: 'reportFieldEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
         PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
@@ -447,6 +449,7 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
+    [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
 
     // Collections
@@ -459,7 +462,6 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
@@ -544,8 +546,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: OnyxTypes.ReportFieldEditForm;
+    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.ReimbursementAccountFormDraft;

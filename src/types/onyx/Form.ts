@@ -58,6 +58,8 @@ type PrivateNotesForm = Form<{
 
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
+type ReportFieldEditForm = Form<Record<string, string>>;
+
 type FormValues = Record<string, string>;
 
 export default Form;
@@ -73,5 +75,6 @@ export type {
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PersonalBankAccountForm,
+    ReportFieldEditForm,
     FormValues,
 };
