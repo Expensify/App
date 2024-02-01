@@ -1,5 +1,4 @@
 import {isBefore} from 'date-fns';
-import flattenDeep from 'lodash/flattenDeep';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -38,6 +37,7 @@ import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
@@ -474,54 +474,67 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     try {
         const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
-        const flatten = flattenDeep(reportActionsOnly.map((update) => Object.keys(update.value || {}).map((key) => update.value[key])));
-        const types = flatten.map((data) => data.originalMessage).filter(Boolean);
+        const flatten = reportActionsOnly.flatMap((update) => {
+            const value = update.value as OnyxCollection<ReportAction>;
+
+            if (!value) {
+                return [];
+            }
+
+            return Object.values(value);
+        }) as ReportAction[];
+        const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
 
         for (const data of flatten) {
             // Someone completes a task
             if (data.actionName === 'TASKCOMPLETED') {
                 return playSound('success');
             }
-
-            // Someone completes a money request
-            if (data.actionName === 'IOU') {
-                return playSound('success');
-            }
         }
 
         for (const message of types) {
             // someone sent money
-            if (message.IOUDetails) {
+            if ('IOUDetails' in message) {
                 return playSound('success');
             }
 
             // mention user
-            if (message.html?.includes('<mention-user>')) {
+            if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-user>')) {
                 return playSound('attention');
             }
 
             // mention @here
-            if (message.html?.includes('<mention-here>')) {
+            if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
                 return playSound('attention');
             }
 
             // assign a task
-            if (message.taskReportID) {
+            if ('taskReportID' in message) {
                 return playSound('attention');
             }
 
             // request money
-            if (message.IOUTransactionID) {
+            if ('IOUTransactionID' in message) {
                 return playSound('attention');
             }
 
+            // Someone completes a money request
+            if ('IOUReportID' in message) {
+                return playSound('success');
+            }
+
             // plain message
-            if (message.html) {
+            if ('html' in message) {
                 return playSound('receive');
             }
         }
     } catch (e) {
-        Log.client(`Unexpected error occurred while parsing the data to play a sound: ${e}`);
+        let errorMessage = String(e);
+        if (e instanceof Error) {
+            errorMessage = e.message;
+        }
+
+        Log.client(`Unexpected error occurred while parsing the data to play a sound: ${errorMessage}`);
     }
 }
 
