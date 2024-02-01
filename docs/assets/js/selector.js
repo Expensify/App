@@ -1,8 +1,3 @@
-/**
- * 1. The selector can have any name
- * 2. The selector should be in sync in all pages
- * 3. Minimal code in article
- */
 function selectOption(s) {
     if (!s) {
         return;
