@@ -1806,7 +1806,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string) {
 /**
  * @param policyRoomName The updated name for the policy room
  */
-function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomName: string | undefined) {
+function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomName: string) {
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
 
