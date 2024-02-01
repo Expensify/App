@@ -42,10 +42,10 @@ function NewChatSelectorPage(props) {
             />
             <OnyxTabNavigator
                 id={CONST.TAB.NEW_CHAT_TAB_ID}
-                tabBar={({state, navigation, position}) => (
+                tabBar={({state, navigation: tabNavigation, position}) => (
                     <TabSelector
                         state={state}
-                        navigation={navigation}
+                        navigation={tabNavigation}
                         position={position}
                     />
                 )}
