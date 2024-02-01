@@ -77,5 +77,5 @@ export type {
     IntroSchoolPrincipalForm,
     PersonalBankAccountForm,
     ReportFieldEditForm,
-    RoomNameForm
+    RoomNameForm,
 };
