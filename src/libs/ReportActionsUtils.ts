@@ -811,7 +811,7 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
  */
 function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime: string) {
     if (!lastReadTime) {
-        return Boolean(!isCreatedAction(reportAction));
+        return !isCreatedAction(reportAction);
     }
 
     return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
@@ -821,9 +821,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the current report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction, reportActions: ReportActions): boolean {
+function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction): boolean {
     const lastReadTime = report.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(reportActions));
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report.reportID)));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;

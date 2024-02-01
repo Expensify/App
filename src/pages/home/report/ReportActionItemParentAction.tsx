@@ -1,14 +1,13 @@
-import {deepEqual} from 'fast-equals';
-import lodashIsEqual from 'lodash/isEqual';
-import React, {memo} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,11 +17,8 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItem from './ReportActionItem';
 
 type ReportActionItemParentActionOnyxProps = {
-    /** The report currently being looked at */
-    allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-
-    /** The actions from the parent report */
-    allReports: OnyxCollection<OnyxTypes.Report>;
+    /** The current report is displayed */
+    report: OnyxEntry<OnyxTypes.Report>;
 };
 
 type ReportActionItemParentActionProps = ReportActionItemParentActionOnyxProps & {
@@ -37,12 +33,41 @@ type ReportActionItemParentActionProps = ReportActionItemParentActionOnyxProps &
     reportID: string;
 };
 
-function ReportActionItemParentAction({allReportActions = {}, allReports = {}, index = 0, shouldHideThreadDividerLine = false, reportID}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({report, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const allAncestors = ReportUtils.getAllAncestorReportActions(report, shouldHideThreadDividerLine, allReports, allReportActions);
+    const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
+    const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
+
+    useEffect(() => {
+        const unsubscribeReports: Array<() => void> = [];
+        const unsubscribeReportActions: Array<() => void> = [];
+        ancestorIDs.current.reportIDs.forEach((ancestorReportID) => {
+            unsubscribeReports.push(
+                onyxSubscribe({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
+                    callback: () => {
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, shouldHideThreadDividerLine));
+                    },
+                }),
+            );
+            unsubscribeReportActions.push(
+                onyxSubscribe({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportID}`,
+                    callback: () => {
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, shouldHideThreadDividerLine));
+                    },
+                }),
+            );
+        });
+
+        return () => {
+            unsubscribeReports.forEach((unsubscribeReport) => unsubscribeReport());
+            unsubscribeReportActions.forEach((unsubscribeReportAction) => unsubscribeReportAction());
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <>
@@ -79,27 +104,7 @@ function ReportActionItemParentAction({allReportActions = {}, allReports = {}, i
 ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
 
 export default withOnyx<ReportActionItemParentActionProps, ReportActionItemParentActionOnyxProps>({
-    // We should subscribe all reports and report actions here to dynamic update when any parent report action is changed
-    allReportActions: {
-        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
     },
-    allReports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(
-    memo(ReportActionItemParentAction, (prevProps, nextProps) => {
-        const {allReportActions: prevAllReportActions, allReports: prevAllReports, ...prevPropsWithoutReportActionsAndReports} = prevProps;
-        const {allReportActions: nextAllReportActions, allReports: nextAllReports, ...nextPropsWithoutReportActionsAndReports} = nextProps;
-
-        const prevReport = prevAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${prevProps.reportID}`];
-        const nextReport = nextAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${nextProps.reportID}`];
-        const prevAllAncestors = ReportUtils.getAllAncestorReportActions(prevReport, prevProps.shouldHideThreadDividerLine ?? false, prevAllReports, prevAllReportActions);
-        const nextAllAncestors = ReportUtils.getAllAncestorReportActions(nextReport, nextProps.shouldHideThreadDividerLine ?? false, nextAllReports, nextAllReportActions);
-
-        if (prevReport !== nextReport || !deepEqual(prevAllAncestors, nextAllAncestors)) {
-            return false;
-        }
-
-        return lodashIsEqual(prevPropsWithoutReportActionsAndReports, nextPropsWithoutReportActionsAndReports);
-    }),
-);
+})(ReportActionItemParentAction);

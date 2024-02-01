@@ -13,7 +13,6 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
@@ -408,6 +407,11 @@ type Ancestor = {
     reportAction: ReportAction;
     shouldDisplayNewMarker: boolean;
     shouldHideThreadDividerLine: boolean;
+};
+
+type AncestorIDs = {
+    reportIDs: string[];
+    reportActionsIDs: string[];
 };
 
 let currentUserEmail: string | undefined;
@@ -4669,30 +4673,10 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     );
 }
 
-function getAllAncestorReportActions(
-    report: Report | null | undefined,
-    shouldHideThreadDividerLine: boolean,
-    reports: OnyxCollection<Report> = {},
-    reportActions: OnyxCollection<ReportActions> = {},
-): Ancestor[] {
+function getAllAncestorReportActions(report: Report | null | undefined, shouldHideThreadDividerLine: boolean): Ancestor[] {
     if (!report) {
         return [];
     }
-    const convertedReports: OnyxCollection<Report> = {};
-    const convertedReportActions: OnyxCollection<ReportActions> = {};
-    Object.values(reports ?? {}).forEach((itemReport) => {
-        if (!itemReport) {
-            return;
-        }
-        convertedReports[itemReport.reportID] = itemReport;
-    });
-    Object.keys(reportActions ?? {}).forEach((actionKey) => {
-        if (!actionKey) {
-            return;
-        }
-        const reportID = CollectionUtils.extractCollectionItemID(actionKey as `${OnyxCollectionKey}${string}`);
-        convertedReportActions[reportID] = reportActions?.[actionKey] ?? null;
-    });
     const allAncestors: Ancestor[] = [];
     let parentReportID = report.parentReportID;
     let parentReportActionID = report.parentReportActionID;
@@ -4702,14 +4686,14 @@ function getAllAncestorReportActions(
     let currentUnread = shouldHideThreadDividerLine;
 
     while (parentReportID) {
-        const parentReport = convertedReports?.[parentReportID];
-        const parentReportAction = convertedReportActions?.[parentReportID]?.[parentReportActionID ?? ''] ?? null;
+        const parentReport = getReport(parentReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
         if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
             break;
         }
 
-        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction, convertedReportActions?.[parentReportID] ?? {});
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
         allAncestors.push({
             report: currentReport,
             reportAction: parentReportAction,
@@ -4726,6 +4710,39 @@ function getAllAncestorReportActions(
     }
 
     return allAncestors.reverse();
+}
+
+function getAllAncestorReportActionIDs(report: Report | null | undefined): AncestorIDs {
+    if (!report) {
+        return {
+            reportIDs: [],
+            reportActionsIDs: [],
+        };
+    }
+
+    const allAncestorIDs: AncestorIDs = {
+        reportIDs: [],
+        reportActionsIDs: [],
+    };
+    let parentReportID = report.parentReportID;
+    let parentReportActionID = report.parentReportActionID;
+
+    while (parentReportID) {
+        const parentReport = getReport(parentReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
+
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+            break;
+        }
+
+        allAncestorIDs.reportIDs.push(parentReportID ?? '');
+        allAncestorIDs.reportActionsIDs.push(parentReportActionID ?? '');
+
+        parentReportID = parentReport?.parentReportID;
+        parentReportActionID = parentReport?.parentReportActionID;
+    }
+
+    return allAncestorIDs;
 }
 
 function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
@@ -4931,6 +4948,7 @@ export {
     isReportFieldOfTypeTitle,
     isReportFieldDisabled,
     getAvailableReportFields,
+    getAllAncestorReportActionIDs,
 };
 
 export type {
@@ -4942,4 +4960,5 @@ export type {
     OptimisticAddCommentReportAction,
     OptimisticCreatedReportAction,
     OptimisticClosedReportAction,
+    Ancestor,
 };
