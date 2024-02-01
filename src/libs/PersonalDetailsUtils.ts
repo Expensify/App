@@ -252,7 +252,15 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     return {firstName: '', lastName: ''};
 }
 
+/**
+ * Whether personal details is empty
+ */
+function isPersonalDetailsEmpty() {
+    return !personalDetails.length;
+}
+
 export {
+    isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getAccountIDsByLogins,
