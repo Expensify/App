@@ -2585,6 +2585,11 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 8,
         },
 
+        optionSelectCircle: {
+            borderRadius: variables.componentSizeSmall / 2 + 1,
+            padding: 1,
+        },
+
         unreadIndicatorContainer: {
             position: 'absolute',
             top: -10,
