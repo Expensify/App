@@ -82,7 +82,12 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current.focus(point);
+        camera.current.focus(point).catch((ex) => {
+            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+                return;
+            }
+            Log.warn('Error focusing camera', ex);
+        });
     };
 
     const tapGesture = Gesture.Tap()
