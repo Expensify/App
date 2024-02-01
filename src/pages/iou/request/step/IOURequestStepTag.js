@@ -45,7 +45,7 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, transactionID, backTo},
+        params: {action, transactionID, backTo, iouType},
     },
     transaction: {tag},
 }) {
@@ -56,6 +56,7 @@ function IOURequestStepTag({
     const tagListKey = _.first(_.keys(policyTags));
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isBillSplit = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -68,16 +69,17 @@ function IOURequestStepTag({
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
+        if (isBillSplit) {
+            IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
+            navigateBack();
+            return;
+        }
         if (isEditing) {
             IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag);
             Navigation.dismissModal();
             return;
         }
-        if (isSelectedTag) {
-            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
-        } else {
-            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, updatedTag);
-        }
+        IOU.setMoneyRequestTag(transactionID, updatedTag);
         navigateBack();
     };
 

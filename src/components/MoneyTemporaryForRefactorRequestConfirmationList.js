@@ -258,7 +258,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+    const shouldShowCategories = iouCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories));
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
