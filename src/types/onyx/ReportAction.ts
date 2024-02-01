@@ -181,7 +181,7 @@ type ReportActionBase = {
     errors?: OnyxCommon.Errors;
 
     /** Error associated with the report action */
-    error: string;
+    error?: string;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;
