@@ -301,7 +301,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
     },
-    // Trigger CI
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
