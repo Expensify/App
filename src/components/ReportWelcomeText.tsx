@@ -61,13 +61,13 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             </View>
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
-                    <>
+                    <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
-                    </>
+                    </Text>
                 )}
                 {isChatRoom && (
                     <>
@@ -80,13 +80,12 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     }
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                                 }}
-                                style={styles.mw100}
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             >
                                 <RenderHTML html={report.description} />
                             </PressableWithoutFeedback>
                         ) : (
-                            <>
+                            <Text>
                                 <Text>{roomWelcomeMessage.phrase1}</Text>
                                 {roomWelcomeMessage.showReportName && (
                                     <Text
@@ -98,7 +97,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     </Text>
                                 )}
                                 {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
-                            </>
+                            </Text>
                         )}
                     </>
                 )}
