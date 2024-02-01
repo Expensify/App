@@ -43,7 +43,7 @@ type PersonalDetails = {
     phoneNumber?: string;
 
     /** Avatar URL of the current user from their personal details */
-    avatar: AvatarSource;
+    avatar?: AvatarSource;
 
     /** Avatar thumbnail URL of the current user from their personal details */
     avatarThumbnail?: string;
