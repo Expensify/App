@@ -107,7 +107,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
 
     /** IOU report for this action, if any */
@@ -349,6 +348,7 @@ function ReportActionItem(props) {
                     // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
                     chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
+                    reportID={props.report.reportID}
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}
@@ -447,7 +447,7 @@ function ReportActionItem(props) {
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else {
@@ -508,7 +508,6 @@ function ReportActionItem(props) {
                             reportID={props.report.reportID}
                             index={props.index}
                             ref={textInputRef}
-                            report={props.report}
                             // Avoid defining within component due to an existing Onyx bug
                             preferredSkinTone={props.preferredSkinTone}
                             shouldDisableEmojiPicker={
@@ -651,6 +650,7 @@ function ReportActionItem(props) {
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
+                        policy={props.policy}
                         policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
@@ -806,6 +806,10 @@ export default compose(
             key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
             initialValue: [],
         },
+        policy: {
+            key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` : undefined),
+            initialValue: {},
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
@@ -849,6 +853,7 @@ export default compose(
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields),
+            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            _.isEqual(prevProps.policy, nextProps.policy),
     ),
 );
