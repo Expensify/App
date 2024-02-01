@@ -44,7 +44,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         route: PolicyRoute;
 
         /** Main content of the page */
-        children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
+        children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
@@ -93,7 +93,7 @@ function WorkspacePageWithSections({
     const isLoading = reimbursementAccount?.isLoading ?? true;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
-    const policyID = route.params?.policyID;
+    const policyID = route.params?.policyID ?? '';
     const policyName = policy?.name;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = children(hasVBA, policyID, isUsingECard);
@@ -133,7 +133,7 @@ function WorkspacePageWithSections({
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={guidesCallTaskID}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? ''))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
