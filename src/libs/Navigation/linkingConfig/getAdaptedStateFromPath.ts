@@ -163,6 +163,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 metainfo.isFullScreenNavigatorMandatory = false;
                 matchingRootRoute = createCentralPaneNavigator({name: SCREENS.REPORT});
             }
+
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: [matchingRootRoute]});
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
