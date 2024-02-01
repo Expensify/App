@@ -5,8 +5,8 @@ function selectOption(s) {
 
     // Keep all selects on the page in sync
     const allSelects = document.querySelectorAll('select');
-    for (e of allSelects) {
-        e.selectedIndex = s.selectedIndex;
+    for (let i = 0; i < allSelects.length; i++) {
+        allSelects[i].selectedIndex = s.selectedIndex;
     }
 
     const allOptions = Array.from(s.options);
@@ -16,15 +16,15 @@ function selectOption(s) {
     allOptions.forEach((option) => {
         if (option.value === selectedValue) {
             const toShow = document.getElementsByClassName(option.value);
-            for (e of toShow) {
-                e.classList.remove('hidden');
+            for (let i = 0; i < toShow.length; i++) {
+                toShow[i].classList.remove('hidden');
             }
             return;
         }
 
         const toHide = document.getElementsByClassName(option.value);
-        for (e of toHide) {
-            e.classList.add('hidden');
+        for (let i = 0; i < toHide.length; i++) {
+            toHide[i].classList.add('hidden');
         }
     });
 }
