@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
+import type {PolicyReportField} from './PolicyReportField';
 
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
 
@@ -170,7 +171,7 @@ type Report = {
     selected?: boolean;
 
     /** If the report contains reportFields, save the field id and its value */
-    reportFields?: Record<string, string>;
+    reportFields?: Record<string, PolicyReportField>;
 };
 
 export default Report;

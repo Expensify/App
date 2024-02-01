@@ -1489,6 +1489,7 @@ function requestMoney(
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param {Boolean} billable
  * @param {Array} policyTags
  * @param {Array} policyCategories
  *
@@ -1505,6 +1506,7 @@ function createSplitsAndOnyxData(
     category,
     tag,
     existingSplitChatReportID = '',
+    billable = false,
     policyTags = undefined,
     policyCategories = undefined,
 ) {
@@ -1531,6 +1533,7 @@ function createSplitsAndOnyxData(
         undefined,
         category,
         tag,
+        billable,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -1732,6 +1735,7 @@ function createSplitsAndOnyxData(
             undefined,
             category,
             tag,
+            billable,
         );
 
         // STEP 4: Build optimistic reportActions. We need:
@@ -1863,6 +1867,7 @@ function createSplitsAndOnyxData(
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param {Boolean} billable
  * @param {Array} policyTags
  * @param {Array} policyCategories
  */
@@ -1877,6 +1882,7 @@ function splitBill(
     category,
     tag,
     existingSplitChatReportID = '',
+    billable = false,
     policyTags = undefined,
     policyCategories = undefined,
 ) {
@@ -1891,6 +1897,7 @@ function splitBill(
         category,
         tag,
         existingSplitChatReportID,
+        billable,
         policyTags,
         policyCategories,
     );
@@ -1905,6 +1912,7 @@ function splitBill(
             category,
             merchant,
             tag,
+            billable,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1928,6 +1936,7 @@ function splitBill(
  * @param {String} merchant
  * @param {String} category
  * @param {String} tag
+ * @param {Boolean} billable
  * @param {Array} policyTags
  * @param {Array} policyCategories
  */
@@ -1941,6 +1950,7 @@ function splitBillAndOpenReport(
     merchant,
     category,
     tag,
+    billable,
     policyTags = undefined,
     policyCategories = undefined,
 ) {
@@ -1954,6 +1964,7 @@ function splitBillAndOpenReport(
         merchant,
         category,
         tag,
+        billable,
         policyTags,
         policyCategories,
     );
@@ -1969,6 +1980,7 @@ function splitBillAndOpenReport(
             comment,
             category,
             tag,
+            billable,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1993,8 +2005,9 @@ function splitBillAndOpenReport(
  * @param {String} tag
  * @param {Object} receipt
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param {Boolean} billable
  */
-function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, category, tag, receipt, existingSplitChatReportID = '') {
+function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, category, tag, receipt, existingSplitChatReportID = '', billable = false) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -2022,6 +2035,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         undefined,
         category,
         tag,
+        billable,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -2235,6 +2249,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             category,
             tag,
             isFromGroupDM: !existingSplitChatReport,
+            billable,
             ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         },
         {optimisticData, successData, failureData},
@@ -3965,6 +3980,15 @@ function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath,
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
+/**
+ * Save the preferred payment method for a policy
+ * @param {String} policyID
+ * @param {String} paymentMethod
+ */
+function savePreferredPaymentMethod(policyID, paymentMethod) {
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -4025,4 +4049,5 @@ export {
     getIOUReportID,
     editMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
+    savePreferredPaymentMethod,
 };
