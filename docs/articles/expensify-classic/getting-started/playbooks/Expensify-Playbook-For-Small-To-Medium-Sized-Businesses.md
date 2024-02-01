@@ -194,8 +194,8 @@ As mentioned above, we’ll be able to pull in transactions as they post (daily)
 ### If you don't have a corporate card, use the Expensify Card (US only)
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back
-- [SmartLimits](https://help.expensify.com/articles/expensify-classic/expensify-card/Card-Settings) to control what each individual cardholder can spend
+- Up to 2% cash back (_Applies to USD purchases only._)
+- [SmartLimits]([https://help.expensify.com/articles/expensify-classic/expensify-card/Card-Settings](https://community.expensify.com/discussion/4851/deep-dive-what-are-smart-limits?utm_source=community-search&utm_medium=organic-search&utm_term=smart+limits)) to control what each individual cardholder can spend
 - A stable, unbreakable real-time connection (third-party bank feeds can run into connectivity issues)
 - Receipt compliance - informing notifications (e.g. add a receipt!) for users *as soon as the card is swiped*
 - Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
