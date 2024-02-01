@@ -8,9 +8,9 @@ import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
-import useIsInputFocus from '@hooks/useIsInputFocus';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
@@ -110,7 +110,7 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
-        shouldAwareViewportScroll = false,
+        shouldAwareViewportScroll = true,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -193,8 +193,7 @@ function ScreenWrapper(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isInputFocus = useIsInputFocus(shouldAwareViewportScroll && Browser.isMobileSafari());
-    const isAwareViewportScroll = shouldEnableMaxHeight && isInputFocus;
+    const isAwareViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAwareViewportScroll && Browser.isMobileSafari());
 
     return (
         <SafeAreaConsumer>

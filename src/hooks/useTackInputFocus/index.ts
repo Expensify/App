@@ -1,13 +1,16 @@
 import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 
-export default function useIsInputFocus(enable = false): boolean {
+/**
+ * This hook to detech input or text area focus on browser
+ */
+export default function useTackInputFocus(enable = false): boolean {
     const [, isInputFocusDebounced, setIsInputFocus] = useDebouncedState(false);
 
     const handleFocusIn = useCallback(
         (event: FocusEvent) => {
             const targetElement = event.target as HTMLElement;
-            if (targetElement.tagName === 'INPUT') {
+            if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA') {
                 setIsInputFocus(true);
             }
         },
@@ -17,7 +20,7 @@ export default function useIsInputFocus(enable = false): boolean {
     const handleFocusOut = useCallback(
         (event: FocusEvent) => {
             const targetElement = event.target as HTMLElement;
-            if (targetElement.tagName === 'INPUT') {
+            if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA') {
                 setIsInputFocus(false);
             }
         },
