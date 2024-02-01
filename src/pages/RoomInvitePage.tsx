@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -210,8 +211,8 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
             testID={RoomInvitePage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={!report}
-                subtitleKey={!report ? undefined : 'roomMembersPage.notAuthorized'}
+                shouldShow={isEmptyObject(report)}
+                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(backRoute)}
             >
                 <HeaderWithBackButton
