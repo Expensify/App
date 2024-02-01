@@ -149,7 +149,7 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
-    const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
+    const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
