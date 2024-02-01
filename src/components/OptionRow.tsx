@@ -195,7 +195,7 @@ function OptionRow({
                             shouldHaveOptionSeparator && styles.borderTop,
                             !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
                         ]}
-                        accessibilityLabel={option.text}
+                        accessibilityLabel={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
