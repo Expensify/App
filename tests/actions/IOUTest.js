@@ -1900,7 +1900,7 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
-    }, 15000);
+    });
 
     describe('deleteMoneyRequest', () => {
         const amount = 10000;
