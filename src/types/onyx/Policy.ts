@@ -154,6 +154,7 @@ type Policy = {
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 
+    /** ReportID of the announce room for this workspace */
     chatReportIDAnnounce?: number;
 };
 
