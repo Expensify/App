@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -74,8 +74,10 @@ function ComposerWithSuggestions({
     isKeyboardShown,
     // Props: Report
     reportID,
-    report,
-    reportActions,
+    includeChronos,
+    isEmptyChat,
+    lastReportAction,
+    parentReportActionID,
     // Focus
     onFocus,
     onBlur,
@@ -114,12 +116,13 @@ function ComposerWithSuggestions({
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
+
+    const draftComment = getDraftComment(reportID) || '';
     const [value, setValue] = useState(() => {
-        const draft = getDraftComment(reportID) || '';
-        if (draft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
+        if (draftComment) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
-        return draft;
+        return draftComment;
     });
     const commentRef = useRef(value);
     const lastTextRef = useRef(value);
@@ -127,8 +130,7 @@ function ComposerWithSuggestions({
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+    const parentReportAction = lodashGet(parentReportActions, [parentReportActionID]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
@@ -384,18 +386,14 @@ function ComposerWithSuggestions({
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
             const valueLength = valueRef.current.length;
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !ReportUtils.chatIncludesChronos(report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !includeChronos) {
                 e.preventDefault();
-                const lastReportAction = _.find(
-                    [...reportActions, parentReportAction],
-                    (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
-                );
                 if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportAction, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
+        [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
     const onChangeText = useCallback(
@@ -574,6 +572,22 @@ function ComposerWithSuggestions({
         onValueChange(value);
     }, [onValueChange, value]);
 
+    const onLayout = useCallback(
+        (e) => {
+            const composerLayoutHeight = e.nativeEvent.layout.height;
+            if (composerHeight === composerLayoutHeight) {
+                return;
+            }
+            setComposerHeight(composerLayoutHeight);
+        },
+        [composerHeight],
+    );
+
+    const onClear = useCallback(() => {
+        setTextInputShouldClear(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -594,7 +608,7 @@ function ComposerWithSuggestions({
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
-                    onClear={() => setTextInputShouldClear(false)}
+                    onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
                     isReportActionCompose
                     selection={selection}
@@ -607,13 +621,7 @@ function ComposerWithSuggestions({
                     numberOfLines={numberOfLines}
                     onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
-                    onLayout={(e) => {
-                        const composerLayoutHeight = e.nativeEvent.layout.height;
-                        if (composerHeight === composerLayoutHeight) {
-                            return;
-                        }
-                        setComposerHeight(composerLayoutHeight);
-                    }}
+                    onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
                 />
@@ -637,7 +645,6 @@ function ComposerWithSuggestions({
 
             <SilentCommentUpdater
                 reportID={reportID}
-                report={report}
                 value={value}
                 updateComment={updateComment}
                 commentRef={commentRef}
@@ -683,9 +690,9 @@ export default compose(
             key: ONYXKEYS.INPUT_FOCUSED,
         },
         parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             canEvict: false,
             initWithStoredValues: false,
         },
     }),
-)(ComposerWithSuggestionsWithRef);
+)(memo(ComposerWithSuggestionsWithRef));
