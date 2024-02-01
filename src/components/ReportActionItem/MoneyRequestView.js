@@ -237,7 +237,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                {showMapAsImage && (
+                {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction.errors}
@@ -247,28 +247,18 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         }}
                     >
                         <View style={styles.moneyRequestViewImage}>
-                            <ConfirmedRoute transaction={transaction} />
-                        </View>
-                    </OfflineWithFeedback>
-                )}
-                {!showMapAsImage && hasReceipt && (
-                    <OfflineWithFeedback
-                        pendingAction={pendingAction}
-                        errors={transaction.errors}
-                        errorRowStyles={[styles.ml4]}
-                        onClose={() => {
-                            Transaction.clearError(transaction.transactionID);
-                        }}
-                    >
-                        <View style={styles.moneyRequestViewImage}>
-                            <ReportActionItemImage
-                                thumbnail={receiptURIs.thumbnail}
-                                image={receiptURIs.image}
-                                isLocalFile={receiptURIs.isLocalFile}
-                                transaction={transaction}
-                                enablePreviewModal
-                                canEditReceipt={canEditReceipt}
-                            />
+                            {showMapAsImage ? (
+                                <ConfirmedRoute transaction={transaction} />
+                            ) : (
+                                <ReportActionItemImage
+                                    thumbnail={receiptURIs.thumbnail}
+                                    image={receiptURIs.image}
+                                    isLocalFile={receiptURIs.isLocalFile}
+                                    transaction={transaction}
+                                    enablePreviewModal
+                                    canEditReceipt={canEditReceipt}
+                                />
+                            )}
                         </View>
                     </OfflineWithFeedback>
                 )}
