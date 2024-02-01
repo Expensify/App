@@ -876,7 +876,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     />
                 )
             )}
-            {_.map(relevantMenuItems, (relevantMenuItem) => relevantMenuItem)}
+            {relevantMenuItems}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
@@ -892,7 +892,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {shouldShowAllFields && <>{_.map(supplementaryMenuItems, (supplementaryMenuItem) => supplementaryMenuItem)}</>}
+            {shouldShowAllFields && <>{supplementaryMenuItems}</>}
         </OptionsSelector>
     );
 }
