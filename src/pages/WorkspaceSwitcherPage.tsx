@@ -1,9 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,50 +24,38 @@ import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/Worksp
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
-const sortWorkspacesBySelected = (workspace1, workspace2, selectedWorkspaceID) => {
+type SimpleWorkspaceItem = {
+    text?: string;
+    policyID?: string;
+    isPolicyAdmin?: boolean;
+};
+
+const sortWorkspacesBySelected = (workspace1: SimpleWorkspaceItem, workspace2: SimpleWorkspaceItem, selectedWorkspaceID: string | undefined): number => {
     if (workspace1.policyID === selectedWorkspaceID) {
         return -1;
     }
     if (workspace2.policyID === selectedWorkspaceID) {
         return 1;
     }
-    return workspace1.text.toLowerCase().localeCompare(workspace2.text.toLowerCase());
+    return workspace1.text?.toLowerCase().localeCompare(workspace2.text?.toLowerCase() ?? '') ?? 0;
 };
 
-const propTypes = {
+type WorkspaceSwitcherPageOnyxProps = {
     /** The list of this user's policies */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the policy */
-            id: PropTypes.string,
-
-            /** The name of the policy */
-            name: PropTypes.string,
-
-            /** The type of the policy */
-            type: PropTypes.string,
-
-            /** The user's role in the policy */
-            role: PropTypes.string,
-
-            /** The current action that is waiting to happen on the policy */
-            pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-        }),
-    ),
+    policies: OnyxCollection<Policy>;
 };
 
-const defaultProps = {
-    policies: {},
-};
+type WorkspaceSwitcherPageProps = WorkspaceSwitcherPageOnyxProps;
 
-function WorkspaceSwitcherPage({policies}) {
+function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [selectedOption, setSelectedOption] = useState();
+    const [selectedOption, setSelectedOption] = useState<SimpleWorkspaceItem>();
     const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
@@ -79,16 +65,16 @@ function WorkspaceSwitcherPage({policies}) {
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
 
     const getIndicatorTypeForPolicy = useCallback(
-        (policyID) => {
-            if (policyID && policyID !== activeWorkspaceID) {
-                return brickRoadsForPolicies[policyID];
+        (policyId?: string) => {
+            if (policyId && policyId !== activeWorkspaceID) {
+                return brickRoadsForPolicies[policyId];
             }
 
-            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)) {
+            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)) {
                 return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
 
-            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO)) {
+            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO)) {
                 return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
             }
 
@@ -99,62 +85,69 @@ function WorkspaceSwitcherPage({policies}) {
 
     const hasUnreadData = useCallback(
         // TO DO: Implement checking if policy has some unread data
-        // eslint-disable-next-line no-unused-vars
-        (policyID) => {
-            if (policyID) {
-                return unreadStatusesForPolicies[policyID];
+        (policyId?: string) => {
+            if (policyId) {
+                return unreadStatusesForPolicies[policyId];
             }
 
-            return _.some(_.values(unreadStatusesForPolicies), (status) => status);
+            return Object.values(unreadStatusesForPolicies).some((status) => status);
         },
         [unreadStatusesForPolicies],
     );
 
-    const selectPolicy = (option) => {
-        const {policyID, isPolicyAdmin} = option;
+    const selectPolicy = useCallback(
+        (option?: SimpleWorkspaceItem) => {
+            if (!option) {
+                return;
+            }
 
-        if (policyID) {
-            setSelectedOption(option);
-        } else {
-            setSelectedOption(undefined);
-        }
-        setActiveWorkspaceID(policyID);
-        Navigation.goBack();
-        if (policyID !== activeWorkspaceID) {
-            Navigation.navigateWithSwitchPolicyID({policyID, isPolicyAdmin});
-        }
-    };
+            const {policyID, isPolicyAdmin} = option;
 
-    const usersWorkspaces = useMemo(
-        () =>
-            _.chain(policies)
-                .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
-                .map((policy) => ({
-                    text: policy.name,
-                    policyID: policy.id,
-                    brickRoadIndicator: getIndicatorTypeForPolicy(policy.id),
-                    icons: [
-                        {
-                            source: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                            name: policy.name,
-                            type: CONST.ICON_TYPE_WORKSPACE,
-                        },
-                    ],
-                    boldStyle: hasUnreadData(policy.id),
-                    keyForList: policy.id,
-                    isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
-                }))
-                .value(),
-        [policies, getIndicatorTypeForPolicy, hasUnreadData],
+            if (policyID) {
+                setSelectedOption(option);
+            } else {
+                setSelectedOption(undefined);
+            }
+            setActiveWorkspaceID(policyID);
+            Navigation.goBack();
+            if (policyID !== activeWorkspaceID) {
+                Navigation.navigateWithSwitchPolicyID({policyID, isPolicyAdmin});
+            }
+        },
+        [activeWorkspaceID, setActiveWorkspaceID],
     );
+
+    const usersWorkspaces = useMemo(() => {
+        if (!policies || isEmptyObject(policies)) {
+            return [];
+        }
+
+        return Object.values(policies)
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
+            .map((policy) => ({
+                text: policy?.name,
+                policyID: policy?.id,
+                brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
+                icons: [
+                    {
+                        source: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
+                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        name: policy?.name,
+                        type: CONST.ICON_TYPE_WORKSPACE,
+                    },
+                ],
+                boldStyle: hasUnreadData(policy?.id),
+                keyForList: policy?.id,
+                isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
+            }));
+    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline]);
 
     const filteredAndSortedUserWorkspaces = useMemo(
         () =>
-            _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())).sort((policy1, policy2) =>
-                sortWorkspacesBySelected(policy1, policy2, activeWorkspaceID),
-            ),
-        [searchTerm, usersWorkspaces],
+            usersWorkspaces
+                .filter((policy) => policy.text?.toLowerCase().includes(searchTerm?.toLowerCase() ?? ''))
+                .sort((policy1, policy2) => sortWorkspacesBySelected(policy1, policy2, activeWorkspaceID)),
+        [searchTerm, usersWorkspaces, activeWorkspaceID],
     );
 
     const usersWorkspacesSectionData = useMemo(
@@ -168,6 +161,7 @@ function WorkspaceSwitcherPage({policies}) {
 
     const everythingSection = useMemo(() => {
         const option = {
+            reportID: '',
             text: CONST.WORKSPACE_SWITCHER.NAME,
             icons: [
                 {
@@ -195,7 +189,6 @@ function WorkspaceSwitcherPage({policies}) {
                         option={option}
                         onSelectRow={selectPolicy}
                         showTitleTooltip={false}
-                        shouldShowSubscript={false}
                         highlightSelected
                         isSelected={!activeWorkspaceID}
                         optionIsFocused={!activeWorkspaceID}
@@ -210,7 +203,7 @@ function WorkspaceSwitcherPage({policies}) {
     const workspacesSection = useMemo(
         () => (
             <>
-                <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...(usersWorkspaces.length > 0 ? [styles.mb0] : [styles.mb3])]}>
+                <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
                     <View>
                         <Text
                             style={styles.label}
@@ -220,6 +213,7 @@ function WorkspaceSwitcherPage({policies}) {
                         </Text>
                     </View>
                     <PressableWithFeedback
+                        accessible={false}
                         role={CONST.ROLE.BUTTON}
                         onPress={() => {
                             App.createWorkspaceWithPolicyDraftAndNavigateToIt();
@@ -239,12 +233,13 @@ function WorkspaceSwitcherPage({policies}) {
 
                 {usersWorkspaces.length > 0 ? (
                     <OptionsSelector
-                        placeholderText={translate('workspace.switcher.placeholder')}
+                        // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
+                        placeholder={translate('workspace.switcher.placeholder')}
                         ref={inputCallbackRef}
                         sections={[usersWorkspacesSectionData]}
                         value={searchTerm}
                         shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
-                        onChangeText={(newSearchTerm) => setSearchTerm(newSearchTerm)}
+                        onChangeText={setSearchTerm}
                         selectedOptions={selectedOption ? [selectedOption] : []}
                         onSelectRow={selectPolicy}
                         shouldPreventDefaultFocusOnSelectRow
@@ -266,22 +261,35 @@ function WorkspaceSwitcherPage({policies}) {
                 )}
             </>
         ),
-        [inputCallbackRef, setSearchTerm, searchTerm, selectPolicy, selectedOption, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData],
+        [
+            inputCallbackRef,
+            setSearchTerm,
+            searchTerm,
+            selectPolicy,
+            selectedOption,
+            styles,
+            theme.textSupporting,
+            translate,
+            usersWorkspaces.length,
+            usersWorkspacesSectionData,
+            activeWorkspaceID,
+            theme.icon,
+            headerMessage,
+        ],
     );
 
     useEffect(() => {
         if (!activeWorkspaceID) {
             return;
         }
-        const optionToSet = _.find(usersWorkspaces, (option) => option.policyID === activeWorkspaceID);
+        const optionToSet = usersWorkspaces.find((option) => option.policyID === activeWorkspaceID);
         setSelectedOption(optionToSet);
     }, [activeWorkspaceID, usersWorkspaces]);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={WorkspaceSwitcherPage.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.switcher.headerTitle')}
-                backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SWITCHER.ROOT].backgroundColor}
                 onBackButtonPress={Navigation.goBack}
             />
             {everythingSection}
@@ -290,11 +298,9 @@ function WorkspaceSwitcherPage({policies}) {
     );
 }
 
-WorkspaceSwitcherPage.propTypes = propTypes;
-WorkspaceSwitcherPage.defaultProps = defaultProps;
 WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
 
-export default withOnyx({
+export default withOnyx<WorkspaceSwitcherPageProps, WorkspaceSwitcherPageOnyxProps>({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },
