@@ -63,7 +63,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -173,6 +173,12 @@ Linking.getInitialURL().then((url) => {
     const exitToRoute = params.get('exitTo') ?? '';
     const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
     reportIDDeeplinkedFromOldDot = reportID;
+});
+
+let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
+Onyx.connect({
+    key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
+    callback: (val) => (allRecentlyUsedReportFields = val),
 });
 
 /** Get the private pusher channel name for a Report. */
@@ -1462,6 +1468,137 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: P
     }
 }
 
+function updateReportName(reportID: string, value: string, previousValue: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: value,
+                pendingFields: {
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: previousValue,
+                pendingFields: {
+                    reportName: null,
+                },
+                errorFields: {
+                    reportName: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReporNameEditFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    reportName: null,
+                },
+                errorFields: {
+                    reportName: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        reportID,
+        reportName: value,
+    };
+
+    API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
+}
+
+function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
+    const recentlyUsedValues = allRecentlyUsedReportFields?.[reportField.fieldID] ?? [];
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportFields: {
+                    [reportField.fieldID]: reportField,
+                },
+                pendingFields: {
+                    [reportField.fieldID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    if (reportField.type === 'dropdown') {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
+            value: {
+                [reportField.fieldID]: [...new Set([...recentlyUsedValues, reportField.value])],
+            },
+        });
+    }
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportFields: {
+                    [reportField.fieldID]: previousReportField,
+                },
+                pendingFields: {
+                    [reportField.fieldID]: null,
+                },
+                errorFields: {
+                    [reportField.fieldID]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    if (reportField.type === 'dropdown') {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
+            value: {
+                [reportField.fieldID]: recentlyUsedValues,
+            },
+        });
+    }
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    [reportField.fieldID]: null,
+                },
+                errorFields: {
+                    [reportField.fieldID]: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        reportID,
+        reportFields: JSON.stringify({[reportField.fieldID]: reportField}),
+    };
+
+    API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
+}
+
 function updateWelcomeMessage(reportID: string, previousValue: string, newValue: string) {
     // No change needed, navigate back
     if (previousValue === newValue) {
@@ -2721,5 +2858,7 @@ export {
     getDraftPrivateNote,
     updateLastVisitTime,
     clearNewRoomFormError,
+    updateReportField,
+    updateReportName,
     resolveActionableMentionWhisper,
 };
