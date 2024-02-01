@@ -225,7 +225,6 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
 
-    // recheck on focus for read, allows notifications to
     useAppFocusEvent(readNewestReportAction);
 
     useEffect(() => {
