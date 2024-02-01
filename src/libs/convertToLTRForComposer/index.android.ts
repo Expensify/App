@@ -11,11 +11,11 @@ function canComposerBeConvertedToLTR(text: string): boolean {
     const containOnlySpaces = /^\s*$/;
     // This regex handles the case where someone has RTL enabled and they began typing an @mention for someone.
     const startsWithLTRAndAt = new RegExp(`^${CONST.UNICODE.LTR}@$`);
-    const startsWithAt = new RegExp(`^@`);
-    const startWithSmile = new RegExp('^:');
+    const containsAt = new RegExp(`@`);
+    const containSmile = new RegExp(':');
     // This regex handles the case where the composer can contain multiple lines of whitespace
     const startsWithLTRAndSpace = new RegExp(`${CONST.UNICODE.LTR}\\s*$`);
-    const emptyExpressions = [containOnlySpaces, startsWithLTRAndAt, startsWithAt, startsWithLTRAndSpace, startWithSmile];
+    const emptyExpressions = [containOnlySpaces, startsWithLTRAndAt, containsAt, startsWithLTRAndSpace, containSmile];
     return emptyExpressions.some((exp) => exp.test(text));
 }
 
