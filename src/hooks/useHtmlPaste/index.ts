@@ -1,10 +1,9 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
-import focusInputOnPaste from '@libs/focusInputOnPaste';
 import type UseHtmlPaste from './types';
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, removeListenerOnScreenBlur = true) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
     const navigation = useNavigation();
 
     /**
@@ -57,16 +56,16 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, remov
             if (!textInputRef.current) {
                 return;
             }
-            const isComposerVisible = checkComposerVisibility?.();
-            const isFocused = textInputRef.current?.isFocused();
 
-            if (!isFocused && !isComposerVisible) {
+            if (preHtmlPasteCallback?.(event)) {
                 return;
             }
 
-            focusInputOnPaste(textInputRef, event);
+            const isFocused = textInputRef.current?.isFocused();
 
-            event.preventDefault();
+            if (!isFocused) {
+                return;
+            }
 
             const types = event.clipboardData?.types;
             const TEXT_HTML = 'text/html';
@@ -92,7 +91,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, remov
             handlePastePlainText(event);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [handlePastedHTML, handlePastePlainText, checkComposerVisibility],
+        [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 
     useEffect(() => {
@@ -101,7 +100,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, remov
         // by current screen paste listener
         let unsubscribeFocus: () => void;
         let unsubscribeBlur: () => void;
-        if (!removeListenerOnScreenBlur) {
+        if (removeListenerOnScreenBlur) {
             unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
             unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
         }
@@ -109,7 +108,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, remov
         document.addEventListener('paste', handlePaste);
 
         return () => {
-            if (!removeListenerOnScreenBlur) {
+            if (removeListenerOnScreenBlur) {
                 unsubscribeFocus();
                 unsubscribeBlur();
             }

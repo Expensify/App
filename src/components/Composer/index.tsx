@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
@@ -18,7 +17,6 @@ import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import focusInputOnPaste from '@libs/focusInputOnPaste';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
@@ -83,7 +81,6 @@ function Composer(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const navigation = useNavigation();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedTextInputRef | null>(null);
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
@@ -163,10 +160,21 @@ function Composer(
             const isFocused = textInput.current?.isFocused();
 
             if (!(isVisible || isFocused)) {
-                return;
+                return true;
             }
 
-            focusInputOnPaste(textInput, event);
+            if (textInput.current !== event.target) {
+                // To make sure the text input does not capture paste events from other inputs, we check where the event originated
+                // If it did originate in another input, we return early to prevent the text input from handling the paste
+                const target = event.target as HTMLInputElement;
+                const isTargetInput = (target && target.nodeName === 'INPUT') || target.nodeName === 'TEXTAREA' || target.contentEditable === 'true';
+
+                if (isTargetInput) {
+                    return true;
+                }
+
+                textInput.current?.focus();
+            }
 
             event.preventDefault();
 
@@ -178,7 +186,7 @@ function Composer(
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
                 onPasteFile(event.clipboardData.files[0]);
-                return;
+                return true;
             }
 
             // If paste contains base64 image
@@ -191,7 +199,7 @@ function Composer(
                     const src = embeddedImages[0].src;
                     const file = FileUtils.base64ToFile(src, 'image.png');
                     onPasteFile(file);
-                    return;
+                    return true;
                 }
             }
 
@@ -210,9 +218,11 @@ function Composer(
                                 const file = new File([blob], 'image.jpg', {type: 'image/jpeg'});
                                 onPasteFile(file);
                             });
+                        return true;
                     }
                 }
             }
+            return false;
         },
         [onPasteFile, checkComposerVisibility],
     );
@@ -246,29 +256,18 @@ function Composer(
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
-    useHtmlPaste(textInput, checkComposerVisibility, false);
+    useHtmlPaste(textInput, handlePaste, true);
 
     useEffect(() => {
-        // we need to handle listeners on navigation focus/blur as Composer is not unmounting
-        // when navigating away to different report
-        const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
-        const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
-
         if (typeof ref === 'function') {
             ref(textInput.current);
         }
 
-        if (textInput.current) {
-            document.addEventListener('paste', handlePaste);
-        }
-
         return () => {
-            if (!isReportActionCompose) {
-                ReportActionComposeFocusManager.clear();
+            if (isReportActionCompose) {
+                return;
             }
-            unsubscribeFocus();
-            unsubscribeBlur();
-            document.removeEventListener('paste', handlePaste);
+            ReportActionComposeFocusManager.clear();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
