@@ -37,8 +37,8 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
     const validate = useCallback((values) => {
         const errors = {};
 
-        if (values.comment.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'comment', ['common.error.characterLimitExceedCounter', {length: values.comment.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT}]);
+        if (values.comment.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'comment', ['common.error.characterLimitExceedCounter', {length: values.comment.length, limit: CONST.DESCRIPTION_LIMIT}]);
         }
 
         return errors;

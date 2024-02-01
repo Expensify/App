@@ -65,11 +65,8 @@ function ReportWelcomeMessagePage(props) {
     const validate = useCallback((values) => {
         const errors = {};
 
-        if (values.welcomeMessage.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'welcomeMessage', [
-                'common.error.characterLimitExceedCounter',
-                {length: values.welcomeMessage.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT},
-            ]);
+        if (values.welcomeMessage.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'welcomeMessage', ['common.error.characterLimitExceedCounter', {length: values.welcomeMessage.length, limit: CONST.DESCRIPTION_LIMIT}]);
         }
 
         return errors;

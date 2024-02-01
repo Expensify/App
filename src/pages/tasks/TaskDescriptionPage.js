@@ -58,8 +58,8 @@ function TaskDescriptionPage(props) {
     const validate = useCallback((values) => {
         const errors = {};
 
-        if (values.description.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT}]);
+        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
         }
 
         return errors;

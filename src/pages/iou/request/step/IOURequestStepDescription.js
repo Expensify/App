@@ -70,10 +70,10 @@ function IOURequestStepDescription({
     const validate = useCallback((values) => {
         const errors = {};
 
-        if (values.moneyRequestComment.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
+        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
                 'common.error.characterLimitExceedCounter',
-                {length: values.moneyRequestComment.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT},
+                {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
             ]);
         }
 

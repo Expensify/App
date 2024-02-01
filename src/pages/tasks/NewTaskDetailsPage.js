@@ -61,11 +61,8 @@ function NewTaskDetailsPage(props) {
         } else if (values.taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'taskTitle', ['common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
-        if (values.taskDescription.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskDescription', [
-                'common.error.characterLimitExceedCounter',
-                {length: values.taskDescription.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT},
-            ]);
+        if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}]);
         }
 
         return errors;

@@ -1521,7 +1521,7 @@ const CONST = {
     LOGIN_CHARACTER_LIMIT: 254,
 
     TITLE_CHARACTER_LIMIT: 100,
-    SUPPORTING_CHARACTER_LIMIT: 500,
+    DESCRIPTION_LIMIT: 500,
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
