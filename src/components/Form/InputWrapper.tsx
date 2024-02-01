@@ -19,8 +19,9 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     readonly blurOnSubmit: boolean | undefined;
     readonly shouldSetTouchedOnBlurOnly: boolean;
 } {
-    const validTextInputComponents = [TextInput, AddressSearch, RoomNameInput] as TInput[];
-    if (validTextInputComponents.includes(InputComponent)) {
+    const textInputBasedComponents = [TextInput, AddressSearch, RoomNameInput] as TInput[];
+
+    if (textInputBasedComponents.includes(InputComponent)) {
         const isEffectivelyMultiline = Boolean(multiline) || Boolean(autoGrowHeight);
 
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
