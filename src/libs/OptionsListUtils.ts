@@ -1463,6 +1463,8 @@ function getOptions(
             return;
         }
 
+        // During task assignment, we collect the top most chat report ids of the task reports
+        // for display in the recent reports list
         if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
             let parentReportID = report.parentReportID;
             let topmostChatReportID = report.parentReportID;
@@ -1545,6 +1547,8 @@ function getOptions(
     optionsToExcludeByActions.push(...optionsToExclude);
 
     if (includeRecentReports) {
+        // During money request generation, we collect chat report ids 
+        // of the money request report's parent for display in the recent reports list
         if (isMoneyRequestActionTypeForParticipants) {
             TransactionUtils.getTransactionsByActionType(actionTypeForParticipants).every((recentTransaction) => {
                 const iouReport = ReportUtils.getReport(recentTransaction?.reportID);
@@ -1587,6 +1591,7 @@ function getOptions(
                 }
             }
 
+            // Check if this report option is to be displayed based on the action type
             const isActionTypeOptionForParticipants =
                 (isMoneyRequestActionTypeForParticipants || isTaskActionTypeForParticipants) &&
                 recentChatReportIDsForActionType.some((reportID: string) => reportID === String(reportOption.reportID));
@@ -1596,10 +1601,12 @@ function getOptions(
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
+            // Stop adding to the recent report option list if we have reached the maxRecentReportsToShow value
             if (recentReportOptionsByAction.length > 0 && recentReportOptionsByAction.length === maxRecentReportsToShow) {
                 break;
             }
 
+            // Push the report option to be displayed based on action type
             if (isActionTypeOptionForParticipants) {
                 recentReportOptionsByAction.push(reportOption);
                 if (reportOption.login) {
@@ -1617,7 +1624,7 @@ function getOptions(
                 continue;
             }
 
-            // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
+            // Keep adding to the recentReports array if there is no limit set or until maxRecentReportsToShow limit is reached
             if (!maxRecentReportsToShow || recentReportOptions.length < maxRecentReportsToShow) {
                 recentReportOptions.push(reportOption);
                 // Add this login to the exclude list so it won't appear when we process the personal details
@@ -1627,6 +1634,8 @@ function getOptions(
             }
         }
     }
+    // Let us reset the recent list and the options to exclude if we have found 
+    // recent reports by action type for setting personal details and for search results.
     if (recentReportOptionsByAction.length > 0) {
         optionsToExclude = [...optionsToExcludeByActions];
         recentReportOptions = [...recentReportOptionsByAction];
@@ -1729,7 +1738,7 @@ function getOptions(
 
     return {
         personalDetails: personalDetailsOptions,
-        recentReports: recentReportOptionsByAction.length > 0 ? recentReportOptionsByAction : recentReportOptions,
+        recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
         categoryOptions: [],
