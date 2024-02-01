@@ -2,7 +2,6 @@ import React from 'react';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type DisplayNamesProps from './types';
-import {View} from 'react-native';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
