@@ -5,7 +5,7 @@ type UseNetworkProps = {
     onReconnect?: () => void;
 };
 
-type UseNetwork = {isOffline?: boolean};
+type UseNetwork = {isOffline: boolean};
 
 export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {}): UseNetwork {
     const callback = useRef(onReconnect);
@@ -28,5 +28,5 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
-    return {isOffline};
+    return {isOffline: isOffline ?? false};
 }
