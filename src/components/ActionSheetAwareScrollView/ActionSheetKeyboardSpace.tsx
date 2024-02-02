@@ -309,7 +309,11 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     return withSpring(nextOffset < 0 ? 0 : nextOffset, config);
                 }
 
-                console.log("TRANSITION #18 -> ", lastKeyboardHeight);
+                console.log("TRANSITION #18 -> ", lastKeyboardHeight - keyboardHeight);
+
+                if (elementOffset < 0) {
+                    return lastKeyboardHeight - keyboardHeight;
+                }
 
                 return lastKeyboardHeight;
             }
