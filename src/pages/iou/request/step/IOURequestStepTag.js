@@ -56,7 +56,7 @@ function IOURequestStepTag({
     const tagListKey = _.first(_.keys(policyTags));
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isBillSplit = iouType === CONST.IOU.TYPE.SPLIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -69,7 +69,7 @@ function IOURequestStepTag({
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
-        if (isBillSplit) {
+        if (isSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
             navigateBack();
             return;
@@ -90,13 +90,18 @@ function IOURequestStepTag({
             shouldShowWrapper
             testID={IOURequestStepTag.displayName}
         >
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-            <TagPicker
-                policyID={report.policyID}
-                tag={tagListKey}
-                selectedTag={tag || ''}
-                onSubmit={updateTag}
-            />
+            {({insets}) => (
+                <>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+                    <TagPicker
+                        policyID={report.policyID}
+                        tag={tagListKey}
+                        selectedTag={tag || ''}
+                        onSubmit={updateTag}
+                        insets={insets}
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
