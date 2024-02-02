@@ -63,18 +63,41 @@ function IOURequestStepScan({
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const askedForPermission = useRef(false);
 
     const {translate} = useLocalize();
 
+    const askForPermissions = (showPermissionsAlert = true) => {
+        // There's no way we can check for the BLOCKED status without requesting the permission first
+        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
+        CameraPermission.requestCameraPermission()
+            .then((status) => {
+                setCameraPermissionStatus(status);
+
+                if (status === RESULTS.BLOCKED && showPermissionsAlert) {
+                    FileUtils.showCameraPermissionsAlert();
+                }
+            })
+            .catch(() => {
+                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
+            });
+    };
+
     useEffect(() => {
-        const refreshCameraPermissionStatus = () => {
+        const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
             CameraPermission.getCameraPermissionStatus()
-                .then(setCameraPermissionStatus)
+                .then((res) => {
+                    setCameraPermissionStatus(res);
+                    if (shouldAskForPermission && !askedForPermission.current) {
+                        askedForPermission.current = true;
+                        askForPermissions(false);
+                    }
+                })
                 .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
         };
 
         // Check initial camera permission status
-        refreshCameraPermissionStatus();
+        refreshCameraPermissionStatus(true);
 
         // Refresh permission status when app gain focus
         const subscription = AppState.addEventListener('change', (appState) => {
@@ -107,22 +130,6 @@ function IOURequestStepScan({
             return false;
         }
         return true;
-    };
-
-    const askForPermissions = () => {
-        // There's no way we can check for the BLOCKED status without requesting the permission first
-        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission()
-            .then((status) => {
-                setCameraPermissionStatus(status);
-
-                if (status === RESULTS.BLOCKED) {
-                    FileUtils.showCameraPermissionsAlert();
-                }
-            })
-            .catch(() => {
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
     };
 
     const navigateBack = () => {
@@ -176,6 +183,11 @@ function IOURequestStepScan({
     };
 
     const capturePhoto = useCallback(() => {
+        if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+            askForPermissions(cameraPermissionStatus !== RESULTS.DENIED);
+            return;
+        }
+
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         };
@@ -208,7 +220,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -241,7 +253,7 @@ function IOURequestStepScan({
                         text={translate('common.continue')}
                         accessibilityLabel={translate('common.continue')}
                         style={[styles.p9, styles.pt5]}
-                        onPress={askForPermissions}
+                        onPress={capturePhoto}
                     />
                 </View>
             )}
