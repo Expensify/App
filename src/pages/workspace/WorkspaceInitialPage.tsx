@@ -1,9 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Breadcrumbs from '@components/Breadcrumbs';
@@ -20,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import type {BottomTabNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -40,24 +39,22 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    routeName?: ValueOf<typeof SCREENS.WORKSPACE>;
 };
 
 type WorkspaceInitialPageOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
     /** Bank account attached to free plan */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 };
 
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<BottomTabNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 function dismissError(policyID: string) {
     Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reportsProp, policyMembers, reimbursementAccount}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, reimbursementAccount}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -68,7 +65,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
 
     const {translate} = useLocalize();
 
-    const policyID = useMemo(() => policy.id, [policy]);
+    const policyID = policy?.id ?? '';
+    const policyName = policy?.name ?? '';
 
     useEffect(() => {
         const policyDraftId = policyDraft?.id;
@@ -96,14 +94,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
         ReimbursementAccount.navigateToBankAccountRoute(policyID);
     }, [policyID, policyName]);
 
-    const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
-    const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
-    const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
+    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
 
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
 
-    const protectedMenuItems = [
+    const protectedMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
@@ -152,21 +148,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
         },
     ];
 
-    const menuItems = [
+    const menuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.overview',
             icon: Expensicons.Home,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)))),
-            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)))),
+            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.OVERVIEW,
         },
-    ].concat(shouldShowProtectedItems ? protectedMenuItems : []);
+        ...(shouldShowProtectedItems ? protectedMenuItems : []),
+    ];
 
     const prevPolicy = usePrevious(policy);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        _.isEmpty(policy) ||
+        isEmptyObject(policy) ||
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
@@ -180,7 +177,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 shouldShow={shouldShowNotFoundPage}
-                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <Breadcrumbs
                     breadcrumbs={[
@@ -196,17 +193,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                     <OfflineWithFeedback
-                        pendingAction={policy.pendingAction}
-                        onClose={() => dismissError(policy.id)}
-                        errors={policy.errors}
+                        pendingAction={policy?.pendingAction}
+                        onClose={() => dismissError(policyID)}
+                        errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
                     >
                         <View style={[styles.pb4, styles.mh3]}>
                             {/*
-                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
-                                */}
-                            {_.map(menuItems, (item) => (
+                                Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                                In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                            */}
+                            {menuItems.map((item) => (
                                 <MenuItem
                                     key={item.translationKey}
                                     disabled={hasPolicyCreationError || isExecuting}
@@ -216,7 +213,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
-                                    focused={activeRoute && activeRoute.startsWith(item.routeName)}
+                                    focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
                                 />
