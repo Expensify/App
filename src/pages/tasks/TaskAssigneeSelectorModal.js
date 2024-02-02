@@ -198,7 +198,7 @@ function TaskAssigneeSelectorModal(props) {
                     // Pass through the selected assignee
                     Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
                 }
-                Navigation.dismissModal(report.reportID);
+                Navigation.dismissModalWithReport(report);
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
