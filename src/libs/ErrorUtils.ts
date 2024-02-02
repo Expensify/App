@@ -66,6 +66,18 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     return errors[key];
 }
 
+function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Record<string, string> {
+    const errors = onyxData.errors ?? {};
+
+    if (Object.keys(errors).length === 0) {
+        return {};
+    }
+
+    const key = Object.keys(errors).sort().reverse()[0];
+
+    return {key: errors[key]};
+}
+
 type OnyxDataWithErrorFields = {
     errorFields?: ErrorFields;
 };
@@ -119,4 +131,13 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
     }
 }
 
-export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
+export {
+    getAuthenticateErrorMessage,
+    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorObject,
+    getLatestErrorMessage,
+    getLatestErrorField,
+    getEarliestErrorField,
+    addErrorMessage,
+    getLatestErrorMessageField,
+};
