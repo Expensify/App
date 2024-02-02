@@ -91,6 +91,7 @@ const propTypes = {
 
     /** Indicates if picker feature should be disabled */
     disabled: PropTypes.bool,
+
     /** Executed once click on view photo option */
     onViewPhotoPress: PropTypes.func,
 
@@ -368,6 +369,7 @@ function AvatarWithImagePicker({
                     source={previewSource}
                     originalFileName={originalFileName}
                     fallbackSource={fallbackIcon}
+                    maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>

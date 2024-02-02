@@ -40,10 +40,12 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     if (screen === SCREENS.ALL_SETTINGS && policyID) {
         screen = SCREENS.WORKSPACE.INITIAL;
     }
+
     // Alternative case when the user is on the specific workspace settings screen and selects "All" workspace.
     else if (!policyID && screen === SCREENS.WORKSPACE.INITIAL) {
         screen = SCREENS.ALL_SETTINGS;
     }
+
     if (!payloadParams) {
         payloadParams = {policyID};
     } else {

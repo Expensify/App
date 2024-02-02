@@ -17,6 +17,7 @@ type ReportScreenIDSetterComponentProps = {
     /** The policies which the user has access to */
     policies: OnyxCollection<Policy>;
 
+    /** Members of all the workspaces the user is member of */
     policyMembers: OnyxCollection<PolicyMembers>;
 
     /** Whether user is a new user */
@@ -25,6 +26,7 @@ type ReportScreenIDSetterComponentProps = {
     /** The report metadata */
     reportMetadata: OnyxCollection<ReportMetadata>;
 
+    /** The accountID of the current user */
     accountID?: number;
 };
 

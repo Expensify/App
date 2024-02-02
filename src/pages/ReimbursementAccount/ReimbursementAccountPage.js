@@ -331,9 +331,10 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             }
 
             const backTo = lodashGet(route.params, 'backTo');
-            const policyId = lodashGet(route.params, 'policyID');
+            // eslint-disable-next-line no-shadow
+            const policyID = lodashGet(route.params, 'policyID');
 
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],

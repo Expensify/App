@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesUtils';
+import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -33,7 +33,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
-     * Retuns a list of menu items data for "everything" settings
+     * Retuns a list of menu items data for All workspaces settings
      * @returns {Object} object with translationKey, style and items
      */
     const menuItems = useMemo(() => {

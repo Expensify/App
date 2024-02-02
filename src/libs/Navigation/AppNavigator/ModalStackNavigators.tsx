@@ -194,6 +194,7 @@ const AccountSettingsModalStackNavigator = createModalStackNavigator(
     },
     (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
 );
+
 const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
 });

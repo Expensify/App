@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
-import getPolicyIdFromState from './getPolicyIdFromState';
+import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
@@ -134,8 +134,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // Creating path with /w/ included if necessary.
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
-    const policyIdFromState = getPolicyIdFromState(rootState);
-    const policyID = extractedPolicyID ?? policyIdFromState;
+    const policyIDFromState = getPolicyIDFromState(rootState);
+    const policyID = extractedPolicyID ?? policyIDFromState;
 
     const isWorkspaceSettingsOpened = getTopmostBottomTabRoute(rootState as State<RootStackParamList>)?.name === SCREENS.WORKSPACE.INITIAL && path.includes('workspace');
 
@@ -210,6 +210,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
 
             root.dispatch(actionForBottomTabNavigator);
+
             // If the layout is wide we need to push matching central pane route to the stack.
             if (!getIsSmallScreenWidth()) {
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
@@ -226,7 +227,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                     },
                 });
             } else {
-                // // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
+                // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
                 root.dispatch({
                     type: 'POP_TO_TOP',
                     target: rootState.key,

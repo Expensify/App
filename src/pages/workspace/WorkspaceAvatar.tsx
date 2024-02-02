@@ -26,11 +26,7 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
             headerTitle={policy?.name ?? ''}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
-            onModalClose={() => {
-                // TODO - Check the correct path for ideal-nav
-                Navigation.goBack();
-                // Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(route.params.policyID ?? ''));
-            }}
+            onModalClose={Navigation.goBack}
             isWorkspaceAvatar
             originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
