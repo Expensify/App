@@ -227,7 +227,7 @@ function HeaderView(props) {
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
+                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                     ) : (
@@ -368,6 +368,9 @@ export default memo(
                 return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
             },
             selector: (policy) => _.pick(policy, ['role']),
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     })(HeaderView),
 );
