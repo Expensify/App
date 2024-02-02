@@ -4679,6 +4679,10 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+function isReportOwner(report: OnyxEntry<Report>): boolean {
+    return report?.ownerAccountID === currentUserPersonalDetails?.accountID;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4865,6 +4869,7 @@ export {
     isReportFieldOfTypeTitle,
     isReportFieldDisabled,
     getAvailableReportFields,
+    isReportOwner,
 };
 
 export type {
