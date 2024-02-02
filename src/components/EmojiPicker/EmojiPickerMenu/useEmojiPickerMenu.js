@@ -16,7 +16,6 @@ const useEmojiPickerMenu = () => {
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
     const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => headerEmoji.index), [headerEmojis]);
-    const spacersIndexes = useMemo(() => EmojiUtils.getSpacersIndexes(allEmojis), [allEmojis]);
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
@@ -62,7 +61,6 @@ const useEmojiPickerMenu = () => {
         preferredSkinTone,
         listStyle,
         emojiListRef,
-        spacersIndexes,
     };
 };
 
