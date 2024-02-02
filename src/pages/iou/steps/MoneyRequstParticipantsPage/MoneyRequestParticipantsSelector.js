@@ -13,8 +13,8 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -89,6 +89,9 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
+    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const newChatOptions = useMemo(() => {
@@ -124,8 +127,6 @@ function MoneyRequestParticipantsSelector({
         };
     }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
 
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -140,9 +141,10 @@ function MoneyRequestParticipantsSelector({
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
+            maxParticipantsReached,
+            indexOffset,
             personalDetails,
             true,
-            indexOffset,
         );
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
@@ -258,12 +260,6 @@ function MoneyRequestParticipantsSelector({
             ),
         [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
     );
-
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
-        setSearchTerm(text);
-    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
