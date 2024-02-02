@@ -54,8 +54,23 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type WorkspaceSettingsForm = Form<{
+    name: string;
+}>;
+
 type ReportFieldEditForm = Form<Record<string, string>>;
 
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm, ReportFieldEditForm};
+export type {
+    AddDebitCardForm,
+    DateOfBirthForm,
+    PrivateNotesForm,
+    DisplayNameForm,
+    NewRoomForm,
+    BaseForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    WorkspaceSettingsForm,
+    ReportFieldEditForm,
+};
