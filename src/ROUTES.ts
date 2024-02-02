@@ -461,21 +461,15 @@ const ROUTES = {
     },
     WORKSPACE_RATE_AND_UNIT: {
         route: 'workspace/:policyID/rateandunit',
-        getRoute: (policyID: string, unit?: string, rate?: string) =>
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            `workspace/${policyID}/rateandunit${unit || rate ? '?' : ''}${unit ? `unit=${unit}` : ''}${unit && rate ? '&' : ''}${rate ? `rate=${rate}` : ''}` as const,
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit` as const,
     },
     WORKSPACE_RATE_AND_UNIT_RATE: {
         route: 'workspace/:policyID/rateandunit/rate',
-        getRoute: (policyID: string, unit?: string, rate?: string) =>
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            `workspace/${policyID}/rateandunit/rate${unit || rate ? '?' : ''}${unit ? `unit=${unit}` : ''}${unit && rate ? '&' : ''}${rate ? `rate=${rate}` : ''}` as const,
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit/rate` as const,
     },
     WORKSPACE_RATE_AND_UNIT_UNIT: {
         route: 'workspace/:policyID/rateandunit/unit',
-        getRoute: (policyID: string, unit?: string, rate?: string) =>
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            `workspace/${policyID}/rateandunit/unit${unit || rate ? '?' : ''}${unit ? `unit=${unit}` : ''}${unit && rate ? '&' : ''}${rate ? `rate=${rate}` : ''}` as const,
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit/unit` as const,
     },
     WORKSPACE_BILLS: {
         route: 'workspace/:policyID/bills',

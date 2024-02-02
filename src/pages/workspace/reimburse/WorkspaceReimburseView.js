@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -146,7 +146,12 @@ function WorkspaceReimburseView(props) {
                         title={currentRatePerUnit}
                         description={translate('workspace.reimburse.trackDistanceRate')}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id))}
+                        onPress={() => {
+                            // TODO: Make this a proper action
+                            // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                            Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy.id, rate: null, unit: null});
+                            Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id));
+                        }}
                         wrapperStyle={[styles.mhn5, styles.wAuto]}
                         brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                     />

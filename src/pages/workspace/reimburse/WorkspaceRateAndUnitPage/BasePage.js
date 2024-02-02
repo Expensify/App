@@ -1,23 +1,18 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {ScrollView, View} from 'react-native';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
-import FormMenuItem from '@components/FormMenuItem';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
-// import Picker from '@components/Picker';
-// import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
-import * as NumberUtils from '@libs/NumberUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy, {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -27,25 +22,31 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            policyID: PropTypes.string.isRequired,
-            unit: PropTypes.string,
-            rate: PropTypes.string,
-        }).isRequired,
-    }).isRequired,
+    workspaceRateAndUnit: PropTypes.shape({
+        policyID: PropTypes.string,
+        unit: PropTypes.string,
+        rate: PropTypes.string,
+    }),
     ...policyPropTypes,
     ...withLocalizePropTypes,
-    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
+    workspaceRateAndUnit: {
+        policyID: '',
+    },
     reimbursementAccount: {},
     ...policyDefaultProps,
 };
 
 function WorkspaceRateAndUnitPage(props) {
+    const styles = useThemeStyles();
     useEffect(() => {
+        if (!props.workspaceRateAndUnit.policyID || props.workspaceRateAndUnit.policyID !== props.policy.id) {
+            // TODO: Move this to a proper action
+            // eslint-disable-next-line rulesdir/prefer-actions-set-data
+            Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy.id, rate: null, unit: null});
+        }
         if (lodashGet(props, 'policy.customUnits', []).length !== 0) {
             return;
         }
@@ -74,37 +75,25 @@ function WorkspaceRateAndUnitPage(props) {
             attributes: {unit},
             rates: {
                 ...currentCustomUnitRate,
-                rate,
+                rate: parseFloat(rate),
             },
         };
         Policy.updateWorkspaceCustomUnitAndRate(props.policy.id, distanceCustomUnit, newCustomUnit, props.policy.lastModified);
     };
 
-    const submit = (values) => {
-        saveUnitAndRate(values.unit, values.rate);
-        Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id));
-    };
-
-    const validate = (values) => {
-        const errors = {};
-        const parsedRate = PolicyUtils.getRateDisplayValue(values.rate / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, props.toLocaleDigit);
-        const decimalSeparator = props.toLocaleDigit('.');
-        const outputCurrency = lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD);
-        // Allow one more decimal place for accuracy
-        const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(outputCurrency) + 1}})?$`, 'i');
-        if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-            errors.rate = 'workspace.reimburse.invalidRateError';
-        } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
-            errors.rate = 'workspace.reimburse.lowRateError';
-        }
-        return errors;
-    };
-
     const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
 
-    const unitValue = props.route.params.unit || lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
-    const rateValue = props.route.params.rate || distanceCustomRate.rate.toString();
+    const unitValue = props.workspaceRateAndUnit.unit || lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const rateValue = props.workspaceRateAndUnit.rate || distanceCustomRate.rate.toString();
+
+    const submit = () => {
+        saveUnitAndRate(unitValue, rateValue);
+        // TODO: Move this to a proper action
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, null);
+        Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id));
+    };
 
     return (
         <WorkspacePageWithSections
@@ -116,73 +105,51 @@ function WorkspaceRateAndUnitPage(props) {
             shouldShowLoading={false}
         >
             {() => (
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
-                    submitButtonText={props.translate('common.save')}
-                    style={[props.themeStyles.mh5, props.themeStyles.flexGrow1]}
-                    scrollContextEnabled
-                    validate={validate}
-                    onSubmit={submit}
-                    enabledWhenOffline
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    // on iOS, navigation animation sometimes cause the scrollbar to appear
+                    // on middle/left side of scrollview. scrollIndicatorInsets with right
+                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
+                    // See: https://github.com/Expensify/App/issues/31441
+                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
                 >
-                    <OfflineWithFeedback
-                        errors={{
-                            ...lodashGet(distanceCustomUnit, 'errors', {}),
-                            ...lodashGet(distanceCustomRate, 'errors', {}),
-                        }}
-                        pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
-                        onClose={() =>
-                            Policy.clearCustomUnitErrors(props.policy.id, lodashGet(distanceCustomUnit, 'customUnitID', ''), lodashGet(distanceCustomRate, 'customUnitRateID', ''))
-                        }
-                    >
-                        {/* <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID="rate"
-                            containerStyles={[props.themeStyles.mt4]}
-                            defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, props.toLocaleDigit)}
-                            label={props.translate('workspace.reimburse.trackDistanceRate')}
-                            aria-label={props.translate('workspace.reimburse.trackDistanceRate')}
-                            placeholder={lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            inputMode={CONST.INPUT_MODE.DECIMAL}
-                            maxLength={12}
+                    <View style={[styles.flex1]}>
+                        <View style={styles.mb5}>
+                            <OfflineWithFeedback
+                                errors={{
+                                    ...lodashGet(distanceCustomUnit, 'errors', {}),
+                                    ...lodashGet(distanceCustomRate, 'errors', {}),
+                                }}
+                                errorRowStyles={styles.mh5}
+                                pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
+                                onClose={() =>
+                                    Policy.clearCustomUnitErrors(props.policy.id, lodashGet(distanceCustomUnit, 'customUnitID', ''), lodashGet(distanceCustomRate, 'customUnitRateID', ''))
+                                }
+                            >
+                                <MenuItemWithTopDescription
+                                    description={props.translate('workspace.reimburse.trackDistanceRate')}
+                                    title={CurrencyUtils.convertAmountToDisplayString(parseFloat(rateValue), lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.getRoute(props.policy.id))}
+                                    shouldShowRightIcon
+                                />
+                                <MenuItemWithTopDescription
+                                    description={props.translate('workspace.reimburse.trackDistanceUnit')}
+                                    title={unitItems[unitValue]}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy.id))}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                        </View>
+                    </View>
+                    <View style={[styles.flexShrink0]}>
+                        <FormAlertWithSubmitButton
+                            onSubmit={() => submit()}
+                            enabledWhenOffline
+                            buttonText={props.translate('common.save')}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5]}
                         />
-
-                        <View style={[props.themeStyles.mt4]}>
-                            <InputWrapper
-                                InputComponent={Picker}
-                                inputID="unit"
-                                label={props.translate('workspace.reimburse.trackDistanceUnit')}
-                                items={unitItems}
-                                defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
-                            />
-                        </View> */}
-                        <InputWrapper
-                            InputComponent={FormMenuItem}
-                            inputID="rate"
-                            value={parseFloat(rateValue)}
-                            title={props.translate('workspace.reimburse.trackDistanceRate')}
-                            customValueRenderer={(value) => CurrencyUtils.convertAmountToDisplayString(value, lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD))}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.getRoute(props.policy.id, unitValue, rateValue));
-                            }}
-                        />
-                        <InputWrapper
-                            InputComponent={FormMenuItem}
-                            inputID="unit"
-                            title={props.translate('workspace.reimburse.trackDistanceUnit')}
-                            value={unitValue}
-                            customValueRenderer={(value) => unitItems[value]}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy.id, unitValue, rateValue));
-                            }}
-                        />
-                    </OfflineWithFeedback>
-                </FormProvider>
+                    </View>
+                </ScrollView>
             )}
         </WorkspacePageWithSections>
     );
@@ -200,6 +167,8 @@ export default compose(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
+        workspaceRateAndUnit: {
+            key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
+        },
     }),
-    withThemeStyles,
 )(WorkspaceRateAndUnitPage);

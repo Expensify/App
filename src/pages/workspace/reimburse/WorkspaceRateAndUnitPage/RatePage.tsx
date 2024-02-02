@@ -1,48 +1,68 @@
-import type {RouteProp} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {OnyxFormValuesFields} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {WorkspaceRateAndUnit} from '@src/types/onyx';
 
-type WorkspaceUnitPageProps = WithPolicyOnyxProps & {
-    route: RouteProp<{params: {policyID: string; unit?: string; rate?: string}}>;
+type WorkspaceRatePageBaseProps = WithPolicyProps;
+
+type WorkspaceRateAndUnitOnyxProps = {
+    workspaceRateAndUnit: OnyxEntry<WorkspaceRateAndUnit>;
 };
 
-function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
+type WorkspaceRatePageProps = WorkspaceRatePageBaseProps & WorkspaceRateAndUnitOnyxProps;
+
+function WorkspaceRatePage(props: WorkspaceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
+    useEffect(() => {
+        if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
+            return;
+        }
+        // TODO: Move this to a action later.
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy?.id, rate: null, unit: null});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
-        const rateEdit = values.rateEdit as number;
-        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', props.route.params.unit, (rateEdit * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()));
+        const rate = values.rate as number;
+        // TODO: Move this to a action later.
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {rate: (rate * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()});
+        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
     const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
-        const errors: {rateEdit?: string} = {};
-        const rateEdit = values.rateEdit as number;
-        const parsedRate = PolicyUtils.getRateDisplayValue(rateEdit, toLocaleDigit);
+        const errors: {rate?: string} = {};
+        const rate = values.rate as number;
+        const parsedRate = PolicyUtils.getRateDisplayValue(rate, toLocaleDigit);
         const decimalSeparator = toLocaleDigit('.');
         const outputCurrency = props.policy?.outputCurrency ?? CONST.CURRENCY.USD;
         // Allow one more decimal place for accuracy
         const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(outputCurrency) + 1}})?$`, 'i');
         if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-            errors.rateEdit = 'workspace.reimburse.invalidRateError';
+            errors.rate = 'workspace.reimburse.invalidRateError';
         } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
-            errors.rateEdit = 'workspace.reimburse.lowRateError';
+            errors.rate = 'workspace.reimburse.lowRateError';
         }
         return errors;
     };
@@ -76,9 +96,11 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
-                        inputID="rateEdit"
+                        inputID="rate"
                         currency={props.policy?.outputCurrency ?? CONST.CURRENCY.USD}
-                        defaultValue={(typeof props.route.params.rate === 'string' ? parseFloat(props.route.params.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}
+                        defaultValue={
+                            (typeof props.workspaceRateAndUnit?.rate === 'string' ? parseFloat(props.workspaceRateAndUnit.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET
+                        }
                     />
                 </FormProvider>
             )}
@@ -86,6 +108,13 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     );
 }
 
-WorkspaceUnitPage.displayName = 'WorkspaceUnitPage';
+WorkspaceRatePage.displayName = 'WorkspaceRatePage';
 
-export default withPolicy(WorkspaceUnitPage);
+export default compose(
+    withOnyx<WorkspaceRatePageProps, WorkspaceRateAndUnitOnyxProps>({
+        workspaceRateAndUnit: {
+            key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
+        },
+    }),
+    withPolicy,
+)(WorkspaceRatePage);
