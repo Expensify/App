@@ -1,4 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import Str from 'expensify-common/lib/str';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
@@ -265,6 +266,12 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     const phone = phoneNumber || '';
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
 
+    // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
+    // so we need to check if it is a valid phone.
+    if (regionCode && !Str.isValidPhone(phone)) {
+        return false;
+    }
+
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
@@ -392,12 +399,16 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+type DateTimeValidationErrorKeys = {
+    dateValidationErrorKey: string;
+    timeValidationErrorKey: string;
+};
 /**
  * Validates that the date and time are at least one minute in the future.
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidationErrorKey: string; timeValidationErrorKey: string} => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
@@ -413,6 +424,7 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidati
         timeValidationErrorKey,
     };
 };
+
 type ValuesType = Record<string, unknown>;
 
 /**

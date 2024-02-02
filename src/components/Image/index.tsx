@@ -1,46 +1,33 @@
-import React, {useEffect, useMemo} from 'react';
-import {Image as RNImage} from 'react-native';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
+import BaseImage from './BaseImage';
+import type { ImageProps, ImageOwnProps, ImageOnyxProps } from './types';
 
-function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps}: ImageProps) {
-    /**
-     * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
-     * to the source.
-     */
+function Image({source: propsSource, isAuthTokenRequired, session, ...forwardedProps}: ImageProps) {
+    // Update the source to include the auth token if required
     const source = useMemo(() => {
-        // There is currently a `react-native-web` bug preventing the authToken being passed
-        // in the headers of the image request so the authToken is added as a query param.
-        // On native the authToken IS passed in the image request headers
-        const authToken = session?.encryptedAuthToken ?? null;
-
-        if (isAuthTokenRequired && authToken && typeof propsSource === 'object' && 'uri' in propsSource) {
-            return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+        if (typeof propsSource === 'object' && 'uri' in propsSource && typeof propsSource.uri === 'number') {
+            return propsSource.uri;
         }
+        if (typeof propsSource !== 'number' && isAuthTokenRequired) {
+            const authToken = session?.encryptedAuthToken;
+            return {
+                ...propsSource,
+                headers: {
+                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
+                },
+            };
+        }
+
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
-    /**
-     * The natural image dimensions are retrieved using the updated source
-     * and as a result the `onLoad` event needs to be manually invoked to return these dimensions
-     */
-    useEffect(() => {
-        // If an onLoad callback was specified then manually call it and pass
-        // the natural image dimensions to match the native API
-        if (typeof onLoad !== 'function' || typeof source !== 'object' || !('uri' in source) || !source?.uri) {
-            return;
-        }
-
-        RNImage.getSize(source.uri, (width, height) => {
-            onLoad({nativeEvent: {width, height}});
-        });
-    }, [onLoad, source]);
-
     return (
-        <RNImage
+        <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             source={source}
