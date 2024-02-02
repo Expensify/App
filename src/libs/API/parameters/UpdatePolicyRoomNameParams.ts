@@ -1,6 +1,6 @@
 type UpdatePolicyRoomNameParams = {
     reportID: string;
-    policyRoomName?: string;
+    policyRoomName: string;
 };
 
 export default UpdatePolicyRoomNameParams;

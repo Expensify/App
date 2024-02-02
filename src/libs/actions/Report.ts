@@ -1852,7 +1852,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
         },
     ];
 
-    const parameters: UpdatePolicyRoomNameParams = {reportID, policyRoomName: policyRoomName ?? ''};
+    const parameters: UpdatePolicyRoomNameParams = {reportID, policyRoomName};
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
