@@ -73,7 +73,7 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT) {
-            IOU.setDraftSplitTransaction(transaction.transactionID, {newComment});
+            IOU.setDraftSplitTransaction(transaction.transactionID, {comment: newComment});
             navigateBack();
             return;
         }
