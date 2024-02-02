@@ -23,7 +23,7 @@ Onyx.connect({
 let pusherEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
-    // console.debug('[OnyxUpdateManager] Applying https update');
+    console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
@@ -51,20 +51,20 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             return Promise.resolve();
         })
         .then(() => {
-            // console.debug('[OnyxUpdateManager] Done applying HTTPS update');
+            console.debug('[OnyxUpdateManager] Done applying HTTPS update');
             return Promise.resolve(response);
         });
 }
 
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     pusherEventsPromise = pusherEventsPromise.then(() => {
-        // console.debug('[OnyxUpdateManager] Applying pusher update');
+        console.debug('[OnyxUpdateManager] Applying pusher update');
     });
 
     pusherEventsPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
-            // console.debug('[OnyxUpdateManager] Done applying Pusher update');
+            console.debug('[OnyxUpdateManager] Done applying Pusher update');
         });
 
     return pusherEventsPromise;

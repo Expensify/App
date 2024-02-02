@@ -73,7 +73,7 @@ const restrictedImportPatterns = [
 
 module.exports = {
     extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:react-native-a11y/basic', 'plugin:@dword-design/import-alias/recommended', 'prettier'],
-    plugins: ['react-hooks', 'react-native-a11y', 'prettier'],
+    plugins: ['react-hooks', 'react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
     env: {
@@ -87,7 +87,6 @@ module.exports = {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             plugins: ['react'],
             rules: {
-                'prettier/prettier': 1,
                 'rulesdir/no-multiple-onyx-in-file': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
