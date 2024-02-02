@@ -2,7 +2,6 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -31,12 +30,20 @@ function saveResponse(response: string) {
  * Save the user's response to the mandatory exit survey in the back-end.
  */
 function switchToOldDot() {
-    if (!exitReason || !exitSurveyResponse) {
-        Log.hmmm('Attempted to call SwitchToOldDot without filling out mandatory survey.');
-        return;
-    }
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
+            value: true,
+        },
+    ];
 
     const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
+            value: false,
+        },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
@@ -65,7 +72,7 @@ function switchToOldDot() {
             reason: exitReason,
             surveyResponse: exitSurveyResponse,
         },
-        {finallyData},
+        {optimisticData, finallyData},
     );
 }
 
