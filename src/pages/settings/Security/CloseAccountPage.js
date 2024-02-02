@@ -20,7 +20,6 @@ import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Session of currently logged in user */
@@ -91,7 +90,7 @@ function CloseAccountPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('closeAccountPage.closeAccount')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
