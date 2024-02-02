@@ -195,7 +195,7 @@ function OptionRow({
                             shouldHaveOptionSeparator && styles.borderTop,
                             !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
                         ]}
-                        accessibilityLabel={option.text}
+                        accessibilityLabel={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
@@ -246,11 +246,19 @@ function OptionRow({
                                         <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={theme.danger}
+                                        />
+                                    </View>
+                                )}
+                                {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={theme.iconSuccessFill}
                                         />
                                     </View>
                                 )}
@@ -270,8 +278,12 @@ function OptionRow({
                                                 disabled={isDisabled}
                                                 role={CONST.ROLE.BUTTON}
                                                 accessibilityLabel={CONST.ROLE.BUTTON}
+                                                style={[styles.ml2, styles.optionSelectCircle]}
                                             >
-                                                <SelectCircle isChecked={isSelected} />
+                                                <SelectCircle
+                                                    isChecked={isSelected}
+                                                    selectCircleStyles={styles.ml0}
+                                                />
                                             </PressableWithFeedback>
                                         )}
                                     </>
