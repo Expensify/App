@@ -167,7 +167,7 @@ function ProfilePage(props) {
                         subtitle={props.translate('profilePage.publicSection.subtitle')}
                         isCentralPane
                         subtitleMuted
-                        childrenStyles={styles.pt3}
+                        childrenStyles={styles.pt5}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
                         {_.map(publicOptions, (detail, index) => (
