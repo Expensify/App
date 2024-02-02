@@ -298,7 +298,7 @@ function WorkspaceInvitePage({
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     onBackButtonPress={() => {
                         Policy.clearErrors(route.params.policyID);
-                        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+                        Navigation.goBack();
                     }}
                 />
                 <SelectionList
