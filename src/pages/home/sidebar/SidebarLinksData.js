@@ -2,21 +2,25 @@ import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
 import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
@@ -61,6 +65,14 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     policies: PropTypes.object,
 
+    // eslint-disable-next-line react/forbid-prop-types
+    policyMembers: PropTypes.object,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }),
     /** All of the transaction violations */
     transactionViolations: PropTypes.shape({
         violations: PropTypes.arrayOf(
@@ -94,18 +106,53 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
+    policyMembers: {},
+    session: {
+        accountID: '',
+    },
     transactionViolations: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network, transactionViolations}) {
+function SidebarLinksData({
+    isFocused,
+    allReportActions,
+    betas,
+    chatReports,
+    currentReportID,
+    insets,
+    isLoadingApp,
+    onLinkClick,
+    policies,
+    priorityMode,
+    network,
+    policyMembers,
+    session: {accountID},
+    transactionViolations,
+}) {
     const styles = useThemeStyles();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
+
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(
+            null,
+            chatReports,
+            betas,
+            policies,
+            priorityMode,
+            allReportActions,
+            transactionViolations,
+            activeWorkspaceID,
+            policyMemberAccountIDs,
+        );
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -118,7 +165,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, policies, prevPriorityMode, priorityMode, isLoading, network.isOffline, transactionViolations]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -127,10 +174,20 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     // case we re-generate the list a 2nd time with the current report included.
     const optionListItemsWithCurrentReport = useMemo(() => {
         if (currentReportID && !_.contains(optionListItems, currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations);
+            return SidebarUtils.getOrderedReportIDs(
+                currentReportID,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+            );
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations]);
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -242,6 +299,7 @@ const policySelector = (policy) =>
 
 export default compose(
     withCurrentReportID,
+    withCurrentUserPersonalDetails,
     withNavigationFocus,
     withNetwork(),
     withOnyx({
@@ -270,6 +328,9 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
             initialValue: {},
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         transactionViolations: {
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
