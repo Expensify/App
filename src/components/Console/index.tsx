@@ -32,7 +32,20 @@ function Console() {
     };
 
     const saveLogs = () => {
-        localFileDownload('logs', JSON.stringify(logs, null, 2), 'File was saved in your Downloads folder.');
+        const logsWithParsedMessages = logs.map((log) => {
+            try {
+                const parsedMessage = JSON.parse(log.message);
+                return {
+                    ...log,
+                    message: parsedMessage,
+                };
+            } catch {
+                // If the message can't be parsed, just return the original log
+                return log;
+            }
+        });
+
+        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), 'File was saved in your Downloads folder.');
     };
 
     return (
