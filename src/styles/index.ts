@@ -3369,7 +3369,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            lineHeight: variables.lineHeightXXLarge,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         cardMenuItem: {

@@ -127,7 +127,7 @@ function Section({
                     </View>
 
                     {!!subtitle && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt4, subtitleStyles]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}>
                             <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
                         </View>
                     )}
