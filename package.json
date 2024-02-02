@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.33-3",
+  "version": "1.4.35-5",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -59,6 +59,8 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
+    "@expensify/react-native-live-markdown": "git+ssh://git@github.com/Expensify/react-native-live-markdown.git#c316611781f19815caebfed5540e0faf2a274785",
+    "@expo/metro-runtime": "~3.1.1",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
     "@formatjs/intl-listformat": "^7.2.2",
@@ -99,7 +101,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#4a61536649cbfe49236a35bc7542b5dfd0767e4a",
-    "expo": "^50.0.0-preview.7",
+    "expo": "^50.0.3",
     "expo-image": "1.10.1",
     "fbjs": "^3.0.2",
     "focus-trap-react": "^10.2.3",

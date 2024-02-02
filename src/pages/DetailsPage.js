@@ -136,8 +136,8 @@ function DetailsPage(props) {
                                 <AttachmentModal
                                     headerTitle={displayName}
                                     source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
-                                    isAuthTokenRequired
                                     originalFileName={details.originalFileName}
+                                    maybeIcon
                                 >
                                     {({show}) => (
                                         <PressableWithoutFocus
@@ -148,10 +148,10 @@ function DetailsPage(props) {
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                 <Avatar
-                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                    imageStyles={[styles.avatarLarge]}
+                                                    containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarXLarge]}
                                                     source={UserUtils.getAvatar(details.avatar, details.accountID)}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                    size={CONST.AVATAR_SIZE.XLARGE}
                                                     fallbackIcon={details.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>

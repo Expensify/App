@@ -88,6 +88,9 @@ type ScreenWrapperProps = {
      */
     navigation?: StackNavigationProp<RootStackParamList>;
 
+    /** Whether to show offline indicator on wide screens */
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
+
     /** Whether to disable the focus trap */
     shouldEnableFocusTrap?: boolean;
 
@@ -116,6 +119,7 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
+        shouldShowOfflineIndicatorInWideScreen = false,
         shouldEnableFocusTrap = true,
         shouldEnableAutoFocus = false,
         shouldReturnFocusOnDeactivate = true,
