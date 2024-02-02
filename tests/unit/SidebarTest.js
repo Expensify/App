@@ -56,6 +56,14 @@ describe('Sidebar', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
 
+            const action = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                actionName: 'CLOSED',
+                originalMessage: {
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
@@ -69,6 +77,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
                         }),
                     )
                     .then(() => {
