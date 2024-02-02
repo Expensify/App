@@ -2174,6 +2174,7 @@ export default {
         thankYou: 'Thanks for the feedback!',
         thankYouSubtitle: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
         goToExpensifyClassic: 'Switch to Expensify Classic',
+        offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },

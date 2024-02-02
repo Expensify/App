@@ -1,15 +1,20 @@
 import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import {ToddBehindCloud} from '@components/Icon/Illustrations';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import * as ExitSurvey from '@userActions/ExitSurvey';
 import type {ExitReason} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
@@ -21,6 +26,7 @@ function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {isOffline} = useNetwork();
 
     const [reason, setReason] = useState<ExitReason>();
     const reasons: Choice[] = useMemo(
@@ -61,16 +67,29 @@ function ExitSurveyReasonPage() {
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                <>
-                    <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
-                    <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
-                    <InputWrapper
-                        InputComponent={RadioButtons}
-                        inputID={CONST.EXIT_SURVEY.REASON_INPUT_ID}
-                        items={reasons}
-                        onPress={(value) => setReason(value as ExitReason)}
-                    />
-                </>
+                {isOffline && (
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <Icon
+                            width={variables.modalTopIconWidth}
+                            height={variables.modalTopIconHeight}
+                            src={ToddBehindCloud}
+                        />
+                        <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.offlineTitle')}</Text>
+                        <Text style={styles.mt2}>{translate('exitSurvey.offline')}</Text>
+                    </View>
+                )}
+                {!isOffline && (
+                    <>
+                        <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
+                        <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
+                        <InputWrapper
+                            InputComponent={RadioButtons}
+                            inputID={CONST.EXIT_SURVEY.REASON_INPUT_ID}
+                            items={reasons}
+                            onPress={(value) => setReason(value as ExitReason)}
+                        />
+                    </>
+                )}
             </FormProvider>
         </ScreenWrapper>
     );
