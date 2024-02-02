@@ -121,6 +121,9 @@ const propTypes = {
 
     /** All the report actions belonging to the report's parent */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Callback to be called on onPress */
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -132,6 +135,7 @@ const defaultProps = {
     shouldHideThreadDividerLine: false,
     userWallet: {},
     parentReportActions: {},
+    onPress: undefined,
 };
 
 function ReportActionItem(props) {
@@ -704,6 +708,7 @@ function ReportActionItem(props) {
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
+            onPress={props.onPress}
             style={[props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
