@@ -660,8 +660,14 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={
+                        isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
+                    }
+                    error={
+                        shouldDisplayMerchantError || (isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))
+                            ? translate('common.error.enterMerchant')
+                            : ''
+                    }
                 />
             )}
             <MenuItemWithTopDescription
