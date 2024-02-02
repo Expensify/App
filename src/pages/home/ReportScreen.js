@@ -203,6 +203,9 @@ function ReportScreen({
             isPinned: reportProp.isPinned,
             chatReportID: reportProp.chatReportID,
             visibility: reportProp.visibility,
+            oldPolicyName: reportProp.oldPolicyName,
+            policyName: reportProp.policyName,
+            isOptimisticReport: reportProp.isOptimisticReport,
         }),
         [
             reportProp.lastReadTime,
@@ -236,6 +239,9 @@ function ReportScreen({
             reportProp.isPinned,
             reportProp.chatReportID,
             reportProp.visibility,
+            reportProp.oldPolicyName,
+            reportProp.policyName,
+            reportProp.isOptimisticReport,
         ],
     );
 
