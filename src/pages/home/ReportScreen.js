@@ -669,6 +669,7 @@ export default compose(
             prevProps.report.notificationPreference === nextProps.report.notificationPreference &&
             prevProps.report.isPinned === nextProps.report.isPinned &&
             prevProps.report.chatReportID === nextProps.report.chatReportID &&
+            prevProps.report.visibility === nextProps.report.visibility &&
             prevProps.viewportOffsetTop === nextProps.viewportOffsetTop,
     ),
 );
