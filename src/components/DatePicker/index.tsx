@@ -1,5 +1,5 @@
 import {setYear} from 'date-fns';
-import React, {useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -102,4 +102,4 @@ function DatePicker(
 
 DatePicker.displayName = 'DatePicker';
 
-export default React.forwardRef(DatePicker);
+export default forwardRef(DatePicker);
