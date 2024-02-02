@@ -1,4 +1,4 @@
-import React, {useMemo, useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
@@ -40,7 +40,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
         // TODO: Move this to a action later.
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy?.id, rate: null, unit: null});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
