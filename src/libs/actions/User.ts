@@ -1,7 +1,6 @@
 import {isBefore} from 'date-fns';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
@@ -598,7 +597,7 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     API.write(WRITE_COMMANDS.UPDATE_CHAT_PRIORITY_MODE, parameters, {optimisticData});
 
     if (!autoSwitchedToFocusMode) {
-        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+        Navigation.goBack();
     }
 }
 
@@ -782,7 +781,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 
     API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData});
 
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack();
 }
 
 /**
