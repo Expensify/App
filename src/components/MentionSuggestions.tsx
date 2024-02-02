@@ -5,7 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import CONST from '@src/CONST';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
 import Text from './Text';
@@ -72,7 +72,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                             size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                             name={item.icons[0].name}
                             type={item.icons[0].type}
-                            fill={theme.success}
+                            fill={isIcon ? theme.success : undefined}
                             fallbackIcon={item.icons[0].fallbackIcon}
                         />
                     </View>
@@ -100,7 +100,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
-                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.textSupporting]}
                                     >
                                         {text}
                                     </Text>
@@ -119,7 +119,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             styles.flexShrink1,
             styles.flex1,
             styles.mentionSuggestionsDisplayName,
-            styles.mentionSuggestionsHandle,
+            styles.textSupporting,
             theme.success,
             StyleUtils,
         ],

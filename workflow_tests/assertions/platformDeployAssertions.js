@@ -170,7 +170,8 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             {key: 'max_attempts', value: '5'},
             {key: 'command', value: 'cd ios && bundle exec pod install'},
         ]),
-        utils.createStepAssertion('Decrypt profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AppStore profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AppStore Notification Service profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypting certificate', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Decrypt App Store Connect API key', true, null, 'IOS', 'Decrypting App Store API key', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
     ];

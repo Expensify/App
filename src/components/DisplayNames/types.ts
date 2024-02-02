@@ -1,4 +1,4 @@
-import {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNameWithTooltip = {
@@ -12,7 +12,7 @@ type DisplayNameWithTooltip = {
     login?: string;
 
     /** The avatar for the tooltip fallback */
-    avatar: AvatarSource;
+    avatar?: AvatarSource;
 };
 
 type DisplayNamesProps = {

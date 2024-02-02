@@ -1,24 +1,30 @@
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
-import {EdgeInsets} from 'react-native-safe-area-context';
-import {ValueOf} from 'type-fest';
+import {StyleSheet} from 'react-native';
+import type {Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
+// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
-import {ThemeColors} from '@styles/theme/types';
+import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {Transaction} from '@src/types/onyx';
-import {defaultStyles, type ThemeStyles} from '..';
+import type {Transaction} from '@src/types/onyx';
+import {defaultStyles} from '..';
+import type {ThemeStyles} from '..';
+import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
-import fontFamily from './fontFamily';
+import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import {
+import type {
     AllStyles,
     AvatarSize,
     AvatarSizeName,
@@ -270,9 +276,9 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
 /**
  * Helper method to return eReceipt color code
  */
-function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -382,7 +388,7 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
-function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
+function getBackgroundAndBorderStyle(backgroundColor: ColorValue | undefined): ViewStyle {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -392,7 +398,7 @@ function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
 /**
  * Returns a style with the specified backgroundColor
  */
-function getBackgroundColorStyle(backgroundColor: string): ViewStyle {
+function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     return {
         backgroundColor,
     };
@@ -443,13 +449,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
         };
     }
     return {};
-}
-
-function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
 }
 
 function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
@@ -523,11 +522,11 @@ function getModalPaddingStyles({
  * Takes fontStyle and fontWeight and returns the correct fontFamily
  */
 function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
-    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
-    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
-    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+    const italic = fontStyle === 'italic' && FontUtils.fontFamily.platform.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && FontUtils.fontFamily.platform.MONOSPACE_BOLD;
+    const italicBold = italic && bold && FontUtils.fontFamily.platform.MONOSPACE_BOLD_ITALIC;
 
-    return italicBold || bold || italic || fontFamily.MONOSPACE;
+    return italicBold || bold || italic || FontUtils.fontFamily.platform.MONOSPACE;
 }
 /**
  * Returns the font size for the HTML code tag renderer.
@@ -1009,11 +1008,22 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+function getOpacityStyle(opacity: number) {
+    return {opacity};
+}
+
+function getMultiGestureCanvasContainerStyle(canvasWidth: number): ViewStyle {
+    return {
+        width: canvasWidth,
+        overflow: 'hidden',
+    };
+}
+
 const staticStyleUtils = {
+    positioning,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1070,6 +1080,10 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getNavigationModalCardStyle,
+    getCardStyles,
+    getOpacityStyle,
+    getMultiGestureCanvasContainerStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1306,18 +1320,22 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      *
      * @param buttonState - One of {'default', 'hovered', 'pressed'}
      * @param isMenuIcon - whether this icon is apart of a list
+     * @param isPane - whether this icon is in a pane, e.g. Account or Workspace Settings
      */
-    getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false): string => {
+    getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false): string => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.ACTIVE:
             case CONST.BUTTON_STATES.PRESSED:
+                if (isPane) {
+                    return theme.iconMenu;
+                }
                 return theme.iconHovered;
             case CONST.BUTTON_STATES.COMPLETE:
                 return theme.iconSuccessFill;
             case CONST.BUTTON_STATES.DEFAULT:
             case CONST.BUTTON_STATES.DISABLED:
             default:
-                if (isMenuIcon) {
+                if (isMenuIcon && !isPane) {
                     return theme.iconMenu;
                 }
                 return theme.icon;
@@ -1351,6 +1369,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
             ...positioning.r4,
             ...styles.cursorDefault,
+            ...styles.userSelectNone,
             position: 'absolute',
             zIndex: 8,
         }),
@@ -1427,6 +1446,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
 
         return containerStyles;
+    },
+
+    getUpdateRequiredViewStyles: (isSmallScreenWidth: boolean): ViewStyle[] => [
+        {
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...(isSmallScreenWidth ? {} : styles.pb40),
+        },
+    ],
+
+    /**
+     * Returns a style that sets the maximum height of the composer based on the number of lines and whether the composer is full size or not.
+     */
+    getComposerMaxHeightStyle: (maxLines: number | undefined, isComposerFullSize: boolean): TextStyle => {
+        if (isComposerFullSize || maxLines == null) {
+            return {};
+        }
+
+        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+
+        return {
+            maxHeight: maxLines * composerLineHeight,
+        };
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],

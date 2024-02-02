@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import ConvertToLTRForComposer from './types';
+import type ConvertToLTRForComposer from './types';
 
 function hasRTLCharacters(text: string): boolean {
     // Regular expressions to match RTL character ranges.
@@ -30,9 +30,4 @@ const convertToLTRForComposer: ConvertToLTRForComposer = (text) => {
     // Add the LTR marker to the beginning of the text.
     return `${CONST.UNICODE.LTR}${text}`;
 };
-
-const moveCursorToEndOfLine = (commentLength: number) => commentLength;
-
-export {moveCursorToEndOfLine};
-
 export default convertToLTRForComposer;

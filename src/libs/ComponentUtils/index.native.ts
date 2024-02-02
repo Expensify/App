@@ -1,4 +1,4 @@
-import {AccessibilityRoleForm, NewPasswordAutocompleteType, PasswordAutocompleteType} from './types';
+import type {AccessibilityRoleForm, NewPasswordAutocompleteType, PasswordAutocompleteType} from './types';
 
 const PASSWORD_AUTOCOMPLETE_TYPE: PasswordAutocompleteType = 'password';
 const NEW_PASSWORD_AUTOCOMPLETE_TYPE: NewPasswordAutocompleteType = 'password-new';

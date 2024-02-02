@@ -123,7 +123,10 @@ const PLATFORM_DEPLOY__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK = utils.crea
     {IS_PODFILE_SAME_AS_MANIFEST: false},
 );
 const PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Installing cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command']);
-const PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt profile', 'Decrypting profile', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
+const PLATFORM_DEPLOY__IOS__DECRYPT_APPSTORE_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt AppStore profile', 'Decrypting profile', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
+const PLATFORM_DEPLOY__IOS__DECRYPT_APPSTORE_NSE_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt AppStore Notification Service profile', 'Decrypting profile', 'IOS', null, [
+    'LARGE_SECRET_PASSPHRASE',
+]);
 const PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.createMockStep('Decrypt certificate', 'Decrypting certificate', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
 const PLATFORM_DEPLOY__IOS__DECRYPT_APP_STORE_API_KEY__STEP_MOCK = utils.createMockStep('Decrypt App Store Connect API key', 'Decrypting App Store API key', 'IOS', null, [
     'LARGE_SECRET_PASSPHRASE',
@@ -159,7 +162,8 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK,
-    PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__DECRYPT_APPSTORE_PROFILE__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__DECRYPT_APPSTORE_NSE_PROFILE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_APP_STORE_API_KEY__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK,

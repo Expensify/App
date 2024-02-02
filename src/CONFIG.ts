@@ -1,5 +1,6 @@
 import {Platform} from 'react-native';
-import Config, {NativeConfig} from 'react-native-config';
+import type {NativeConfig} from 'react-native-config';
+import Config from 'react-native-config';
 import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
 import * as Url from './libs/Url';

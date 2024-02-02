@@ -1,6 +1,6 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
 import React, {forwardRef} from 'react';
-import {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -10,8 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
-import IconAsset from '@src/types/utils/IconAsset';
-import PressableProps, {PressableRef} from './GenericPressable/types';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {PressableRef} from './GenericPressable/types';
+import type PressableProps from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
@@ -77,7 +78,7 @@ function PressableWithDelayToggle(
             return;
         }
         temporarilyDisableInteractions();
-        onPress();
+        onPress?.();
     };
 
     // Due to limitations in RN regarding the vertical text alignment of non-Text elements,

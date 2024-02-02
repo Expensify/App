@@ -1,6 +1,7 @@
 import delay from 'lodash/delay';
 import React, {useEffect, useRef, useState} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
@@ -18,7 +19,7 @@ type OnLoadNativeEvent = {
 
 type ImageWithSizeCalculationProps = {
     /** Url for image to display */
-    url: string;
+    url: string | ImageSourcePropType;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
