@@ -49,7 +49,7 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
 
     const submitForm = useCallback(() => {
         ExitSurvey.saveResponse(draftResponse);
-        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM);
+        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route));
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 

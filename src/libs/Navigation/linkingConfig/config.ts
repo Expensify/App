@@ -257,7 +257,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM,
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
                         },
                     },
                 },

@@ -55,7 +55,7 @@ function ExitSurveyReasonPage() {
                         return;
                     }
                     ExitSurvey.saveExitReason(reason);
-                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason));
+                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason, ROUTES.SETTINGS_EXIT_SURVEY_REASON));
                 }}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur
