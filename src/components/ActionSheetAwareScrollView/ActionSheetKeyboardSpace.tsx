@@ -165,13 +165,21 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
 
         const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
 
-        const elementOffset = fy + safeArea.top + height - (windowHeight - popoverHeight);
+        let elementOffset = 0;
+        
+        if (fy !== undefined && height !== undefined && popoverHeight !== undefined) {
+            elementOffset = fy + safeArea.top + height - (windowHeight - popoverHeight);
+        }
 
         // when the sate is not idle we know for sure we have previous state
-        const previousPayload = previous?.payload || {};
+        const previousPayload = previous.payload ?? {};
 
         // it will be NaN when we don't have proper payload
-        const previousElementOffset = previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight);
+        let previousElementOffset;
+        
+        if (previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined) {
+            previousElementOffset = previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight);
+        }
 
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value
@@ -202,7 +210,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             case States.EMOJI_PICKER_POPOVER_OPEN:
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
-                    if (Number.isNaN(previousElementOffset) || elementOffset > previousElementOffset) {
+                    if (previousElementOffset !== undefined || elementOffset > previousElementOffset) {
                         console.log("TRANSITION #6", elementOffset);
                         return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
                     }
@@ -265,7 +273,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                 }
                 console.log("TRANSITION #14 (1-1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
                 return withSpring(lastKeyboardHeight, config);
-            };
+            }
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
                     console.log("TRANSITION #14 -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
@@ -298,9 +306,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
 
                 if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
                     console.log("TRANSITION #17", lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
-                    return withSequence(
-                        withSpring(nextOffset < 0 ? 0 : nextOffset, config)
-                    );
+                    return withSpring(nextOffset < 0 ? 0 : nextOffset, config);
                 }
 
                 console.log("TRANSITION #18 -> ", lastKeyboardHeight);
@@ -328,11 +334,9 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
 
                 console.log("TRANSITION #2 -> ", {keyboardHeight, lastKeyboardHeight, elementOffset});
 
-                return withSequence(
-                    withTiming(elementOffset + lastKeyboardHeight, {
-                        duration: 0,
-                    }),
-                );
+                return withTiming(elementOffset + lastKeyboardHeight, {
+                    duration: 0,
+                });
             }
 
             default:

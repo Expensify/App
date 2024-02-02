@@ -15,7 +15,7 @@ type StateHolder<P = Payload> = {
     payload: P | null;
 };
 type State<P> = {
-    previous: StateHolder<P> | null;
+    previous: StateHolder<P>;
     current: StateHolder<P>;
 };
 

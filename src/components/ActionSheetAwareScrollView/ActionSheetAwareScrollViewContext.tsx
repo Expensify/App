@@ -22,7 +22,10 @@ type Context = {
 const defaultValue: Context = {
     currentActionSheetState: {
         value: {
-            previous: null,
+            previous: {
+                state: 'idle',
+                payload: null,
+            },
             current: {
                 state: 'idle',
                 payload: null,
@@ -177,7 +180,10 @@ const STATE_MACHINE = {
 
 function ActionSheetAwareScrollViewProvider(props: PropsWithChildren<unknown>) {
     const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine<MeasuredElements>(STATE_MACHINE, {
-        previous: null,
+        previous: {
+            state: 'idle',
+            payload: null,
+        },
         current: {
             state: 'idle',
             payload: null,
