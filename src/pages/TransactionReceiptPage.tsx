@@ -53,9 +53,9 @@ TransactionReceipt.displayName = 'TransactionReceipt';
 
 export default withOnyx<TransactionReceiptProps, TransactionReceiptOnyxProps>({
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? ''}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? ''}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '0'}`,
     },
 })(TransactionReceipt);
