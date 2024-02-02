@@ -11,6 +11,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {
     AddDebitCardForm,
+    CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
     IKnowATeacherForm,
@@ -19,7 +20,6 @@ import type {
     PrivateNotesForm,
     ReportFieldEditForm,
     WorkspaceSettingsForm,
-    CloseAccountForm,
 } from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
