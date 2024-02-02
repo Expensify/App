@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -66,6 +67,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const waitForNavigate = useWaitForNavigation();
 
     return (
@@ -75,7 +77,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                isCentralPaneSettings && styles.headerBarExtendedHeight,
+                isCentralPaneSettings && !isSmallScreenWidth && styles.headerBarExtendedHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton ? styles.pl0 : styles.pl5,
                 shouldOverlay && StyleSheet.absoluteFillObject,
