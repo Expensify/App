@@ -202,6 +202,7 @@ function ReportScreen({
             notificationPreference: reportProp.notificationPreference,
             isPinned: reportProp.isPinned,
             chatReportID: reportProp.chatReportID,
+            visibility: reportProp.visibility,
         }),
         [
             reportProp.lastReadTime,
@@ -234,6 +235,7 @@ function ReportScreen({
             reportProp.notificationPreference,
             reportProp.isPinned,
             reportProp.chatReportID,
+            reportProp.visibility,
         ],
     );
 
@@ -667,6 +669,7 @@ export default compose(
             prevProps.report.notificationPreference === nextProps.report.notificationPreference &&
             prevProps.report.isPinned === nextProps.report.isPinned &&
             prevProps.report.chatReportID === nextProps.report.chatReportID &&
+            prevProps.report.visibility === nextProps.report.visibility &&
             prevProps.viewportOffsetTop === nextProps.viewportOffsetTop,
     ),
 );
