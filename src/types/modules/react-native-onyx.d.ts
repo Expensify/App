@@ -1,9 +1,9 @@
-import type {OnyxCollectionKey, OnyxKey, OnyxValues} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxFormDraftKey, OnyxFormKey, OnyxValueKey, OnyxValues} from '@src/ONYXKEYS';
 
 declare module 'react-native-onyx' {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface CustomTypeOptions {
-        keys: OnyxKey;
+        keys: OnyxValueKey | OnyxFormKey | OnyxFormDraftKey;
         collectionKeys: OnyxCollectionKey;
         values: OnyxValues;
     }
