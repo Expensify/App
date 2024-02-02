@@ -20,8 +20,8 @@ import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
-import getListViewHeight from './getListViewOverflow';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
+import listViewOverflow from './listViewOverflow';
 import type {AddressSearchProps, PredefinedPlace, RenamedInputKeysProps} from './types';
 
 /**
@@ -436,7 +436,7 @@ function AddressSearch(
                             textInputContainer: [styles.flexColumn],
                             listView: [
                                 StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                                getListViewHeight(),
+                                listViewOverflow,
                                 styles.borderLeft,
                                 styles.borderRight,
                                 styles.flexGrow0,
