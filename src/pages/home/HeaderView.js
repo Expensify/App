@@ -29,10 +29,12 @@ import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Link from '@userActions/Link';
+import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -118,6 +120,8 @@ function HeaderView(props) {
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
+    const canLeavePolicyExpenseChat =
+        isPolicyExpenseChat && !(PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPolicyOwner(props.policy, props.session.accountID) || ReportUtils.isReportOwner(props.report));
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
@@ -156,9 +160,9 @@ function HeaderView(props) {
         ),
     );
 
-    const canJoinOrLeave = isChatThread || isUserCreatedPolicyRoom || canLeaveRoom;
+    const canJoinOrLeave = isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat;
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
+    const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     if (canJoin) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
@@ -167,10 +171,11 @@ function HeaderView(props) {
         });
     } else if (canLeave) {
         const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
+        const action = isPolicyExpenseChat ? () => Policy.leavePolicyExpenseChat(props.reportID) : () => Report.leaveRoom(props.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
+            onSelected: Session.checkIfActionIsAllowed(action),
         });
     }
 
@@ -360,7 +365,7 @@ export default memo(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-            selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction']),
+            selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction', 'role', 'ownerAccountID']),
         },
         rootParentReportPolicy: {
             key: ({report}) => {
