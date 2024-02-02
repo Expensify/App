@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The chat priority mode */
@@ -38,7 +37,7 @@ function PriorityModePage(props) {
     const updateMode = useCallback(
         (mode) => {
             if (mode.value === props.priorityMode) {
-                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+                Navigation.goBack();
                 return;
             }
             User.updateChatPriorityMode(mode.value);
@@ -53,7 +52,7 @@ function PriorityModePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('priorityModePage.priorityMode')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <Text style={[styles.mh5, styles.mv3]}>{props.translate('priorityModePage.explainerText')}</Text>
             <SelectionList
