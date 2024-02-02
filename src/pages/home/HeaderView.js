@@ -7,6 +7,7 @@ import _ from 'underscore';
 import GoogleMeetIcon from '@assets/images/google-meet.svg';
 import ZoomIcon from '@assets/images/zoom-icon.svg';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -73,6 +74,9 @@ const propTypes = {
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
     }),
+
+    /** The reportID of the request */
+    reportID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -88,6 +92,7 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
+    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -135,14 +140,14 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: Session.checkIfActionIsAllowed(() => Task.deleteTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
+                onSelected: () => setIsDeleteTaskConfirmModalVisible(true),
             });
         }
     }
 
     const join = Session.checkIfActionIsAllowed(() =>
         Report.updateNotificationPreference(
-            props.report.reportID,
+            props.reportID,
             props.report.notificationPreference,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             false,
@@ -165,7 +170,7 @@ function HeaderView(props) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
+            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
         });
     }
 
@@ -214,7 +219,7 @@ function HeaderView(props) {
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
-    const isLoading = !props.report || !title;
+    const isLoading = !props.report || !props.report.reportID || !title;
 
     return (
         <View
@@ -222,7 +227,7 @@ function HeaderView(props) {
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
+                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                     ) : (
@@ -314,11 +319,24 @@ function HeaderView(props) {
                                     )}
                                 </View>
                             </View>
+                            <ConfirmModal
+                                isVisible={isDeleteTaskConfirmModalVisible}
+                                onConfirm={() => {
+                                    setIsDeleteTaskConfirmModalVisible(false);
+                                    Session.checkIfActionIsAllowed(Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
+                                }}
+                                onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
+                                title={translate('task.deleteTask')}
+                                prompt={translate('task.deleteConfirmation')}
+                                confirmText={translate('common.delete')}
+                                cancelText={translate('common.cancel')}
+                                danger
+                            />
                         </>
                     )}
                 </View>
             </View>
-            {canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }
@@ -350,6 +368,9 @@ export default memo(
                 return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
             },
             selector: (policy) => _.pick(policy, ['role']),
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     })(HeaderView),
 );

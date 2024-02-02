@@ -50,7 +50,7 @@ type Account = {
     /** The active policy ID. Initiating a SmartScan will create an expense on this policy by default. */
     activePolicyID?: string;
 
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | null;
     success?: string;
     codesAreCopied?: boolean;
     twoFactorAuthStep?: TwoFactorAuthStep;
