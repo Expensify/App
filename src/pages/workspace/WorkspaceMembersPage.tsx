@@ -21,10 +21,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -49,7 +50,7 @@ type WorkspaceMembersPageOnyxProps = {
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
     WorkspaceMembersPageOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+    StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -76,6 +77,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policyMembers) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const isFocusedScreen = useIsFocused();
 
@@ -275,7 +277,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const policyID = route.params.policyID;
-    const policyName = policy?.name;
 
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
 
@@ -394,6 +395,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={WorkspaceMembersPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
@@ -402,12 +404,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
-                    subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                        Navigation.goBack();
                     }}
-                    shouldShowGetAssistanceButton
+                    shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                 />
                 <ConfirmModal
@@ -428,8 +429,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         });
                     }}
                 />
-                <View style={[styles.w100, styles.flex1]}>
-                    <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
+                <View style={[styles.w100, styles.flex1, styles.mt3]}>
+                    <View style={[styles.w100, styles.flexRow, styles.ph5]}>
                         <Button
                             medium
                             success
