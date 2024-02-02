@@ -18,29 +18,39 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
                 />
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                <Tooltip
-                    shouldRender={showTooltip}
-                    text={item.text}
+                <Text
+                    style={[textStyles, style]}
+                    numberOfLines={1}
                 >
-                    <Text
-                        style={[textStyles, style]}
-                        numberOfLines={1}
-                    >
-                        {item.text}
-                    </Text>
-                </Tooltip>
-                {!!item.alternateText && (
                     <Tooltip
                         shouldRender={showTooltip}
-                        text={item.alternateText}
+                        text={item.text}
                     >
                         <Text
-                            style={[alternateTextStyles, style]}
+                            style={[textStyles, style]}
                             numberOfLines={1}
                         >
-                            {item.alternateText}
+                            {item.text}
                         </Text>
                     </Tooltip>
+                </Text>
+                {!!item.alternateText && (
+                    <Text
+                        style={[alternateTextStyles, style]}
+                        numberOfLines={1}
+                    >
+                        <Tooltip
+                            shouldRender={showTooltip}
+                            text={item.alternateText}
+                        >
+                            <Text
+                                style={[alternateTextStyles, style]}
+                                numberOfLines={1}
+                            >
+                                {item.alternateText}
+                            </Text>
+                        </Tooltip>
+                    </Text>
                 )}
             </View>
             {!!item.rightElement && item.rightElement}
