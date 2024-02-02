@@ -24,7 +24,6 @@ import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestDistancePage from './EditRequestDistancePage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
@@ -75,7 +74,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         amount: transactionAmount,
         currency: transactionCurrency,
         comment: transactionDescription,
-        merchant: transactionMerchant,
         category: transactionCategory,
         tag: transactionTag,
     } = ReportUtils.getTransactionDetails(transaction);
@@ -139,23 +137,23 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         [transaction, report],
     );
 
-    const saveMerchant = useCallback(
-        ({merchant: newMerchant}) => {
-            const newTrimmedMerchant = newMerchant.trim();
+    // const saveMerchant = useCallback(
+    //     ({merchant: newMerchant}) => {
+    //         const newTrimmedMerchant = newMerchant.trim();
 
-            // In case the merchant hasn't been changed, do not make the API request.
-            // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
-            if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-                Navigation.dismissModal();
-                return;
-            }
+    //         // In case the merchant hasn't been changed, do not make the API request.
+    //         // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+    //         if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+    //             Navigation.dismissModal();
+    //             return;
+    //         }
 
-            // An empty newTrimmedMerchant is only possible for the P2P IOU case
-            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
-            Navigation.dismissModal();
-        },
-        [transactionMerchant, transaction, report],
-    );
+    //         // An empty newTrimmedMerchant is only possible for the P2P IOU case
+    //         IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+    //         Navigation.dismissModal();
+    //     },
+    //     [transactionMerchant, transaction, report],
+    // );
 
     const saveTag = useCallback(
         ({tag: newTag}) => {
@@ -220,16 +218,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-        return (
-            <EditRequestMerchantPage
-                defaultMerchant={transactionMerchant}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                onSubmit={saveMerchant}
             />
         );
     }

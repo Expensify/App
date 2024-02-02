@@ -241,7 +241,8 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: string;
     };
-    [SCREENS.MONEY_REQUEST.MERCHANT]: {
+    [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
+        action: string;
         iouType: string;
         reportID: string;
         field: string;

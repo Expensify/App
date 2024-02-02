@@ -16,7 +16,6 @@ import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportPropTypes from './reportPropTypes';
 
@@ -59,7 +58,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         amount: transactionAmount,
         currency: transactionCurrency,
         comment: transactionDescription,
-        merchant: transactionMerchant,
         created: transactionCreated,
         category: transactionCategory,
         tag: transactionTag,
@@ -121,16 +119,16 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         );
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-        return (
-            <EditRequestMerchantPage
-                defaultMerchant={transactionMerchant}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
-                }}
-            />
-        );
-    }
+    // if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
+    //     return (
+    //         <EditRequestMerchantPage
+    //             defaultMerchant={transactionMerchant}
+    //             onSubmit={(transactionChanges) => {
+    //                 setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
+    //             }}
+    //         />
+    //     );
+    // }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
         return (
