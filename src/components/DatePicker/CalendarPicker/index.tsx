@@ -46,12 +46,11 @@ function CalendarPicker({
     const maxYear = getYear(new Date(maxDate));
 
     const [years, setYears] = useState<CalendarPickerRadioItem[]>(
-        // eslint-disable-next-line rulesdir/prefer-underscore-method, @typescript-eslint/no-shadow
-        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((value) => ({
-            text: value.toString(),
-            value,
-            keyForList: value.toString(),
-            isSelected: value === currentDateView.getFullYear(),
+        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
+            text: year.toString(),
+            value: year,
+            keyForList: year.toString(),
+            isSelected: year === currentDateView.getFullYear(),
         })),
     );
 

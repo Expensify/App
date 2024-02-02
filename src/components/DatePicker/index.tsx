@@ -58,7 +58,7 @@ function DatePicker(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue);
+    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? '');
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const onSelected = (newValue: string) => {
@@ -78,7 +78,7 @@ function DatePicker(
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
-                    value={selectedDate ?? ''}
+                    value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
                     containerStyles={containerStyles}
