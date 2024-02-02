@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
 import * as ExitSurvey from '@userActions/ExitSurvey';
 import type {ExitReason} from '@userActions/ExitSurvey';
@@ -22,7 +21,6 @@ import ExitSurveyOffline from './ExitSurveyOffline';
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
     const [reason, setReason] = useState<ExitReason>();
@@ -41,7 +39,6 @@ function ExitSurveyReasonPage() {
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={isSmallScreenWidth}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM}
