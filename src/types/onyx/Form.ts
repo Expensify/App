@@ -67,6 +67,11 @@ type WorkspaceSettingsForm = Form<{
 
 type ReportFieldEditForm = Form<Record<string, string>>;
 
+type CloseAccountForm = Form<{
+    reasonForLeaving: string;
+    phoneOrEmail: string;
+}>;
+
 export default Form;
 
 export type {
@@ -83,4 +88,5 @@ export type {
     WorkspaceSettingsForm,
     ReportFieldEditForm,
     WelcomeMessageForm,
+    CloseAccountForm,
 };

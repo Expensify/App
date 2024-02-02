@@ -866,6 +866,18 @@ const styles = (theme: ThemeColors) =>
             justifyItems: 'center',
         },
 
+        cameraFocusIndicator: {
+            position: 'absolute',
+            left: -32,
+            top: -32,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            borderWidth: 2,
+            borderColor: theme.white,
+            pointerEvents: 'none',
+        },
+
         permissionView: {
             paddingVertical: 108,
             paddingHorizontal: 61,
@@ -2583,6 +2595,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.componentBG,
             marginLeft: 8,
+        },
+
+        optionSelectCircle: {
+            borderRadius: variables.componentSizeSmall / 2 + 1,
+            padding: 1,
         },
 
         unreadIndicatorContainer: {
