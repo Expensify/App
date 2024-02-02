@@ -1,4 +1,4 @@
-import React, {useContext, useState, useEffect} from 'react';
+import React, {useContext, useRef, useEffect} from 'react';
 import type { ViewProps } from 'react-native';
 import Reanimated, {
     useAnimatedStyle,
@@ -106,9 +106,9 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     const keyboard = useAnimatedKeyboard();
 
     // similar to using `global` in worklet but it's just a local object
-    const [syncLocalWorkletState] = useState({
+    const syncLocalWorkletState = useRef({
         lastState: KeyboardState.UNKNOWN,
-    });
+    }).current;
     const {windowHeight} = useWindowDimensions();
     const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
 
