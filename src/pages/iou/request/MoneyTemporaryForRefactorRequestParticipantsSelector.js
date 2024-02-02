@@ -307,9 +307,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                         disabled={item.isDisabled}
                         role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                         accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
                     >
-                        <SelectCircle isChecked={item.isSelected} />
+                        <SelectCircle
+                            isChecked={item.isSelected}
+                            selectCircleStyles={styles.ml0}
+                        />
                     </PressableWithFeedback>
                 );
             }

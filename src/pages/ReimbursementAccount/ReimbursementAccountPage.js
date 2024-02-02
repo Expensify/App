@@ -338,9 +338,10 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             }
 
             const backTo = lodashGet(route.params, 'backTo');
-            const policyId = lodashGet(route.params, 'policyID');
+            // eslint-disable-next-line no-shadow
+            const policyID = lodashGet(route.params, 'policyID');
 
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
@@ -364,7 +365,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
-        const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
@@ -375,7 +375,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     BankAccounts.setBankAccountSubStep(null);
                     BankAccounts.setPlaidEvent(null);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
@@ -406,12 +406,12 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 } else if (!isOffline && achData.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
             default:
-                Navigation.goBack(backTo);
+                Navigation.goBack();
         }
     };
 
@@ -484,7 +484,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 continue={continueFunction}
                 policyName={policyName}
                 onBackButtonPress={() => {
-                    Navigation.goBack(lodashGet(route.params, 'backTo', ROUTES.HOME));
+                    Navigation.goBack();
                 }}
             />
         );
