@@ -58,6 +58,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
+    isCentralPaneSettings = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -72,7 +73,13 @@ function HeaderWithBackButton({
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton ? styles.pl0 : styles.pl5, shouldOverlay && StyleSheet.absoluteFillObject]}
+            style={[
+                styles.headerBar,
+                isCentralPaneSettings && styles.headerBarExtendedHeight,
+                shouldShowBorderBottom && styles.borderBottom,
+                shouldShowBackButton ? styles.pl0 : styles.pl5,
+                shouldOverlay && StyleSheet.absoluteFillObject,
+            ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
@@ -119,7 +126,7 @@ function HeaderWithBackButton({
                     <Header
                         title={title}
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                        textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
+                        textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH1]}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>

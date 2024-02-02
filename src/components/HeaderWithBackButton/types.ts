@@ -117,6 +117,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
+
+    /** Whether we should use increased height. */
+    isCentralPaneSettings?: boolean;
 };
 
 export type {ThreeDotsMenuItem};
