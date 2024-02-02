@@ -552,6 +552,18 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
     };
 };
 
+function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
+    const spacersIndexes: number[] = [];
+    allEmojis.forEach((emoji, index) => {
+        if (!(CONST.EMOJI_PICKER_ITEM_TYPES.SPACER in emoji)) {
+            return;
+        }
+
+        spacersIndexes.push(index);
+    });
+    return spacersIndexes;
+}
+
 export {
     findEmojiByName,
     findEmojiByCode,
@@ -574,4 +586,5 @@ export {
     getAddedEmojis,
     isFirstLetterEmoji,
     hasAccountIDEmojiReacted,
+    getSpacersIndexes,
 };

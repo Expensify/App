@@ -40,6 +40,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
@@ -100,6 +101,9 @@ type ReportActionItemOnyxProps = {
 
     /** All policy report fields */
     policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type ReportActionItemProps = {
@@ -149,6 +153,7 @@ function ReportActionItem({
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
     policyReportFields,
+    policy,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -170,7 +175,7 @@ function ReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
     const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
-    const isReportActionLinked = linkedReportActionID === action.reportActionID;
+    const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
         [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
@@ -519,7 +524,6 @@ function ReportActionItem({
                             reportID={report.reportID}
                             index={index}
                             ref={textInputRef}
-                            report={report}
                             // Avoid defining within component due to an existing Onyx bug
                             preferredSkinTone={preferredSkinTone}
                             shouldDisableEmojiPicker={(ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)}
@@ -654,7 +658,6 @@ function ReportActionItem({
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
-                            // @ts-expect-error TODO: Remove this once TaskView (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                             report={report}
                             shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                         />
@@ -667,6 +670,7 @@ function ReportActionItem({
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
                     <MoneyReportView
                         report={report}
+                        policy={policy}
                         policyReportFields={Object.values(policyReportFields ?? {})}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                     />
@@ -749,7 +753,7 @@ function ReportActionItem({
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, report.reportID)}
-                                errors={action.errors}
+                                errors={ErrorUtils.getLatestErrorMessageField(action)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
@@ -777,7 +781,7 @@ function ReportActionItem({
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered || isReportActionLinked, isWhisper, hasErrors)}
+                                {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
@@ -803,7 +807,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
     },
     policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? ''}`,
+    },
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? ''}`,
     },
     emojiReactions: {
         key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
@@ -812,7 +819,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         key: ONYXKEYS.USER_WALLET,
     },
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? 0}`,
         canEvict: false,
     },
 })(
@@ -844,6 +851,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields),
+            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            lodashIsEqual(prevProps.policy, nextProps.policy),
     ),
 );

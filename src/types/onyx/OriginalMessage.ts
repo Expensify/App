@@ -293,6 +293,7 @@ export type {
     OriginalMessageCreated,
     OriginalMessageAddComment,
     DecisionName,
+    OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
     PaymentMethodType,
