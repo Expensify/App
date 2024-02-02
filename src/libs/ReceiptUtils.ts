@@ -17,6 +17,7 @@ type ThumbnailAndImageURI = {
     thumbnail: ImageSourcePropType | string | null;
     transaction?: Transaction;
     isLocalFile?: boolean;
+    filename?: string;
 };
 
 type FileNameAndExtension = {
@@ -45,16 +46,16 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     const hasEReceipt = transaction?.hasEReceipt;
 
     if (hasEReceipt) {
-        return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
+        return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction, filename};
     }
 
     // For local files, we won't have a thumbnail yet
     if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        return {thumbnail: null, image: path, isLocalFile: true};
+        return {thumbnail: null, image: path, isLocalFile: true, filename};
     }
 
     if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path};
+        return {thumbnail: `${path}.1024.jpg`, image: path, filename};
     }
 
     const {fileExtension} = FileUtils.splitExtensionFromFileName(filename) as FileNameAndExtension;
@@ -72,7 +73,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     }
 
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
-    return {thumbnail: image, image: path, isLocalFile};
+    return {thumbnail: image, image: path, isLocalFile, filename};
 }
 
 // eslint-disable-next-line import/prefer-default-export

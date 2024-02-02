@@ -155,7 +155,7 @@ function MoneyRequestPreview({
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
+    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -174,7 +174,7 @@ function MoneyRequestPreview({
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(transaction)] : [];
 
     const getSettledMessage = (): string => {
-        if (isExpensifyCardTransaction) {
+        if (isCardTransaction) {
             return translate('common.done');
         }
         return translate('iou.settledExpensify');
@@ -197,7 +197,7 @@ function MoneyRequestPreview({
             return translate('iou.split');
         }
 
-        if (isExpensifyCardTransaction) {
+        if (isCardTransaction) {
             let message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` • ${translate('iou.pending')}`;

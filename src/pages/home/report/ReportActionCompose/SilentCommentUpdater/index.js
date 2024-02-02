@@ -9,12 +9,6 @@ const propTypes = {
     /** The comment of the report */
     comment: PropTypes.string,
 
-    /** The report associated with the comment */
-    report: PropTypes.shape({
-        /** The ID of the report */
-        reportID: PropTypes.string,
-    }).isRequired,
-
     /** The value of the comment */
     value: PropTypes.string.isRequired,
 
@@ -26,6 +20,8 @@ const propTypes = {
 
     /** Updates the comment */
     updateComment: PropTypes.func.isRequired,
+
+    reportID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -38,9 +34,9 @@ const defaultProps = {
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  * @returns {null}
  */
-function SilentCommentUpdater({comment, commentRef, report, value, updateComment}) {
+function SilentCommentUpdater({comment, commentRef, reportID, value, updateComment}) {
     const prevCommentProp = usePrevious(comment);
-    const prevReportId = usePrevious(report.reportID);
+    const prevReportId = usePrevious(reportID);
     const {preferredLocale} = useLocalize();
     const prevPreferredLocale = usePrevious(preferredLocale);
 
@@ -56,12 +52,12 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (preferredLocale === prevPreferredLocale && report.reportID === prevReportId && !shouldSyncComment) {
+        if (preferredLocale === prevPreferredLocale && reportID === prevReportId && !shouldSyncComment) {
             return;
         }
 
         updateComment(comment);
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value, commentRef]);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, commentRef]);
 
     return null;
 }
