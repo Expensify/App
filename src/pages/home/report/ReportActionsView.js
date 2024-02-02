@@ -138,7 +138,7 @@ const usePaginatedReportActionList = (linkedID, allReportActions, fetchNewerRepo
         if (isFirstLinkedActionRender.current) {
             return allReportActions.slice(index, allReportActions.length);
         }
-        const paginationSize = getInitialPaginationSize(allReportActions.length - index);
+        const paginationSize = getInitialPaginationSize();
         const newStartIndex = index >= paginationSize ? index - paginationSize : 0;
         return newStartIndex ? allReportActions.slice(newStartIndex, allReportActions.length) : allReportActions;
         // currentReportActionID is needed to trigger batching once the report action has been positioned
