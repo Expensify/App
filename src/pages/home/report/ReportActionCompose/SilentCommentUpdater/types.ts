@@ -5,9 +5,9 @@ type SilentCommentUpdaterOnyxProps = {
     comment: OnyxEntry<string>;
 };
 
-type SilentCommentUpdaterProps = {
+type SilentCommentUpdaterProps = SilentCommentUpdaterOnyxProps & {
     /** Updates the comment */
-    updateComment: (comment: OnyxEntry<string>) => void;
+    updateComment: (comment: string) => void;
 
     /** The ID of the report associated with the comment */
     reportID: string;
@@ -17,6 +17,6 @@ type SilentCommentUpdaterProps = {
 
     /** The ref of the comment */
     commentRef: React.RefObject<string>;
-} & SilentCommentUpdaterOnyxProps;
+};
 
 export type {SilentCommentUpdaterProps, SilentCommentUpdaterOnyxProps};

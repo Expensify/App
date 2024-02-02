@@ -15,10 +15,10 @@ type ReportTypingIndicatorOnyxProps = {
     userTypingStatuses: OnyxEntry<ReportUserIsTyping>;
 };
 
-type ReportTypingIndicatorProps = {
+type ReportTypingIndicatorProps = ReportTypingIndicatorOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types -- This is used by withOnyx
     reportID: string;
-} & ReportTypingIndicatorOnyxProps;
+};
 
 function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps) {
     const {translate} = useLocalize();

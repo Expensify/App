@@ -17,7 +17,7 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
     const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {
-        updateComment(comment ?? null);
+        updateComment(comment ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
@@ -32,7 +32,7 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
             return;
         }
 
-        updateComment(comment);
+        updateComment(comment ?? '');
     }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, commentRef]);
 
     return null;

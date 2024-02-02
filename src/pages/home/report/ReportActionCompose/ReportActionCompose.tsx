@@ -69,38 +69,38 @@ type ReportActionComposeOnyxProps = {
     shouldShowComposeInput: OnyxEntry<boolean>;
 };
 
-type ReportActionComposeProps = {
-    /** A method to call when the form is submitted */
-    onSubmit: (newComment: string | undefined) => void;
+type ReportActionComposeProps = ReportActionComposeOnyxProps &
+    WithCurrentUserPersonalDetailsProps & {
+        /** A method to call when the form is submitted */
+        onSubmit: (newComment: string | undefined) => void;
 
-    /** The ID of the report actions will be created for */
-    reportID: string;
+        /** The ID of the report actions will be created for */
+        reportID: string;
 
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
+        /** The report currently being looked at */
+        report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Is composer full size */
-    isComposerFullSize?: boolean;
+        /** Is composer full size */
+        isComposerFullSize?: boolean;
 
-    /** Whether user interactions should be disabled */
-    disabled?: boolean;
+        /** Whether user interactions should be disabled */
+        disabled?: boolean;
 
-    /** Height of the list which the composer is part of */
-    listHeight?: number;
+        /** Height of the list which the composer is part of */
+        listHeight?: number;
 
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
+        /** The type of action that's pending  */
+        pendingAction?: OnyxCommon.PendingAction;
 
-    /** Whether the report is ready for display */
-    isReportReadyForDisplay?: boolean;
+        /** Whether the report is ready for display */
+        isReportReadyForDisplay?: boolean;
 
-    /** Whether the chat is empty */
-    isEmptyChat?: boolean;
+        /** Whether the chat is empty */
+        isEmptyChat?: boolean;
 
-    /** The last report action */
-    lastReportAction?: OnyxTypes.ReportAction;
-} & ReportActionComposeOnyxProps &
-    WithCurrentUserPersonalDetailsProps;
+        /** The last report action */
+        lastReportAction?: OnyxTypes.ReportAction;
+    };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device

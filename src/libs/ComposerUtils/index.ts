@@ -18,7 +18,7 @@ function insertText(text: string, selection: Selection, textToInsert: string): s
  * Insert a white space at given index of text
  * @param text - text that needs whitespace to be appended to
  */
-function insertWhiteSpaceAtIndex(text: string | null, index: number) {
+function insertWhiteSpaceAtIndex(text: string, index: number) {
     return `${text?.slice(0, index)} ${text?.slice(index)}`;
 }
 

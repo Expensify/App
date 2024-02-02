@@ -14,16 +14,37 @@ type Selection = {
 };
 
 type SuggestionProps = {
+    /** The current input value */
     value: string;
+
+    /** Callback to update the current input value */
     setValue: (newValue: string) => void;
+
+    /** The current selection value */
     selection: Selection;
+
+    /** Callback to update the current selection */
     setSelection: (newSelection: Selection) => void;
+
+    /** Callback to update the comment draft */
     updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;
+
+    /** Meaures the parent container's position and dimensions. */
     measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
+
+    /** Whether the composer is expanded */
     isComposerFullSize: boolean;
+
+    /** Report composer focus state */
     isComposerFocused?: boolean;
+
+    /** Callback to reset the keyboard input */
     resetKeyboardInput?: () => void;
+
+    /** Whether the auto suggestion picker is large */
     isAutoSuggestionPickerLarge?: boolean;
+
+    /** The height of the composer */
     composerHeight?: number;
 };
 

@@ -1,4 +1,4 @@
-import type {ForwardedRef, RefObject} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect} from 'react';
 import E2EClient from '@libs/E2E/client';
 import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
@@ -20,17 +20,17 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
     // Eventually Auto focus on e2e tests
     useEffect(() => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
-        if (testConfig?.reportScreen && typeof testConfig.reportScreen !== 'string' && (testConfig?.reportScreen.autoFocus ?? false) === false) {
+        if (testConfig?.reportScreen && typeof testConfig.reportScreen !== 'string' && !testConfig?.reportScreen.autoFocus) {
             return;
         }
 
         // We need to wait for the component to be mounted before focusing
         setTimeout(() => {
-            if (!(ref as RefObject<ComposerRef>)?.current) {
+            if (!(ref && 'current' in ref)) {
                 return;
             }
 
-            (ref as RefObject<ComposerRef>).current?.focus(true);
+            ref.current?.focus(true);
         }, 1);
     }, [ref]);
 

@@ -5,7 +5,7 @@ type TextSelection = {
     end?: number;
 };
 
-type ComposerProps = {
+type ComposerProps = TextInputProps & {
     /** identify id in the text input */
     id?: string;
 
@@ -76,6 +76,6 @@ type ComposerProps = {
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;
-} & TextInputProps;
+};
 
 export type {TextSelection, ComposerProps};

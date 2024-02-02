@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef, RefAttributes, RefObject} from 'react';
+import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
@@ -79,35 +79,94 @@ type ComposerWithSuggestionsOnyxProps = {
 };
 
 type ComposerWithSuggestionsProps = {
+    /** Report ID */
     reportID: string;
+
+    /** Callback to focus composer */
     onFocus: () => void;
+
+    /** Callback to blur composer */
     onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+
+    /** Callback to update the value of the composer */
     onValueChange: (value: string) => void;
+
+    /** Whether the composer is full size */
     isComposerFullSize: boolean;
+
+    /** Whether the menu is visible */
     isMenuVisible: boolean;
+
+    /** The placeholder for the input */
     inputPlaceholder: string;
+
+    /** Function to display a file in a modal */
     displayFileInModal: (file: FileObject | undefined) => void;
+
+    /** Whether the text input should clear */
     textInputShouldClear: boolean;
+
+    /** Function to set the text input should clear */
     setTextInputShouldClear: (shouldClear: boolean) => void;
+
+    /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
+
+    /** Whether the input is disabled */
     disabled: boolean;
+
+    /** Whether the full composer is available */
     isFullComposerAvailable: boolean;
+
+    /** Function to set whether the full composer is available */
     setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
+
+    /** Function to set whether the comment is empty */
     setIsCommentEmpty: (isCommentEmpty: boolean) => void;
+
+    /** Function to handle sending a message */
     handleSendMessage: () => void;
+
+    /** Whether the compose input should show */
     shouldShowComposeInput: OnyxEntry<boolean>;
+
+    /** Function to measure the parent container */
     measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
+
+    /** The height of the list */
     listHeight: number;
+
+    /** Whether the scroll is likely to trigger a layout */
     isScrollLikelyLayoutTriggered: RefObject<boolean>;
+
+    /** Function to raise the scroll is likely layout triggered */
     raiseIsScrollLikelyLayoutTriggered: () => void;
+
+    /** The ref to the suggestions */
     suggestionsRef: React.RefObject<SuggestionsRef>;
+
+    /** The ref to the animated input */
     animatedRef: AnimatedRef;
-    isNextModalWillOpenRef: RefObject<boolean | null>;
+
+    /** The ref to the next modal will open */
+    isNextModalWillOpenRef: MutableRefObject<boolean | null>;
+
+    /** Whether the edit is focused */
     editFocused: boolean;
+
+    /** Wheater chat is empty */
     isEmptyChat?: boolean;
+
+    /** The last report action */
     lastReportAction?: OnyxTypes.ReportAction;
+
+    /** Whether to include chronos */
     includeChronos?: boolean;
+
+    /** The parent report action ID */
     parentReportActionID?: string;
+
+    /** The parent report ID */
     // eslint-disable-next-line react/no-unused-prop-types
     parentReportID: string | undefined;
 } & ComposerWithSuggestionsOnyxProps &
@@ -275,13 +334,13 @@ function ComposerWithSuggestions(
      * @property diff - The newly added characters.
      */
     const findNewlyAddedChars = useCallback(
-        (prevText: string, newText: string | null): NewlyAddedChars => {
+        (prevText: string, newText: string): NewlyAddedChars => {
             let startIndex = -1;
             let endIndex = -1;
             let currentIndex = 0;
 
             // Find the first character mismatch with newText
-            while (currentIndex < (newText?.length ?? 0) && prevText.charAt(currentIndex) === newText?.charAt(currentIndex) && selection.start > currentIndex) {
+            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText?.charAt(currentIndex) && selection.start > currentIndex) {
                 currentIndex++;
             }
 
@@ -295,7 +354,6 @@ function ComposerWithSuggestions(
                     endIndex = currentIndex + (newText?.length ?? 0);
                 }
             }
-
             return {
                 startIndex,
                 endIndex,
@@ -309,7 +367,7 @@ function ComposerWithSuggestions(
      * Update the value of the comment in Onyx
      */
     const updateComment = useCallback(
-        (commentValue: string | null, shouldDebounceSaveComment?: boolean) => {
+        (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
@@ -317,7 +375,7 @@ function ComposerWithSuggestions(
                 text: newComment,
                 emojis,
                 cursorPosition,
-            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
+            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue ?? '', preferredSkinTone, preferredLocale);
             if (emojis.length) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
@@ -595,7 +653,6 @@ function ComposerWithSuggestions(
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
         if (modal?.isVisible && !prevIsModalVisible) {
-            // @ts-expect-error need to reassign this ref
             // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
         }

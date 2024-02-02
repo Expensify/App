@@ -45,7 +45,7 @@ type LocaleContextProps = {
 
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
-    formatPhoneNumber: (phoneNumber: string) => string;
+    formatPhoneNumber: (phoneNumber: string | undefined) => string;
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: (digit: string) => string;
@@ -94,7 +94,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const updateLocale = useMemo<LocaleContextProps['updateLocale']>(() => () => DateUtils.setLocale(locale), [locale]);
 
-    const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber), []);
+    const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber ?? ''), []);
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => LocaleDigitUtils.toLocaleDigit(locale, digit), [locale]);
 

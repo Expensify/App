@@ -15,8 +15,6 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
-type SuggestionMentionProps = {isAutoSuggestionPickerLarge: boolean} & SuggestionProps;
-
 type SuggestionValues = {
     suggestedMentions: Mention[];
     atSignIndex: number;
@@ -37,7 +35,7 @@ const defaultSuggestionsValues: SuggestionValues = {
 };
 
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused}: SuggestionMentionProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -161,7 +159,7 @@ function SuggestionMention(
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: PersonalDetailsUtils.getDisplayNameOrDefault(detail),
-                    alternateText: formatPhoneNumber(detail?.login ?? ''),
+                    alternateText: formatPhoneNumber(detail?.login),
                     login: detail?.login,
                     icons: [
                         {
@@ -200,7 +198,7 @@ function SuggestionMention(
 
             const leftString = value.substring(0, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
-            const lastWord = words.at(-1) ?? '';
+            const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
 
             let atSignIndex;
@@ -297,7 +295,7 @@ function SuggestionMention(
             mentions={suggestionValues.suggestedMentions}
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
-            isMentionPickerLarge={isAutoSuggestionPickerLarge}
+            isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainer={measureParentContainer}
         />
     );

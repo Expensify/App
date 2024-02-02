@@ -6,7 +6,6 @@ import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
-import type {SupportedLanguage} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
@@ -26,11 +25,11 @@ type SuggestionEmojiOnyxProps = {
     preferredSkinTone: number;
 };
 
-type SuggestionEmojiProps = {
-    /** Function to clear the input */
-    resetKeyboardInput: (() => void) | undefined;
-} & SuggestionEmojiOnyxProps &
-    SuggestionProps;
+type SuggestionEmojiProps = SuggestionProps &
+    SuggestionEmojiOnyxProps & {
+        /** Function to clear the input */
+        resetKeyboardInput: (() => void) | undefined;
+    };
 
 /**
  * Check if this piece of string looks like an emoji
@@ -166,7 +165,7 @@ function SuggestionEmoji(
                 colonIndex,
                 shouldShowSuggestionMenu: false,
             };
-            const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, preferredLocale as SupportedLanguage);
+            const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, preferredLocale);
 
             if (newSuggestedEmojis?.length && isCurrentlyShowingEmojiSuggestion) {
                 nextState.suggestedEmojis = newSuggestedEmojis;

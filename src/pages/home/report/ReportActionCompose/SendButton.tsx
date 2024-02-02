@@ -46,8 +46,6 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                         ]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
-                        accessible
-                        onPress={() => {}}
                     >
                         {({pressed}) => (
                             <Icon

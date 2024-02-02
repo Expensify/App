@@ -22,8 +22,8 @@ function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: 
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
     const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, undefined, reportRecipientTimezone.selected);
     const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT);
-    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone.toDateString());
-    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone.toDateString());
+    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone);
+    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone);
     if (reportRecipientDay !== currentUserDay) {
         return `${DateUtils.formatToLocalTime(reportTimezone)} ${reportRecipientDay}`;
     }

@@ -10,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
@@ -370,12 +369,12 @@ function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEF
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string | null, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceAndExtractEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text ?? '', preferredSkinTone, lang);
 
     return {
         text: convertedText,
-        emojis: emojis.concat(extractEmojis(text ?? '')),
+        emojis: emojis.concat(extractEmojis(text)),
         cursorPosition,
     };
 }
@@ -384,7 +383,7 @@ function replaceAndExtractEmojis(text: string | null, preferredSkinTone: number 
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang: SupportedLanguage, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 

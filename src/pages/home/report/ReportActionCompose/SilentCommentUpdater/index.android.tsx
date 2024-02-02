@@ -15,7 +15,7 @@ import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './t
  */
 function SilentCommentUpdater({comment = '', updateComment}: SilentCommentUpdaterProps) {
     useEffect(() => {
-        updateComment(comment);
+        updateComment(comment ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
