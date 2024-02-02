@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,6 +9,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -42,6 +43,12 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
     const {reason} = route.params;
+
+    const submitForm = useCallback(() => {
+        ExitSurvey.saveResponse(draftResponse);
+        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM);
+    }, [draftResponse]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 
     const formTopMarginsStyle = styles.mt3;
     const textStyle = styles.headerAnonymousFooter;
@@ -80,10 +87,7 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
-                onSubmit={() => {
-                    ExitSurvey.saveResponse(draftResponse);
-                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM);
-                }}
+                onSubmit={submitForm}
                 submitButtonText={translate('common.next')}
                 validate={() => {
                     const errors: Errors = {};
