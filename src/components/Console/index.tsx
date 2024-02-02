@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import React, {useEffect, useState} from 'react';
-import {Button, ScrollView, TextInput, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
+import Button from '@components/Button';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 import {createLog, sanitizeConsoleInput, setUpdateLogsFunction} from '@libs/Console';
 import type {Log} from '@libs/Console';
 
@@ -29,25 +31,29 @@ function Console() {
     };
 
     return (
-        <View style={{position: 'absolute', bottom: 0, width: '100%', backgroundColor: 'black', height: 300}}>
+        <View style={{position: 'absolute', bottom: 0, width: '100%', backgroundColor: 'white', height: 350, paddingHorizontal: 15, paddingTop: 10, borderTopWidth: 1, borderColor: 'black'}}>
             <TextInput
                 onChangeText={setInput}
                 value={input}
                 placeholder="Enter command"
-                autoCapitalize="none"
+                autoGrowHeight
                 autoCorrect={false}
-                style={{color: 'white', fontFamily: 'monospace', padding: 8, borderWidth: 1, borderColor: 'white'}}
+                accessibilityRole="text"
             />
             <Button
-                title="Execute"
                 onPress={handleExecute}
+                shouldShowRightIcon
+                text="Execute"
+                style={{marginVertical: 15}}
             />
             <ScrollView bounces={false}>
                 {logs.map((log, index) => (
-                    <Text
-                        style={{fontFamily: 'monospace', color: 'white'}}
+                    <View
+                        style={{borderColor: 'black', borderBottomWidth: 1}}
                         key={index}
-                    >{`${log.time.toLocaleTimeString()} [${log.level}] - ${log.message}`}</Text>
+                    >
+                        <Text style={{fontFamily: 'monospace', color: 'black'}}>{`${log.time.toLocaleTimeString()} [${log.level}] - ${log.message}`}</Text>
+                    </View>
                 ))}
             </ScrollView>
         </View>

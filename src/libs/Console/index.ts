@@ -30,7 +30,7 @@ function logMessage(args: unknown[]) {
             return String(arg);
         })
         .join(' ');
-    const newLog = {time: new Date(), level: 'log', message};
+    const newLog = {time: new Date(), level: 'LOG', message};
     capturedLogs.push(newLog);
     if (updateLogs) {
         updateLogs(newLog);
