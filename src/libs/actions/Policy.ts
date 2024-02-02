@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
@@ -14,6 +15,8 @@ import type {
     DeleteMembersFromWorkspaceParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
+    LeavePolicyExpenseChatParams,
+    LeaveWorkspaceParams,
     OpenDraftWorkspaceRequestParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
@@ -1984,6 +1987,48 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
     return policyID;
 }
 
+/**
+ * TODO: Comment
+ */
+function leaveWorkspace(policyID: string) {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const parameters: LeaveWorkspaceParams = {
+        policyID,
+    };
+
+    console.group('leaveWorkspace');
+    console.log('policyID', policyID);
+    console.log('parameters', parameters);
+    console.log('{optimisticData, successData, failureData}', {optimisticData, successData, failureData});
+    console.groupEnd();
+    return;
+    API.write(WRITE_COMMANDS.LEAVE_WORKSPACE, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * TODO: Comment
+ */
+function leavePolicyExpenseChat(reportID: string) {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const parameters: LeavePolicyExpenseChatParams = {
+        reportID,
+    };
+
+    console.group('leaveWorkspace');
+    console.log('reportID', reportID);
+    console.log('parameters', parameters);
+    console.log('{optimisticData, successData, failureData}', {optimisticData, successData, failureData});
+    console.groupEnd();
+    return;
+    API.write(WRITE_COMMANDS.LEAVE_POLICY_EXPENSE_CHAT, parameters, {optimisticData, successData, failureData});
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -2020,4 +2065,6 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
+    leaveWorkspace,
+    leavePolicyExpenseChat,
 };
