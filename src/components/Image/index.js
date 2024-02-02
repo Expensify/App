@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,7 +7,9 @@ import BaseImage from './BaseImage';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-function Image({source: propsSource, isAuthTokenRequired, session, ...forwardedProps}) {
+function Image({source: propsSource, isAuthTokenRequired, session, onLoad, ...forwardedProps}) {
+    const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
+
     // Update the source to include the auth token if required
     const source = useMemo(() => {
         if (typeof lodashGet(propsSource, 'uri') === 'number') {
@@ -28,11 +30,27 @@ function Image({source: propsSource, isAuthTokenRequired, session, ...forwardedP
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
+    const imageLoadedSuccessfully = useCallback((event) => {
+        const {width, height} = event.nativeEvent;
+
+        onLoad(event);
+
+        if (objectPositionTop) {
+            if (width > height) {
+                setAspectRatio(1);
+                return;
+            }
+            setAspectRatio(height ? width / height : 'auto');
+        }
+    })
+
     return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             source={source}
+            onLoad={imageLoadedSuccessfully}
+            style={[style, aspectRatio && {aspectRatio, height: 'auto'}, objectPositionTop && !aspectRatio && {opacity: 0}]}
         />
     );
 }
