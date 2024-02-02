@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _, {isEqual} from 'underscore';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
-import participantPropTypes from '@components/participantPropTypes';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useNetwork from '@hooks/useNetwork';
@@ -14,7 +15,9 @@ import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
@@ -24,23 +27,12 @@ const propTypes = {
     /** Report object for the current report */
     report: reportPropTypes,
 
-    /** Report actions for the current report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    lastReportAction: PropTypes.shape(reportActionPropTypes),
 
-    /** Callback fired when the comment is submitted */
-    onSubmitComment: PropTypes.func,
+    isEmptyChat: PropTypes.bool,
 
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
-
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    /** Whether the composer input should be shown */
-    shouldShowComposeInput: PropTypes.bool,
-
-    /** Whether user interactions should be disabled */
-    shouldDisableCompose: PropTypes.bool,
 
     /** Height of the list which the composer is part of */
     listHeight: PropTypes.number,
@@ -48,19 +40,20 @@ const propTypes = {
     /** Whetjer the report is ready for display */
     isReportReadyForDisplay: PropTypes.bool,
 
+    /** Whether to show the compose input */
+    shouldShowComposeInput: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     report: {reportID: '0'},
-    reportActions: [],
-    onSubmitComment: () => {},
     pendingAction: null,
-    personalDetails: {},
-    shouldShowComposeInput: true,
-    shouldDisableCompose: false,
     listHeight: 0,
     isReportReadyForDisplay: true,
+    lastReportAction: null,
+    isEmptyChat: true,
+    shouldShowComposeInput: false,
 };
 
 function ReportFooter(props) {
@@ -73,6 +66,52 @@ function ReportFooter(props) {
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);
 
+    const allPersonalDetails = usePersonalDetails();
+
+    /**
+     * @param {String} text
+     */
+    const handleCreateTask = useCallback(
+        (text) => {
+            /**
+             * Matching task rule by group
+             * Group 1: Start task rule with []
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 3: Title is remaining characters
+             */
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+
+            const match = text.match(taskRegex);
+            if (!match) {
+                return false;
+            }
+            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            if (!title) {
+                return false;
+            }
+            const email = match[1] ? match[1].trim() : undefined;
+            let assignee = {};
+            if (email) {
+                assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+            }
+            Task.createTaskAndNavigate(props.report.reportID, title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, props.report.policyID);
+            return true;
+        },
+        [allPersonalDetails, props.report.policyID, props.report.reportID],
+    );
+
+    const onSubmitComment = useCallback(
+        (text) => {
+            const isTaskCreated = handleCreateTask(text);
+            if (isTaskCreated) {
+                return;
+            }
+            Report.addComment(props.report.reportID, text);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.report.reportID, handleCreateTask],
+    );
+
     return (
         <>
             {hideComposer && (
@@ -81,7 +120,6 @@ function ReportFooter(props) {
                         <AnonymousReportFooter
                             report={props.report}
                             isSmallSizeLayout={isSmallSizeLayout}
-                            personalDetails={props.personalDetails}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
@@ -94,13 +132,13 @@ function ReportFooter(props) {
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
-                            onSubmit={props.onSubmitComment}
-                            reportID={props.report.reportID.toString()}
-                            reportActions={props.reportActions}
+                            onSubmit={onSubmitComment}
+                            reportID={props.report.reportID}
                             report={props.report}
+                            isEmptyChat={props.isEmptyChat}
+                            lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
-                            disabled={props.shouldDisableCompose}
                             listHeight={props.listHeight}
                             isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
@@ -122,4 +160,19 @@ export default compose(
             initialValue: false,
         },
     }),
-)(ReportFooter);
+)(
+    memo(
+        ReportFooter,
+        (prevProps, nextProps) =>
+            isEqual(prevProps.report, nextProps.report) &&
+            prevProps.pendingAction === nextProps.pendingAction &&
+            prevProps.listHeight === nextProps.listHeight &&
+            prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+            prevProps.isEmptyChat === nextProps.isEmptyChat &&
+            prevProps.lastReportAction === nextProps.lastReportAction &&
+            prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
+            prevProps.windowWidth === nextProps.windowWidth &&
+            prevProps.isSmallScreenWidth === nextProps.isSmallScreenWidth &&
+            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
+    ),
+);

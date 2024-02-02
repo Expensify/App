@@ -15,6 +15,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,6 +67,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
     // To focus on the input field when the page loads
     const privateNotesInput = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useHtmlPaste(privateNotesInput);
 
     useFocusEffect(
         useCallback(() => {
