@@ -36,8 +36,6 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ScreenShareRequest, Session} from './types/onyx';
-import type {Route} from '@src/ROUTES';
-
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -71,7 +69,7 @@ type ExpensifyOnyxProps = {
     focusModeNotification: OnyxEntry<boolean>;
 
     /** Last visited path in the app */
-    lastVisitedPath: OnyxEntry<string>;
+    lastVisitedPath: OnyxEntry<string | undefined>;
 };
 
 type ExpensifyProps = ExpensifyOnyxProps;
@@ -158,7 +156,7 @@ function Expensify({
                         screenShareRequest,
                         focusModeNotification,
                         isAuthenticated,
-                        lastVisitedPath
+                        lastVisitedPath,
                     };
                     Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
                 }
