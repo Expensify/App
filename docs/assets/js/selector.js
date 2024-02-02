@@ -1,16 +1,12 @@
-function selectOption(s) {
-    if (!s) {
+function selectOption(select) {
+    if (!select) {
         return;
     }
 
-    // Keep all selects on the page in sync
-    const allSelects = document.querySelectorAll('select');
-    for (let i = 0; i < allSelects.length; i++) {
-        allSelects[i].selectedIndex = s.selectedIndex;
-    }
+    syncSelectors(select.selectedIndex);
 
-    const allOptions = Array.from(s.options);
-    const selectedValue = s.options[s.selectedIndex].value;
+    const allOptions = Array.from(select.options);
+    const selectedValue = select.options[select.selectedIndex].value;
 
     // Hide section that isn't selected, and show section that is selected.
     allOptions.forEach((option) => {
@@ -27,6 +23,13 @@ function selectOption(s) {
             toHide[i].classList.add('hidden');
         }
     });
+}
+
+function syncSelectors(selectedIndex) {
+    const allSelects = document.querySelectorAll('select');
+    for (let i = 0; i < allSelects.length; i++) {
+        allSelects[i].selectedIndex = selectedIndex;
+    }
 }
 
 window.onload = selectOption(document.getElementsByClassName('selector')[0]);
