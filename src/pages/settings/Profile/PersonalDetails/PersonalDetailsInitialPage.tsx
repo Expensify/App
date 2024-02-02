@@ -47,7 +47,7 @@ function PersonalDetailsInitialPage({
         <ScreenWrapper testID={PersonalDetailsInitialPage.displayName}>
             <HeaderWithBackButton
                 title={translate('privatePersonalDetails.personalDetails')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

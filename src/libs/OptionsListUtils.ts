@@ -490,14 +490,42 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 }
 
 /**
+ * Get the last actor display name from last actor details.
+ */
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
+    return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+        ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        : '';
+}
+
+/**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
+function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
     const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
+    const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
     const lastActionName = lastReportAction?.actionName ?? '';
 
-    if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    if (ReportUtils.isArchivedRoom(report)) {
+        const archiveReason =
+            (lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && lastOriginalReportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
+                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                });
+                break;
+            }
+            default: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+            }
+        }
+    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
@@ -622,27 +650,10 @@ function createOption(
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
-        const lastActorDisplayName =
-            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-                ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
-                : '';
-
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
-        const lastReportAction = lastReportActions[report.reportID ?? ''];
-        if (result.isArchivedRoom && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            const archiveReason = lastReportAction.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-            if (archiveReason === CONST.REPORT.ARCHIVE_REASON.DEFAULT || archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
-                lastMessageText = Localize.translate(preferredLocale, 'reportArchiveReasons.default');
-            } else {
-                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-                    policyName: ReportUtils.getPolicyName(report),
-                });
-            }
-        }
 
         const lastAction = visibleReportActionItems[report.reportID];
         const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -1461,16 +1472,11 @@ function getOptions(
         if (accountIDs.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
             reportMapForAccountIDs[accountIDs[0]] = report;
         }
-        const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-
-        // Checks to see if the current user is the admin of the policy, if so the policy
-        // name preview will be shown.
-        const isPolicyChatAdmin = ReportUtils.isPolicyExpenseChatAdmin(report, policies);
 
         allReportOptions.push(
             createOption(accountIDs, personalDetails, report, reportActions, {
                 showChatPreviewLine,
-                forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin : forcePolicyNamePreview,
+                forcePolicyNamePreview,
             }),
         );
     });
@@ -1917,14 +1923,15 @@ function formatSectionsFromSearchTerm(
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: PersonalDetails[],
+    maxOptionsSelected: boolean,
+    indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
-    indexOffset = 0,
 ): SectionForSearchTerm {
-    // We show the selected participants at the top of the list when there is no search term
+    // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '') {
+    if (searchTerm === '' || maxOptionsSelected) {
         return {
             section: {
                 title: undefined,
@@ -1987,6 +1994,7 @@ export {
     getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,
+    getLastActorDisplayName,
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
