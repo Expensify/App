@@ -1,3 +1,10 @@
+function syncSelectors(selectedIndex) {
+    const allSelects = document.querySelectorAll('select');
+    for (let i = 0; i < allSelects.length; i++) {
+        allSelects[i].selectedIndex = selectedIndex;
+    }
+}
+
 function selectOption(select) {
     if (!select) {
         return;
@@ -23,13 +30,6 @@ function selectOption(select) {
             toHide[i].classList.add('hidden');
         }
     });
-}
-
-function syncSelectors(selectedIndex) {
-    const allSelects = document.querySelectorAll('select');
-    for (let i = 0; i < allSelects.length; i++) {
-        allSelects[i].selectedIndex = selectedIndex;
-    }
 }
 
 window.onload = selectOption(document.getElementsByClassName('selector')[0]);
