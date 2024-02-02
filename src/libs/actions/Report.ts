@@ -66,7 +66,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -157,13 +157,6 @@ Onyx.connect({
         const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
         draftNoteMap[reportID] = value;
     },
-});
-
-let reportMetadata: OnyxCollection<ReportMetadata> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-    waitForCollectionCallback: true,
-    callback: (value) => (reportMetadata = value),
 });
 
 const allReports: OnyxCollection<Report> = {};
@@ -2248,38 +2241,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
 
-    const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(allReports ?? {}) as Report[], reportMetadata);
-
-    // We want to filter out the current report, hidden reports and empty chats
-    const filteredReportsByLastRead = sortedReportsByLastRead.filter(
-        (sortedReport) =>
-            sortedReport?.reportID !== reportID &&
-            sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
-            ReportUtils.shouldReportBeInOptionList({
-                report: sortedReport,
-                currentReportId: '',
-                isInGSDMode: false,
-                betas: [],
-                policies: {},
-                excludeEmptyChats: true,
-                doesReportHaveViolations: false,
-            }),
-    );
-    const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
-
-    if (lastAccessedReportID) {
-        // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-        Navigation.goBack(ROUTES.HOME);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
-    } else {
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
-        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
-        if (chat?.reportID) {
-            // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            Navigation.goBack(ROUTES.HOME);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
-        }
-    }
+    ReportUtils.navigateUserOnceLeaveReport(reportID);
 }
 
 /** Invites people to a room */

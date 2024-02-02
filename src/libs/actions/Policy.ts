@@ -1991,30 +1991,60 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
  * TODO: Comment
  */
 function leaveWorkspace(policyID: string) {
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
-
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                avatar: '',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: null,
+            },
+        },
+    ];
     const parameters: LeaveWorkspaceParams = {
         policyID,
     };
 
     console.group('leaveWorkspace');
     console.log('policyID', policyID);
-    console.log('parameters', parameters);
-    console.log('{optimisticData, successData, failureData}', {optimisticData, successData, failureData});
+    console.log('{parameters, optimisticData}', {parameters, optimisticData});
     console.groupEnd();
-    return;
-    API.write(WRITE_COMMANDS.LEAVE_WORKSPACE, parameters, {optimisticData, successData, failureData});
+
+    API.write(WRITE_COMMANDS.LEAVE_WORKSPACE, parameters, {optimisticData});
 }
 
 /**
  * TODO: Comment
  */
 function leavePolicyExpenseChat(reportID: string) {
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const report = ReportUtils.getReport(reportID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
+        },
+    ];
 
     const parameters: LeavePolicyExpenseChatParams = {
         reportID,
@@ -2025,8 +2055,10 @@ function leavePolicyExpenseChat(reportID: string) {
     console.log('parameters', parameters);
     console.log('{optimisticData, successData, failureData}', {optimisticData, successData, failureData});
     console.groupEnd();
-    return;
+
     API.write(WRITE_COMMANDS.LEAVE_POLICY_EXPENSE_CHAT, parameters, {optimisticData, successData, failureData});
+
+    ReportUtils.navigateUserOnceLeaveReport(reportID);
 }
 
 export {
