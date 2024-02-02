@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import {createLog, sanitizeConsoleInput, setUpdateLogsFunction} from '@libs/Console';
 import type {Log} from '@libs/Console';
+import localFileDownload from '@libs/localFileDownload';
 
 function Console() {
     const [input, setInput] = useState('');
@@ -30,6 +31,10 @@ function Console() {
         setInput('');
     };
 
+    const saveLogs = () => {
+        localFileDownload('logs', JSON.stringify(logs, null, 2), 'File was saved in your Downloads folder.');
+    };
+
     return (
         <View style={{position: 'absolute', bottom: 0, width: '100%', backgroundColor: 'white', height: 350, paddingHorizontal: 15, paddingTop: 10, borderTopWidth: 1, borderColor: 'black'}}>
             <TextInput
@@ -40,12 +45,19 @@ function Console() {
                 autoCorrect={false}
                 accessibilityRole="text"
             />
-            <Button
-                onPress={handleExecute}
-                shouldShowRightIcon
-                text="Execute"
-                style={{marginVertical: 15}}
-            />
+            <View style={{display: 'flex', flexDirection: 'row', marginVertical: 15}}>
+                <Button
+                    onPress={saveLogs}
+                    shouldShowRightIcon
+                    text="Save"
+                />
+                <Button
+                    onPress={handleExecute}
+                    shouldShowRightIcon
+                    text="Execute"
+                    success
+                />
+            </View>
             <ScrollView bounces={false}>
                 {logs.map((log, index) => (
                     <View
