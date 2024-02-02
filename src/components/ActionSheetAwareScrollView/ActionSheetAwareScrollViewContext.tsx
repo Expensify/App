@@ -7,8 +7,14 @@ import type { ActionWithPayload, State } from '@hooks/useWorkletStateMachine';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
 import type { SharedValue } from 'react-native-reanimated';
 
+type MeasuredElements = {
+    fy?: number;
+    popoverHeight?: number;
+    height?: number;
+    composerHeight?: number;
+};
 type Context = {
-    currentActionSheetState: SharedValue<State>,
+    currentActionSheetState: SharedValue<State<MeasuredElements>>,
     transitionActionSheetState: (action: ActionWithPayload) => void,
     transitionActionSheetStateWorklet: (action: ActionWithPayload) => void;
     resetStateMachine: () => void;

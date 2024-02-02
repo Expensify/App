@@ -6,17 +6,17 @@ import Log from '@libs/Log';
 const DEBUG_MODE = false;
 
 type Payload = Record<string, unknown>;
-type ActionWithPayload = {
+type ActionWithPayload<P = Payload> = {
     type: string;
-    payload?: Payload;
+    payload?: P;
 };
-type StateHolder = {
+type StateHolder<P = Payload> = {
     state: string;
-    payload: Payload | null;
+    payload: P | null;
 };
-type State = {
-    previous: StateHolder | null;
-    current: StateHolder;
+type State<P> = {
+    previous: StateHolder<P> | null;
+    current: StateHolder<P>;
 };
 
 type StateMachine = Record<string, Record<string, string>>;
@@ -72,10 +72,10 @@ type StateMachine = Record<string, Record<string, string>>;
  * @param initialState - the initial state of the state machine
  * @returns an object containing the current state, a transition function, and a reset function
  */
-function useWorkletStateMachine(stateMachine: StateMachine, initialState: State) {
+function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: State<P>) {
     const currentState = useSharedValue(initialState);
 
-    const log = useCallback((message: string, params?: Payload | null) => {
+    const log = useCallback((message: string, params?: P | null) => {
         'worklet';
 
         if (!DEBUG_MODE) {
@@ -85,7 +85,7 @@ function useWorkletStateMachine(stateMachine: StateMachine, initialState: State)
         runOnJS(Log.client)(`[StateMachine] ${message}`, false, params);
     }, []);
 
-    const transitionWorklet = useCallback((action: ActionWithPayload) => {
+    const transitionWorklet = useCallback((action: ActionWithPayload<P>) => {
         'worklet';
 
         if (!action) {
@@ -147,7 +147,7 @@ function useWorkletStateMachine(stateMachine: StateMachine, initialState: State)
     }, [resetWorklet]);
 
     const transition = useCallback(
-        (action: ActionWithPayload) => {
+        (action: ActionWithPayload<P>) => {
             runOnUI(transitionWorklet)(action);
         },
         [transitionWorklet],
