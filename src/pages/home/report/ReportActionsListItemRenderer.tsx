@@ -20,7 +20,7 @@ type ReportActionsListItemRendererProps = {
     displayAsGroup: boolean;
 
     /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string;
+    mostRecentIOUReportActionID?: string | null;
 
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;

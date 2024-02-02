@@ -1,6 +1,7 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
+import type {DebouncedFunc} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -28,6 +29,8 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
+type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
+
 type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -36,7 +39,7 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     sortedReportActions: OnyxTypes.ReportAction[];
 
     /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string;
+    mostRecentIOUReportActionID?: string | null;
 
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
@@ -57,7 +60,7 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     loadOlderChats: () => void;
 
     /** Function to load newer chats */
-    loadNewerChats: () => void;
+    loadNewerChats: LoadNewerChats;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
@@ -489,3 +492,5 @@ function ReportActionsList({
 ReportActionsList.displayName = 'ReportActionsList';
 
 export default withCurrentUserPersonalDetails(ReportActionsList);
+
+export type {LoadNewerChats};
