@@ -25,6 +25,9 @@ type CustomBaseTextInputProps = {
     /** Icon to display in right side of text input */
     icon?: IconAsset | null;
 
+    /** Icon to display in left side of text input */
+    iconLeft?: IconAsset | null;
+
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 

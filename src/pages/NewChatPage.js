@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -64,6 +65,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length !== 0,
         Boolean(filteredUserToInvite),
@@ -77,7 +80,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         const sectionsList = [];
         let indexOffset = 0;
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, maxParticipantsReached, indexOffset);
         sectionsList.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
 
@@ -148,7 +151,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             {},
             [],
             true,
-            true,
         );
 
         setSelectedOptions(newSelectedOptions);
@@ -200,7 +202,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             {},
             [],
             true,
-            true,
         );
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
@@ -228,12 +229,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         }
         updateOptions();
     }, [didScreenTransitionEnd, updateOptions]);
-
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
-        setSearchTerm(text);
-    }, []);
 
     const {inputCallbackRef} = useAutoFocusInput();
 

@@ -20,6 +20,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -86,6 +87,7 @@ function WorkspaceMembersPage(props) {
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const isFocusedScreen = useIsFocused();
 
@@ -301,7 +303,6 @@ function WorkspaceMembersPage(props) {
     const policyOwner = lodashGet(props.policy, 'owner');
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const policyID = lodashGet(props.route, 'params.policyID');
-    const policyName = lodashGet(props.policy, 'name');
     const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
 
     const getMemberOptions = () => {
@@ -419,6 +420,7 @@ function WorkspaceMembersPage(props) {
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={WorkspaceMembersPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
                 shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
@@ -427,12 +429,11 @@ function WorkspaceMembersPage(props) {
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
-                    subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                        Navigation.goBack();
                     }}
-                    shouldShowGetAssistanceButton
+                    shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                 />
                 <ConfirmModal
@@ -453,8 +454,8 @@ function WorkspaceMembersPage(props) {
                         })
                     }
                 />
-                <View style={[styles.w100, styles.flex1]}>
-                    <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
+                <View style={[styles.w100, styles.flex1, styles.mt3]}>
+                    <View style={[styles.w100, styles.flexRow, styles.ph5]}>
                         <Button
                             medium
                             success

@@ -60,6 +60,8 @@ type OnyxDataWithErrors = {
     errors?: Errors | null;
 };
 
+type ErrorsList = Record<string, Localize.MaybePhraseKey>;
+
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Localize.MaybePhraseKey {
     const errors = onyxData.errors ?? {};
 
@@ -71,11 +73,23 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     return getErrorMessageWithTranslationData(errors[key]);
 }
 
+function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): ErrorsList {
+    const errors = onyxData.errors ?? {};
+
+    if (Object.keys(errors).length === 0) {
+        return {};
+    }
+
+    const key = Object.keys(errors).sort().reverse()[0];
+
+    return {key: errors[key]};
+}
+
 type OnyxDataWithErrorFields = {
     errorFields?: ErrorFields;
 };
 
-function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, Localize.MaybePhraseKey> {
+function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): ErrorsList {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -86,7 +100,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
 
-function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, Localize.MaybePhraseKey> {
+function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): ErrorsList {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -96,8 +110,6 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
     const key = Object.keys(errorsForField).sort()[0];
     return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
-
-type ErrorsList = Record<string, Localize.MaybePhraseKey>;
 
 /**
  * Method used to attach already translated message with isTranslated property
@@ -149,4 +161,5 @@ export {
     getEarliestErrorField,
     getErrorsWithTranslationData,
     addErrorMessage,
+    getLatestErrorMessageField,
 };
