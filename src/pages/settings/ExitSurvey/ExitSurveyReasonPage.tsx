@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
 import * as ExitSurvey from '@userActions/ExitSurvey';
 import type {ExitReason} from '@userActions/ExitSurvey';
@@ -19,6 +20,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const [reason, setReason] = useState<ExitReason>();
     const reasons: Choice[] = useMemo(
@@ -36,6 +38,7 @@ function ExitSurveyReasonPage() {
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
+                shouldShowBackButton={isSmallScreenWidth}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM}
