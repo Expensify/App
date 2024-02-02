@@ -48,7 +48,7 @@ function WorkspaceRateAndUnitPage({policy, route}: WorkspaceRateAndUnitPageProps
         {label: translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
     ];
 
-    const saveUnitAndRate = (unit: Unit, rate: number) => {
+    const saveUnitAndRate = (unit: Unit, rate: string) => {
         const distanceCustomUnit = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return;
@@ -68,7 +68,7 @@ function WorkspaceRateAndUnitPage({policy, route}: WorkspaceRateAndUnitPageProps
             },
         };
 
-        Policy.updateWorkspaceCustomUnitAndRate(policy?.id ?? '', distanceCustomUnit, newCustomUnit, parseInt(policy?.lastModified ?? '', 2));
+        Policy.updateWorkspaceCustomUnitAndRate(policy?.id ?? '', distanceCustomUnit, newCustomUnit, policy?.lastModified);
     };
 
     const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
@@ -83,9 +83,9 @@ function WorkspaceRateAndUnitPage({policy, route}: WorkspaceRateAndUnitPageProps
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
         // Allow one more decimal place for accuracy
         const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(outputCurrency) + 1}})?$`, 'i');
-        if (!rateValueRegex.test(values.rate.toString()) || values.rate.toString() === 'Nan') {
+        if (!rateValueRegex.test(values.rate) || values.rate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
-        } else if (NumberUtils.parseFloatAnyLocale(values.rate.toString()) <= 0) {
+        } else if (NumberUtils.parseFloatAnyLocale(values.rate) <= 0) {
             errors.rate = 'workspace.reimburse.lowRateError';
         }
         return errors;

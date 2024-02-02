@@ -25,7 +25,6 @@ import type {Unit} from '@src/types/onyx/Policy';
 import WorkspaceReimburseSection from './WorkspaceReimburseSection';
 
 type WorkspaceReimburseViewOnyxProps = {
-    /** From Onyx */
     /** Bank account attached to free plan */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 };

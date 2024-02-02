@@ -1,6 +1,6 @@
 type UpdateWorkspaceCustomUnitAndRateParams = {
     policyID: string;
-    lastModified: number;
+    lastModified?: number;
     customUnit: string;
     customUnitRate: string;
 };

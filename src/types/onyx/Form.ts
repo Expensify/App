@@ -62,7 +62,7 @@ type ReportFieldEditForm = Form<Record<string, string>>;
 
 type RateUnitForm = Form<{
     unit: Unit;
-    rate: number;
+    rate: string;
 }>;
 
 export default Form;
