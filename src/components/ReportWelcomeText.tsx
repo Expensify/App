@@ -80,6 +80,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     }
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                                 }}
+                                style={styles.renderHTML}
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             >
                                 <RenderHTML html={report.description} />

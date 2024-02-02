@@ -1778,6 +1778,12 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        renderHTML: {
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
         chatItemComposeWithFirstRow: {
             minHeight: 90,
         },
