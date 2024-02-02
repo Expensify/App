@@ -665,8 +665,41 @@ export default compose(
             _.isEqual(prevProps.policies, nextProps.policies) &&
             prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
-            _.isEqual(prevProps.report, nextProps.report) &&
             prevProps.currentReportID === nextProps.currentReportID &&
-            prevProps.viewportOffsetTop === nextProps.viewportOffsetTop,
+            prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
+            prevProps.report.lastReadTime === nextProps.report.lastReadTime &&
+            prevProps.report.reportID === nextProps.report.reportID &&
+            prevProps.report.policyID === nextProps.report.policyID &&
+            prevProps.report.lastVisibleActionCreated === nextProps.report.lastVisibleActionCreated &&
+            prevProps.report.statusNum === nextProps.report.statusNum &&
+            prevProps.report.stateNum === nextProps.report.stateNum &&
+            prevProps.report.writeCapability === nextProps.report.writeCapability &&
+            prevProps.report.type === nextProps.report.type &&
+            _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
+            prevProps.report.isPolicyExpenseChat === nextProps.report.isPolicyExpenseChat &&
+            prevProps.report.parentReportID === nextProps.report.parentReportID &&
+            prevProps.report.parentReportActionID === nextProps.report.parentReportActionID &&
+            prevProps.report.chatType === nextProps.report.chatType &&
+            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            prevProps.report.isDeletedParentAction === nextProps.report.isDeletedParentAction &&
+            prevProps.report.reportName === nextProps.report.reportName &&
+            prevProps.report.description === nextProps.report.description &&
+            prevProps.report.managerID === nextProps.report.managerID &&
+            prevProps.report.total === nextProps.report.total &&
+            prevProps.report.nonReimbursableTotal === nextProps.report.nonReimbursableTotal &&
+            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            prevProps.report.ownerAccountID === nextProps.report.ownerAccountID &&
+            prevProps.report.currency === nextProps.report.currency &&
+            _.isEqual(prevProps.report.participantAccountIDs, nextProps.report.participantAccountIDs) &&
+            prevProps.report.isWaitingOnBankAccount === nextProps.report.isWaitingOnBankAccount &&
+            prevProps.report.iouReportID === nextProps.report.iouReportID &&
+            prevProps.report.isOwnPolicyExpenseChat === nextProps.report.isOwnPolicyExpenseChat &&
+            prevProps.report.notificationPreference === nextProps.report.notificationPreference &&
+            prevProps.report.isPinned === nextProps.report.isPinned &&
+            prevProps.report.chatReportID === nextProps.report.chatReportID &&
+            prevProps.report.visibility === nextProps.report.visibility &&
+            prevProps.report.oldPolicyName === nextProps.report.oldPolicyName &&
+            prevProps.report.policyName === nextProps.report.policyName &&
+            prevProps.report.isOptimisticReport === nextProps.report.isOptimisticReport,
     ),
 );
