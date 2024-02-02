@@ -121,7 +121,7 @@ function IOURequestStepConfirmation({
         '',
     );
     useEffect(() => {
-        if (!_.isEmpty(transaction.category)) {
+        if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
             return;
         }
         IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
