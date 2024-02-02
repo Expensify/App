@@ -105,7 +105,7 @@ type OptionsListProps = {
     bounces?: boolean;
 
     /** Custom content to display in the floating footer */
-    renderFooterContent?: () => JSX.Element;
+    renderFooterContent?: JSX.Element;
 
     /** Whether to show a button pill instead of a standard tickbox */
     shouldShowMultipleOptionSelectorAsButton?: boolean;
