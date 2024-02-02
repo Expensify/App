@@ -13,7 +13,7 @@ import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
 import generateMonthMatrix from './generateMonthMatrix';
-import type RadioItem from './types';
+import type CalendarPickerRadioItem from './types';
 import YearPickerModal from './YearPickerModal';
 
 type CalendarPickerProps = {
@@ -45,7 +45,7 @@ function CalendarPicker({
     const minYear = getYear(new Date(minDate));
     const maxYear = getYear(new Date(maxDate));
 
-    const [years, setYears] = useState<RadioItem[]>(
+    const [years, setYears] = useState<CalendarPickerRadioItem[]>(
         // eslint-disable-next-line rulesdir/prefer-underscore-method, @typescript-eslint/no-shadow
         Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((value) => ({
             text: value.toString(),
@@ -61,6 +61,7 @@ function CalendarPicker({
         } else if (minDate > currentDateView) {
             setCurrentDateView(minDate);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const onYearSelected = (year: number) => {
@@ -79,7 +80,7 @@ function CalendarPicker({
 
     /**
      * Calls the onSelected function with the selected date.
-     * @param {Number} day - The day of the month that was selected.
+     * @param day - The day of the month that was selected.
      */
     const onDayPressed = (day: number) => {
         setCurrentDateView((prev) => {
@@ -96,16 +97,14 @@ function CalendarPicker({
         setCurrentDateView((prev) => {
             const prevMonth = subMonths(new Date(prev), 1);
             // if year is subtracted, we need to update the years list
-            setYears((prevYears) => {
-                let newYears = [...prevYears];
-                if (prevMonth.getFullYear() < prev.getFullYear()) {
-                    newYears = years.map((item) => ({
+            if (prevMonth.getFullYear() < prev.getFullYear()) {
+                setYears((prevYears) =>
+                    prevYears.map((item) => ({
                         ...item,
                         isSelected: item.value === prevMonth.getFullYear(),
-                    }));
-                }
-                return newYears;
-            });
+                    })),
+                );
+            }
             return prevMonth;
         });
     };
@@ -116,17 +115,16 @@ function CalendarPicker({
     const moveToNextMonth = () => {
         setCurrentDateView((prev) => {
             const nextMonth = addMonths(new Date(prev), 1);
-            // if year is subtracted, we need to update the years list
-            setYears((prevYears) => {
-                let newYears = [...prevYears];
-                if (nextMonth.getFullYear() > prev.getFullYear()) {
-                    newYears = years.map((item) => ({
+            // if year is added, we need to update the years list
+            if (nextMonth.getFullYear() > prev.getFullYear()) {
+                setYears((prevYears) =>
+                    prevYears.map((item) => ({
                         ...item,
                         isSelected: item.value === nextMonth.getFullYear(),
-                    }));
-                }
-                return newYears;
-            });
+                    })),
+                );
+            }
+
             return nextMonth;
         });
     };

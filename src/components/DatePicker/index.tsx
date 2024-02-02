@@ -1,5 +1,6 @@
 import {setYear} from 'date-fns';
 import React, {useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
@@ -53,7 +54,7 @@ function DatePicker(
         placeholder,
         value,
     }: DatePickerProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

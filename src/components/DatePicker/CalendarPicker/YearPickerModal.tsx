@@ -6,14 +6,14 @@ import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type RadioItem from './types';
+import type CalendarPickerRadioItem from './types';
 
 type YearPickerModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
     /** The list of years to render */
-    years: RadioItem[];
+    years: CalendarPickerRadioItem[];
 
     /** Currently selected year */
     currentYear?: number;
@@ -49,7 +49,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={() => onClose?.()}
-            onModalHide={() => onClose?.()}
+            onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
         >
@@ -61,18 +61,20 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
-                    onBackButtonPress={() => onClose?.()}
+                    onBackButtonPress={onClose}
                 />
                 <SelectionList
                     shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}
-                    onChangeText={(text: string) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
+                    onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
-                    onSelectRow={(option: RadioItem) => onYearChange?.(option.value)}
+                    onSelectRow={(option: CalendarPickerRadioItem) => {
+                        onYearChange?.(option.value);
+                    }}
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
