@@ -2662,6 +2662,7 @@ export default {
         thankYou: '¡Gracias por tus comentarios!',
         thankYouSubtitle: 'Sus respuestas nos ayudarán a crear un mejor producto para hacer las cosas bien. ¡Muchas gracias!',
         goToExpensifyClassic: 'Cambiar a Expensify Classic',
+        offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
     },
