@@ -617,7 +617,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         );
     }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, translate]);
 
-    const classifiedMenuItems = [
+    const classifiedFields = [
         shouldShowSmartScanFields && {
             item: (
                 <MenuItemWithTopDescription
@@ -818,13 +818,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
     ];
 
-    const relevantMenuItems = _.map(
-        _.filter(classifiedMenuItems, (classifiedMenuItem) => !classifiedMenuItem || classifiedMenuItem.isRelevant),
+    const relevantFields = _.map(
+        _.filter(classifiedFields, (classifiedField) => !classifiedField || classifiedField.isRelevant),
         (relevantMenuItem) => relevantMenuItem.item,
     );
 
-    const supplementaryMenuItems = _.map(
-        _.filter(classifiedMenuItems, (classifiedMenuItem) => !classifiedMenuItem || !classifiedMenuItem.isRelevant),
+    const supplementaryFields = _.map(
+        _.filter(classifiedFields, (classifiedField) => !classifiedField || !classifiedField.isRelevant),
         (supplementaryMenuItem) => supplementaryMenuItem.item,
     );
 
@@ -876,7 +876,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     />
                 )
             )}
-            {relevantMenuItems}
+            {relevantMenuFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
@@ -892,7 +892,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {shouldShowAllFields && <>{supplementaryMenuItems}</>}
+            {shouldShowAllFields && <>{supplementaryFields}</>}
         </OptionsSelector>
     );
 }
