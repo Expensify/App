@@ -90,10 +90,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMemb
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
-        !!policy &&
-        policy?.isPolicyExpenseChatEnabled &&
-        policy?.role === CONST.POLICY.ROLE.ADMIN &&
-        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
+        !!policy && policy?.isPolicyExpenseChatEnabled && (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
 
@@ -210,6 +207,22 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function extractPolicyIDFromPath(path: string) {
+    return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
+}
+
+function getPathWithoutPolicyID(path: string) {
+    return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
+}
+
+function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<PolicyMembers>, currentPolicyID?: string, currentUserAccountID?: number) {
+    return policyMembers
+        ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${currentPolicyID}`] ?? {})
+              .map((policyMemberAccountID) => Number(policyMemberAccountID))
+              .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID)
+        : [];
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -232,4 +245,7 @@ export {
     isPendingDeletePolicy,
     isPolicyMember,
     isPaidGroupPolicy,
+    extractPolicyIDFromPath,
+    getPathWithoutPolicyID,
+    getPolicyMembersByIdWithoutCurrentUser,
 };

@@ -48,6 +48,7 @@ function WorkspaceReimburseSection({policy, reimbursementAccount}: WorkspaceReim
             <Section
                 title={translate('workspace.reimburse.reimburseReceipts')}
                 icon={Illustrations.MoneyWings}
+                isCentralPane
             >
                 <View style={[styles.mv3]}>
                     <Text>{`${translate('common.youAppearToBeOffline')} ${translate('common.thisFeatureRequiresInternet')}`}</Text>
@@ -73,6 +74,7 @@ function WorkspaceReimburseSection({policy, reimbursementAccount}: WorkspaceReim
                 <Section
                     title={translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                     icon={Illustrations.TreasureChest}
+                    isCentralPane
                     menuItems={[
                         {
                             title: translate('workspace.reimburse.reimburseReceipts'),
@@ -93,6 +95,7 @@ function WorkspaceReimburseSection({policy, reimbursementAccount}: WorkspaceReim
                 <Section
                     title={translate('workspace.reimburse.unlockNextDayReimbursements')}
                     icon={Illustrations.OpenSafe}
+                    isCentralPane
                 >
                     <View style={styles.mv3}>
                         <Text>{translate('workspace.reimburse.unlockNoVBACopy')}</Text>

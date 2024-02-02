@@ -341,6 +341,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
+            shouldUseCustomBackdrop
         >
             <ScreenWrapper
                 style={[styles.pb0]}

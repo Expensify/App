@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -37,6 +38,7 @@ type WorkspaceReimburseViewProps = WorkspaceReimburseViewOnyxProps & {
 function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimburseViewProps) {
     const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState<string>('');
+    const {isSmallScreenWidth} = useWindowDimensions();
     const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? ''}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const distanceCustomRate = Object.values(distanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
@@ -74,10 +76,11 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
     }, [policy?.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <>
+        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
+                isCentralPane
                 menuItems={[
                     {
                         title: translate('workspace.reimburse.viewAllReceipts'),
@@ -105,9 +108,24 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
             <Section
                 title={translate('workspace.reimburse.trackDistance')}
                 icon={Illustrations.TrackShoe}
+                isCentralPane
             >
-                <View style={styles.mv3}>
+                <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                    <OfflineWithFeedback
+                        pendingAction={distanceCustomUnit?.pendingAction ?? distanceCustomRate?.pendingAction}
+                        shouldShowErrorMessages={false}
+                        style={styles.w100}
+                    >
+                        <MenuItemWithTopDescription
+                            title={currentRatePerUnit}
+                            description={translate('workspace.reimburse.trackDistanceRate')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(policy?.id ?? ''))}
+                            wrapperStyle={[styles.mt3, styles.ph8, styles.mhn8, styles.wAuto]}
+                            brickRoadIndicator={(distanceCustomUnit?.errors ?? distanceCustomRate?.errors) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        />
+                    </OfflineWithFeedback>
                 </View>
                 <OfflineWithFeedback
                     pendingAction={distanceCustomUnit?.pendingAction ?? distanceCustomRate?.pendingAction}
@@ -128,7 +146,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
                 policy={policy}
                 reimbursementAccount={reimbursementAccount}
             />
-        </>
+        </View>
     );
 }
 
