@@ -250,6 +250,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -504,15 +513,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.ABOUT]: {
                             path: ROUTES.SETTINGS_ABOUT,
                             exact: true,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM,
                         },
                     },
                 },

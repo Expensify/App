@@ -190,9 +190,7 @@ function InitialSettingsPage(props) {
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.NewExpensify,
-                    action: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
-                    },
+                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                 },
                 {
                     translationKey: 'initialSettingsPage.help',
