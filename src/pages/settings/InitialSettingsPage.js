@@ -136,6 +136,11 @@ function InitialSettingsPage(props) {
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
                 {
+                    translationKey: 'exitSurvey.goToExpensifyClassic',
+                    icon: Expensicons.NewExpensify,
+                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                },
+                {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
                     routeName: ROUTES.SETTINGS_PROFILE,
@@ -187,11 +192,6 @@ function InitialSettingsPage(props) {
             },
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
-                {
-                    translationKey: 'exitSurvey.goToExpensifyClassic',
-                    icon: Expensicons.NewExpensify,
-                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
-                },
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
