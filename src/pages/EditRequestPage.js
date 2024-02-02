@@ -137,24 +137,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         [transaction, report],
     );
 
-    // const saveMerchant = useCallback(
-    //     ({merchant: newMerchant}) => {
-    //         const newTrimmedMerchant = newMerchant.trim();
-
-    //         // In case the merchant hasn't been changed, do not make the API request.
-    //         // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
-    //         if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-    //             Navigation.dismissModal();
-    //             return;
-    //         }
-
-    //         // An empty newTrimmedMerchant is only possible for the P2P IOU case
-    //         IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
-    //         Navigation.dismissModal();
-    //     },
-    //     [transactionMerchant, transaction, report],
-    // );
-
     const saveTag = useCallback(
         ({tag: newTag}) => {
             let updatedTag = newTag;

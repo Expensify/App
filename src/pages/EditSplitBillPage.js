@@ -119,17 +119,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         );
     }
 
-    // if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-    //     return (
-    //         <EditRequestMerchantPage
-    //             defaultMerchant={transactionMerchant}
-    //             onSubmit={(transactionChanges) => {
-    //                 setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
-    //             }}
-    //         />
-    //     );
-    // }
-
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
         return (
             <EditRequestCategoryPage

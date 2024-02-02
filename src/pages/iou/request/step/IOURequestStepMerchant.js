@@ -34,7 +34,7 @@ const defaultProps = {
 
 function IOURequestStepMerchant({
     route: {
-        params: {transactionID, backTo},
+        params: {transactionID, reportID, backTo, action, iouType},
     },
     transaction: {merchant, participants},
 }) {
@@ -71,7 +71,26 @@ function IOURequestStepMerchant({
      * @param {String} value.moneyRequestMerchant
      */
     const updateMerchant = (value) => {
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID, value.moneyRequestMerchant);
+        const newMerchant = value.moneyRequestMerchant.trim();
+        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+        if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT) {
+            IOU.setDraftSplitTransaction(transactionID, {merchant: newMerchant});
+            navigateBack();
+            return;
+        }
+
+        // In case the merchant hasn't been changed, do not make the API request.
+        // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+        if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+            navigateBack();
+            return;
+        }
+
+        IOU.setMoneyRequestMerchant(transactionID, newMerchant, action === CONST.IOU.ACTION.CREATE);
+
+        if (action === CONST.IOU.ACTION.EDIT) {
+            IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+        }
         navigateBack();
     };
 
