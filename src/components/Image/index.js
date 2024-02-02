@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,8 +7,8 @@ import BaseImage from './BaseImage';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-function Image({source: propsSource, isAuthTokenRequired, session, onLoad, ...forwardedProps}) {
-    const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
+function Image({source: propsSource, isAuthTokenRequired, session, onLoad, style, objectPositionTop, ...forwardedProps}) {
+    const [aspectRatio, setAspectRatio] = useState(null);
 
     // Update the source to include the auth token if required
     const source = useMemo(() => {
@@ -30,19 +30,22 @@ function Image({source: propsSource, isAuthTokenRequired, session, onLoad, ...fo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
-    const imageLoadedSuccessfully = useCallback((event) => {
-        const {width, height} = event.nativeEvent;
+    const imageLoadedSuccessfully = useCallback(
+        (event) => {
+            const {width, height} = event.nativeEvent;
 
-        onLoad(event);
+            onLoad(event);
 
-        if (objectPositionTop) {
-            if (width > height) {
-                setAspectRatio(1);
-                return;
+            if (objectPositionTop) {
+                if (width > height) {
+                    setAspectRatio(1);
+                    return;
+                }
+                setAspectRatio(height ? width / height : 'auto');
             }
-            setAspectRatio(height ? width / height : 'auto');
-        }
-    })
+        },
+        [onLoad, objectPositionTop],
+    );
 
     return (
         <BaseImage
