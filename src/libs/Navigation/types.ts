@@ -125,13 +125,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
-    [SCREENS.WORKSPACE.RATE_AND_UNIT.ROOT]: {
+    [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT.RATE]: {
+    [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT.UNIT]: {
+    [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE]: {

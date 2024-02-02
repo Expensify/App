@@ -230,13 +230,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT.ROOT]: {
+                        [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                         },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT.RATE]: {
+                        [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.route,
                         },
-                        [SCREENS.WORKSPACE.RATE_AND_UNIT.UNIT]: {
+                        [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.route,
                         },
                         [SCREENS.WORKSPACE.INVITE]: {
