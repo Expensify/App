@@ -314,9 +314,7 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    return (
-        _.isEqual(oldProps.report, newProps.report)
-    );
+    return _.isEqual(oldProps.report, newProps.report);
 }
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
