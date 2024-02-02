@@ -38,9 +38,10 @@ function AddPersonalBankAccountPage({bankAccountList, personalBankAccount, plaid
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
+        const currentDefaultBankAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount.isDefault);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, bankAccountList ?? {});
+            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, currentDefaultBankAccount);
         }
     }, [plaidData, selectedPlaidAccountId, bankAccountList]);
 
