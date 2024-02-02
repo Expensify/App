@@ -74,11 +74,7 @@ function BaseOptionsSelector(props) {
 
             const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
 
-            if (indexOfInitiallyFocusedOption >= 0) {
-                return indexOfInitiallyFocusedOption;
-            }
-
-            return defaultIndex;
+            return indexOfInitiallyFocusedOption;
         },
         [props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex],
     );
@@ -532,7 +528,6 @@ function BaseOptionsSelector(props) {
     const textInput = (
         <TextInput
             ref={textInputRef}
-            value={value}
             label={props.textInputLabel}
             accessibilityLabel={props.textInputLabel}
             role={CONST.ROLE.PRESENTATION}
@@ -553,6 +548,7 @@ function BaseOptionsSelector(props) {
             spellCheck={false}
             shouldInterceptSwipe={props.shouldTextInputInterceptSwipe}
             isLoading={props.isLoadingNewOptions}
+            iconLeft={props.textIconLeft}
             testID="options-selector-input"
         />
     );
@@ -564,6 +560,7 @@ function BaseOptionsSelector(props) {
             sections={props.sections}
             focusedIndex={focusedIndex}
             selectedOptions={props.selectedOptions}
+            disableFocusOptions={props.disableFocusOptions}
             canSelectMultipleOptions={props.canSelectMultipleOptions}
             shouldShowMultipleOptionSelectorAsButton={props.shouldShowMultipleOptionSelectorAsButton}
             multipleOptionSelectorButtonText={props.multipleOptionSelectorButtonText}
