@@ -74,11 +74,11 @@ function PreferencesPage(props) {
                 </View>
                 <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
                     <View style={styles.flex4}>
-                        <Text>{translate('preferencesPage.muteAllMessagingSoundsFromExpensify')}</Text>
+                        <Text>{translate('preferencesPage.muteAllSounds')}</Text>
                     </View>
                     <View style={[styles.flex1, styles.alignItemsEnd]}>
                         <Switch
-                            accessibilityLabel={translate('preferencesPage.muteAllMessagingSoundsFromExpensify')}
+                            accessibilityLabel={translate('preferencesPage.muteAllSounds')}
                             isOn={lodashGet(props.user, 'isMutedAllSounds', false)}
                             onToggle={User.setMuteAllSounds}
                         />

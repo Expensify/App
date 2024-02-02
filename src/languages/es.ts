@@ -1027,7 +1027,7 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
-        muteAllMessagingSoundsFromExpensify: 'Silenciar todos los sonidos de mensajería de Expensify',
+        muteAllSounds: 'Desactivar sonido',
     },
     priorityModePage: {
         priorityMode: 'Modo prioridad',
