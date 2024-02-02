@@ -2,9 +2,13 @@ import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import useTheme from '@hooks/useTheme';
+import { View } from 'react-native';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 
 type CurrencySymbolButtonProps = {
     /** Currency symbol of selected currency */
@@ -15,8 +19,10 @@ type CurrencySymbolButtonProps = {
 };
 
 function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencySymbolButtonProps) {
+    const { translate } = useLocalize();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const theme = useTheme();
+
     return (
         <Tooltip text={translate('common.selectCurrency')}>
             <PressableWithoutFeedback
@@ -24,7 +30,14 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencyS
                 accessibilityLabel={translate('common.selectCurrency')}
                 role={CONST.ROLE.BUTTON}
             >
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <Icon
+                    small
+                    src={Expensicons.DownArrow}
+                    fill={theme.icon}
+                />
                 <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+                </View>
             </PressableWithoutFeedback>
         </Tooltip>
     );
