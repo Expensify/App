@@ -39,6 +39,7 @@ import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -233,12 +234,20 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                 {hasReceipt && (
-                    <OfflineWithFeedback pendingAction={pendingAction}>
+                    <OfflineWithFeedback
+                        pendingAction={pendingAction}
+                        errors={transaction.errors}
+                        errorRowStyles={[styles.ml4]}
+                        onClose={() => {
+                            Transaction.clearError(transaction.transactionID);
+                        }}
+                    >
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
                                 image={receiptURIs.image}
                                 isLocalFile={receiptURIs.isLocalFile}
+                                filename={receiptURIs.filename}
                                 transaction={transaction}
                                 enablePreviewModal
                                 canEditReceipt={canEditReceipt}
