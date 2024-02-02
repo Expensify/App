@@ -63,14 +63,6 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
-    const limitCharacters = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>) => {
-        const errors: Errors = {};
-        if (String(values.reportDescription).length > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-            errors.reportDescription = translate('common.error.characterLimit', {limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH});
-        }
-        return errors;
-    };
-
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -88,7 +80,6 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     onSubmit={submitForm}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
-                    validate={limitCharacters}
                 >
                     <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
@@ -99,7 +90,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
-                            maxLength={CONST.MAX_COMMENT_LENGTH}
+                            maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!el) {
                                     return;

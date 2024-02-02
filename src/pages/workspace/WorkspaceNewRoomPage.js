@@ -308,7 +308,7 @@ function WorkspaceNewRoomPage(props) {
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
-                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />
