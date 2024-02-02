@@ -92,7 +92,7 @@ function TaskDescriptionPage(props) {
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton title={props.translate('task.task')} />
                 <FormProvider
-                    style={styles.ph5}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                     validate={validate}
                     onSubmit={submit}

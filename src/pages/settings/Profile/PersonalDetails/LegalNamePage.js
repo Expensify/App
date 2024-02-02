@@ -96,7 +96,7 @@ function LegalNamePage(props) {
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <FormProvider
-                    style={styles.ph5}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                     validate={validate}
                     onSubmit={updateLegalName}

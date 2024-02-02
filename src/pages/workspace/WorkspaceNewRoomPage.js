@@ -285,7 +285,7 @@ function WorkspaceNewRoomPage(props) {
                         <FormProvider
                             formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                             submitButtonText={translate('newRoomPage.createRoom')}
-                            style={styles.mh5}
+                            style={[styles.mh5, styles.flexGrow1]}
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline

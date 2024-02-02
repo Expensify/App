@@ -118,7 +118,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                     onBackButtonPress={() => navigateBack()}
                 />
                 <FormProvider
-                    style={styles.ph5}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                     onSubmit={(value) => updateComment(value)}
                     submitButtonText={translate('common.save')}

@@ -187,7 +187,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}
                 submitButtonText={translate('statusPage.save')}
                 onSubmit={onSubmit}
-                style={styles.mb4}
+                style={[styles.flexGrow1, styles.mb4]}
                 scrollContextEnabled={false}
                 isSubmitButtonVisible={false}
                 enabledWhenOffline

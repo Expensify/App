@@ -150,7 +150,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
                     validate={validate}
-                    style={[styles.mh5, styles.mt3]}
+                    style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 >
                     <View style={[styles.mb2]}>
                         <Text style={[styles.mb5]}>{translate('validationStep.description')}</Text>

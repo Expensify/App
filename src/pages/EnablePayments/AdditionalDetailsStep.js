@@ -185,7 +185,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     onSubmit={activateWallet}
                     scrollContextEnabled
                     submitButtonText={translate('common.saveAndContinue')}
-                    style={styles.mh5}
+                    style={[styles.mh5, styles.flexGrow1]}
                 >
                     <InputWrapper
                         InputComponent={TextInput}

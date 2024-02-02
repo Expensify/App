@@ -51,7 +51,7 @@ function SetDatePage({translate, customStatus}) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
             <FormProvider
-                style={styles.ph5}
+                style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}

@@ -85,7 +85,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
             />
             <FormProvider
                 enabledWhenOffline
-                style={styles.ph5}
+                style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM}
                 validate={validate}
                 onSubmit={onSubmit}

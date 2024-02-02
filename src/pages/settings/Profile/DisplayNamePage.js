@@ -87,7 +87,7 @@ function DisplayNamePage(props) {
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <FormProvider
-                    style={styles.ph5}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
                     onSubmit={updateDisplayName}

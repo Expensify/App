@@ -86,7 +86,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                     scrollContextEnabled
                     onSubmit={submitBankAccountForm}
                     validate={validateBankAccountForm}
-                    style={styles.mh5}
+                    style={[styles.mh5, styles.flex1]}
                 >
                     <AddPlaidBankAccount
                         onSelect={setSelectedPlaidAccountId}

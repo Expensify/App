@@ -146,7 +146,7 @@ function WorkspaceInviteMessagePage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID))}
                 />
                 <FormProvider
-                    style={styles.ph5}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                     validate={validate}
                     onSubmit={sendInvitation}

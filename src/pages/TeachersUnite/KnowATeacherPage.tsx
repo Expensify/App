@@ -90,7 +90,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
             />
             <FormProvider
                 enabledWhenOffline
-                style={styles.ph5}
+                style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM}
                 validate={validate}
                 onSubmit={onSubmit}

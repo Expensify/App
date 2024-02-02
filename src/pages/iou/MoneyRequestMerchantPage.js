@@ -103,7 +103,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                 onBackButtonPress={() => navigateBack()}
             />
             <FormProvider
-                style={styles.ph5}
+                style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
                 validate={validate}
