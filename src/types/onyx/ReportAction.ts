@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -165,7 +166,7 @@ type ReportActionBase = {
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: File | EmptyObject;
+    attachmentInfo?: Partial<FileObject> | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;

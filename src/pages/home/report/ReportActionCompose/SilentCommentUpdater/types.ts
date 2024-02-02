@@ -1,5 +1,4 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Report} from '@src/types/onyx';
 
 type SilentCommentUpdaterOnyxProps = {
     /** The comment of the report */
@@ -12,9 +11,6 @@ type SilentCommentUpdaterProps = {
 
     /** The ID of the report associated with the comment */
     reportID: string;
-
-    /** The report associated with the comment */
-    report: OnyxEntry<Report>;
 
     /** The value of the comment */
     value: string;

@@ -16,6 +16,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import type {FileObject} from '@components/AttachmentModal';
 import Composer from '@components/Composer';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -85,7 +86,7 @@ type ComposerWithSuggestionsProps = {
     isComposerFullSize: boolean;
     isMenuVisible: boolean;
     inputPlaceholder: string;
-    displayFileInModal: (file: File | undefined) => void;
+    displayFileInModal: (file: FileObject | undefined) => void;
     textInputShouldClear: boolean;
     setTextInputShouldClear: (shouldClear: boolean) => void;
     isBlockedFromConcierge: boolean;
@@ -107,6 +108,8 @@ type ComposerWithSuggestionsProps = {
     lastReportAction?: OnyxTypes.ReportAction;
     includeChronos?: boolean;
     parentReportActionID?: string;
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportID: string | undefined;
 } & ComposerWithSuggestionsOnyxProps &
     Partial<ChildrenProps>;
 
@@ -748,7 +751,7 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
         key: ONYXKEYS.INPUT_FOCUSED,
     },
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
+        key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
         canEvict: false,
         initWithStoredValues: false,
     },

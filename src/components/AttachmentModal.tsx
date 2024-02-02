@@ -80,7 +80,7 @@ type ImagePickerResponse = {
 type FileObject = File | ImagePickerResponse;
 
 type ChildrenProps = {
-    displayFileInModal: (data: FileObject) => void;
+    displayFileInModal: (data: FileObject | undefined) => void;
     show: () => void;
 };
 
@@ -317,8 +317,8 @@ function AttachmentModal({
     }, []);
 
     const validateAndDisplayFileToUpload = useCallback(
-        (data: FileObject) => {
-            if (!isDirectoryCheck(data)) {
+        (data: FileObject | undefined) => {
+            if (!data || !isDirectoryCheck(data)) {
                 return;
             }
             let fileObject = data;
@@ -617,4 +617,4 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     },
 })(memo(AttachmentModal));
 
-export type {Attachment};
+export type {Attachment, FileObject};

@@ -76,9 +76,6 @@ type ReportActionComposeProps = {
     /** The ID of the report actions will be created for */
     reportID: string;
 
-    /** Array of report actions for this report */
-    reportActions?: OnyxTypes.ReportAction[];
-
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -97,9 +94,11 @@ type ReportActionComposeProps = {
     /** Whether the report is ready for display */
     isReportReadyForDisplay?: boolean;
 
+    /** Whether the chat is empty */
     isEmptyChat?: boolean;
 
-    lastReportAction?: any;
+    /** The last report action */
+    lastReportAction?: OnyxTypes.ReportAction;
 } & ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps;
 
@@ -118,7 +117,6 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    reportActions,
     listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
@@ -269,7 +267,7 @@ function ReportActionCompose({
     }, []);
 
     const addAttachment = useCallback(
-        (file: FileObject) => {
+        (file: Partial<FileObject>) => {
             const newComment = composerRef.current?.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -437,7 +435,7 @@ function ReportActionCompose({
                                         reportID={reportID}
                                         parentReportID={report?.parentReportID}
                                         parentReportActionID={report?.parentReportActionID}
-                                        includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                        includeChronos={ReportUtils.chatIncludesChronos(report)}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}

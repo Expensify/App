@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -46,7 +47,7 @@ type AttachmentPickerWithMenuItemsProps = {
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** Callback to open the file in the modal */
-    displayFileInModal: (url: string) => void;
+    displayFileInModal: (url: FileObject | undefined) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
