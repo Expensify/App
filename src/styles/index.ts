@@ -2580,6 +2580,7 @@ const styles = (theme: ThemeColors) =>
 
         accountSettingsSectionTitle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         sectionMenuItem: {
