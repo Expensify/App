@@ -81,6 +81,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
             shouldSkipVBBACall
             backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
             shouldShowLoading={false}
+            shouldShowBackButton
         >
             {() => (
                 <FormProvider
