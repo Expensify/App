@@ -209,14 +209,14 @@ function OptionRow({
                                         <SubscriptAvatar
                                             mainAvatar={option.icons[0]}
                                             secondaryAvatar={option.icons[1]}
-                                            backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
+                                            backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={option.icons}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? hoveredBackgroundColor : subscriptColor)]}
+                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                             shouldShowTooltip={showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(option)}
                                         />
                                     ))}

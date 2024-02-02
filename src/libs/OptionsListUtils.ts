@@ -550,6 +550,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
+        lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;

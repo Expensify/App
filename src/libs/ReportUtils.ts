@@ -2425,7 +2425,8 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
         if (
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
+            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
@@ -3616,10 +3617,6 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
 }
 
 function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
-    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report))) {
-        return false;
-    }
-
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
@@ -3627,6 +3624,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
 
     return true;
 }
+
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
