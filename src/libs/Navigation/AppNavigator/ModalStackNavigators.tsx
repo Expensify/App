@@ -29,9 +29,11 @@ import type {
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
+    WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
-import SCREENS from '@src/SCREENS';
+import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -39,8 +41,9 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  * Create a modal stack navigator with an array of sub-screens.
  *
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
+ * @param getScreenOptions optional function that returns the screen options, override the default options
  */
-function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens): React.ComponentType {
+function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions): React.ComponentType {
     const ModalStackNavigator = createStackNavigator<TStackParams>();
 
     function ModalStack() {
@@ -56,7 +59,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
         );
 
         return (
-            <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
+            <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
                 {Object.keys(screens as Required<Screens>).map((name) => (
                     <ModalStackNavigator.Screen
                         key={name}
@@ -180,11 +183,23 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
 
+const AccountSettingsModalStackNavigator = createModalStackNavigator(
+    {
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
+        [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
+        [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
+    },
+    (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
+);
+
+const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
+    [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
+});
+
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
-    [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
@@ -197,16 +212,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default as React.ComponentType,
@@ -224,18 +235,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.SETTINGS]: () => require('../../../pages/workspace/WorkspaceSettingsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.BILLS]: () => require('../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.INVOICES]: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE]: () => require('../../../pages/workspace/WorkspaceInvitePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.NAME]: () => require('../../../pages/workspace/WorkspaceNamePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceOverviewCurrencyPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
@@ -287,30 +291,32 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 });
 
 export {
-    MoneyRequestModalStackNavigator,
-    SplitDetailsModalStackNavigator,
+    AccountSettingsModalStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    ProfileModalStackNavigator,
-    ReportDetailsModalStackNavigator,
-    TaskModalStackNavigator,
-    ReportSettingsModalStackNavigator,
-    ReportWelcomeMessageModalStackNavigator,
-    ReportParticipantsModalStackNavigator,
-    SearchModalStackNavigator,
+    EditRequestStackNavigator,
+    EnablePaymentsStackNavigator,
+    FlagCommentStackNavigator,
+    MoneyRequestModalStackNavigator,
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
-    SettingsModalStackNavigator,
-    EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
-    WalletStatementStackNavigator,
-    FlagCommentStackNavigator,
-    EditRequestStackNavigator,
-    PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
-    SignInModalStackNavigator,
-    RoomMembersModalStackNavigator,
-    RoomInviteModalStackNavigator,
+    PrivateNotesModalStackNavigator,
+    ProfileModalStackNavigator,
     ReferralModalStackNavigator,
+    WorkspaceSwitcherModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
+    ReportDetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
+    ReportSettingsModalStackNavigator,
+    ReportWelcomeMessageModalStackNavigator,
+    RoomInviteModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    SearchModalStackNavigator,
+    SettingsModalStackNavigator,
+    SignInModalStackNavigator,
+    SplitDetailsModalStackNavigator,
+    TaskModalStackNavigator,
+    WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
 };

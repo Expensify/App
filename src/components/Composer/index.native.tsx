@@ -1,9 +1,10 @@
+import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import RNTextInput from '@components/RNTextInput';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -33,6 +34,7 @@ function Composer(
     const textInput = useRef<AnimatedTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
+    const markdownStyle = useMarkdownStyle();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -66,7 +68,7 @@ function Composer(
     const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
-        <RNTextInput
+        <MarkdownTextInput
             multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
@@ -76,6 +78,7 @@ function Composer(
             smartInsertDelete={false}
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
+            markdownStyle={markdownStyle}
             autoFocus={autoFocus}
             isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
