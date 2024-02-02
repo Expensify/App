@@ -103,7 +103,7 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={displayInDefaultIconColor ? undefined : (imageError ? theme.offline : iconFillColor)}
+                        fill={displayInDefaultIconColor ? undefined : imageError ? theme.offline : iconFillColor}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(size, type),
                             isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),
