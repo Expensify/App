@@ -64,11 +64,8 @@ type InputComponentBaseProps = InputComponentValueProps & {
     ref?: Ref<unknown>;
 };
 
-type ExcludeDraftFormKey<T> = T extends `${string}Draft` ? never : T;
-type OnyxFormKeyWithoutDraft = ExcludeDraftFormKey<OnyxFormKey>;
-
-type FormOnyxValues<TOnyxKey extends OnyxFormKey & keyof OnyxValues = OnyxFormKey> = Omit<OnyxValues[TOnyxKey], keyof BaseForm>;
-type FormOnyxKeys<TOnyxKey extends OnyxFormKey & keyof OnyxValues = OnyxFormKey> = FormOnyxValues<TOnyxKey> extends EmptyObject ? string : keyof FormOnyxValues<TOnyxKey>;
+type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
+type FormOnyxKeys<TFormID extends OnyxFormKey = OnyxFormKey> = FormOnyxValues<TFormID> extends EmptyObject ? string : keyof FormOnyxValues<TFormID>;
 
 type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** A unique Onyx key identifying the form */
@@ -106,17 +103,4 @@ type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, TranslationPaths>>;
 
-export type {
-    FormProps,
-    ValidInputs,
-    InputComponentValueProps,
-    FormValue,
-    ValueTypeKey,
-    FormOnyxValues,
-    FormOnyxKeys,
-    FormInputErrors,
-    InputRefs,
-    OnyxFormKeyWithoutDraft,
-    InputComponentBaseProps,
-    ValueTypeMap,
-};
+export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, ValueTypeMap};

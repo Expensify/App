@@ -1,6 +1,6 @@
-import type {OnyxFormKeyWithoutDraft} from '@components/Form/types';
+import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 
-function getDraftKey(formID: OnyxFormKeyWithoutDraft): `${OnyxFormKeyWithoutDraft}Draft` {
+function getDraftKey(formID: OnyxFormKey): OnyxFormDraftKey {
     return `${formID}Draft`;
 }
 

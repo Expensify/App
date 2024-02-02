@@ -13,7 +13,7 @@ import type {Form, Network} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {FormInputErrors, FormOnyxValues, FormProps, InputComponentBaseProps, InputRefs, OnyxFormKeyWithoutDraft, ValueTypeKey} from './types';
+import type {FormInputErrors, FormOnyxValues, FormProps, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -311,7 +311,7 @@ function FormProvider(
                     });
 
                     if (inputProps.shouldSaveDraft && !formID.includes('Draft')) {
-                        FormActions.setDraftValues(formID as OnyxFormKeyWithoutDraft, {[inputKey]: value});
+                        FormActions.setDraftValues(formID as OnyxFormKey, {[inputKey]: value});
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },
