@@ -11,6 +11,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {
     AddDebitCardForm,
+    CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
     IKnowATeacherForm,
@@ -92,6 +93,7 @@ export type {
     Credentials,
     Currency,
     CustomStatusDraft,
+    CloseAccountForm,
     DateOfBirthForm,
     Download,
     Form,

@@ -400,8 +400,8 @@ function getHeaderTitleTranslationKey(transaction: Transaction): string {
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: Transaction): boolean {
-    if (!transaction.cardID) {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.cardID) {
         return false;
     }
     return isExpensifyCard(transaction.cardID);
@@ -410,7 +410,7 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
 /**
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
-function isCardTransaction(transaction: Transaction): boolean {
+function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     const cardID = transaction?.cardID ?? 0;
     return isCorporateCard(cardID);
 }
@@ -418,8 +418,8 @@ function isCardTransaction(transaction: Transaction): boolean {
 /**
  * Check if the transaction status is set to Pending.
  */
-function isPending(transaction: Transaction): boolean {
-    if (!transaction.status) {
+function isPending(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.status) {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;

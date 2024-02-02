@@ -402,6 +402,18 @@ type OnyxDataTaskAssigneeChat = {
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
 
+type Ancestor = {
+    report: Report;
+    reportAction: ReportAction;
+    shouldDisplayNewMarker: boolean;
+    shouldHideThreadDividerLine: boolean;
+};
+
+type AncestorIDs = {
+    reportIDs: string[];
+    reportActionsIDs: string[];
+};
+
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
@@ -2433,7 +2445,8 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
         if (
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
+            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
@@ -3624,10 +3637,6 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
 }
 
 function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
-    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report))) {
-        return false;
-    }
-
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
@@ -3635,6 +3644,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
 
     return true;
 }
+
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
@@ -4671,6 +4681,78 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     );
 }
 
+function getAllAncestorReportActions(report: Report | null | undefined, shouldHideThreadDividerLine: boolean): Ancestor[] {
+    if (!report) {
+        return [];
+    }
+    const allAncestors: Ancestor[] = [];
+    let parentReportID = report.parentReportID;
+    let parentReportActionID = report.parentReportActionID;
+
+    // Store the child of parent report
+    let currentReport = report;
+    let currentUnread = shouldHideThreadDividerLine;
+
+    while (parentReportID) {
+        const parentReport = getReport(parentReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
+
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+            break;
+        }
+
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
+        allAncestors.push({
+            report: currentReport,
+            reportAction: parentReportAction,
+            shouldDisplayNewMarker: isParentReportActionUnread,
+            // We should hide the thread divider line if the previous ancestor action is unread
+            shouldHideThreadDividerLine: currentUnread,
+        });
+        parentReportID = parentReport?.parentReportID;
+        parentReportActionID = parentReport?.parentReportActionID;
+        if (!isEmptyObject(parentReport)) {
+            currentReport = parentReport;
+            currentUnread = isParentReportActionUnread;
+        }
+    }
+
+    return allAncestors.reverse();
+}
+
+function getAllAncestorReportActionIDs(report: Report | null | undefined): AncestorIDs {
+    if (!report) {
+        return {
+            reportIDs: [],
+            reportActionsIDs: [],
+        };
+    }
+
+    const allAncestorIDs: AncestorIDs = {
+        reportIDs: [],
+        reportActionsIDs: [],
+    };
+    let parentReportID = report.parentReportID;
+    let parentReportActionID = report.parentReportActionID;
+
+    while (parentReportID) {
+        const parentReport = getReport(parentReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
+
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+            break;
+        }
+
+        allAncestorIDs.reportIDs.push(parentReportID ?? '');
+        allAncestorIDs.reportActionsIDs.push(parentReportActionID ?? '');
+
+        parentReportID = parentReport?.parentReportID;
+        parentReportActionID = parentReport?.parentReportActionID;
+    }
+
+    return allAncestorIDs;
+}
+
 function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
     if (!policy) {
         return false;
@@ -4868,11 +4950,13 @@ export {
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
+    getAllAncestorReportActions,
     isReportParticipant,
     isValidReport,
     isReportFieldOfTypeTitle,
     isReportFieldDisabled,
     getAvailableReportFields,
+    getAllAncestorReportActionIDs,
 };
 
 export type {
@@ -4884,4 +4968,5 @@ export type {
     OptimisticAddCommentReportAction,
     OptimisticCreatedReportAction,
     OptimisticClosedReportAction,
+    Ancestor,
 };
