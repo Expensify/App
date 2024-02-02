@@ -8,7 +8,6 @@ import * as Welcome from '@userActions/Welcome';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import sidebarPropTypes from './sidebarPropTypes';
 
