@@ -17,9 +17,9 @@ type SuccessStepProps = {
 function SuccessStep({
     backTo,
 }: SuccessStepProps) {
-    const {setStep} = useTwoFactorAuthContext();
+    const { setStep } = useTwoFactorAuthContext();
 
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
 
     return (
         <StepWrapper

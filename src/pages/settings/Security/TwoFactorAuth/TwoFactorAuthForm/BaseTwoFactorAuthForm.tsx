@@ -1,8 +1,8 @@
-import React, {forwardRef, useCallback, useImperativeHandle, useState, useRef} from 'react';
-import type {Ref, FC, RefObject} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {TranslationPaths} from '@src/languages/types';
-import type {Errors} from '@src/types/onyx/OnyxCommon'
+import React, { forwardRef, useCallback, useImperativeHandle, useState, useRef } from 'react';
+import type { Ref, FC, RefObject } from 'react';
+import { withOnyx } from 'react-native-onyx';
+import type { TranslationPaths } from '@src/languages/types';
+import type { Errors } from '@src/types/onyx/OnyxCommon'
 import MagicCodeInput from '@components/MagicCodeInput';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -19,7 +19,6 @@ type OnyxDataWithErrors = {
 
 type BaseTwoFactorAuthFormProps = TwoFactorAuthStepOnyxProps & {
     autoComplete: AutoCompleteVariant,
-    innerRef?: () => void,
     ref: RefObject<HTMLFormElement> | (() => void),
 };
 
@@ -35,12 +34,12 @@ type MagicCodeInputHandle = {
 function BaseTwoFactorAuthForm({
     account,
     autoComplete,
-    innerRef,
+    ref,
 }: BaseTwoFactorAuthFormProps) {
-    const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
+    const [formError, setFormError] = useState<{ twoFactorAuthCode?: string }>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef: Ref<MagicCodeInputHandle> = useRef(null);
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
 
     /**
      * Handle text input and clear formError upon text change
@@ -65,12 +64,12 @@ function BaseTwoFactorAuthForm({
             inputRef.current.blur();
         }
         if (!twoFactorAuthCode.trim()) {
-            setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth'});
+            setFormError({ twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth' });
             return;
         }
 
         if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
-            setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.incorrect2fa'});
+            setFormError({ twoFactorAuthCode: 'twoFactorAuthForm.error.incorrect2fa' });
             return;
         }
 
@@ -78,7 +77,7 @@ function BaseTwoFactorAuthForm({
         Session.validateTwoFactorAuth(twoFactorAuthCode);
     }, [twoFactorAuthCode]);
 
-    useImperativeHandle(innerRef, () => ({
+    useImperativeHandle(ref as () => void, () => ({
         validateAndSubmitForm() {
             validateAndSubmitForm();
         },
@@ -104,16 +103,19 @@ function BaseTwoFactorAuthForm({
     );
 }
 
-const BaseTwoFactorAuthFormWithRef = forwardRef((props, ref) => (
+const BaseTwoFactorAuthFormWithRef = forwardRef(({
+    ref,
+    ...props
+}: BaseTwoFactorAuthFormProps) => (
     <BaseTwoFactorAuthForm
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        innerRef={ref}
+        ref={ref}
     />
 ));
 
 (BaseTwoFactorAuthFormWithRef as FC).displayName = 'BaseTwoFactorAuthFormWithRef';
 
 export default withOnyx<BaseTwoFactorAuthFormProps, TwoFactorAuthStepOnyxProps>({
-        account: {key: ONYXKEYS.ACCOUNT},
+    account: { key: ONYXKEYS.ACCOUNT },
 })(BaseTwoFactorAuthFormWithRef);

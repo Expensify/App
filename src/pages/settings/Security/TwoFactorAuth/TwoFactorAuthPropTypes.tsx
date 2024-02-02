@@ -1,5 +1,5 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {Account, Session} from '@src/types/onyx';
+import type { OnyxEntry } from 'react-native-onyx';
+import type { Account, Session } from '@src/types/onyx';
 
 
 type TwoFactorAuthStepOnyxNativeProps = {
@@ -21,4 +21,4 @@ type TwoFactorAuthStepProps = TwoFactorAuthStepOnyxBothProps & {
     recoveryCodes?: '',
 };
 
-export type {TwoFactorAuthStepOnyxNativeProps, TwoFactorAuthStepOnyxProps, TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps};
+export type { TwoFactorAuthStepOnyxNativeProps, TwoFactorAuthStepOnyxProps, TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps };

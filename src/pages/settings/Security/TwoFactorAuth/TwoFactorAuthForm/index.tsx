@@ -1,5 +1,5 @@
 import React from 'react';
-import type {RefObject} from 'react';
+import type { RefObject } from 'react';
 import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 
 type TwoFactorAuthFormProps = {
