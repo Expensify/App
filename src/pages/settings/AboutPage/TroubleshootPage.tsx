@@ -57,6 +57,11 @@ function TroubleshootPage() {
                 icon: Expensicons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
+            {
+                translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
+                icon: Expensicons.Gear,
+                action: () => {},
+            },
         ];
 
         return baseMenuItems.map((item) => ({
