@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefAttributes, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
@@ -79,8 +79,6 @@ type ComposerWithSuggestionsOnyxProps = {
 
 type ComposerWithSuggestionsProps = {
     reportID: string;
-    report: OnyxEntry<OnyxTypes.Report>;
-    reportActions: OnyxTypes.ReportAction[] | undefined;
     onFocus: () => void;
     onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
     onValueChange: (value: string) => void;
@@ -105,6 +103,10 @@ type ComposerWithSuggestionsProps = {
     animatedRef: AnimatedRef;
     isNextModalWillOpenRef: RefObject<boolean | null>;
     editFocused: boolean;
+    isEmptyChat?: boolean;
+    lastReportAction?: OnyxTypes.ReportAction;
+    includeChronos?: boolean;
+    parentReportActionID?: string;
 } & ComposerWithSuggestionsOnyxProps &
     Partial<ChildrenProps>;
 
@@ -141,8 +143,11 @@ function ComposerWithSuggestions(
 
         // Props: Report
         reportID,
-        report,
-        reportActions,
+        includeChronos,
+        isEmptyChat,
+        lastReportAction,
+        parentReportActionID,
+
         // Focus
         onFocus,
         onBlur,
@@ -183,12 +188,12 @@ function ComposerWithSuggestions(
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
+    const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
-        const draft = getDraftComment(reportID) ?? '';
-        if (draft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
+        if (draftComment) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
-        return draft;
+        return draftComment;
     });
     const commentRef = useRef(value);
     const lastTextRef = useRef(value);
@@ -196,8 +201,7 @@ function ComposerWithSuggestions(
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const isEmptyChat = useMemo(() => reportActions?.length === 1, [reportActions]);
-    const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''] ?? null;
+    const parentReportAction = parentReportActions?.[parentReportActionID ?? ''] ?? null;
     const shouldAutoFocus = !modal?.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
@@ -445,23 +449,21 @@ function ComposerWithSuggestions(
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
             const valueLength = valueRef.current.length;
             if (
-                webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
+                'key' in event &&
+                event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
                 textInputRef.current &&
                 'selectionStart' in textInputRef.current &&
                 textInputRef.current?.selectionStart === 0 &&
                 valueLength === 0 &&
-                !ReportUtils.chatIncludesChronos(report)
+                !includeChronos
             ) {
-                webEvent.preventDefault();
-                const lastReportAction = [...(reportActions ?? []), parentReportAction].find(
-                    (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
-                );
+                event.preventDefault();
                 if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction, lastReportAction.message?.at(-1)?.html ?? '');
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportAction, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
+        [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
     const onChangeText = useCallback(
@@ -640,6 +642,22 @@ function ComposerWithSuggestions(
         onValueChange(value);
     }, [onValueChange, value]);
 
+    const onLayout = useCallback(
+        (e: LayoutChangeEvent) => {
+            const composerLayoutHeight = e.nativeEvent.layout.height;
+            if (composerHeight === composerLayoutHeight) {
+                return;
+            }
+            setComposerHeight(composerLayoutHeight);
+        },
+        [composerHeight],
+    );
+
+    const onClear = useCallback(() => {
+        setTextInputShouldClear(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -660,7 +678,7 @@ function ComposerWithSuggestions(
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
-                    onClear={() => setTextInputShouldClear(false)}
+                    onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
                     isReportActionCompose
                     selection={selection}
@@ -673,13 +691,7 @@ function ComposerWithSuggestions(
                     numberOfLines={numberOfLines ?? 0}
                     onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
-                    onLayout={(e: LayoutChangeEvent) => {
-                        const composerLayoutHeight = e.nativeEvent.layout.height;
-                        if (composerHeight === composerLayoutHeight) {
-                            return;
-                        }
-                        setComposerHeight(composerLayoutHeight);
-                    }}
+                    onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
                 />
@@ -703,7 +715,6 @@ function ComposerWithSuggestions(
 
             <SilentCommentUpdater
                 reportID={reportID}
-                report={report}
                 value={value}
                 updateComment={updateComment}
                 commentRef={commentRef}
@@ -741,6 +752,6 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
         canEvict: false,
         initWithStoredValues: false,
     },
-})(ComposerWithSuggestionsWithRef);
+})(memo(ComposerWithSuggestionsWithRef));
 
 export type {ComposerWithSuggestionsProps};

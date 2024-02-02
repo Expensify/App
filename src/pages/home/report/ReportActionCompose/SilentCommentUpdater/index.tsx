@@ -10,9 +10,9 @@ import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './t
  * It is connected to the actual draft comment in onyx. The comment in onyx might updates multiple times, and we want to avoid
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
-function SilentCommentUpdater({comment = '', commentRef, report, value, updateComment}: SilentCommentUpdaterProps) {
+function SilentCommentUpdater({comment, commentRef, reportID, value, updateComment}: SilentCommentUpdaterProps) {
     const prevCommentProp = usePrevious(comment);
-    const prevReportId = usePrevious(report?.reportID);
+    const prevReportId = usePrevious(reportID);
     const {preferredLocale} = useLocalize();
     const prevPreferredLocale = usePrevious(preferredLocale);
 
@@ -28,12 +28,12 @@ function SilentCommentUpdater({comment = '', commentRef, report, value, updateCo
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (preferredLocale === prevPreferredLocale && report?.reportID === prevReportId && !shouldSyncComment) {
+        if (preferredLocale === prevPreferredLocale && reportID === prevReportId && !shouldSyncComment) {
             return;
         }
 
-        updateComment(comment ?? null);
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report?.reportID, updateComment, value, commentRef]);
+        updateComment(comment);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, commentRef]);
 
     return null;
 }

@@ -1,12 +1,13 @@
 import {PortalHost} from '@gorhom/portal';
 import type {SyntheticEvent} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
@@ -95,6 +96,10 @@ type ReportActionComposeProps = {
 
     /** Whether the report is ready for display */
     isReportReadyForDisplay?: boolean;
+
+    isEmptyChat?: boolean;
+
+    lastReportAction?: any;
 } & ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps;
 
@@ -117,6 +122,8 @@ function ReportActionCompose({
     listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
+    isEmptyChat,
+    lastReportAction,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -125,6 +132,7 @@ function ReportActionCompose({
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -188,7 +196,9 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const isBlockedFromConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge), [report, blockedFromConcierge]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report?.participantAccountIDs}), [report?.participantAccountIDs]);
+    const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
+    const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
@@ -199,8 +209,8 @@ function ReportActionCompose({
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (ReportUtils.chatIncludesConcierge(report)) {
-            if (User.isBlockedFromConcierge(blockedFromConcierge)) {
+        if (includesConcierge) {
+            if (userBlockedFromConcierge) {
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
@@ -208,7 +218,7 @@ function ReportActionCompose({
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -259,7 +269,7 @@ function ReportActionCompose({
     }, []);
 
     const addAttachment = useCallback(
-        (file: File) => {
+        (file: FileObject) => {
             const newComment = composerRef.current?.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -387,14 +397,12 @@ function ReportActionCompose({
                             hasExceededMaxCommentLength && styles.borderColorDanger,
                         ]}
                     >
-                        {/* @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript. */}
                         <AttachmentModal
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                         >
-                            {/* @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript. */}
                             {({displayFileInModal}) => (
                                 <>
                                     <AttachmentPickerWithMenuItems
@@ -427,8 +435,11 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        report={report}
-                                        reportActions={reportActions}
+                                        parentReportID={report?.parentReportID}
+                                        parentReportActionID={report?.parentReportActionID}
+                                        includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
                                         inputPlaceholder={inputPlaceholder}
                                         isComposerFullSize={isComposerFullSize}
@@ -454,7 +465,7 @@ function ReportActionCompose({
                                                 return;
                                             }
                                             const data = event.dataTransfer?.items[0];
-                                            displayFileInModal(data);
+                                            displayFileInModal(data as unknown as FileObject);
                                         }}
                                     />
                                 </>
@@ -503,7 +514,7 @@ export default withCurrentUserPersonalDetails(
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
-    })(ReportActionCompose),
+    })(memo(ReportActionCompose)),
 );
 
 export type {SuggestionsRef, ComposerRef};

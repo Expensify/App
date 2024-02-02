@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
@@ -67,4 +67,4 @@ export default withOnyx<ReportTypingIndicatorProps, ReportTypingIndicatorOnyxPro
     userTypingStatuses: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
     },
-})(ReportTypingIndicator);
+})(memo(ReportTypingIndicator));
