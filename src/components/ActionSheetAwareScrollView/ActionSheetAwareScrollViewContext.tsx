@@ -176,7 +176,7 @@ const STATE_MACHINE = {
 };
 
 function ActionSheetAwareScrollViewProvider(props: PropsWithChildren<unknown>) {
-    const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine(STATE_MACHINE, {
+    const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine<MeasuredElements>(STATE_MACHINE, {
         previous: null,
         current: {
             state: 'idle',
