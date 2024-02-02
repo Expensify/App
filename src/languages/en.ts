@@ -810,6 +810,7 @@ export default {
         troubleshoot: {
             resetAndRefreshStashed: 'Reset and refresh stashed data',
             viewConsole: 'View debug console',
+            debugConsole: 'Debug console',
             description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
             submitBug: 'submit a bug',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',

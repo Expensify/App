@@ -14,6 +14,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -40,7 +41,7 @@ const keysToPreserve: OnyxKey[] = [
 type BaseMenuItem = {
     translationKey: TranslationPaths;
     icon: React.FC<SvgProps>;
-    action: () => void;
+    action: () => Promise<void>;
 };
 
 function TroubleshootPage() {
@@ -49,6 +50,7 @@ function TroubleshootPage() {
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
+    const waitForNavigate = useWaitForNavigation();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: BaseMenuItem[] = [
@@ -60,7 +62,7 @@ function TroubleshootPage() {
             {
                 translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
                 icon: Expensicons.Gear,
-                action: () => {},
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE)),
             },
         ];
 
@@ -70,7 +72,7 @@ function TroubleshootPage() {
             icon: item.icon,
             onPress: item.action,
         }));
-    }, [translate]);
+    }, [translate, waitForNavigate]);
 
     return (
         <IllustratedHeaderPageLayout
