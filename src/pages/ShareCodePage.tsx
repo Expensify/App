@@ -15,6 +15,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,6 +41,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const isReport = !!report?.reportID;
 
@@ -69,14 +71,17 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
     const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
     return (
-        <ScreenWrapper testID={ShareCodePage.displayName}>
+        <ScreenWrapper
+            testID={ShareCodePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen={!isReport}
+        >
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.SETTINGS)}
+                shouldShowBackButton={isReport || isSmallScreenWidth}
             />
-
             <ScrollView style={[themeStyles.flex1, themeStyles.mt3]}>
-                <View style={themeStyles.shareCodePage}>
+                <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection, themeStyles.ph4]}>
                     <QRShareWithDownload
                         ref={qrCodeRef}
                         url={url}
@@ -96,6 +101,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                         successIcon={Expensicons.Checkmark}
                         successText={translate('qrCodes.copied')}
                         onPress={() => Clipboard.setString(url)}
+                        shouldLimitWidth={false}
                     />
 
                     {isNative && (
@@ -103,7 +109,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={Expensicons.Download}
-                            onPress={() => qrCodeRef.current?.download()}
+                            onPress={qrCodeRef.current?.download}
                         />
                     )}
 

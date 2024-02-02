@@ -176,7 +176,7 @@ function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSourc
  * @param avatarURL - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatarUrl(avatarSource: AvatarSource, accountID: number): AvatarSource {
+function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
     return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID) : avatarSource;
 }
 
