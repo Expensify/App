@@ -263,6 +263,12 @@ function ScreenWrapper(
                                                 : children
                                         }
                                         {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                        {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
+                                            <OfflineIndicator
+                                                containerStyles={[]}
+                                                style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                            />
+                                        )}
                                     </FocusTrapView>
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
