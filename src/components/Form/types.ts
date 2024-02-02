@@ -3,6 +3,7 @@ import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFo
 import type AddressSearch from '@components/AddressSearch';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
+import type DatePicker from '@components/DatePicker';
 import type Picker from '@components/Picker';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type TextInput from '@components/TextInput';
@@ -15,9 +16,9 @@ import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
  * when adding new inputs or removing old ones.
  *
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
+ * CountrySelector | StatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
  */
-type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch;
+type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch | typeof DatePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 
