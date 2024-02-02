@@ -9,6 +9,7 @@ import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 type ReferralProgramCTAProps = {
     referralContentType:
@@ -44,22 +45,24 @@ function ReferralProgramCTA({referralContentType, onCloseButtonPress = () => {}}
                     {translate(`referralProgram.${referralContentType}.buttonText2`)}
                 </Text>
             </Text>
-            <PressableWithoutFeedback
-                onPress={onCloseButtonPress}
-                onMouseDown={(e) => {
-                    e.preventDefault();
-                }}
-                style={[styles.touchableButtonImage]}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                accessibilityLabel={translate('common.close')}
-            >
-                <Icon
-                    src={Close}
-                    height={20}
-                    width={20}
-                    fill={theme.icon}
-                />
-            </PressableWithoutFeedback>
+            <Tooltip text={translate('common.close')}>
+                <PressableWithoutFeedback
+                    onPress={onCloseButtonPress}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                    }}
+                    style={[styles.touchableButtonImage]}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityLabel={translate('common.close')}
+                >
+                    <Icon
+                        src={Close}
+                        height={20}
+                        width={20}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
+            </Tooltip>
         </PressableWithoutFeedback>
     );
 }
