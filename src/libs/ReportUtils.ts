@@ -4593,7 +4593,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         isChatRoom(report) &&
         !isChatThread(report) &&
         !isEmpty(policy) &&
-        getVisibleMemberIDs(report).includes(currentUserAccountID ?? 0)
+        (getVisibleMemberIDs(report).includes(currentUserAccountID ?? 0) || getParticipantsIDs(report).includes(currentUserAccountID ?? 0))
     );
 }
 /**
