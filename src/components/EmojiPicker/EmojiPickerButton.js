@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -87,4 +87,4 @@ function EmojiPickerButton(props) {
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;
 EmojiPickerButton.displayName = 'EmojiPickerButton';
-export default compose(withLocalize, withNavigationFocus)(EmojiPickerButton);
+export default compose(withLocalize, withNavigationFocus)(memo(EmojiPickerButton));
