@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useRef} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -42,8 +42,6 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
     const {reason} = route.params;
-
-    const responseInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     const formTopMarginsStyle = styles.mt3;
     const textStyle = styles.headerAnonymousFooter;
@@ -111,11 +109,9 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
                             if (!el) {
                                 return;
                             }
-                            responseInputRef.current = el;
                             updateMultilineInputRange(el);
                         }}
                         value={draftResponse}
-                        // onChangeText={setResponse}
                         containerStyles={[baseResponseInputContainerStyle, StyleUtils.getMaximumHeight(responseInputMaxHeight)]}
                         shouldSaveDraft
                     />
