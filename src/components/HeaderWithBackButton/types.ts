@@ -28,6 +28,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Title color */
     titleColor?: string;
 
+    /** Icon displayed on the left of the title */
+    icon?: IconAsset;
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
@@ -114,6 +117,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
+
+    /** Whether we should use increased height. */
+    isCentralPaneSettings?: boolean;
 };
 
 export type {ThreeDotsMenuItem};
