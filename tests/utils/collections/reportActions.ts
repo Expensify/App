@@ -1,5 +1,4 @@
-import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
-import {format} from 'date-fns';
+import {rand, randAggregation, randBoolean, randPastDate, randWord} from '@ngneat/falso';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -18,15 +17,6 @@ const flattenActionNamesValues = (actionNames: any) => {
     return result;
 };
 
-const getRandomDate = (): string => {
-    const randomTimestamp = Math.random() * new Date().getTime();
-    const randomDate = new Date(randomTimestamp);
-
-    const formattedDate = format(randomDate, CONST.DATE.FNS_DB_FORMAT_STRING);
-
-    return formattedDate;
-};
-
 export default function createRandomReportAction(index: number): ReportAction {
     return {
         // we need to add any here because of the way we are generating random values
@@ -42,7 +32,7 @@ export default function createRandomReportAction(index: number): ReportAction {
                 text: randWord(),
             },
         ],
-        created: getRandomDate(),
+        created: randPastDate().toISOString(),
         message: [
             {
                 type: randWord(),
@@ -67,13 +57,13 @@ export default function createRandomReportAction(index: number): ReportAction {
         ],
         originalMessage: {
             html: randWord(),
-            lastModified: getRandomDate(),
+            type: rand(Object.values(CONST.IOU.REPORT_ACTION_TYPE)),
         },
         whisperedToAccountIDs: randAggregation(),
         avatar: randWord(),
         automatic: randBoolean(),
         shouldShow: randBoolean(),
-        lastModified: getRandomDate(),
+        lastModified: randPastDate().toISOString(),
         pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         delegateAccountID: index,
         errors: {},

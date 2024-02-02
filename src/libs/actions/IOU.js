@@ -2085,7 +2085,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     );
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(splitChatReport.reportID);
+    Navigation.dismissModalWithReport(splitChatReport);
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
@@ -3483,7 +3483,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModalWithReport(chatReport);
 }
 
 function detachReceipt(transactionID) {
@@ -3756,6 +3756,15 @@ function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath,
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
+/**
+ * Save the preferred payment method for a policy
+ * @param {String} policyID
+ * @param {String} paymentMethod
+ */
+function savePreferredPaymentMethod(policyID, paymentMethod) {
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3813,4 +3822,5 @@ export {
     getIOUReportID,
     editMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
+    savePreferredPaymentMethod,
 };
