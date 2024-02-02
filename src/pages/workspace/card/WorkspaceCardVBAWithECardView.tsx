@@ -55,6 +55,7 @@ function WorkspaceCardVBAWithECardView() {
             title={translate('workspace.card.headerWithEcard')}
             icon={Illustrations.CreditCardsNew}
             menuItems={menuItems}
+            isCentralPane
         >
             <View style={[styles.mv3]}>
                 <Text>{translate('workspace.card.VBAWithECardCopy')}</Text>

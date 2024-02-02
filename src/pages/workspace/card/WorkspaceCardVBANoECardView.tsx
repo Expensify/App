@@ -32,6 +32,7 @@ function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
             <Section
                 title={translate('workspace.card.header')}
                 icon={Illustrations.CreditCardsNew}
+                isCentralPane
             >
                 <View style={[styles.mv3]}>
                     <UnorderedList items={unorderedListItems} />
