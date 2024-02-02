@@ -1,27 +1,22 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,7 +43,6 @@ const propTypes = {
     }).isRequired,
 
     ...policyPropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -56,81 +50,49 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
+function WorkspaceOverviewPage({policy, currencyList, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
-    const submit = useCallback(
-        (values) => {
-            if (policy.isPolicyUpdating) {
-                return;
-            }
-
-            Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
-            Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
-        },
-        [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
-    );
-
-    const validate = useCallback((values) => {
-        const errors = {};
-        const name = values.name.trim();
-
-        if (!ValidationUtils.isRequiredFulfilled(name)) {
-            errors.name = 'workspace.editor.nameIsRequiredError';
-        } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-            // code units.
-            errors.name = 'workspace.editor.nameIsTooLongError';
-        }
-
-        return errors;
-    }, []);
-
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id)), [policy.id]);
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id)), [policy.id]);
+    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policy.id)), [policy.id]);
 
     const policyName = lodashGet(policy, 'name', '');
+    const readOnly = !PolicyUtils.isPolicyAdmin(policy);
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.common.settings')}
+            headerText={translate('workspace.common.overview')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
             shouldShowLoading={false}
+            shouldUseScrollView
+            shouldShowOfflineIndicatorInWideScreen
+            shouldShowNonAdmin
         >
             {(hasVBA) => (
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
-                    submitButtonText={translate('workspace.editor.save')}
-                    style={[styles.flexGrow1, styles.ph5]}
-                    scrollContextEnabled
-                    validate={validate}
-                    onSubmit={submit}
-                    enabledWhenOffline
-                >
+                <>
                     <AvatarWithImagePicker
                         onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy.id))}
                         source={lodashGet(policy, 'avatar')}
-                        size={CONST.AVATAR_SIZE.LARGE}
+                        size={CONST.AVATAR_SIZE.XLARGE}
+                        avatarStyle={styles.avatarXLarge}
                         DefaultAvatar={() => (
                             <Avatar
-                                containerStyles={styles.avatarLarge}
-                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                containerStyles={styles.avatarXLarge}
+                                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                                 source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                size={CONST.AVATAR_SIZE.LARGE}
+                                size={CONST.AVATAR_SIZE.XLARGE}
                                 name={policyName}
                                 type={CONST.ICON_TYPE_WORKSPACE}
                             />
                         )}
                         type={CONST.ICON_TYPE_WORKSPACE}
                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                        style={[styles.mb3]}
-                        anchorPosition={styles.createMenuPositionProfile(windowWidth)}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        style={[styles.mb3, styles.mt5]}
                         isUsingDefaultAvatar={!lodashGet(policy, 'avatar', null)}
                         onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(policy, 'id', ''), file)}
                         onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(policy, 'id', ''))}
@@ -141,47 +103,48 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         previewSource={UserUtils.getFullSizeAvatar(policy.avatar, '')}
                         headerTitle={translate('workspace.common.workspaceAvatar')}
                         originalFileName={policy.originalFileName}
+                        disabled={readOnly}
+                        disabledStyle={styles.cursorDefault}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID="name"
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            defaultValue={policy.name}
-                            maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
-                            containerStyles={[styles.mt4]}
-                            spellCheck={false}
+                        <MenuItemWithTopDescription
+                            title={policy.name}
+                            description={translate('workspace.editor.nameInputLabel')}
+                            shouldShowRightIcon={!readOnly}
+                            disabled={readOnly}
+                            onPress={onPressName}
+                            shouldGreyOutWhenDisabled={false}
+                            shouldUseDefaultCursorWhenDisabled
                         />
-                        <View style={[styles.mt4, styles.mhn5]}>
+
+                        <View>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
                                 description={translate('workspace.editor.currencyInputLabel')}
-                                shouldShowRightIcon
-                                disabled={hasVBA}
+                                shouldShowRightIcon={!readOnly}
+                                disabled={hasVBA || readOnly}
                                 onPress={onPressCurrency}
+                                shouldGreyOutWhenDisabled={false}
+                                shouldUseDefaultCursorWhenDisabled
                             />
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2, styles.mh5]}>
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt1, styles.mh5]}>
                                 {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                             </Text>
                         </View>
                     </OfflineWithFeedback>
-                </FormProvider>
+                </>
             )}
         </WorkspacePageWithSections>
     );
 }
 
-WorkspaceSettingsPage.propTypes = propTypes;
-WorkspaceSettingsPage.defaultProps = defaultProps;
-WorkspaceSettingsPage.displayName = 'WorkspaceSettingsPage';
+WorkspaceOverviewPage.propTypes = propTypes;
+WorkspaceOverviewPage.defaultProps = defaultProps;
+WorkspaceOverviewPage.displayName = 'WorkspaceOverviewPage';
 
 export default compose(
     withPolicy,
-    withWindowDimensions,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
-    withNetwork(),
-)(WorkspaceSettingsPage);
+)(WorkspaceOverviewPage);
