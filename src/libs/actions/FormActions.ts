@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {KeyValueMapping, NullishDeep} from 'react-native-onyx';
+import type {NullishDeep} from 'react-native-onyx';
 import FormUtils from '@libs/FormUtils';
 import type {OnyxFormDraftKey, OnyxFormKey, OnyxValue} from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
