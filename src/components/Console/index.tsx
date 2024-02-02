@@ -4,13 +4,13 @@ import {ScrollView, View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import {createLog, sanitizeConsoleInput, setUpdateLogsFunction} from '@libs/Console';
+import {capturedLogs, createLog, sanitizeConsoleInput, setUpdateLogsFunction} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileDownload from '@libs/localFileDownload';
 
 function Console() {
     const [input, setInput] = useState('');
-    const [logs, setLogs] = useState<Log[]>([]);
+    const [logs, setLogs] = useState<Log[]>(capturedLogs);
 
     useEffect(() => {
         const addLog = (newLog: Log) => {
@@ -22,6 +22,11 @@ function Console() {
         // Clean up when the component unmounts
         return () => setUpdateLogsFunction(null);
     }, []);
+
+    useEffect(() => {
+        setLogs((prevLogs) => [...prevLogs, ...capturedLogs]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [capturedLogs]);
 
     const handleExecute = () => {
         const sanitizedInput = sanitizeConsoleInput(input);

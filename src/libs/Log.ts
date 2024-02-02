@@ -5,6 +5,7 @@
 import Logger from 'expensify-common/lib/Logger';
 import type {Merge} from 'type-fest';
 import pkg from '../../package.json';
+import {capturedLogs} from './Console';
 import getPlatform from './getPlatform';
 import * as Network from './Network';
 import requireParameters from './requireParameters';
@@ -51,6 +52,7 @@ const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message) => {
         console.debug(message);
+        capturedLogs.push({time: new Date(), level: 'DEBUG', message});
     },
     isDebug: true,
 });
