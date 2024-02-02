@@ -13,16 +13,20 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as ExitSurvey from '@userActions/ExitSurvey';
+import type {ExitReason} from '@userActions/ExitSurvey';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyConfirmPageOnyxProps = {
+    exitReason?: ExitReason;
     isLoading: OnyxEntry<boolean>;
 };
 
-function ExitSurveyConfirmPage({isLoading}: ExitSurveyConfirmPageOnyxProps) {
+function ExitSurveyConfirmPage({exitReason, isLoading}: ExitSurveyConfirmPageOnyxProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -30,7 +34,7 @@ function ExitSurveyConfirmPage({isLoading}: ExitSurveyConfirmPageOnyxProps) {
         <ScreenWrapper testID={ExitSurveyConfirmPage.displayName}>
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(exitReason ? ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(exitReason, ROUTES.SETTINGS_EXIT_SURVEY_REASON) : undefined)}
             />
             {isOffline && <ExitSurveyOffline />}
             {!isOffline && (
@@ -59,6 +63,10 @@ function ExitSurveyConfirmPage({isLoading}: ExitSurveyConfirmPageOnyxProps) {
 ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 
 export default withOnyx<ExitSurveyConfirmPageOnyxProps, ExitSurveyConfirmPageOnyxProps>({
+    exitReason: {
+        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
+        selector: (value: OnyxEntry<OnyxTypes.ExitSurveyReasonForm>) => value?.[CONST.EXIT_SURVEY.REASON_INPUT_ID],
+    },
     isLoading: {
         key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
     },

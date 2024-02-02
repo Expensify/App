@@ -158,11 +158,12 @@ const ROUTES = {
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
-        getRoute: (reason: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo: string) => getUrlWithBackToParam(`settings/exit-survey/response?reason=${encodeURIComponent(reason)}`, backTo),
+        getRoute: (reason?: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo?: string) =>
+            getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
     },
     SETTINGS_EXIT_SURVEY_CONFIRM: {
         route: 'settings/exit-survey/confirm',
-        getRoute: (backTo: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
     },
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
