@@ -427,7 +427,7 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
+        IOU.setMoneyRequestMerchant(props.transactionID, distanceMerchant, false);
     }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
