@@ -1,40 +1,32 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
 import WorkspaceBillsVBAView from './WorkspaceBillsVBAView';
 
-const propTypes = {
-    /** The route object passed to this page from the navigator */
-    route: PropTypes.shape({
-        /** Each parameter passed via the URL */
-        params: PropTypes.shape({
-            /** The policyID that is being configured */
-            policyID: PropTypes.string.isRequired,
-        }).isRequired,
-    }).isRequired,
+type WorkspaceBillsPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.BILLS>;
 
-    ...withLocalizePropTypes,
-};
-
-function WorkspaceBillsPage(props) {
+function WorkspaceBillsPage({route}: WorkspaceBillsPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            headerText={props.translate('workspace.common.bills')}
-            route={props.route}
+            headerText={translate('workspace.common.bills')}
+            route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
             shouldShowOfflineIndicatorInWideScreen
         >
-            {(hasVBA, policyID) => (
+            {(hasVBA: boolean, policyID: string) => (
                 <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
@@ -44,6 +36,6 @@ function WorkspaceBillsPage(props) {
     );
 }
 
-WorkspaceBillsPage.propTypes = propTypes;
 WorkspaceBillsPage.displayName = 'WorkspaceBillsPage';
-export default withLocalize(WorkspaceBillsPage);
+
+export default WorkspaceBillsPage;

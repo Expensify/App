@@ -39,7 +39,7 @@ type ContextMenuItemProps = {
     /** Whether the menu item is focused or not */
     isFocused?: boolean;
 
-    /** Should limit width. */
+    /** Whether the width should be limited */
     shouldLimitWidth?: boolean;
 };
 

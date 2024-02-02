@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -22,6 +21,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PolicyRoute} from './withPolicy';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -42,10 +42,10 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         headerText: string;
 
         /** The route object passed to this page from the navigator */
-        route: RouteProp<{params: {policyID: string}}>;
+        route: PolicyRoute;
 
         /** Main content of the page */
-        children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
+        children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
@@ -107,7 +107,7 @@ function WorkspacePageWithSections({
     const isLoading = reimbursementAccount?.isLoading ?? true;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID ?? '';
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = children(hasVBA, policyID, isUsingECard);
     const {isSmallScreenWidth} = useWindowDimensions();

@@ -466,9 +466,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
                     },
                 },
-                ProcessMoneyRequestHold: {
+                [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
                     screens: {
-                        ProcessMoneyRequestHold_Root: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
+                        [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
                     },
                 },
             },

@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesUtils';
+import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';

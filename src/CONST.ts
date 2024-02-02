@@ -1304,6 +1304,7 @@ const CONST = {
             USER: 'user',
         },
         AUTO_REPORTING_FREQUENCIES: {
+            INSTANT: 'instant',
             IMMEDIATE: 'immediate',
             WEEKLY: 'weekly',
             SEMI_MONTHLY: 'semimonthly',
@@ -3107,11 +3108,6 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
-    },
-
-    BRICK_ROAD: {
-        GBR: 'info',
-        RBR: 'error',
     },
 
     /**

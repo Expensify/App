@@ -12,7 +12,7 @@ import {updateLastVisitedPath} from '@userActions/App';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
-import getPolicyIdFromState from './getPolicyIdFromState';
+import getPolicyIDFromState from './getPolicyIDFromState';
 import linkingConfig from './linkingConfig';
 import customGetPathFromState from './linkingConfig/customGetPathFromState';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
@@ -118,7 +118,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!state) {
             return;
         }
-        const activeWorkspaceID = getPolicyIdFromState(state as NavigationState<RootStackParamList>);
+        const activeWorkspaceID = getPolicyIDFromState(state as NavigationState<RootStackParamList>);
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
             currentReportIDValue?.updateCurrentReportID(state);

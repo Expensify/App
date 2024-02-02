@@ -61,6 +61,8 @@ type WorkspaceSettingsForm = Form<{
     name: string;
 }>;
 
+type ReportFieldEditForm = Form<Record<string, string>>;
+
 export default Form;
 
 export type {
@@ -75,4 +77,5 @@ export type {
     IntroSchoolPrincipalForm,
     PersonalBankAccountForm,
     WorkspaceSettingsForm,
+    ReportFieldEditForm,
 };

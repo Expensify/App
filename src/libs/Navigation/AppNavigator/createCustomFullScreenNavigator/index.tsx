@@ -9,7 +9,6 @@ import SCREENS from '@src/SCREENS';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
-// TODO-IDEAL: Extract to utils with ./createCustomStackNavigator/index.tsx
 type Routes = StackNavigationState<ParamListBase>['routes'];
 function reduceReportRoutes(routes: Routes): Routes {
     const result: Routes = [];
@@ -60,7 +59,7 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         if (!navigationRef.isReady()) {
             return;
         }
-        // We need to separetly reset state of this navigator to trigger getRehydratedState.
+        // We need to separately reset state of this navigator to trigger getRehydratedState.
         navigation.reset(navigation.getState());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);

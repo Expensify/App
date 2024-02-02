@@ -21,7 +21,7 @@ function adaptStateIfNecessary(state: StackState) {
 
             // This is necessary for ts to narrow type down to PartialState.
             if (state.stale === true) {
-                // Push the root screen to fill left pane.
+                // Unshift the root screen to fill left pane.
                 state.routes.unshift({name: SCREENS.SETTINGS.ROOT});
             }
         }
