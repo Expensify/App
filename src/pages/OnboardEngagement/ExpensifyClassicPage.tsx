@@ -15,6 +15,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -33,6 +34,7 @@ function ExpensifyClassicModal() {
 
     const navigateToOldDot = () => {
         Link.openOldDotLink(`${CONST.OLDDOT_URLS.INBOX}${CONST.OLDDOT_URLS.DISMMISSED_REASON}`);
+        Report.navigateToConciergeChat();
     };
 
     return (
