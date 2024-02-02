@@ -233,7 +233,10 @@ function ReportPreview({
     const shouldShowRBR = !iouSettled && hasErrors;
 
     return (
-        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.preview}>
+        <OfflineWithFeedback
+            pendingAction={iouReport?.pendingFields?.preview}
+            shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
+        >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {

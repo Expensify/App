@@ -24,7 +24,7 @@ function WorkspaceBillsNoVBAView({policyID}: WorkspaceBillsNoVBAViewProps) {
             <Section
                 title={translate('workspace.bills.unlockOnlineBillPayment')}
                 icon={Illustrations.LockOpen}
-                containerStyles={styles.cardSection}
+                isCentralPane
             >
                 <View style={styles.mv3}>
                     <Text>{translate('workspace.bills.unlockNoVBACopy')}</Text>
