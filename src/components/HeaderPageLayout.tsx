@@ -36,8 +36,10 @@ type HeaderPageLayoutProps = ChildrenProps &
 
         /** Style to apply to the whole section container */
         style?: StyleProp<ViewStyle>;
-    };
 
+        /** Whether or not to show the offline indicator */
+        shouldShowOfflineIndicatorInWideScreen?: boolean;
+    };
 function HeaderPageLayout({
     backgroundColor,
     children,
@@ -47,6 +49,7 @@ function HeaderPageLayout({
     childrenContainerStyles,
     style,
     headerContent,
+    shouldShowOfflineIndicatorInWideScreen = false,
     ...rest
 }: HeaderPageLayoutProps) {
     const theme = useTheme();
@@ -70,6 +73,7 @@ function HeaderPageLayout({
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
             testID={HeaderPageLayout.displayName}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
