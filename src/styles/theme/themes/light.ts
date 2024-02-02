@@ -14,6 +14,7 @@ const lightTheme = {
     icon: colors.productLight700,
     iconMenu: colors.green400,
     iconHovered: colors.productLight900,
+    iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
     iconReversed: colors.productLight100,
     iconColorfulBackground: `${colors.ivory}cc`,
@@ -44,7 +45,7 @@ const lightTheme = {
     hoverComponentBG: colors.productLight300,
     activeComponentBG: colors.productLight400,
     signInSidebar: colors.green800,
-    sidebar: colors.productLight200,
+    sidebar: colors.productLight100,
     sidebarHover: colors.productLight300,
     heading: colors.productLight900,
     textLight: colors.white,
@@ -123,10 +124,18 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productLight200,
+            backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.RIGHT_MODAL.REFERRAL]: {
+        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.SETTINGS.ABOUT]: {
+            backgroundColor: colors.yellow600,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.REFERRAL_DETAILS]: {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

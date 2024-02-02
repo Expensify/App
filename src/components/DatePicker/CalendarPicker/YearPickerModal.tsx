@@ -49,7 +49,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={() => onClose?.()}
-            onModalHide={onClose}
+            onModalHide={() => onClose?.()}
             hideModalContentWhileAnimating
             useNativeDriver
         >
@@ -61,10 +61,9 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
-                    onBackButtonPress={onClose}
+                    onBackButtonPress={() => onClose?.()}
                 />
                 <SelectionList
-                    // @ts-expect-error TODO: Remove when SelectionList is migrated to TS
                     shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}

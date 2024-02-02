@@ -7,8 +7,9 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/hooks/usePermissions.ts');
 jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
@@ -51,12 +52,20 @@ describe('Sidebar', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            };
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
+                actionName: 'CLOSED',
+                originalMessage: {
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
@@ -68,6 +77,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
                         }),
                     )
                     .then(() => {
@@ -86,8 +96,8 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
                 policyName: 'Vikings Policy',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const action = {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
@@ -99,7 +109,7 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()

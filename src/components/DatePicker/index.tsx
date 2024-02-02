@@ -57,7 +57,7 @@ function DatePicker(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
+    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue);
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const onSelected = (newValue: string) => {

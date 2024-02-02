@@ -68,7 +68,6 @@ function CalendarPicker({
         setCurrentDateView((prev) => {
             const newCurrentDateView = setYear(new Date(prev), year);
             setYears((prevYears) =>
-                // eslint-disable-next-line rulesdir/prefer-underscore-method
                 prevYears.map((item) => ({
                     ...item,
                     isSelected: item.value === newCurrentDateView.getFullYear(),
@@ -94,14 +93,42 @@ function CalendarPicker({
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     const moveToPrevMonth = () => {
-        setCurrentDateView((prev) => subMonths(new Date(prev), 1));
+        setCurrentDateView((prev) => {
+            const prevMonth = subMonths(new Date(prev), 1);
+            // if year is subtracted, we need to update the years list
+            setYears((prevYears) => {
+                let newYears = [...prevYears];
+                if (prevMonth.getFullYear() < prev.getFullYear()) {
+                    newYears = years.map((item) => ({
+                        ...item,
+                        isSelected: item.value === prevMonth.getFullYear(),
+                    }));
+                }
+                return newYears;
+            });
+            return prevMonth;
+        });
     };
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     const moveToNextMonth = () => {
-        setCurrentDateView((prev) => addMonths(new Date(prev), 1));
+        setCurrentDateView((prev) => {
+            const nextMonth = addMonths(new Date(prev), 1);
+            // if year is subtracted, we need to update the years list
+            setYears((prevYears) => {
+                let newYears = [...prevYears];
+                if (nextMonth.getFullYear() > prev.getFullYear()) {
+                    newYears = years.map((item) => ({
+                        ...item,
+                        isSelected: item.value === nextMonth.getFullYear(),
+                    }));
+                }
+                return newYears;
+            });
+            return nextMonth;
+        });
     };
 
     const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.recapitalize(month));
@@ -189,7 +216,7 @@ function CalendarPicker({
                         const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
                         const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
                         const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                        const isSelected = !!day && isSameDay(typeof value === 'string' ? parseISO(value) : new Date(value), new Date(currentYearView, currentMonthView, day));
+                        const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
                         const handleOnPress = () => {
                             if (!day) {
                                 return;
@@ -206,7 +233,7 @@ function CalendarPicker({
                                 style={themeStyles.calendarDayRoot}
                                 accessibilityLabel={day?.toString() ?? ''}
                                 tabIndex={day ? 0 : -1}
-                                accessible
+                                accessible={Boolean(day)}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {({hovered, pressed}) => (
