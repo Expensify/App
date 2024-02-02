@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import {LockClosed} from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
