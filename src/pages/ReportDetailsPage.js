@@ -47,7 +47,7 @@ const propTypes = {
             /** Report ID passed via route r/:reportID/details */
             reportID: PropTypes.string,
 
-            /** Back To passed via route r/:reportID/details?backTo= */
+            /** BackTo passed via route r/:reportID/details?backTo= */
             backTo: PropTypes.string,
         }),
     }).isRequired,
@@ -179,17 +179,14 @@ function ReportDetailsPage(props) {
             shouldUseFullTitle
         />
     ) : null;
-    const backTo = props.route.params.backTo;
 
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton
                     title={props.translate('common.details')}
-                    shouldNavigateToTopMostReport={!backTo}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(backTo, !!backTo);
-                    }}
+                    shouldNavigateToTopMostReport={!props.route.params.backTo}
+                    onBackButtonPress={() => Navigation.goBack(props.route.params.backTo)}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>

@@ -501,7 +501,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (option.accountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(option.reportID, activeRoute));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
         }
     };
 
