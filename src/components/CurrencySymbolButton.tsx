@@ -18,7 +18,7 @@ type CurrencySymbolButtonProps = {
     onCurrencyButtonPress: () => void;
 };
 
-function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencySymbolButtonProps) {
+function CurrencySymbolButton({ onCurrencyButtonPress, currencySymbol }: CurrencySymbolButtonProps) {
     const { translate } = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -29,15 +29,14 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencyS
                 onPress={onCurrencyButtonPress}
                 accessibilityLabel={translate('common.selectCurrency')}
                 role={CONST.ROLE.BUTTON}
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
                     small
                     src={Expensicons.DownArrow}
                     fill={theme.icon}
                 />
                 <Text style={styles.iouAmountText}>{currencySymbol}</Text>
-                </View>
             </PressableWithoutFeedback>
         </Tooltip>
     );
