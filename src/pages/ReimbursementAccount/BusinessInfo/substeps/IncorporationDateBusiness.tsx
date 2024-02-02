@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
@@ -21,7 +21,7 @@ type IncorporationDateBusinessOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 };
 
 type IncorporationDateBusinessProps = IncorporationDateBusinessOnyxProps & SubStepProps;

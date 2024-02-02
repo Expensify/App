@@ -14,7 +14,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
 import BeneficialOwnerCheckUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
@@ -28,7 +28,7 @@ type BeneficialOwnerInfoOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 };
 
 type BeneficialOwnersStepProps = BeneficialOwnerInfoOnyxProps & {

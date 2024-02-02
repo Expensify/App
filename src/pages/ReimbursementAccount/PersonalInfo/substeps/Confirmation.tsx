@@ -15,14 +15,14 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 };
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;

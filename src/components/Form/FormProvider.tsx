@@ -15,7 +15,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {BaseInputProps, FormProps, InputRefs, OnyxDraftFormValuesFields, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
+import type {BaseInputProps, FormProps, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -48,13 +48,13 @@ type FormProviderOnyxProps = {
     network: OnyxEntry<Network>;
 };
 
-type FormProviderProps<TFormID extends OnyxFormKeyWithoutDraft = OnyxFormKeyWithoutDraft> = FormProviderOnyxProps &
+type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProviderOnyxProps &
     FormProps<TFormID> & {
         /** Children to render. */
         children: ((props: {inputValues: OnyxFormValues<TFormID>}) => ReactNode) | ReactNode;
 
         /** Callback to validate the form */
-        validate?: (values: OnyxFormValuesFields<TFormID> & OnyxDraftFormValuesFields<`${TFormID}Draft`>) => Errors;
+        validate?: (values: OnyxFormValuesFields<TFormID>) => Errors;
 
         /** Should validate function be called when input loose focus */
         shouldValidateOnBlur?: boolean;
@@ -355,4 +355,4 @@ export default withOnyx<FormProviderProps, FormProviderOnyxProps>({
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
         key: (props) => `${props.formID}Draft` as any,
     },
-})(forwardRef(FormProvider)) as <TFormID extends OnyxFormKeyWithoutDraft>(props: Omit<FormProviderProps<TFormID>, keyof FormProviderOnyxProps>) => ReactNode;
+})(forwardRef(FormProvider)) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID>, keyof FormProviderOnyxProps>) => ReactNode;

@@ -1,6 +1,5 @@
 import type {OnyxFormValuesFields} from '@components/Form/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type Form from './Form';
 
 type OnfidoData = Record<string, unknown>;
 type ReimbursementAccountDraftValues = OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT>;
@@ -78,8 +77,6 @@ type ReimbursementAccountDraft = BankAccountStepProps &
         selectedPlaidAccountID?: string;
     };
 
-type ReimbursementAccountFormDraft = Form<ReimbursementAccountDraft>;
-
 export default ReimbursementAccountDraft;
 export type {
     ACHContractStepProps,
@@ -89,7 +86,6 @@ export type {
     BankAccountStepProps,
     CompanyStepProps,
     ReimbursementAccountProps,
-    ReimbursementAccountFormDraft,
     BeneficialOwnerDraftData,
     ReimbursementAccountDraftValues,
 };

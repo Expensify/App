@@ -16,7 +16,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
 
 const reimbursementAccountDefault = {
     achData: {
@@ -34,7 +34,7 @@ type CompanyOwnersListUBOIOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 };
 
 type CompanyOwnersListUBOProps = CompanyOwnersListUBOIOnyxProps & {

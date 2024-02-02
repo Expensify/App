@@ -16,7 +16,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
 import AddressBusiness from './substeps/AddressBusiness';
 import ConfirmationBusiness from './substeps/ConfirmationBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
@@ -32,7 +32,7 @@ type BusinessInfoOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 };
 
 type BusinessInfoProps = BusinessInfoOnyxProps & {

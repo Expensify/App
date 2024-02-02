@@ -12,7 +12,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PlaidData, ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
+import type {PlaidData, ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
@@ -21,7 +21,7 @@ type PlaidOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 
     /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;

@@ -15,7 +15,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccountUtils from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
 import Confirmation from './substeps/Confirmation';
 import Manual from './substeps/Manual';
 import Plaid from './substeps/Plaid';
@@ -28,7 +28,7 @@ type BankInfoOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 };
 
 type BankInfoProps = BankInfoOnyxProps & {
