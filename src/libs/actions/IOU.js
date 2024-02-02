@@ -1175,8 +1175,8 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
  * Updates the billable field of a money request
  *
  * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} val
+ * @param {String} transactionThreadReportID
+ * @param {Boolean} val
  */
 function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val) {
     const transactionChanges = {
@@ -2092,7 +2092,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     );
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(splitChatReport.reportID);
+    Navigation.dismissModalWithReport(splitChatReport);
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
@@ -3490,7 +3490,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModalWithReport(chatReport);
 }
 
 function detachReceipt(transactionID) {

@@ -20,6 +20,7 @@ function WorkspaceTravelNoVBAView({policyID}: WorkspaceTravelNoVBAViewProps) {
         <Section
             title={translate('workspace.travel.unlockConciergeBookingTravel')}
             icon={Illustrations.Luggage}
+            isCentralPane
         >
             <View style={styles.mv3}>
                 <Text>{translate('workspace.travel.noVBACopy')}</Text>

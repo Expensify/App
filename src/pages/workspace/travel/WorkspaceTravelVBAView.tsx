@@ -18,6 +18,7 @@ function WorkspaceTravelVBAView() {
         <Section
             title={translate('workspace.travel.packYourBags')}
             icon={Illustrations.Luggage}
+            isCentralPane
             menuItems={[
                 {
                     title: translate('workspace.common.issueAndManageCards'),

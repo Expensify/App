@@ -1,6 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
@@ -12,6 +15,8 @@ type WorkspaceTravelPageProps = StackScreenProps<SettingsNavigatorParamList, typ
 
 function WorkspaceTravelPage({route}: WorkspaceTravelPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <WorkspacePageWithSections
@@ -19,12 +24,13 @@ function WorkspaceTravelPage({route}: WorkspaceTravelPageProps) {
             headerText={translate('workspace.common.travel')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
+            shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA = false, policyID = '') => (
-                <>
+                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
-                </>
+                </View>
             )}
         </WorkspacePageWithSections>
     );
