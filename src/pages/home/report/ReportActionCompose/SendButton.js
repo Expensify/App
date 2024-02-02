@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Icon from '@components/Icon';
@@ -63,4 +63,4 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
 SendButton.propTypes = propTypes;
 SendButton.displayName = 'SendButton';
 
-export default SendButton;
+export default memo(SendButton);

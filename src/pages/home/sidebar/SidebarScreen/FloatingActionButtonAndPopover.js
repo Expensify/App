@@ -5,19 +5,19 @@ import {withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
-import withWindowDimensions from '@components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
-import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +36,7 @@ const policySelector = (policy) =>
     };
 
 const propTypes = {
-    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
@@ -72,9 +72,9 @@ const defaultProps = {
  */
 function FloatingActionButtonAndPopover(props) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const isAnonymousUser = Session.isAnonymousUser();
-    const anchorRef = useRef(null);
+    const fabRef = useRef(null);
 
     const prevIsFocused = usePrevious(props.isFocused);
 
@@ -124,20 +124,6 @@ function FloatingActionButtonAndPopover(props) {
         [isCreateMenuActive],
     );
 
-    /**
-     * Checks if user is anonymous. If true, shows the sign in modal, else,
-     * executes the callback.
-     *
-     * @param {Function} callback
-     */
-    const interceptAnonymousUser = (callback) => {
-        if (isAnonymousUser) {
-            Session.signOutAndRedirectToSignIn();
-        } else {
-            callback();
-        }
-    };
-
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
             return;
@@ -153,8 +139,16 @@ function FloatingActionButtonAndPopover(props) {
         },
     }));
 
+    const toggleCreateMenu = () => {
+        if (isCreateMenuActive) {
+            hideCreateMenu();
+        } else {
+            showCreateMenu();
+        }
+    };
+
     return (
-        <View>
+        <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive && (!props.isSmallScreenWidth || props.isFocused)}
@@ -164,12 +158,12 @@ function FloatingActionButtonAndPopover(props) {
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
-                        text: props.translate('sidebarScreen.fabNewChat'),
+                        text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
                     {
                         icon: Expensicons.MoneyCircle,
-                        text: props.translate('iou.requestMoney'),
+                        text: translate('iou.requestMoney'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 Navigation.navigate(
@@ -181,19 +175,19 @@ function FloatingActionButtonAndPopover(props) {
                     },
                     {
                         icon: Expensicons.Send,
-                        text: props.translate('iou.sendMoney'),
+                        text: translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
                     ...[
                         {
                             icon: Expensicons.Task,
-                            text: props.translate('newTaskPage.assignTask'),
+                            text: translate('newTaskPage.assignTask'),
                             onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                         },
                     ],
                     {
                         icon: Expensicons.Heart,
-                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        text: translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
@@ -204,28 +198,22 @@ function FloatingActionButtonAndPopover(props) {
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
                                   iconHeight: 40,
-                                  text: props.translate('workspace.new.newWorkspace'),
-                                  description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                  text: translate('workspace.new.newWorkspace'),
+                                  description: translate('workspace.new.getTheExpensifyCardAndMore'),
                                   onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
                               },
                           ]
                         : []),
                 ]}
                 withoutOverlay
-                anchorRef={anchorRef}
+                anchorRef={fabRef}
             />
             <FloatingActionButton
-                accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
+                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                 role={CONST.ROLE.BUTTON}
                 isActive={isCreateMenuActive}
-                ref={anchorRef}
-                onPress={() => {
-                    if (isCreateMenuActive) {
-                        hideCreateMenu();
-                    } else {
-                        showCreateMenu();
-                    }
-                }}
+                ref={fabRef}
+                onPress={toggleCreateMenu}
             />
         </View>
     );
@@ -246,7 +234,6 @@ const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
 FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
 
 export default compose(
-    withLocalize,
     withNavigation,
     withNavigationFocus,
     withWindowDimensions,

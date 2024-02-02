@@ -175,7 +175,10 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')} />
+                    <HeaderWithBackButton
+                        title={translate('common.search')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
                     <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
                         <OptionsSelector
                             // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
