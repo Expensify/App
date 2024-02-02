@@ -168,6 +168,7 @@ function ProfilePage(props) {
                         isCentralPane
                         subtitleMuted
                         childrenStyles={styles.pt3}
+                        titleStyles={styles.accountSettingsSectionTitle}
                     >
                         {_.map(publicOptions, (detail, index) => (
                             <MenuItemWithTopDescription
