@@ -16,6 +16,8 @@ type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointColle
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
+type IOUActionType = ValueOf<typeof CONST.IOU.REQUEST_TYPE> | ValueOf<Pick<typeof CONST.IOU.TYPE, 'SPLIT'>>;
+
 let allTransactions: OnyxCollection<Transaction> = {};
 
 Onyx.connect({
@@ -80,13 +82,23 @@ function isManualRequest(transaction: Transaction): boolean {
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
-function getTransactionsByActionType(actionType?: string): Array<OnyxEntry<Transaction>> {
+/**
+ * Returns the type of action for the given transaction
+ */
+function getTransactionActionType(transaction: Transaction): IOUActionType {
+    if (isSplitRequest(transaction)) {
+        return CONST.IOU.TYPE.SPLIT;
+    }
+    return getRequestType(transaction);
+}
+
+/**
+ * Returns a sorted array of transactions based on the type of action
+ */
+function getTransactionsByActionType(actionType?: IOUActionType): Array<OnyxEntry<Transaction>> {
     return (
         Object.values(allTransactions ?? {})
-            .filter(
-                (transaction): transaction is Transaction =>
-                    transaction != null && (actionType === CONST.IOU.TYPE.SPLIT ? isSplitRequest(transaction) : getRequestType(transaction) === actionType),
-            )
+            .filter((transaction): transaction is Transaction => transaction != null && actionType === getTransactionActionType(transaction))
             // String based sorting of dates having format [YYYY-MM-DD HH:MM:SS.mmm]
             .sort((transactionA, transactionB) => (transactionA?.created && transactionB?.created && transactionA?.created > transactionB?.created ? 1 : -1))
             .reverse()
@@ -615,4 +627,5 @@ export {
     getRecentTransactions,
     hasViolation,
     getTransactionsByActionType,
+    getTransactionActionType,
 };

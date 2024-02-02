@@ -7,6 +7,7 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +69,8 @@ type Category = {
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
+type ActionType = ValueOf<typeof CONST.IOU.REQUEST_TYPE> | ValueOf<Pick<typeof CONST.REPORT.TYPE, 'TASK'>> | ValueOf<Pick<typeof CONST.IOU.TYPE, 'SPLIT'>> | undefined;
+
 type GetOptionsConfig = {
     reportActions?: ReportActions;
     betas?: Beta[];
@@ -99,7 +102,7 @@ type GetOptionsConfig = {
     includePolicyTaxRates?: boolean;
     policyTaxRates?: PolicyTaxRateWithDefault;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
-    actionTypeForParticipants?: string;
+    actionTypeForParticipants?: ActionType;
 };
 
 type MemberForList = {
@@ -1335,7 +1338,7 @@ function getOptions(
         transactionViolations = {},
         includePolicyTaxRates,
         policyTaxRates,
-        actionTypeForParticipants = '',
+        actionTypeForParticipants,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1433,10 +1436,11 @@ function getOptions(
     const allReportOptions: ReportUtils.OptionData[] = [];
     const isTaskActionTypeForParticipants = actionTypeForParticipants === CONST.REPORT.TYPE.TASK;
     const isMoneyRequestActionTypeForParticipants =
-        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
-        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
-        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
-        actionTypeForParticipants === CONST.IOU.TYPE.SPLIT;
+        !isTaskActionTypeForParticipants &&
+        (actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
+            actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
+            actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+            actionTypeForParticipants === CONST.IOU.TYPE.SPLIT);
     const reportIDsForTaskReport: string[] = [];
     orderedReports.forEach((report) => {
         if (!report) {
@@ -1838,7 +1842,7 @@ function getFilteredOptions(
     includeSelectedOptions = false,
     includePolicyTaxRates = false,
     policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
-    actionTypeForParticipants = '',
+    actionTypeForParticipants: ActionType = undefined,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
