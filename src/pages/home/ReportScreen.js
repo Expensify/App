@@ -659,17 +659,8 @@ export default compose(
             _.isEqual(prevProps.policies, nextProps.policies) &&
             prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
-            prevProps.report.reportID === nextProps.report.reportID &&
-            prevProps.report.policyID === nextProps.report.policyID &&
-            prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.report.isOptimisticReport === nextProps.report.isOptimisticReport &&
-            prevProps.report.statusNum === nextProps.report.statusNum &&
-            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            _.isEqual(prevProps.report, nextProps.report) &&
             prevProps.currentReportID === nextProps.currentReportID &&
-            prevProps.report.notificationPreference === nextProps.report.notificationPreference &&
-            prevProps.report.isPinned === nextProps.report.isPinned &&
-            prevProps.report.chatReportID === nextProps.report.chatReportID &&
-            prevProps.report.visibility === nextProps.report.visibility &&
             prevProps.viewportOffsetTop === nextProps.viewportOffsetTop,
     ),
 );
