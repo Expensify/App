@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyResponsePageOnyxProps = {
     draftResponse: string;
@@ -37,6 +39,7 @@ type ExitSurveyResponsePageProps = ExitSurveyResponsePageOnyxProps & StackScreen
 
 function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePageProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
@@ -99,27 +102,30 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                <>
-                    <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={CONST.EXIT_SURVEY.RESPONSE_INPUT_ID}
-                        label={translate(`exitSurvey.responsePlaceholder`)}
-                        accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
-                        role={CONST.ROLE.PRESENTATION}
-                        autoGrowHeight
-                        maxLength={CONST.MAX_COMMENT_LENGTH}
-                        ref={(el: AnimatedTextInputRef) => {
-                            if (!el) {
-                                return;
-                            }
-                            updateMultilineInputRange(el);
-                        }}
-                        value={draftResponse}
-                        containerStyles={[baseResponseInputContainerStyle, StyleUtils.getMaximumHeight(responseInputMaxHeight)]}
-                        shouldSaveDraft
-                    />
-                </>
+                {isOffline && <ExitSurveyOffline />}
+                {!isOffline && (
+                    <>
+                        <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={CONST.EXIT_SURVEY.RESPONSE_INPUT_ID}
+                            label={translate(`exitSurvey.responsePlaceholder`)}
+                            accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
+                            role={CONST.ROLE.PRESENTATION}
+                            autoGrowHeight
+                            maxLength={CONST.MAX_COMMENT_LENGTH}
+                            ref={(el: AnimatedTextInputRef) => {
+                                if (!el) {
+                                    return;
+                                }
+                                updateMultilineInputRange(el);
+                            }}
+                            value={draftResponse}
+                            containerStyles={[baseResponseInputContainerStyle, StyleUtils.getMaximumHeight(responseInputMaxHeight)]}
+                            shouldSaveDraft
+                        />
+                    </>
+                )}
             </FormProvider>
         </ScreenWrapper>
     );

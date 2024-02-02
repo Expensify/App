@@ -1,10 +1,7 @@
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import {ToddBehindCloud} from '@components/Icon/Illustrations';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,13 +11,13 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
-import variables from '@styles/variables';
 import * as ExitSurvey from '@userActions/ExitSurvey';
 import type {ExitReason} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import ExitSurveyOffline from './ExitSurveyOffline';
 
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
@@ -67,17 +64,7 @@ function ExitSurveyReasonPage() {
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                {isOffline && (
-                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <Icon
-                            width={variables.modalTopIconWidth}
-                            height={variables.modalTopIconHeight}
-                            src={ToddBehindCloud}
-                        />
-                        <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.offlineTitle')}</Text>
-                        <Text style={styles.mt2}>{translate('exitSurvey.offline')}</Text>
-                    </View>
-                )}
+                {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
                     <>
                         <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
