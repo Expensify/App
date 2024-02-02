@@ -1,12 +1,13 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
+import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Illustrations from '@components/Icon/Illustrations';
-import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -33,28 +34,30 @@ const WALLET_FEATURES = [
 
 function WalletEmptyState({onAddPaymentMethod}) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
-        <IllustratedHeaderPageLayout
+        <HeaderPageLayout
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET.ROOT].backgroundColor}
-            illustration={LottieAnimations.FastMoney}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}
-            footer={
-                <Button
-                    accessibilityLabel={translate('paymentMethodList.addPaymentMethod')}
-                    success
-                    text={translate('paymentMethodList.addPaymentMethod')}
-                    onPress={onAddPaymentMethod}
-                />
-            }
+            shouldShowBackButton={isSmallScreenWidth}
+            shouldShowOfflineIndicatorInWideScreen
+            style={isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection}
         >
             <FeatureList
                 menuItems={WALLET_FEATURES}
-                headline="walletPage.getPaidFaster"
-                description="walletPage.addPaymentMethod"
+                illustration={LottieAnimations.FastMoney}
+                illustrationBackgroundColor={theme.fallbackIconColor}
+                title={translate('walletPage.getPaidFaster')}
+                subtitle={translate('walletPage.addPaymentMethod')}
+                ctaText={translate('paymentMethodList.addPaymentMethod')}
+                ctaAccessibilityLabel={translate('paymentMethodList.addPaymentMethod')}
+                onCtaPress={onAddPaymentMethod}
             />
-        </IllustratedHeaderPageLayout>
+        </HeaderPageLayout>
     );
 }
 

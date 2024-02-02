@@ -51,9 +51,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
@@ -173,6 +176,17 @@ Linking.getInitialURL().then((url) => {
     const exitToRoute = params.get('exitTo') ?? '';
     const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
     reportIDDeeplinkedFromOldDot = reportID;
+});
+
+let lastVisitedPath: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.LAST_VISITED_PATH,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        lastVisitedPath = value;
+    },
 });
 
 let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
@@ -723,14 +737,15 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     if (!chat) {
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
-    const reportID = chat ? chat.reportID : newChat.reportID;
+    const report = chat ?? newChat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, userLogins, newChat);
+    openReport(report.reportID, userLogins, newChat);
     if (shouldDismissModal) {
-        Navigation.dismissModal(reportID);
+        Navigation.dismissModalWithReport(report);
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     }
 }
 
@@ -745,11 +760,11 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
     if (!chat) {
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
-    const reportID = chat ? chat.reportID : newChat.reportID;
+    const report = chat ?? newChat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, [], newChat, '0', false, participantAccountIDs);
-    Navigation.dismissModal(reportID);
+    openReport(report.reportID, [], newChat, '0', false, participantAccountIDs);
+    Navigation.dismissModalWithReport(report);
 }
 
 /**
@@ -1948,7 +1963,16 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         return;
     }
 
-    const onClick = () => Modal.close(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+    const onClick = () =>
+        Modal.close(() => {
+            const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+            const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
+            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : false;
+            if (!reportBelongsToWorkspace) {
+                Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);

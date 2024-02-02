@@ -15,6 +15,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -68,6 +69,7 @@ const defaultProps = {
 function WorkspaceReimburseView(props) {
     const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
+    const {isSmallScreenWidth} = useWindowDimensions();
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
@@ -103,10 +105,11 @@ function WorkspaceReimburseView(props) {
     }, [props.policy.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <>
+        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
+                isCentralPane
                 menuItems={[
                     {
                         title: translate('workspace.reimburse.viewAllReceipts'),
@@ -134,23 +137,25 @@ function WorkspaceReimburseView(props) {
             <Section
                 title={translate('workspace.reimburse.trackDistance')}
                 icon={Illustrations.TrackShoe}
+                isCentralPane
             >
-                <View style={[styles.mv3]}>
+                <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
+                        shouldShowErrorMessages={false}
+                        style={styles.w100}
+                    >
+                        <MenuItemWithTopDescription
+                            title={currentRatePerUnit}
+                            description={translate('workspace.reimburse.trackDistanceRate')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id))}
+                            wrapperStyle={[styles.mt3, styles.ph8, styles.mhn8, styles.wAuto]}
+                            brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        />
+                    </OfflineWithFeedback>
                 </View>
-                <OfflineWithFeedback
-                    pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
-                    shouldShowErrorMessages={false}
-                >
-                    <MenuItemWithTopDescription
-                        title={currentRatePerUnit}
-                        description={translate('workspace.reimburse.trackDistanceRate')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id))}
-                        wrapperStyle={[styles.mhn5, styles.wAuto]}
-                        brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                    />
-                </OfflineWithFeedback>
             </Section>
 
             <WorkspaceReimburseSection
@@ -159,7 +164,7 @@ function WorkspaceReimburseView(props) {
                 network={props.network}
                 translate={translate}
             />
-        </>
+        </View>
     );
 }
 
