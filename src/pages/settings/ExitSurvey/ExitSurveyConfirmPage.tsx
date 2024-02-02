@@ -58,6 +58,7 @@ function ExitSurveyConfirmPage({isLoading}: ExitSurveyConfirmPageOnyxProps) {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     }}
                     isLoading={isLoading ?? false}
+                    isDisabled={isOffline}
                 />
             </FixedFooter>
         </ScreenWrapper>
