@@ -8,6 +8,7 @@ import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepCont
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
 import EnabledStep from './Steps/EnabledStep';
@@ -41,7 +42,7 @@ function TwoFactorAuthSteps({
     }, [account?.requiresTwoFactorAuth, account?.twoFactorAuthStep]);
 
     const handleSetStep = useCallback(
-        (step: TwoFactorAuthStep, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
+        (step: TwoFactorAuthStep, animationDirection: AnimationDirection = CONST.ANIMATION_DIRECTION.IN) => {
             setAnimationDirection(animationDirection);
             TwoFactorAuthActions.setTwoFactorAuthStep(step);
             setCurrentStep(step);
