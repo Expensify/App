@@ -803,10 +803,12 @@ export default {
             },
         },
         troubleshoot: {
-            resetAndRefresh: 'Reset and refresh stashed data',
+            resetAndRefreshStashed: 'Reset and refresh stashed data',
             viewConsole: 'View debug console',
             description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
             submitBug: 'submit a bug',
+            confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
+            resetAndRefresh: 'Reset and refresh',
         },
         goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',

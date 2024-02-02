@@ -797,10 +797,12 @@ export default {
             },
         },
         troubleshoot: {
-            resetAndRefresh: 'Restablecer y actualizar los datos almacenados',
+            resetAndRefreshStashed: 'Restablecer y actualizar los datos almacenados',
             viewConsole: 'Ver la consola de depuración',
             description: 'Utilice las herramientas que aparecen a continuación para solucionar los problemas de Expensify. Si tiene algún problema, por favor',
             submitBug: 'envíe un error',
+            confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
+            resetAndRefresh: 'Restablecer y actualizar',
         },
         security: 'Seguridad',
         signOut: 'Desconectar',

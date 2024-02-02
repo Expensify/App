@@ -1,7 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
@@ -46,17 +47,14 @@ function TroubleshootPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
+    const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
 
     const menuItems = useMemo(() => {
         const baseMenuItems: BaseMenuItem[] = [
             {
-                translationKey: 'initialSettingsPage.troubleshoot.resetAndRefresh',
+                translationKey: 'initialSettingsPage.troubleshoot.resetAndRefreshStashed',
                 icon: Expensicons.RotateLeft,
-                action: () => {
-                    Onyx.clear(keysToPreserve).then(() => {
-                        App.openApp();
-                    });
-                },
+                action: () => setIsConfirmationModalVisible(true),
             },
         ];
 
@@ -97,6 +95,20 @@ function TroubleshootPage() {
                     <TestToolMenu />
                 </View>
             )}
+            <ConfirmModal
+                title={translate('common.areYouSure')}
+                isVisible={isConfirmationModalVisible}
+                onConfirm={() => {
+                    setIsConfirmationModalVisible(false);
+                    Onyx.clear(keysToPreserve).then(() => {
+                        App.openApp();
+                    });
+                }}
+                onCancel={() => setIsConfirmationModalVisible(false)}
+                prompt={translate('initialSettingsPage.troubleshoot.confirmResetDescription')}
+                confirmText={translate('initialSettingsPage.troubleshoot.resetAndRefresh')}
+                cancelText={translate('common.cancel')}
+            />
         </IllustratedHeaderPageLayout>
     );
 }
