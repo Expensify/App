@@ -66,7 +66,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     return errors[key];
 }
 
-function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Record<string, string> {
+function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Errors {
     const errors = onyxData.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
