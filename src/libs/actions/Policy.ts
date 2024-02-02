@@ -270,6 +270,7 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
 
     // Restore the old report stateNum and statusNum
     const failureData: OnyxUpdate[] = [
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

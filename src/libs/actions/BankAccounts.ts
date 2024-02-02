@@ -121,6 +121,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
             },
         ],
         failureData: [
+            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
