@@ -163,7 +163,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants);
     }, [participants, personalDetails]);
 
-    const icons = useMemo(() => ReportUtils.getIcons(report, personalDetails, policies), [report, personalDetails, policies]);
+    const icons = useMemo(() => ReportUtils.getIcons(report, personalDetails, null, '', -1, policy), [report, personalDetails, policy]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
         <DisplayNames

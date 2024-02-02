@@ -14,7 +14,20 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyReportField,
+    PolicyReportFields,
+    Report,
+    ReportAction,
+    ReportMetadata,
+    Session,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -342,7 +355,7 @@ type OptionData = {
     text?: string;
     alternateText?: string | null;
     allReportErrors?: Errors;
-    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -439,8 +452,21 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let allTransactions: OnyxCollection<Transaction> = {};
+let allPolicyReportFields: OnyxCollection<PolicyReportFields> = {};
 
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicyReportFields = value),
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -869,7 +895,7 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
  * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
  * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
  */
-function doesReportBelongToWorkspace(report: Report, policyID: string, policyMemberAccountIDs: number[]) {
+function doesReportBelongToWorkspace(report: Report, policyMemberAccountIDs: number[], policyID?: string) {
     return (
         isConciergeChatReport(report) || (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : report.policyID === policyID)
     );
@@ -878,8 +904,8 @@ function doesReportBelongToWorkspace(report: Report, policyID: string, policyMem
 /**
  * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
-function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyID = '', policyMemberAccountIDs: number[] = []) {
-    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
+function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMemberAccountIDs: number[] = [], policyID?: string) {
+    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID));
 }
 
 /**
@@ -978,7 +1004,7 @@ function findLastAccessedReport(
     let reportsValues = Object.values(reports ?? {}) as Report[];
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
-        reportsValues = filterReportsByPolicyIdAndMemberAccountIDs(reportsValues, policyID, policyMemberAccountIDs);
+        reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
     let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
@@ -1851,9 +1877,73 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 }
 
 /**
+ * Given a report field, check if the field is for the report title.
+ */
+function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): boolean {
+    return reportField?.type === 'formula' && reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+}
+
+/**
+ * Given a report field, check if the field can be edited or not.
+ * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
+ * For non title fields, its considered disabled if:
+ * 1. The user is not admin of the report
+ * 2. Report is settled or it is closed
+ */
+function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    const isReportSettled = isSettled(report?.reportID);
+    const isReportClosed = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+    const isTitleField = isReportFieldOfTypeTitle(reportField);
+    const isAdmin = isPolicyAdmin(report?.policyID ?? '', {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id ?? ''}`]: policy});
+    return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
+}
+
+/**
+ * Given a set of report fields, return the field of type formula
+ */
+function getFormulaTypeReportField(reportFields: PolicyReportFields) {
+    return Object.values(reportFields).find((field) => field.type === 'formula');
+}
+
+/**
+ * Get the report fields attached to the policy given policyID
+ */
+function getReportFieldsByPolicyID(policyID: string) {
+    return Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === policyID)?.[1];
+}
+
+/**
+ * Get the report fields that we should display a MoneyReportView gets opened
+ */
+
+function getAvailableReportFields(report: Report, policyReportFields: PolicyReportField[]): PolicyReportField[] {
+    // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
+    const reportFields = Object.values(report.reportFields ?? {});
+    const reportIsSettled = isSettled(report.reportID);
+
+    // If the report is settled, we don't want to show any new field that gets added to the policy.
+    if (reportIsSettled) {
+        return reportFields;
+    }
+
+    // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
+    // are attached to the report.
+    const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
+    return mergedFieldIds.map((id) => report?.reportFields?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
+}
+
+/**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
+    const isReportSettled = isSettled(report?.reportID ?? '');
+    const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
+    const titleReportField = getFormulaTypeReportField(reportFields ?? {});
+
+    if (titleReportField && report?.reportName && Permissions.canUseReportFields(allBetas ?? [])) {
+        return report.reportName;
+    }
+
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
@@ -3604,6 +3694,8 @@ function shouldReportBeInOptionList({
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
+    // Optionally exclude reports that do not belong to currently active workspace
+
     if (
         !report?.reportID ||
         !report?.type ||
@@ -4539,32 +4631,6 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
 }
 
 /**
- * Given a report field and a report, get the title of the field.
- * This is specially useful when we have a report field of type formula.
- */
-function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField): string {
-    const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
-
-    if (reportField.type !== 'formula') {
-        return value;
-    }
-
-    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
-        if (report && property in report) {
-            return report[property as keyof Report]?.toString() ?? match;
-        }
-        return match;
-    });
-}
-
-/**
- * Given a report field, check if the field is for the report title.
- */
-function isReportFieldOfTypeTitle(reportField: PolicyReportField): boolean {
-    return reportField.type === 'formula' && reportField.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
-}
-
-/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -4790,7 +4856,6 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
-    getReportFieldTitle,
     shouldDisplayThreadReplies,
     shouldDisableThread,
     doesReportBelongToWorkspace,
@@ -4798,6 +4863,8 @@ export {
     isReportParticipant,
     isValidReport,
     isReportFieldOfTypeTitle,
+    isReportFieldDisabled,
+    getAvailableReportFields,
 };
 
 export type {
