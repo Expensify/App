@@ -92,7 +92,7 @@ function WorkspaceRateAndUnitPage(props) {
         // TODO: Move this to a proper action
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, null);
-        Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id));
+        Navigation.goBack();
     };
 
     return (
@@ -101,8 +101,8 @@ function WorkspaceRateAndUnitPage(props) {
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
-            backButtonRoute={ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id)}
             shouldShowLoading={false}
+            shouldShowBackButton
         >
             {() => (
                 <ScrollView
