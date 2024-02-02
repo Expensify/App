@@ -3,7 +3,7 @@ type RecentWaypoint = {
     name?: string;
 
     /** The full address of the waypoint */
-    address: string;
+    address?: string;
 
     /** The lattitude of the waypoint */
     lat?: number;

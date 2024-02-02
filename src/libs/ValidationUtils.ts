@@ -6,6 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+import type {FormValueType} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
@@ -35,7 +36,11 @@ function validateCardNumber(value: string): boolean {
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  */
-function isValidAddress(value: string): boolean {
+function isValidAddress(value: FormValueType): boolean {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
     if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }

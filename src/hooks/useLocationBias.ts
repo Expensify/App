@@ -1,18 +1,18 @@
 import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Location} from '@pages/iou/request/step/IOURequestStepWaypoint';
 import type {UserLocation} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 /**
  * Construct the rectangular boundary based on user location and waypoints
  */
-export default function useLocationBias(allWaypoints: Record<string, Location>, userLocation?: OnyxEntry<UserLocation>) {
+export default function useLocationBias(allWaypoints: WaypointCollection, userLocation?: OnyxEntry<UserLocation>) {
     return useMemo(() => {
         const hasFilledWaypointCount = Object.values(allWaypoints).some((waypoint) => Object.keys(waypoint).length > 0);
         // If there are no filled wayPoints and if user's current location cannot be retrieved,
         // it is futile to arrive at a biased location. Let's return
         if (!hasFilledWaypointCount && userLocation === undefined) {
-            return null;
+            return undefined;
         }
 
         // Gather the longitudes and latitudes from filled waypoints.

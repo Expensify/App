@@ -18,6 +18,7 @@ import type {
     NewRoomForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    WaypointForm,
     WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
@@ -163,4 +164,5 @@ export type {
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    WaypointForm,
 };

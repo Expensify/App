@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TextInput} from 'react-native';
+import type {Place} from 'react-native-google-places-autocomplete';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -27,36 +28,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type Location = {
-    lat?: number;
-    lng?: number;
-};
-
-type Geometry = {
-    location: Location;
-};
-
-type WaypointValues = Record<string, string>;
-
-type MappedWaypoint = {
-    /** Waypoint name */
-    name?: string;
-
-    /** Waypoint description */
-    description: string;
-
-    /** Waypoint geometry object cointaing coordinates */
-    geometry: Geometry;
-};
-
 type IOURequestStepWaypointOnyxProps = {
     /** List of recent waypoints */
-    recentWaypoints: OnyxEntry<MappedWaypoint[]>;
+    recentWaypoints: OnyxEntry<Place[]>;
 
     userLocation: OnyxEntry<OnyxTypes.UserLocation>;
 };
@@ -109,16 +89,16 @@ function IOURequestStepWaypoint({
     }, [parsedWaypointIndex, waypointCount]);
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
-    const waypointAddress = currentWaypoint.address ?? '';
+    const waypointAddress = currentWaypoint.address;
     // Hide the menu when there is only start and finish waypoint
     const shouldShowThreeDotsButton = waypointCount > 2;
     const shouldDisableEditor =
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
-    const validate = (values: WaypointValues): ErrorUtils.ErrorsList => {
+    const validate = (values: Record<string, string>): Errors => {
         const errors = {};
-        const waypointValue = values[`waypoint${pageIndex}`] || '';
+        const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
             ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'bankAccount.error.address');
         }
@@ -134,9 +114,8 @@ function IOURequestStepWaypoint({
 
     const saveWaypoint = (waypoint: OnyxTypes.RecentWaypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
 
-    const submit = (values: WaypointValues) => {
-        const waypointValue = values[`waypoint${pageIndex}`] || '';
-
+    const submit = (values: Record<string, string>) => {
+        const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
             Transaction.removeWaypoint(transaction, pageIndex, true);
@@ -166,9 +145,10 @@ function IOURequestStepWaypoint({
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
-            address: values.address ?? '',
+            address: values.address,
             name: values.name,
         };
+
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
         if (backTo) {
             Navigation.goBack(backTo);
@@ -213,7 +193,6 @@ function IOURequestStepWaypoint({
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */}
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
@@ -226,13 +205,12 @@ function IOURequestStepWaypoint({
                 >
                     <View>
                         <InputWrapperWithRef
-                            /* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */
                             InputComponent={AddressSearch}
                             locationBias={locationBias}
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
-                            ref={(e) => {
-                                textInput.current = e;
+                            ref={(e: HTMLElement | null) => {
+                                textInput.current = e as unknown as TextInput;
                             }}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
@@ -242,14 +220,14 @@ function IOURequestStepWaypoint({
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
                                 address: `waypoint${pageIndex}`,
-                                city: null,
-                                country: null,
-                                street: null,
-                                street2: null,
-                                zipCode: null,
-                                lat: null,
-                                lng: null,
-                                state: null,
+                                city: '',
+                                country: '',
+                                street: '',
+                                street2: '',
+                                zipCode: '',
+                                lat: '',
+                                lng: '',
+                                state: '',
                             }}
                             predefinedPlaces={recentWaypoints}
                             resultTypes=""
@@ -280,16 +258,14 @@ export default withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxP
         selector: (waypoints) =>
             (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
                 name: waypoint.name,
-                description: waypoint.address,
+                description: waypoint.address ?? '',
                 geometry: {
                     location: {
-                        lat: waypoint.lat,
-                        lng: waypoint.lng,
+                        lat: waypoint.lat ?? 0,
+                        lng: waypoint.lng ?? 0,
                     },
                 },
             })),
     },
-    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound and IOURequestStepWaypointWithWritableReportOrNotFound  is migrated to TypeScript.
+    // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
 })(IOURequestStepWaypointWithFullTransactionOrNotFound);
-
-export type {Location};

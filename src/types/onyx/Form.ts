@@ -1,7 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalBankAccount from './PersonalBankAccount';
 
-type FormValueType = string | boolean | Date | OnyxCommon.Errors;
+type FormValueType = string | boolean | Date | OnyxCommon.Errors | number;
 
 type BaseForm = {
     /** Controls the loading state of the form */
@@ -63,6 +63,8 @@ type WorkspaceSettingsForm = Form<{
 
 type ReportFieldEditForm = Form<Record<string, string>>;
 
+type WaypointForm = Form<Record<string, string>>;
+
 export default Form;
 
 export type {
@@ -78,4 +80,5 @@ export type {
     PersonalBankAccountForm,
     WorkspaceSettingsForm,
     ReportFieldEditForm,
+    WaypointForm,
 };
