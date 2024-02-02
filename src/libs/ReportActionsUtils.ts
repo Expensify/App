@@ -370,7 +370,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isPendingRemove(reportAction)) {
+    if (isPendingRemove(reportAction) && !reportAction.childVisibleActionCount) {
         return false;
     }
 
