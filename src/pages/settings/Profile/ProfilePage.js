@@ -188,6 +188,7 @@ function ProfilePage(props) {
                         isCentralPane
                         subtitleMuted
                         childrenStyles={styles.pt3}
+                        titleStyles={styles.accountSettingsSectionTitle}
                     >
                         {isLoadingPersonalDetails ? (
                             <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
