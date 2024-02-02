@@ -423,7 +423,10 @@ function MoneyRequestConfirmationList({
             return [];
         }
         const myIOUAmount = IOUUtils.calculateAmount(selectedParticipantsMemo.length, iouAmount, iouCurrencyCode ?? '', true);
-        return [...selectedParticipantsMemo, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetailsMemo, String(myIOUAmount))];
+        return [
+            ...selectedParticipantsMemo,
+            OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetailsMemo, CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode)),
+        ];
     }, [hasMultipleParticipants, selectedParticipantsMemo, iouAmount, iouCurrencyCode, payeePersonalDetailsMemo]);
 
     useEffect(() => {
@@ -560,7 +563,7 @@ function MoneyRequestConfirmationList({
 
         return (
             <>
-                {formError && (
+                {!!formError && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
