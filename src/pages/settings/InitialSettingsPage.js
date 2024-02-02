@@ -180,7 +180,7 @@ function InitialSettingsPage(props) {
      * Retuns a list of menu items data for general section
      * @returns {Object} object with translationKey, style and items for the general section
      */
-    const generaltMenuItemsData = useMemo(
+    const generalMenuItemsData = useMemo(
         () => ({
             sectionStyle: {
                 ...styles.pt4,
@@ -283,7 +283,7 @@ function InitialSettingsPage(props) {
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
-    const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
+    const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
 
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
