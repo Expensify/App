@@ -36,6 +36,8 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ScreenShareRequest, Session} from './types/onyx';
+import type {Route} from '@src/ROUTES';
+
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -67,6 +69,9 @@ type ExpensifyOnyxProps = {
 
     /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
     focusModeNotification: OnyxEntry<boolean>;
+
+    /** Last visited path in the app */
+    lastVisitedPath: OnyxEntry<string>;
 };
 
 type ExpensifyProps = ExpensifyOnyxProps;
@@ -75,15 +80,13 @@ const SplashScreenHiddenContext = React.createContext({});
 
 function Expensify({
     isCheckingPublicRoom = true,
-    session = {
-        authToken: undefined,
-        accountID: undefined,
-    },
+    session,
     updateAvailable,
     isSidebarLoaded = false,
-    screenShareRequest = null,
+    screenShareRequest,
     updateRequired = false,
     focusModeNotification = false,
+    lastVisitedPath,
 }: ExpensifyProps) {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
@@ -91,6 +94,7 @@ function Expensify({
     const [isSplashHidden, setIsSplashHidden] = useState(false);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
+    const [initialUrl, setInitialUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
@@ -109,7 +113,7 @@ function Expensify({
         [isSplashHidden],
     );
 
-    const shouldInit = isNavigationReady && (!isAuthenticated || isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
@@ -154,6 +158,7 @@ function Expensify({
                         screenShareRequest,
                         focusModeNotification,
                         isAuthenticated,
+                        lastVisitedPath
                     };
                     Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
                 }
@@ -178,6 +183,7 @@ function Expensify({
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
+            setInitialUrl(url);
             Report.openReportFromDeepLink(url ?? '', isAuthenticated);
         });
 
@@ -237,6 +243,8 @@ function Expensify({
                     <NavigationRoot
                         onReady={setNavigationReady}
                         authenticated={isAuthenticated}
+                        lastVisitedPath={lastVisitedPath}
+                        initialUrl={initialUrl}
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
@@ -271,6 +279,9 @@ export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     focusModeNotification: {
         key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
         initWithStoredValues: false,
+    },
+    lastVisitedPath: {
+        key: ONYXKEYS.LAST_VISITED_PATH,
     },
 })(Expensify);
 
