@@ -3,6 +3,7 @@ import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
+import { Platform } from 'react-native';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
 
 type ScreenOptions = Record<string, StackNavigationOptions>;
@@ -26,7 +27,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         rightModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            presentation: 'transparentModal',
+            // TODO: change it back to 'transparentModal' once it works correctly on Android
+            presentation: Platform.OS === 'android' ? 'modal' : 'transparentModal',
 
             // We want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
@@ -42,7 +44,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         leftModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
-            presentation: 'transparentModal',
+            // TODO: change it back to 'transparentModal' once it works correctly on Android
+            presentation: Platform.OS === 'android' ? 'modal' : 'transparentModal',
 
             // We want pop in LHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
