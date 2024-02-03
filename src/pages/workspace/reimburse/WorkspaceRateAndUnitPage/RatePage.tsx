@@ -10,9 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -44,17 +44,17 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
     }, []);
 
     const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
-        const rate = values.rate as number;
+        const rate = values.rate as string;
         // TODO: Move this to a action later.
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {rate: (rate * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()});
+        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {rate: (parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()});
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
     const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
         const errors: {rate?: string} = {};
-        const rate = values.rate as number;
-        const parsedRate = PolicyUtils.getRateDisplayValue(rate, toLocaleDigit);
+        const rate = values.rate as string;
+        const parsedRate = MoneyRequestUtils.replaceAllDigits(rate, toLocaleDigit);
         const decimalSeparator = toLocaleDigit('.');
         const outputCurrency = props.policy?.outputCurrency ?? CONST.CURRENCY.USD;
         // Allow one more decimal place for accuracy
@@ -99,9 +99,9 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
                         InputComponent={AmountForm}
                         inputID="rate"
                         currency={props.policy?.outputCurrency ?? CONST.CURRENCY.USD}
-                        defaultValue={
+                        defaultValue={(
                             (typeof props.workspaceRateAndUnit?.rate === 'string' ? parseFloat(props.workspaceRateAndUnit.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET
-                        }
+                        ).toString()}
                     />
                 </FormProvider>
             )}

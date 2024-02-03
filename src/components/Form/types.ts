@@ -16,11 +16,11 @@ import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
  * when adding new inputs or removing old ones.
  *
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker | FormMenuItem
+ * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
  */
 type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch | typeof AmountForm;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'number';
+type ValueTypeKey = 'string' | 'boolean' | 'date';
 
 type MeasureLayoutOnSuccessCallback = (left: number, top: number, width: number, height: number) => void;
 

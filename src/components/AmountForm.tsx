@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +16,7 @@ import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
-    value?: number;
+    value?: string;
 
     /** Currency supplied by user */
     currency?: string;
@@ -25,7 +25,7 @@ type AmountFormProps = {
     errorText?: string;
 
     /** Callback to update the amount in the FormProvider */
-    onInputChange?: (value: number) => void;
+    onInputChange?: (value: string) => void;
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress?: () => void;
@@ -43,21 +43,20 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function AmountForm({value: amount = 0, currency = CONST.CURRENCY.USD, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps, forwardedRef: ForwardedRef<TextInput>) {
+function AmountForm({value: amount, currency = CONST.CURRENCY.USD, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps, forwardedRef: ForwardedRef<TextInput>) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<TextInput | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount.toString();
+    const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
-    const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const [selection, setSelection] = useState({
-        start: selectedAmountAsString.length,
-        end: selectedAmountAsString.length,
+        start: currentAmount.length,
+        end: currentAmount.length,
     });
 
     const forwardDeletePressedRef = useRef(false);
@@ -95,23 +94,12 @@ function AmountForm({value: amount = 0, currency = CONST.CURRENCY.USD, errorText
                 return;
             }
 
-            // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to
-            // setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet
-            // flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
-
-            let hasSelectionBeenSet = false;
-            setCurrentAmount((prevAmount) => {
-                const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
-                const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-                if (!hasSelectionBeenSet) {
-                    hasSelectionBeenSet = true;
-                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
-                }
-                onInputChange?.(parseFloat(strippedAmount));
-                return strippedAmount;
-            });
+            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+            onInputChange?.(strippedAmount);
         },
-        [decimals, onInputChange],
+        [currentAmount, decimals, onInputChange],
     );
 
     // Modifies the amount to match the decimals for changed currency.
@@ -126,7 +114,7 @@ function AmountForm({value: amount = 0, currency = CONST.CURRENCY.USD, errorText
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [setNewAmount]);
+    }, [decimals]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.

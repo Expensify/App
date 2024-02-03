@@ -22,7 +22,7 @@ import type {BaseInputProps, FormProps, InputRefs, OnyxFormKeyWithoutDraft, Onyx
 // More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
 
-type InitialDefaultValue = false | Date | '' | 0;
+type InitialDefaultValue = false | Date | '';
 
 function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
     switch (valueType) {
@@ -32,8 +32,6 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
             return false;
         case 'date':
             return new Date();
-        case 'number':
-            return 0;
         default:
             return '';
     }
