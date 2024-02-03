@@ -38,7 +38,7 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string): Record<number, string> {
+function getMicroSecondOnyxError(error: string): Errors {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -51,7 +51,7 @@ function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<nu
 }
 
 type OnyxDataWithErrors = {
-    errors?: Errors;
+    errors?: Errors | null;
 };
 
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
@@ -64,6 +64,18 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     const key = Object.keys(errors).sort().reverse()[0];
 
     return errors[key];
+}
+
+function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Record<string, string> {
+    const errors = onyxData.errors ?? {};
+
+    if (Object.keys(errors).length === 0) {
+        return {};
+    }
+
+    const key = Object.keys(errors).sort().reverse()[0];
+
+    return {key: errors[key]};
 }
 
 type OnyxDataWithErrorFields = {
@@ -98,7 +110,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
 
 /**
  * Method used to generate error message for given inputID
- * @param errorList - An object containing current errors in the form
+ * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
 function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {
@@ -119,4 +131,13 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
     }
 }
 
-export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
+export {
+    getAuthenticateErrorMessage,
+    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorObject,
+    getLatestErrorMessage,
+    getLatestErrorField,
+    getEarliestErrorField,
+    addErrorMessage,
+    getLatestErrorMessageField,
+};
