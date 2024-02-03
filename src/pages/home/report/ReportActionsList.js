@@ -145,7 +145,7 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
-    const userInactiveSince = useRef(null);
+    const lastMessageTime = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -431,16 +431,16 @@ function ReportActionsList({
         }
 
         if (!isVisible || !isFocused) {
-            if (!userInactiveSince.current) {
-                userInactiveSince.current = DateUtils.getDBTime();
+            if (!lastMessageTime.current) {
+                lastMessageTime.current = lodashGet(sortedVisibleReportActions, '[0].created', '');
             }
             return;
         }
 
         // In case the user read new messages (after being inactive) with other device we should
         // show marker based on report.lastReadTime
-        const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
-        userInactiveSince.current = null;
+        const newMessageTimeReference = lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        lastMessageTime.current = null;
         if (
             scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
             !(
