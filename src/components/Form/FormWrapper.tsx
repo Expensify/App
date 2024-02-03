@@ -138,6 +138,7 @@ function FormWrapper({
             submitButtonText,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,
+            disablePressOnEnter,
         ],
     );
 
