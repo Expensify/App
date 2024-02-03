@@ -20,6 +20,7 @@ function WorkspaceTravelVBAView(props) {
         <Section
             title={props.translate('workspace.travel.packYourBags')}
             icon={Illustrations.Luggage}
+            isCentralPane
             menuItems={[
                 {
                     title: props.translate('workspace.common.issueAndManageCards'),
