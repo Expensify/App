@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -23,6 +23,9 @@ import Text from './Text';
 type AvatarWithDisplayNamePropsWithOnyx = {
     /** All of the actions of the report */
     parentReportActions: OnyxEntry<ReportActions>;
+
+    /** Personal details of all users */
+    personalDetails: OnyxCollection<PersonalDetails>;
 };
 
 type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
@@ -35,9 +38,6 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
     /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Personal details of all the users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
     /** Whether if it's an unauthenticated user */
     isAnonymous?: boolean;
 
@@ -46,13 +46,13 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
 };
 
 function AvatarWithDisplayName({
-    personalDetails,
     policy,
     report,
     parentReportActions,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
+    personalDetails = CONST.EMPTY_OBJECT,
 }: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -180,5 +180,8 @@ export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWi
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
 })(AvatarWithDisplayName);
