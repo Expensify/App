@@ -175,7 +175,6 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.Send,
                         text: translate('iou.sendMoney'),
-                        // onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 Navigation.navigate(

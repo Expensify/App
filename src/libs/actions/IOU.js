@@ -3573,16 +3573,6 @@ function setMoneyRequestParticipantsFromReport(transactionID, report) {
 }
 
 /**
- * Initialize money request info and navigate to the MoneyRequest page
- * @param {String} iouType
- * @param {String} reportID
- */
-function startMoneyRequest(iouType, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`);
-    Navigation.navigate(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
-}
-
-/**
  * @param {String} id
  */
 function setMoneyRequestId(id) {
@@ -3799,7 +3789,6 @@ export {
     submitReport,
     payMoneyRequest,
     sendMoneyWithWallet,
-    startMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestCategory,
     resetMoneyRequestCategory_temporaryForRefactor,
