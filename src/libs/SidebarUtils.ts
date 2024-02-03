@@ -114,7 +114,7 @@ function getOrderedReportIDs(
 
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount, currentPolicyID, policyMemberAccountIDs],
         // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
         (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
     );
@@ -173,7 +173,7 @@ function getOrderedReportIDs(
     const archivedReports: Report[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, currentPolicyID, policyMemberAccountIDs));
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {

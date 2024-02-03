@@ -8,6 +8,7 @@ import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MessagesRow from './MessagesRow';
@@ -26,7 +27,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | null;
+    errors?: OnyxCommon.Errors | ReceiptErrors | null;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
@@ -84,7 +85,7 @@ function OfflineWithFeedback({
 
     const hasErrors = !isEmptyObject(errors ?? {});
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorMessages = omitBy(errors, (e) => e === null);
+    const errorMessages = omitBy(errors, (e: string | ReceiptError) => e === null);
     const hasErrorMessages = !isEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
