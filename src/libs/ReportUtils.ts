@@ -563,7 +563,7 @@ function getPolicy(policyID: string): Policy | EmptyObject {
  * Get the policy type from a given report
  * @param policies must have Onyxkey prefix (i.e 'policy_') for keys
  */
-function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): string {
+function getPolicyType(report: OnyxEntry<Report> | EmptyObject, policies: OnyxCollection<Policy>): string {
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
 }
 
@@ -805,7 +805,7 @@ function isGroupPolicy(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy
  */
-function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
+function isPaidGroupPolicy(report: OnyxEntry<Report> | EmptyObject): boolean {
     const policyType = getPolicyType(report, allPolicies);
     return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
 }
@@ -827,7 +827,7 @@ function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy and is an expense report
  */
-function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
+function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return isExpenseReport(report) && isPaidGroupPolicy(report);
 }
 
@@ -1239,6 +1239,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
     const report = getReport(reportID);
 
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         // For now, users cannot delete split actions
@@ -1249,6 +1250,10 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         }
 
         if (isActionOwner) {
+            if (isPaidGroupPolicyExpenseReport(report)) {
+                // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
+                return isDraftExpenseReport(report) || PolicyUtils.isPolicyAdmin(policy);
+            }
             return true;
         }
     }
@@ -1262,7 +1267,6 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         return false;
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
 
     return isActionOwner || isAdmin;
