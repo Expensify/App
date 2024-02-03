@@ -289,6 +289,7 @@ function WorkspaceNewRoomPage(props) {
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline
+                            disablePressOnEnter={false}
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
