@@ -141,8 +141,8 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
     };
 
     const onChangeText = (value = '') => {
-        Report.searchInServer(value);
         setSearchValue(value);
+        Report.searchInServer(searchValue);
     };
 
     /**
