@@ -258,7 +258,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && iouType !== CONST.IOU.TYPE.SEND;
-    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
 
     const handleConfirmSelection = useCallback(() => {
         if (shouldShowSplitBillErrorMessage) {
