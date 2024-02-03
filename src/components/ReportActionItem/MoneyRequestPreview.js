@@ -165,7 +165,7 @@ function MoneyRequestPreview(props) {
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
+    const isCardTransaction = TransactionUtils.isCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -184,7 +184,7 @@ function MoneyRequestPreview(props) {
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
     const getSettledMessage = () => {
-        if (isExpensifyCardTransaction) {
+        if (isCardTransaction) {
             return translate('common.done');
         }
         return translate('iou.settledExpensify');
@@ -207,7 +207,7 @@ function MoneyRequestPreview(props) {
             return translate('iou.split');
         }
 
-        if (isExpensifyCardTransaction) {
+        if (isCardTransaction) {
             let message = translate('iou.card');
             if (TransactionUtils.isPending(props.transaction)) {
                 message += ` • ${translate('iou.pending')}`;

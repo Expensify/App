@@ -183,6 +183,10 @@ function BaseOptionsList(
                 return true;
             }
 
+            if (option.policyID && option.policyID === item.policyID) {
+                return true;
+            }
+
             if (!option.name || StringUtils.isEmptyString(option.name)) {
                 return false;
             }
@@ -204,7 +208,7 @@ function BaseOptionsList(
                 selectedStateButtonText={multipleOptionSelectorButtonText}
                 onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
-                boldStyle={boldStyle}
+                boldStyle={item.boldStyle ?? boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
