@@ -155,8 +155,9 @@ function MoneyRequestPreview({
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(props.transaction);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
+    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
+    const isPendingDistanceRequest = isDistanceRequest && isFetchingWaypointsFromServer && !requestAmount;
+    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -167,10 +168,7 @@ function MoneyRequestPreview({
        the merchant says: "Route pending...", which is already shown in the amount field;
     */
     const shouldShowMerchant =
-        !!requestMerchant &&
-        requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
-        requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        !(isDistanceRequest && isFetchingWaypointsFromServer && !requestAmount);
+        !!requestMerchant && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && !isPendingDistanceRequest;
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
 
     let merchantOrDescription = requestMerchant;
@@ -228,7 +226,7 @@ function MoneyRequestPreview({
             return translate('iou.receiptScanning');
         }
 
-        if (isFetchingWaypointsFromServer && !requestAmount) {
+        if (isPendingDistanceRequest) {
             return translate('iou.routePending');
         }
 

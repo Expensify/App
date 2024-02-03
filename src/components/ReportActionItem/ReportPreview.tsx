@@ -104,11 +104,11 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
 
-    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyPendingDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
             hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
             areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
-            hasOnlyPendingDistanceRequests: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
+            hasOnlyTransactionsWithPendingRoutes: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
@@ -138,6 +138,8 @@ function ReportPreview({
     const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
+    const hasOnlyPendingDistanceRequests = hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend;
+
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
@@ -221,6 +223,7 @@ function ReportPreview({
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
@@ -229,8 +232,8 @@ function ReportPreview({
      * There is an edge case when there is only one distance request with a pending route and amount = 0.
        In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const shouldShowSubtitle =
-        !isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant && !(hasOnlyPendingDistanceRequests && !totalDisplaySpend)));
+    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !hasOnlyPendingDistanceRequests;
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || numberOfRequests > 1);
 
     return (
         <OfflineWithFeedback
