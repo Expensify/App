@@ -208,4 +208,4 @@ type AdditionalTransactionChanges = {
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey,  TransactionChanges, TaxRate, ReceiptSource};
+export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey, TransactionChanges, TaxRate, ReceiptSource};
