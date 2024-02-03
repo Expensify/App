@@ -328,6 +328,8 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
     };
 
+    // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
+    // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!(transaction && transaction.originalCurrency);
 
     return (
