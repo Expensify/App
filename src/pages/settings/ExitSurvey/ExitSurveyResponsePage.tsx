@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -42,6 +43,7 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
@@ -58,6 +60,7 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
     const baseResponseInputContainerStyle = styles.mt7;
     const formMaxHeight = Math.floor(
         windowHeight -
+            keyboardHeight -
             safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
             variables.contentHeaderHeight -
