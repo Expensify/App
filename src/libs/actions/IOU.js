@@ -1175,8 +1175,8 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
  * Updates the billable field of a money request
  *
  * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} val
+ * @param {String} transactionThreadReportID
+ * @param {Boolean} val
  */
 function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val) {
     const transactionChanges = {
