@@ -148,7 +148,7 @@ function MoneyRequestAmountForm(
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
-            if (!_.isEmpty(formError)) {
+            if (Object.keys(formError).length > 0) {
                 setFormError('');
             }
 
