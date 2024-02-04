@@ -25,7 +25,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
 
     return (
         <View style={[styles.appContentHeader]}>
-            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
+            <View style={[styles.appContentHeaderTitle]}>
                 {isSmallScreenWidth && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
@@ -48,18 +48,18 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                 >
                     <Circle
                         cx="20"
-                        cy="33"
+                        cy="40"
                         r="20"
                     />
                     <Rect
                         x="55"
-                        y="20"
+                        y="28"
                         width="30%"
                         height="8"
                     />
                     <Rect
                         x="55"
-                        y="40"
+                        y="48"
                         width="40%"
                         height="8"
                     />
