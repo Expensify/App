@@ -52,6 +52,7 @@ type PayeePersonalDetails = {
     descriptiveText: string;
     login: string;
     accountID: number;
+    keyForList: string;
 };
 
 type CategorySection = {
@@ -1721,6 +1722,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
         descriptiveText: amountText,
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
+        keyForList: String(personalDetail.accountID),
     };
 }
 
