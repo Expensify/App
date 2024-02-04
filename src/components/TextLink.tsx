@@ -30,7 +30,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
     const openLink = () => {
         if (onPress) {
             onPress();
-        } else if(href) {
+        } else if (href) {
             Link.openLink(href, environmentURL);
         }
     };

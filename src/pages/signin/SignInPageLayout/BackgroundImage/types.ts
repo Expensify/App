@@ -9,7 +9,7 @@ type BackgroundImageProps = {
     isSmallScreen?: boolean;
 
     /** Transition duration in milliseconds */
-    transitionDuration: number,
+    transitionDuration: number;
 };
 
 export default BackgroundImageProps;
