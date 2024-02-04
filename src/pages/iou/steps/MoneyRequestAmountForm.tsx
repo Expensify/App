@@ -1,5 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {ScrollView, View} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -278,7 +281,7 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
                     }}
                     selectedCurrencyCode={currency}
                     selection={selection}
-                    onSelectionChange={(e) => {
+                    onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
                         if (!shouldUpdateSelection) {
                             return;
                         }
