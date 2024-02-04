@@ -23,8 +23,8 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import {usePersonalDetails} from './OnyxProvider';
+import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
