@@ -17,39 +17,34 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import type {ValueOf} from 'type-fest';
-import type {TextInput} from 'react-native'
 
 type MoneyRequestAmountFormProps = {
-        /** IOU amount saved in Onyx */
-        amount?: number;
+    /** IOU amount saved in Onyx */
+    amount?: number;
 
-        /** Calculated tax amount based on selected tax rate */
-        taxAmount?: number;
-    
-        /** Currency chosen by user or saved in Onyx */
-        currency?: string;
-    
-        /** Whether the amount is being edited or not */
-        isEditing?: boolean;
-    
-        /** Refs forwarded to the TextInputWithCurrencySymbol */
-        forwardedRef?: refPropTypes,
-    
-        /** Fired when back button pressed, navigates to currency selection page */
-        onCurrencyButtonPress: () => void;
-    
-        /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-        onSubmitButtonPress: ({amount, currency}: {amount: string, currency: string}) => void;
-    
-        /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-        selectedTab?: ValueOf<typeof CONST.TAB_REQUEST>;
-}
+    /** Calculated tax amount based on selected tax rate */
+    taxAmount?: number;
+
+    /** Currency chosen by user or saved in Onyx */
+    currency?: string;
+
+    /** Whether the amount is being edited or not */
+    isEditing?: boolean;
+
+    /** Fired when back button pressed, navigates to currency selection page */
+    onCurrencyButtonPress: () => void;
+
+    /** Fired when submit button pressed, saves the given amount and navigates to the next page */
+    onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
+
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab?: ValueOf<typeof CONST.TAB_REQUEST>;
+};
 
 type Selection = {
     start: number;
     end: number;
-}
+};
 
 /**
  * Returns the new selection object based on the updated amount's length
