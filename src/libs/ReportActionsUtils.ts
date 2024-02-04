@@ -810,7 +810,7 @@ function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): bool
 
 /**
  * Constructs a message for an actionable mention whisper report action.
- * @param reportAction 
+ * @param reportAction
  * @returns the actionable mention whisper message.
  */
 function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction>): string {
