@@ -249,6 +249,7 @@ function ReportDetailsPage(props) {
                                 interactive={canEditReportDescription}
                                 title={props.report.description}
                                 shouldRenderAsHTML
+                                shouldCheckActionAllowedOnPress={false}
                                 description={props.translate('reportDescriptionPage.roomDescription')}
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
                             />
