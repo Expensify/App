@@ -1,9 +1,11 @@
+type Unit = 'mi' | 'km';
+
 type WorkspaceRateAndUnit = {
     /** policyID of the Workspace */
     policyID: string;
 
     /** Unit of the Workspace */
-    unit?: string;
+    unit?: Unit;
 
     /** Unit of the Workspace */
     rate?: string;

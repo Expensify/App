@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -151,9 +151,7 @@ function WorkspaceReimburseView(props) {
                             description={translate('workspace.reimburse.trackDistanceRate')}
                             shouldShowRightIcon
                             onPress={() => {
-                                // TODO: Make this a proper action
-                                // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                                Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy.id, rate: null, unit: null});
+                                Policy.setPolicyIDForReimburseView(props.policy.id);
                                 Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id));
                             }}
                             wrapperStyle={[styles.mt3, styles.ph8, styles.mhn8, styles.wAuto]}

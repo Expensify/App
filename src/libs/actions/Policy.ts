@@ -37,7 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {CustomUnit, Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
@@ -1461,7 +1461,7 @@ function setRateForReimburseView(rate: string) {
     Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {rate});
 }
 
-function setUnitForReimburseView(unit: string) {
+function setUnitForReimburseView(unit: Unit) {
     Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {unit});
 }
 

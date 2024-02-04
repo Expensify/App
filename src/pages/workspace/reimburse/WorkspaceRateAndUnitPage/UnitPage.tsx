@@ -15,9 +15,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WorkspaceRateAndUnit} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 
 type OptionRow = {
-    value: string;
+    value: Unit;
     text: string;
     keyForList: string;
     isSelected: boolean;
@@ -49,7 +50,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const updateUnit = (unit: string) => {
+    const updateUnit = (unit: Unit) => {
         Policy.setUnitForReimburseView(unit);
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
@@ -63,7 +64,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
         const arr: OptionRow[] = [];
         Object.entries(unitItems).forEach(([unit, label]) => {
             arr.push({
-                value: unit,
+                value: unit as Unit,
                 text: label,
                 keyForList: unit,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
