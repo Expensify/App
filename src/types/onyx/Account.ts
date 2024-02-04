@@ -13,6 +13,15 @@ type DismissedReferralBanners = {
 };
 
 type Account = {
+    /** Whether SAML is enabled for the current account */
+    isSAMLEnabled?: boolean;
+
+    /** Whether SAML is required for the current account */
+    isSAMLRequired?: boolean;
+
+    /** whenever SAML is enabled for the current account */
+    hasEmailDeliveryFailure?: boolean;
+
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink?: string;
 

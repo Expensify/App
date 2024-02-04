@@ -1,3 +1,4 @@
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
@@ -47,6 +48,10 @@ type SignInPageLayoutProps = {
     navigateFocus?: () => void;
 };
 
+type SignInPageLayoutRef = {
+    scrollPageToTop: (animated?: boolean) => void;
+};
+
 function SignInPageLayout(
     {
         shouldShowSmallScreen = false,
@@ -59,7 +64,7 @@ function SignInPageLayout(
         navigateFocus = () => {},
         children,
     }: SignInPageLayoutProps,
-    ref: any,
+    ref: ForwardedRef<SignInPageLayoutRef>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -203,3 +208,4 @@ function SignInPageLayout(
 SignInPageLayout.displayName = 'SignInPageLayout';
 
 export default forwardRef(SignInPageLayout);
+export type {SignInPageLayoutRef};

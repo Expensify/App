@@ -1,12 +1,17 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef} from 'react';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import BaseLoginForm from './BaseLoginForm';
 import type {InputHandle} from './types';
 import type LoginFormProps from './types';
 
 function LoginForm({scrollPageToTop, ...rest}: LoginFormProps, ref: ForwardedRef<InputHandle>) {
-    const loginFormRef = useRef<InputHandle>(ref);
+    const loginFormRef = useRef<InputHandle>();
+
+    useImperativeHandle(ref, () => ({
+        isInputFocused: () => !!loginFormRef.current?.isInputFocused(),
+        clearDataAndFocus: (clearLogin = true) => loginFormRef.current?.clearDataAndFocus(clearLogin),
+    }));
 
     useEffect(() => {
         if (!scrollPageToTop) {
@@ -28,7 +33,7 @@ function LoginForm({scrollPageToTop, ...rest}: LoginFormProps, ref: ForwardedRef
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             scrollPageToTop={scrollPageToTop}
-            ref={ref}
+            ref={loginFormRef}
         />
     );
 }
