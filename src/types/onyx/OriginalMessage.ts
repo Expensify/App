@@ -288,5 +288,6 @@ export type {
     OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
+    DecisionName,
     PaymentMethodType,
 };
