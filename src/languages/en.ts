@@ -1610,6 +1610,8 @@ export default {
             trackDistanceUnit: 'Unit',
             trackDistanceUnitTitle: 'Track distance: Unit',
             trackDistanceChooseUnit: 'Choose a default unit to track.',
+            kilometers: 'Kilometers',
+            miles: 'Miles',
             unlockNextDayReimbursements: 'Unlock next-day reimbursements',
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',

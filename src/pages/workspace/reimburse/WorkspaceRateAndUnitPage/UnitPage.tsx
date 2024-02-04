@@ -34,8 +34,8 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     const {translate} = useLocalize();
     const unitItems = useMemo(
         () => ({
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('common.kilometers'),
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('common.miles'),
+            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('workspace.reimburse.kilometers'),
+            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('workspace.reimburse.miles'),
         }),
         [translate],
     );

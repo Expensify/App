@@ -56,8 +56,8 @@ function WorkspaceRateAndUnitPage(props) {
     }, [props]);
 
     const unitItems = {
-        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: props.translate('common.kilometers'),
-        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: props.translate('common.miles'),
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: props.translate('workspace.reimburse.kilometers'),
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: props.translate('workspace.reimburse.miles'),
     };
 
     const saveUnitAndRate = (unit, rate) => {
