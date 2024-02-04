@@ -93,13 +93,12 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
      */
-    const onMouseDown = (event: MouseEvent, ids: string[]) => {
-        // const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
-        const relatedTargetId = event.nativeEvent.target.id;
+    const onMouseDown = (event: React.MouseEvent<Element, MouseEvent>, ids: string[]) => {
+        const relatedTargetId = event.nativeEvent?.target?.id;
         if (ids.includes(relatedTargetId)) {
             return;
         }
-        
+
         event.preventDefault();
         if (!textInput.current) {
             return;
@@ -205,7 +204,7 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
      *
      * @param value - Changed text from user input
      */
-    const updateLongPressHandlerState = useCallback((value: boolean) => { // param description looks wrong
+    const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
         if (!value && !textInput.current?.isFocused()) {
             textInput.current?.focus();
@@ -237,8 +236,8 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
      */
-    const textInputKeyPress = ({nativeEvent}) => {
-        const key = nativeEvent.key.toLowerCase();
+    const textInputKeyPress = ({nativeEvent}: Partial<NativeSyntheticEvent<TextInputKeyPressEventData>>) => {
+        const key = nativeEvent?.key.toLowerCase();
         if (Browser.isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
@@ -247,7 +246,7 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
         }
         // Control-D on Mac is a keyboard shortcut for forward-delete. See https://support.apple.com/en-us/HT201236 for Mac keyboard shortcuts.
         // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
-        forwardDeletePressedRef.current = key === 'delete' || (_.contains([CONST.OS.MAC_OS, CONST.OS.IOS], getOperatingSystem()) && nativeEvent.ctrlKey && key === 'd');
+        forwardDeletePressedRef.current = key === 'delete' || (_.contains([CONST.OS.MAC_OS, CONST.OS.IOS], getOperatingSystem()) && nativeEvent?.ctrlKey && key === 'd');
     };
 
     const formattedAmount: string = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
@@ -273,7 +272,7 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
                     ref={(ref) => {
                         if (typeof forwardedRef === 'function') {
                             forwardedRef(ref);
-                        } else if (forwardedRef && _.has(forwardedRef, 'current')) {
+                        } else if (forwardedRef?.current) {
                             // eslint-disable-next-line no-param-reassign
                             forwardedRef.current = ref;
                         }
@@ -289,7 +288,7 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
                     }}
                     onKeyPress={textInputKeyPress}
                 />
-                {!_.isEmpty(formError) && (
+                {Object.keys(formError).length > 0 && (
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
                         isError
@@ -306,8 +305,8 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
                     <BigNumberPad
                         id={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
-                        longPressHandlerStateChanged={updateLongPressHandlerState} // this prop can be named better as onlongPressHandlerStateChanged or as onLongPress 
-                        isLongPressDisabled={false} // I think we should not have this as a required prop 
+                        longPressHandlerStateChanged={updateLongPressHandlerState}
+                        isLongPressDisabled={false}
                     />
                 ) : null}
                 <Button
