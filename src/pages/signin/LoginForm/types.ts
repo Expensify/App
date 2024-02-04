@@ -1,6 +1,6 @@
-type LoginFormBaseProps = {
+type LoginFormProps = {
     /** Function used to scroll to the top of the page */
-    scrollPageToTop: () => void;
+    scrollPageToTop?: () => void;
 
     /** Whether the sign-in page is being rendered in the RHP modal */
     isInModal?: boolean;
@@ -14,9 +14,9 @@ type LoginFormBaseProps = {
 
 type InputHandle = {
     isInputFocused: () => boolean;
-    clearDataAndFocus: (clearLogin: boolean) => void;
+    clearDataAndFocus: (clearLogin?: boolean) => void;
 };
 
 export type {InputHandle};
 
-export default LoginFormBaseProps;
+export default LoginFormProps;

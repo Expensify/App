@@ -13,13 +13,13 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
+import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {MaybePhraseKey} from '@libs/Localize';
@@ -37,26 +37,26 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Credentials, Form} from '@src/types/onyx';
-import type LoginFormBaseProps from './types';
+import type {Account, CloseAccountForm, Credentials} from '@src/types/onyx';
+import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 
-type LoginFormOnyxProps = {
+type BaseLoginFormOnyxProps = {
     /** The details about the account that the user is signing in with */
     account: OnyxEntry<Account>;
 
     /** Message to display when user successfully closed their account */
-    closeAccount: OnyxEntry<Form>;
+    closeAccount: OnyxEntry<CloseAccountForm>;
 
     /** The credentials of the logged in person */
     credentials: OnyxEntry<Credentials>;
 };
 
-type LoginFormProps = LoginFormOnyxProps & LoginFormBaseProps;
+type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-function LoginForm({account, credentials, closeAccount, blurOnSubmit = false, isInModal = false, isVisible}: LoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isInModal = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
@@ -169,8 +169,9 @@ function LoginForm({account, credentials, closeAccount, blurOnSubmit = false, is
     }, [login, account, closeAccount, isOffline, validate]);
 
     useEffect(() => {
-        // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
-        // this component will also be mounted, resetting account.isLoading will cause the app to briefly display the session expiration page.
+        // Call clearAccountMessages on the login page (home route).
+        // When the user is in the transition route and not yet authenticated, this component will also be mounted,
+        // resetting account.isLoading will cause the app to briefly display the session expiration page.
 
         if (isFocused && isVisible) {
             Session.clearAccountMessages();
@@ -328,13 +329,12 @@ function LoginForm({account, credentials, closeAccount, blurOnSubmit = false, is
     );
 }
 
-LoginForm.displayName = 'LoginForm';
+BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default compose(
-    withOnyx<LoginFormProps, LoginFormOnyxProps>({
+export default withToggleVisibilityView(
+    withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
-    }),
-    withToggleVisibilityView,
-)(forwardRef(LoginForm));
+    })(forwardRef(BaseLoginForm)),
+);

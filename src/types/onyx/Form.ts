@@ -66,6 +66,7 @@ type ReportFieldEditForm = Form<Record<string, string>>;
 type CloseAccountForm = Form<{
     reasonForLeaving: string;
     phoneOrEmail: string;
+    success: string;
 }>;
 
 type RoomNameForm = Form<{
