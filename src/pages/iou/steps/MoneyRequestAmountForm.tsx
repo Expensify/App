@@ -66,7 +66,18 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CURRENCY.USD, isEditing = false, forwardedRef = null, onCurrencyButtonPress, onSubmitButtonPress, selectedTab = CONST.TAB_REQUEST.MANUAL}: MoneyRequestAmountFormProps) {
+function MoneyRequestAmountForm(
+    {
+        amount = 0,
+        taxAmount = 0,
+        currency = CONST.CURRENCY.USD,
+        isEditing = false,
+        onCurrencyButtonPress,
+        onSubmitButtonPress,
+        selectedTab = CONST.TAB_REQUEST.MANUAL,
+    }: MoneyRequestAmountFormProps,
+    forwardedRef: ForwardedRef<TextInput>,
+) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
@@ -326,14 +337,4 @@ function MoneyRequestAmountForm({amount = 0, taxAmount = 0, currency = CONST.CUR
 
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-const MoneyRequestAmountFormWithRef = React.forwardRef((props, ref) => (
-    <MoneyRequestAmountForm
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-MoneyRequestAmountFormWithRef.displayName = 'MoneyRequestAmountFormWithRef';
-
-export default MoneyRequestAmountFormWithRef;
+export default React.forwardRef(MoneyRequestAmountForm);
