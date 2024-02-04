@@ -342,6 +342,7 @@ const ONYXKEYS = {
         MONEY_REQUEST_AMOUNT_FORM_DRAFT: 'moneyRequestAmountFormDraft',
         MONEY_REQUEST_DATE_FORM: 'moneyRequestCreatedForm',
         MONEY_REQUEST_DATE_FORM_DRAFT: 'moneyRequestCreatedFormDraft',
+        MONEY_REQUEST_HOLD: 'moneyHoldReasonForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         NEW_CONTACT_METHOD_FORM_DRAFT: 'newContactMethodFormDraft',
         WAYPOINT_FORM: 'waypointForm',
@@ -531,6 +532,7 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_HOLD]: OnyxTypes.MoneyRequestHoldReasonForm;
     [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: OnyxTypes.Form;

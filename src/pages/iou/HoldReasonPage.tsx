@@ -12,8 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as IOU from '@userActions/IOU';
-import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
+import type {OnyxFormValuesFields} from "@components/Form/types";
+import type ONYXKEYS from "@src/ONYXKEYS";
 
 type HoldReasonPageRouteParams = {
     /** ID of the transaction the page was opened for */
@@ -31,8 +32,6 @@ type HoldReasonPageProps = {
     route: RouteProp<{params: HoldReasonPageRouteParams}>;
 };
 
-type FormValues = {comment: string};
-
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,12 +42,12 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         Navigation.navigate(backTo);
     };
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD>) => {
         IOU.putOnHold(transactionID, values.comment, reportID);
         navigateBack();
     };
 
-    const validate = useCallback((values: FormValues) => {
+    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD>) => {
         const requiredFields = ['comment'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
@@ -69,9 +68,8 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
                 title={translate('iou.holdRequest')}
                 onBackButtonPress={navigateBack}
             />
-            {/** @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
-                formID="moneyHoldReason"
+                formID="moneyHoldReasonForm"
                 submitButtonText={translate('iou.holdRequest')}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
@@ -81,7 +79,6 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
                 <Text style={[styles.textHeadline, styles.mb6]}>{translate('iou.explainHold')}</Text>
                 <View>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID="comment"
                         valueType="string"
@@ -89,7 +86,6 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
                         defaultValue={undefined}
                         label="Reason"
                         accessibilityLabel={translate('iou.reason')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoFocus
                     />
                 </View>

@@ -31,6 +31,10 @@ type DisplayNameForm = Form<{
     lastName: string;
 }>;
 
+type MoneyRequestHoldReasonForm = Form<{
+    comment: string;
+}>;
+
 type NewRoomForm = Form<{
     roomName?: string;
     welcomeMessage?: string;
@@ -76,6 +80,7 @@ export type {
     PrivateNotesForm,
     DisplayNameForm,
     FormValueType,
+    MoneyRequestHoldReasonForm,
     NewRoomForm,
     BaseForm,
     IKnowATeacherForm,
