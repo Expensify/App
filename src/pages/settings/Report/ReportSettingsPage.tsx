@@ -138,7 +138,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                     {translate('workspace.common.workspace')}
                                 </Text>
                                 <DisplayNames
-                                    fullTitle={linkedWorkspace?.name}
+                                    fullTitle={linkedWorkspace.name}
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.optionAlternateText, styles.pre]}
@@ -160,7 +160,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 >
                                     {translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 </Text>
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{report.visibility && translate(`newRoomPage.${report.visibility}Description`)}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate(`newRoomPage.${report.visibility}Description`)}</Text>
                             </View>
                         )}
                     </View>
