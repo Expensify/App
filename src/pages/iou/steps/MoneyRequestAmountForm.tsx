@@ -55,7 +55,8 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(taxAmount);
+const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(taxAmount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
