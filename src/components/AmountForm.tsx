@@ -80,7 +80,7 @@ function AmountForm({value: amount, currency = CONST.CURRENCY.USD, errorText, on
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
-     * @param {String} newAmount - Changed amount from user input
+     * @param newAmount - Changed amount from user input
      */
     const setNewAmount = useCallback(
         (newAmount: string) => {
@@ -119,8 +119,6 @@ function AmountForm({value: amount, currency = CONST.CURRENCY.USD, errorText, on
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
-     *
-     * @param {String} key
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
@@ -145,7 +143,7 @@ function AmountForm({value: amount, currency = CONST.CURRENCY.USD, errorText, on
     /**
      * Update long press value, to remove items pressing on <
      *
-     * @param {Boolean} value - Changed text from user input
+     * @param value - Changed text from user input
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
