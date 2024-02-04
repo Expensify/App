@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -43,9 +43,7 @@ function WorkspaceRateAndUnitPage(props) {
     const styles = useThemeStyles();
     useEffect(() => {
         if (!props.workspaceRateAndUnit.policyID || props.workspaceRateAndUnit.policyID !== props.policy.id) {
-            // TODO: Move this to a proper action
-            // eslint-disable-next-line rulesdir/prefer-actions-set-data
-            Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy.id, rate: null, unit: null});
+            Policy.setPolicyIDForReimburseView(props.policy.id);
         }
         if (lodashGet(props, 'policy.customUnits', []).length !== 0) {
             return;
@@ -89,9 +87,7 @@ function WorkspaceRateAndUnitPage(props) {
 
     const submit = () => {
         saveUnitAndRate(unitValue, rateValue);
-        // TODO: Move this to a proper action
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, null);
+        Policy.clearOnyxDataForReimburseView();
         Navigation.goBack();
     };
 

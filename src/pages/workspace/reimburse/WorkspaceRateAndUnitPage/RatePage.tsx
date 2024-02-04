@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
@@ -16,6 +16,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,17 +38,13 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
             return;
         }
-        // TODO: Move this to a action later.
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy?.id, rate: null, unit: null});
+        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
         const rate = values.rate as string;
-        // TODO: Move this to a action later.
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {rate: (parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()});
+        Policy.setRateForReimburseView((parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString());
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 

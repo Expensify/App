@@ -1449,6 +1449,22 @@ function openWorkspaceReimburseView(policyID: string) {
     API.read(READ_COMMANDS.OPEN_WORKSPACE_REIMBURSE_VIEW, params, {successData, failureData});
 }
 
+function setPolicyIDForReimburseView(policyID: string) {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID, rate: null, unit: null});
+}
+
+function clearOnyxDataForReimburseView() {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, null);
+}
+
+function setRateForReimburseView(rate: string) {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {rate});
+}
+
+function setUnitForReimburseView(unit: string) {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {unit});
+}
+
 /**
  * Returns the accountIDs of the members of the policy whose data is passed in the parameters
  */
@@ -1999,6 +2015,10 @@ export {
     clearAddMemberError,
     clearDeleteWorkspaceError,
     openWorkspaceReimburseView,
+    setPolicyIDForReimburseView,
+    clearOnyxDataForReimburseView,
+    setRateForReimburseView,
+    setUnitForReimburseView,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,

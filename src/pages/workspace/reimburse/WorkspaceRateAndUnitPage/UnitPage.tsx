@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,16 +45,12 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
             return;
         }
-        // TODO: Move this to a action later.
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID: props.policy?.id, rate: null, unit: null});
+        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const updateUnit = (unit: string) => {
-        // TODO: Move this to a action later.
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {unit});
+        Policy.setUnitForReimburseView(unit);
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
