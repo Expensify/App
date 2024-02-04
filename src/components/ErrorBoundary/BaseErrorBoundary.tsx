@@ -20,7 +20,6 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
         BootSplash.hide();
         setErrorContent(errorObject.message);
     };
-
     const updateRequired = errorContent === CONST.ERROR.UPDATE_REQUIRED;
 
     return (
