@@ -44,6 +44,7 @@ import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTags} from './PolicyTag';
+import type {PolicyTaxRates, TaxRate, TaxRates} from './PolicyTaxRates';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -121,6 +122,9 @@ export type {
     PolicyMembers,
     PolicyTag,
     PolicyTags,
+    TaxRate,
+    TaxRates,
+    PolicyTaxRates,
     PrivatePersonalDetails,
     RecentWaypoint,
     RecentlyUsedCategories,
