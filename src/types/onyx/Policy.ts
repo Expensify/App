@@ -165,4 +165,4 @@ type Policy = {
 
 export default Policy;
 
-export type {Unit, CustomUnit};
+export type {Unit, CustomUnit, Attributes, Rate};

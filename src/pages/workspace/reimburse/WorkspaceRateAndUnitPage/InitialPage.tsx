@@ -84,7 +84,6 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                 rate: parseFloat(newRate),
             },
         };
-        // @ts-expect-error Need to consult here.
         Policy.updateWorkspaceCustomUnitAndRate(props.policy?.id ?? '', distanceCustomUnit, newCustomUnit, props.policy?.lastModified);
     };
 
