@@ -24,6 +24,7 @@ import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
+import getSignInBgStyles from './signInPageStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -1084,6 +1085,7 @@ const staticStyleUtils = {
     getCardStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
+    getSignInBgStyles,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
