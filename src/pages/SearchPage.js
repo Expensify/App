@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -34,6 +33,13 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+
+    /**
+     * The navigation prop passed by the navigator.
+     *
+     * This is required because transitionEnd event doesn't trigger in the automated testing environment.
+     */
+    navigation: PropTypes.shape({}),
 };
 
 const defaultProps = {
@@ -41,21 +47,10 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     isSearchingForReports: false,
+    navigation: {},
 };
 
-function isSectionsEmpty(sections) {
-    if (!sections.length) {
-        return true;
-    }
-
-    if (!sections[0].data.length) {
-        return true;
-    }
-
-    return _.isEmpty(sections[0].data[0]);
-}
-
-function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
+function SearchPage({betas, personalDetails, reports, isSearchingForReports, navigation}) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState({
         recentReports: {},
@@ -67,44 +62,20 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
     const isMounted = useRef(false);
-    const interactionTask = useRef(null);
 
     const updateOptions = useCallback(() => {
-        if (interactionTask.current) {
-            interactionTask.current.cancel();
-        }
+        const {
+            recentReports: localRecentReports,
+            personalDetails: localPersonalDetails,
+            userToInvite: localUserToInvite,
+        } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas);
 
-        /**
-         * Execute the callback after all interactions are done, which means
-         * after all animations have finished.
-         */
-        interactionTask.current = InteractionManager.runAfterInteractions(() => {
-            const {
-                recentReports: localRecentReports,
-                personalDetails: localPersonalDetails,
-                userToInvite: localUserToInvite,
-            } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas);
-
-            setSearchOptions({
-                recentReports: localRecentReports,
-                personalDetails: localPersonalDetails,
-                userToInvite: localUserToInvite,
-            });
+        setSearchOptions({
+            recentReports: localRecentReports,
+            personalDetails: localPersonalDetails,
+            userToInvite: localUserToInvite,
         });
     }, [reports, personalDetails, searchValue, betas]);
-
-    /**
-     * Cancel the interaction task when the component unmounts
-     */
-    useEffect(
-        () => () => {
-            if (!interactionTask.current) {
-                return;
-            }
-            interactionTask.current.cancel();
-        },
-        [],
-    );
 
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
@@ -196,25 +167,29 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         Boolean(searchOptions.userToInvite),
         searchValue,
     );
-    const sections = getSections();
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={SearchPage.displayName}
             onEntryTransitionEnd={updateOptions}
+            navigation={navigation}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')} />
+                    <HeaderWithBackButton
+                        title={translate('common.search')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
                     <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
                         <OptionsSelector
-                            sections={sections}
+                            sections={getSections()}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             hideSectionHeaders
                             showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady && (!isSectionsEmpty(sections) || !!searchValue.length)}
+                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}

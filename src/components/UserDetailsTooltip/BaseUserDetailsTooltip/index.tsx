@@ -1,8 +1,9 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 import useLocalize from '@hooks/useLocalize';
@@ -36,9 +37,14 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     }
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
-    const subtitle = userLogin.trim() && LocalePhoneNumber.formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
+    let subtitle = userLogin.trim() && LocalePhoneNumber.formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
+
+        // We need to clear the subtitle for workspaces so that we don't display any user details under the workspace name
+        if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
+            subtitle = '';
+        }
     }
     const renderTooltipContent = useCallback(
         () => (

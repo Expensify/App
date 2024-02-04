@@ -2,11 +2,12 @@ import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import * as IOU from '@userActions/IOU';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {OnyxEntry} from "react-native-onyx";
 import DecisionModal from './DecisionModal';
 
 type ProcessMoneyRequestHoldMenuProps = {
     /** The chat report this report is linked to */
-    chatReport: OnyxTypes.Report;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Full amount of expense report to pay */
     fullAmount: string;
@@ -18,7 +19,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     isVisible: boolean;
 
     /** The report currently being looked at */
-    moneyRequestReport: OnyxTypes.IOU;
+    moneyRequestReport: OnyxTypes.Report;
 
     /** Not held amount of expense report */
     nonHeldAmount?: string;
@@ -30,27 +31,27 @@ type ProcessMoneyRequestHoldMenuProps = {
     paymentType: string;
 
     /** Type of action handled either 'pay' or 'approve' */
-    requestType: string;
+    requestType?: string;
 };
 
 function ProcessMoneyRequestHoldMenu({
-    requestType,
-    nonHeldAmount,
-    fullAmount,
-    isSmallScreenWidth = false,
-    onClose,
-    isVisible,
-    paymentType,
-    chatReport,
-    moneyRequestReport,
-}: ProcessMoneyRequestHoldMenuProps) {
+                                         requestType,
+                                         nonHeldAmount,
+                                         fullAmount,
+                                         isSmallScreenWidth = false,
+                                         onClose,
+                                         isVisible,
+                                         paymentType,
+                                         chatReport,
+                                         moneyRequestReport,
+                                     }: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === 'approve';
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
-        } else {
+        } else if (chatReport) {
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }
         onClose();

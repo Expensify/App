@@ -12,11 +12,16 @@ const PROTECTED_SCREENS = {
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
+    ALL_SETTINGS: 'AllSettings',
     REPORT: 'Report',
+    PROFILE_AVATAR: 'ProfileAvatar',
+    WORKSPACE_AVATAR: 'WorkspaceAvatar',
+    REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
+    SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -83,6 +88,10 @@ const SCREENS = {
     },
     LEFT_MODAL: {
         SEARCH: 'Search',
+        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
+    },
+    WORKSPACE_SWITCHER: {
+        ROOT: 'WorkspaceSwitcher_Root',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -181,7 +190,6 @@ const SCREENS = {
     },
 
     PRIVATE_NOTES: {
-        VIEW: 'PrivateNotes_View',
         LIST: 'PrivateNotes_List',
         EDIT: 'PrivateNotes_Edit',
     },
@@ -193,7 +201,7 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        SETTINGS: 'Workspace_Settings',
+        OVERVIEW: 'Workspace_Overview',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
@@ -203,12 +211,14 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Settings_Currency',
+        CURRENCY: 'Workspace_Overview_Currency',
+        NAME: 'Workspace_Overview_Name',
     },
 
     EDIT_REQUEST: {
         ROOT: 'EditRequest_Root',
         CURRENCY: 'EditRequest_Currency',
+        REPORT_FIELD: 'EditRequest_ReportField',
     },
 
     NEW_CHAT: {

@@ -6,7 +6,6 @@ import _ from 'underscore';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import FormUtils from '@libs/FormUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
@@ -43,7 +42,6 @@ function GetPhysicalCardPhone({
         params: {domain},
     },
 }) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const onValidate = (values) => {
@@ -75,7 +73,6 @@ function GetPhysicalCardPhone({
                 aria-label={translate('getPhysicalCard.phoneNumber')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={phoneNumber}
-                containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
         </BaseGetPhysicalCard>
