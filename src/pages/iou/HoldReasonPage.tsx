@@ -42,12 +42,12 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         Navigation.navigate(backTo);
     };
 
-    const onSubmit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD>) => {
+    const onSubmit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         IOU.putOnHold(transactionID, values.comment, reportID);
         navigateBack();
     };
 
-    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD>) => {
+    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         const requiredFields = ['comment'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
