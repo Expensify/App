@@ -7,6 +7,9 @@ type BackgroundImageProps = {
 
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen?: boolean;
+
+    /** Transition duration in milliseconds */
+    transitionDuration: number,
 };
 
 export default BackgroundImageProps;
