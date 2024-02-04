@@ -21,6 +21,9 @@ type AmountFormProps = {
     /** Currency supplied by user */
     currency?: string;
 
+    /** Tells how many extra decimal digits are allowed. Default is 0. */
+    extraDecimals?: number;
+
     /** Error to display at the bottom of the component */
     errorText?: string;
 
@@ -43,13 +46,13 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function AmountForm({value: amount, currency = CONST.CURRENCY.USD, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps, forwardedRef: ForwardedRef<TextInput>) {
+function AmountForm({value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps, forwardedRef: ForwardedRef<TextInput>) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<TextInput | null>(null);
 
-    const decimals = CurrencyUtils.getCurrencyDecimals(currency);
+    const decimals = CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);

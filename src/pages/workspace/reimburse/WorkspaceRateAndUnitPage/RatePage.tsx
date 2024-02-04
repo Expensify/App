@@ -96,6 +96,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
                         InputComponent={AmountForm}
                         inputID="rate"
                         currency={props.policy?.outputCurrency ?? CONST.CURRENCY.USD}
+                        extraDecimals={1}
                         defaultValue={(
                             (typeof props.workspaceRateAndUnit?.rate === 'string' ? parseFloat(props.workspaceRateAndUnit.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET
                         ).toString()}
