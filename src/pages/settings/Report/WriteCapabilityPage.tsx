@@ -18,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WriteCapabilityPageOnyxProps = {
     /** The policy object for the current route */
@@ -53,8 +52,8 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
                 />
                 <SelectionList
                     sections={[{data: writeCapabilityOptions}]}
-                    onSelectRow={(option) => !isEmptyObject(report) && ReportActions.updateWriteCapabilityAndNavigate(report, option.value)}
-                    initiallyFocusedOptionKey={Object.values(writeCapabilityOptions).find((locale) => locale.isSelected)?.keyForList}
+                    onSelectRow={(option) => report && ReportActions.updateWriteCapabilityAndNavigate(report, option.value)}
+                    initiallyFocusedOptionKey={writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

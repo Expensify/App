@@ -40,9 +40,9 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
                     onSelectRow={(option) =>
-                        ReportActions.updateNotificationPreference(report?.reportID ?? '', report?.notificationPreference, option.value, true, undefined, undefined, report)
+                        report && ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)
                     }
-                    initiallyFocusedOptionKey={Object.values(notificationPreferenceOptions ?? {}).find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedOptionKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

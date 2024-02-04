@@ -27,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type RoomNamePageOnyxProps = {
     /** All reports shared with the user */
@@ -87,7 +86,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                    onSubmit={(values) => !isEmptyObject(report) && ReportActions.updatePolicyRoomNameAndNavigate(report, values.roomName)}
+                    onSubmit={(values) => report && ReportActions.updatePolicyRoomNameAndNavigate(report, values.roomName)}
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
