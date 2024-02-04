@@ -3760,10 +3760,7 @@ function getIOUReportID(iou, route) {
  * @param {string} reportID
  */
 function putOnHold(transactionID, comment, reportID) {
-    const createdDate = new Date();
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment, DateUtils.getDBTime(createdDate));
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
 
     const optimisticData = [
         {
@@ -3809,7 +3806,6 @@ function putOnHold(transactionID, comment, reportID) {
     API.write(
         'HoldRequest',
         {
-            ...transactionDetails,
             transactionID,
             comment,
         },
@@ -3824,8 +3820,6 @@ function putOnHold(transactionID, comment, reportID) {
  */
 function unholdRequest(transactionID, reportID) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
 
     const optimisticData = [
         {
@@ -3868,7 +3862,6 @@ function unholdRequest(transactionID, reportID) {
     API.write(
         'UnHoldRequest',
         {
-            ...transactionDetails,
             transactionID,
         },
         {optimisticData, successData, failureData: []},

@@ -4714,22 +4714,6 @@ function isHoldCreator(transaction: Transaction, reportID: string): boolean {
 }
 
 /**
- * Check if Report has any held expenses
- */
-function hasHeldExpenses(iouReportID: string): boolean {
-    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
-}
-
-/**
- * Check if all expenses in the Report are on hold
- */
-function hasOnlyHeldExpenses(iouReportID: string): boolean {
-    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return !transactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
-}
-
-/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -5026,8 +5010,6 @@ export {
     navigateToPrivateNotes,
     canEditWriteCapability,
     isHoldCreator,
-    hasHeldExpenses,
-    hasOnlyHeldExpenses,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
     buildOptimisticHoldReportAction,
