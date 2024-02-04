@@ -124,7 +124,7 @@ function MoneyRequestAmountForm(
     }, []);
 
     useEffect(() => {
-        if (!currency || !_.isNumber(amount)) {
+        if (!currency || typeof amount === 'number') {
             return;
         }
         initializeAmount(amount);
