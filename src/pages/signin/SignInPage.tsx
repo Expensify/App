@@ -50,7 +50,7 @@ type SignInPageInnerOnyxProps = {
 
 type SignInPageInnerProps = SignInPageInnerOnyxProps & {
     /** Whether the sign-in page is being rendered in the RHP modal */
-    isInModal: boolean;
+    isInModal?: boolean;
 };
 
 /**
@@ -288,7 +288,10 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
 
 SignInPageInner.displayName = 'SignInPage';
 
-function SignInPage(props: SignInPageInnerProps) {
+type SignInPageProps = SignInPageInnerProps;
+type SignInPageOnyxProps = SignInPageInnerOnyxProps
+
+function SignInPage(props: SignInPageProps) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
@@ -304,7 +307,7 @@ function SignInPage(props: SignInPageInnerProps) {
     );
 }
 
-export default withOnyx<SignInPageInnerProps, SignInPageInnerOnyxProps>({
+export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     /**
