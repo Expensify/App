@@ -35,6 +35,9 @@ const propTypes = {
 
             /** Selected currency from IOUCurrencySelection */
             currency: PropTypes.string,
+
+            /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
+            transactionID: PropTypes.string,
         }),
     }).isRequired,
 
@@ -63,6 +66,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
+    const transactionID = lodashGet(route, 'params.transactionID', CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     const isEditing = Navigation.getActiveRoute().includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
@@ -117,9 +121,13 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // MONEY_REQUEST_CURRENCY is not available because was deleted in https://github.com/Expensify/App/issues/34607.
-        // Plus the current component will be removed in https://github.com/Expensify/App/issues/34614
-        // Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
+        if (isDistanceRequestTab) {
+            return;
+        }
+
+        // Remove query from the route and encode it.
+        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, '', activeRoute));
     };
 
     const navigateToNextPage = ({amount}) => {
