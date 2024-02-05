@@ -1,10 +1,10 @@
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {WalletAdditionalQuestionDetails} from 'src/types/onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -12,53 +12,36 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
 
-const propTypes = {
+type IdologyQuestionsProps = {
     /** Questions returned by Idology */
     /** example: [{"answer":["1251","6253","113","None of the above","Skip Question"],"prompt":"Which number goes with your address on MASONIC AVE?","type":"street.number.b"}, ...] */
-    questions: PropTypes.arrayOf(
-        PropTypes.shape({
-            prompt: PropTypes.string,
-            type: PropTypes.string,
-            answer: PropTypes.arrayOf(PropTypes.string),
-        }),
-    ),
+    questions: WalletAdditionalQuestionDetails[];
 
     /** ID from Idology, referencing those questions */
-    idNumber: PropTypes.string,
-
-    walletAdditionalDetails: PropTypes.shape({
-        /** Are we waiting for a response? */
-        isLoading: PropTypes.bool,
-
-        /** Any additional error message to show */
-        errors: PropTypes.objectOf(PropTypes.string),
-
-        /** What error do we need to handle */
-        errorCode: PropTypes.string,
-    }),
+    idNumber: string;
 };
 
-const defaultProps = {
-    questions: [],
-    idNumber: '',
-    walletAdditionalDetails: {},
+type Answer = {
+    question: string;
+    answer: string;
 };
 
-function IdologyQuestions({questions, idNumber}) {
+function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);
-    const [userAnswers, setUserAnswers] = useState([]);
+    const [userAnswers, setUserAnswers] = useState<Answer[]>([]);
 
     const currentQuestion = questions[currentQuestionIndex] || {};
-    const possibleAnswers = _.filter(
-        _.map(currentQuestion.answer, (answer) => {
+    const possibleAnswers: Choice[] = currentQuestion.answer
+        .map((answer) => {
             if (shouldHideSkipAnswer && answer === SKIP_QUESTION_TEXT) {
                 return;
             }
@@ -67,15 +50,11 @@ function IdologyQuestions({questions, idNumber}) {
                 label: answer,
                 value: answer,
             };
-        }),
-    );
+        })
+        .filter((answer): answer is Choice => answer !== undefined);
 
-    /**
-     * Put question answer in the state.
-     * @param {String} answer
-     */
-    const chooseAnswer = (answer) => {
-        const tempAnswers = _.map(userAnswers, _.clone);
+    const chooseAnswer = (answer: string) => {
+        const tempAnswers: Answer[] = userAnswers.map((userAnswer) => ({...userAnswer}));
 
         tempAnswers[currentQuestionIndex] = {question: currentQuestion.type, answer};
 
@@ -90,11 +69,11 @@ function IdologyQuestions({questions, idNumber}) {
             return;
         }
         // Get the number of questions that were skipped by the user.
-        const skippedQuestionsCount = _.filter(userAnswers, (answer) => answer.answer === SKIP_QUESTION_TEXT).length;
+        const skippedQuestionsCount = userAnswers.filter((answer) => answer.answer === SKIP_QUESTION_TEXT).length;
 
         // We have enough answers, let's call expectID KBA to verify them
         if (userAnswers.length - skippedQuestionsCount >= questions.length - MAX_SKIP) {
-            const tempAnswers = _.map(userAnswers, _.clone);
+            const tempAnswers: Answer[] = userAnswers.map((answer) => ({...answer}));
 
             // Auto skip any remaining questions
             if (tempAnswers.length < questions.length) {
@@ -112,8 +91,8 @@ function IdologyQuestions({questions, idNumber}) {
         }
     };
 
-    const validate = (values) => {
-        const errors = {};
+    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM>) => {
+        const errors: Errors = {};
         if (!values.answer) {
             errors.answer = translate('additionalDetailsStep.selectAnswer');
         }
@@ -132,7 +111,7 @@ function IdologyQuestions({questions, idNumber}) {
                 </TextLink>
             </View>
             <FormProvider
-                formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
+                formID={ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM}
                 onSubmit={submitAnswers}
                 key={currentQuestionIndex}
                 validate={validate}
@@ -147,7 +126,9 @@ function IdologyQuestions({questions, idNumber}) {
                     prompt={currentQuestion.prompt}
                     possibleAnswers={possibleAnswers}
                     currentQuestionIndex={currentQuestionIndex}
-                    onValueChange={chooseAnswer}
+                    onInputChange={chooseAnswer}
+                    // NOTEME: check the PR where this was added
+                    // onValueChange={chooseAnswer}
                 />
             </FormProvider>
         </View>
@@ -155,11 +136,5 @@ function IdologyQuestions({questions, idNumber}) {
 }
 
 IdologyQuestions.displayName = 'IdologyQuestions';
-IdologyQuestions.propTypes = propTypes;
-IdologyQuestions.defaultProps = defaultProps;
 
-export default withOnyx({
-    walletAdditionalDetails: {
-        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-    },
-})(IdologyQuestions);
+export default IdologyQuestions;

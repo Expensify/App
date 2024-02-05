@@ -14,6 +14,7 @@ import type {
     CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
+    IdologyQuestionsForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     NewRoomForm,
@@ -165,4 +166,5 @@ export type {
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    IdologyQuestionsForm,
 };

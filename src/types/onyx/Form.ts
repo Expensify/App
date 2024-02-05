@@ -68,6 +68,10 @@ type CloseAccountForm = Form<{
     phoneOrEmail: string;
 }>;
 
+type IdologyQuestionsForm = Form<{
+    answer: string;
+}>;
+
 export default Form;
 
 export type {
@@ -84,4 +88,5 @@ export type {
     WorkspaceSettingsForm,
     ReportFieldEditForm,
     CloseAccountForm,
+    IdologyQuestionsForm,
 };
