@@ -171,7 +171,7 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
-                    link: Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
+                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',
@@ -225,6 +225,15 @@ function InitialSettingsPage(props) {
              * @returns {String|undefined} the user's wallet balance
              */
             const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
+
+            const openPopover = (link, event) => {
+                if (typeof link === 'function') {
+                    link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
+                } else if (link) {
+                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
+                }
+            };
+
             return (
                 <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
                     <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
@@ -259,9 +268,7 @@ function InitialSettingsPage(props) {
                                 ref={popoverAnchor}
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
-                                onSecondaryInteraction={
-                                    !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
-                                }
+                                onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
                                 isPaneMenu
                             />
