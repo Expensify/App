@@ -1,45 +1,41 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type {Session} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
+type CloseAccountPageOnyxProps = {
     /** Session of currently logged in user */
-    session: PropTypes.shape({
-        /** Email address */
-        email: PropTypes.string.isRequired,
-    }),
-
-    ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
+    session: OnyxEntry<Session>;
 };
 
-const defaultProps = {
-    session: {
-        email: null,
-    },
-};
+type CloseAccountPageProps = CloseAccountPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
 
-function CloseAccountPage(props) {
+function CloseAccountPage({session}: CloseAccountPageProps) {
     const styles = useThemeStyles();
+    const {translate, formatPhoneNumber} = useLocalize();
+
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 
@@ -58,21 +54,21 @@ function CloseAccountPage(props) {
         hideConfirmModal();
     };
 
-    const showConfirmModal = (values) => {
+    const showConfirmModal = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         setConfirmModalVisibility(true);
         setReasonForLeaving(values.reasonForLeaving);
     };
 
     /**
      * Removes spaces and transform the input string to lowercase.
-     * @param {String} phoneOrEmail - The input string to be sanitized.
-     * @returns {String} The sanitized string
+     * @param phoneOrEmail - The input string to be sanitized.
+     * @returns The sanitized string
      */
-    const sanitizePhoneOrEmail = (phoneOrEmail) => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
+    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
 
-    const validate = (values) => {
+    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): Errors => {
         const requiredFields = ['phoneOrEmail'];
-        const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
+        const userEmailOrPhone = formatPhoneNumber(session?.email);
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.phoneOrEmail && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
@@ -81,7 +77,7 @@ function CloseAccountPage(props) {
         return errors;
     };
 
-    const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
+    const userEmailOrPhone = formatPhoneNumber(session?.email);
 
     return (
         <ScreenWrapper
@@ -89,37 +85,37 @@ function CloseAccountPage(props) {
             testID={CloseAccountPage.displayName}
         >
             <HeaderWithBackButton
-                title={props.translate('closeAccountPage.closeAccount')}
+                title={translate('closeAccountPage.closeAccount')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
                 validate={validate}
                 onSubmit={showConfirmModal}
-                submitButtonText={props.translate('closeAccountPage.closeAccount')}
+                submitButtonText={translate('closeAccountPage.closeAccount')}
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
             >
                 <View style={[styles.flexGrow1]}>
-                    <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                    <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID="reasonForLeaving"
                         autoGrowHeight
-                        label={props.translate('closeAccountPage.enterMessageHere')}
-                        aria-label={props.translate('closeAccountPage.enterMessageHere')}
+                        label={translate('closeAccountPage.enterMessageHere')}
+                        aria-label={translate('closeAccountPage.enterMessageHere')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
-                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
+                        {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
                     </Text>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        label={props.translate('closeAccountPage.enterDefaultContact')}
-                        aria-label={props.translate('closeAccountPage.enterDefaultContact')}
+                        label={translate('closeAccountPage.enterDefaultContact')}
+                        aria-label={translate('closeAccountPage.enterDefaultContact')}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
@@ -127,13 +123,13 @@ function CloseAccountPage(props) {
                     />
                     <ConfirmModal
                         danger
-                        title={props.translate('closeAccountPage.closeAccountWarning')}
+                        title={translate('closeAccountPage.closeAccountWarning')}
                         onConfirm={onConfirm}
                         onCancel={hideConfirmModal}
                         isVisible={isConfirmModalVisible}
-                        prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                        confirmText={props.translate('common.yesContinue')}
-                        cancelText={props.translate('common.cancel')}
+                        prompt={translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                        confirmText={translate('common.yesContinue')}
+                        cancelText={translate('common.cancel')}
                         shouldDisableConfirmButtonWhenOffline
                         shouldShowCancelButton
                     />
@@ -143,16 +139,10 @@ function CloseAccountPage(props) {
     );
 }
 
-CloseAccountPage.propTypes = propTypes;
-CloseAccountPage.defaultProps = defaultProps;
 CloseAccountPage.displayName = 'CloseAccountPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(CloseAccountPage);
+export default withOnyx<CloseAccountPageProps, CloseAccountPageOnyxProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(CloseAccountPage);
