@@ -8,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -32,7 +31,7 @@ function LanguagePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('languagePage.language')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList
                 sections={[{data: localesToLanguages}]}
