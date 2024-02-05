@@ -140,7 +140,6 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
     }
 
     const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
     return defaultablePaymentMethodCount > 1;
@@ -205,7 +204,6 @@ function PaymentMethodList({
                     interactive: isExpensifyCard,
                     canDismissError: isExpensifyCard,
                     errors: card.errors,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     brickRoadIndicator:
                         card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
@@ -227,7 +225,6 @@ function PaymentMethodList({
 
         if (!isOffline) {
             combinedPaymentMethods = combinedPaymentMethods.filter(
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(paymentMethod.errors),
             );
         }
