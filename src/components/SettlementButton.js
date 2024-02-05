@@ -84,6 +84,9 @@ const propTypes = {
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption: PropTypes.bool,
+
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority: PropTypes.number,
 };
 
 const defaultProps = {
@@ -114,6 +117,7 @@ const defaultProps = {
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
     shouldShowPersonalBankAccountOption: false,
+    enterKeyEventListenerPriority: 0,
 };
 
 function SettlementButton({
@@ -137,6 +141,7 @@ function SettlementButton({
     shouldShowApproveButton,
     style,
     shouldShowPersonalBankAccountOption,
+    enterKeyEventListenerPriority,
 }) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -242,6 +247,7 @@ function SettlementButton({
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
         </KYCWall>
