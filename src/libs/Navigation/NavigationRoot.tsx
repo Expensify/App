@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
 import getPolicyIDFromState from './getPolicyIDFromState';
