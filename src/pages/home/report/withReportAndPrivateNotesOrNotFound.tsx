@@ -40,7 +40,7 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
             const isReconnecting = prevIsOffline && !network.isOffline;
             const isOtherUserNote = accountID && Number(session?.accountID) !== Number(accountID);
             const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !report.isLoadingPrivateNotes;
-            const isPrivateNotesEmpty = accountID ? !!report?.privateNotes?.[Number(accountID)].note : isEmptyObject(report?.privateNotes);
+            const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)].note : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {
                 // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
