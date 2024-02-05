@@ -149,7 +149,7 @@ function ReportActionItemEmojiReactions({
                                     shouldDisableOpacity={!!reportAction.pendingAction}
                                 >
                                     <EmojiReactionBubble
-                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
+                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null)}
                                         count={reaction.reactionCount}
                                         emojiCodes={reaction.emojiCodes}
                                         onPress={reaction.onPress}
