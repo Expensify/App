@@ -90,7 +90,6 @@ class ShareCodePage extends React.Component {
                     onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                     shouldShowBackButton={isReport || this.props.isSmallScreenWidth}
                     icon={Illustrations.QrCode}
-                    isCentralPaneSettings
                 />
 
                 <ScrollView style={[this.props.themeStyles.flex1]}>

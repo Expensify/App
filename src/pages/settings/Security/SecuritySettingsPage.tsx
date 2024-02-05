@@ -55,7 +55,6 @@ function SecuritySettingsPage() {
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
             shouldShowOfflineIndicatorInWideScreen
             icon={Illustrations.LockClosed}
-            isCentralPaneSettings
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>

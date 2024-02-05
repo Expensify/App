@@ -343,7 +343,6 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                         icon={Illustrations.MoneyIntoWallet}
                         shouldShowBackButton={isSmallScreenWidth}
-                        isCentralPaneSettings
                     />
                     <ScrollView>
                         <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>

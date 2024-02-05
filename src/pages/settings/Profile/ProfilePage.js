@@ -113,7 +113,6 @@ function ProfilePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 shouldShowBackButton={props.isSmallScreenWidth}
                 icon={Illustrations.Profile}
-                isCentralPaneSettings
             />
             <ScrollView>
                 <View style={[styles.mt4]}>
