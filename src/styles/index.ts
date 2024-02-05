@@ -441,6 +441,9 @@ const styles = (theme: ThemeColors) =>
 
         textIvoryLight: {
             color: theme.iconColorfulBackground,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightNormal,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
         },
 
         textNoWrap: {
@@ -1360,11 +1363,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarFooter: {
-            alignItems: 'center',
             display: 'flex',
             justifyContent: 'center',
-            paddingVertical: variables.lineHeightXLarge,
             width: '100%',
+            paddingLeft: 20,
         },
 
         sidebarAvatar: {
