@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -21,6 +21,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -130,6 +131,10 @@ function ProfilePage(props) {
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
         },
     ];
+
+    useEffect(() => {
+        App.openProfile(props.currentUserPersonalDetails);
+    }, [props.currentUserPersonalDetails]);
 
     const privateOptions = [
         {
