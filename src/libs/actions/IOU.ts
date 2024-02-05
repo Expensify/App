@@ -298,14 +298,8 @@ function resetMoneyRequestCategory_temporaryForRefactor(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestTag_temporaryForRefactor(transactionID: string, tag: string) {
+function setMoneyRequestTag(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function resetMoneyRequestTag_temporaryForRefactor(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag: null});
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -3564,14 +3558,6 @@ function resetMoneyRequestCategory() {
     Onyx.merge(ONYXKEYS.IOU, {category: ''});
 }
 
-function setMoneyRequestTag(tag: string) {
-    Onyx.merge(ONYXKEYS.IOU, {tag});
-}
-
-function resetMoneyRequestTag() {
-    Onyx.merge(ONYXKEYS.IOU, {tag: ''});
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
@@ -3626,7 +3612,6 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
                 : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
             resetMoneyRequestCategory();
-            resetMoneyRequestTag();
         }
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
@@ -3695,8 +3680,6 @@ export {
     resetMoneyRequestCategory,
     resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
-    resetMoneyRequestTag,
-    resetMoneyRequestTag_temporaryForRefactor,
     clearMoneyRequest,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
@@ -3707,7 +3690,6 @@ export {
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
     setMoneyRequestReceipt,
-    setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
