@@ -9,7 +9,7 @@ type PolicyTag = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'GL Code': string;
 
-    /** Tags included in the policy */
+    /** Nested tags */
     tags: PolicyTags;
 };
 
