@@ -79,6 +79,9 @@ function setIsSidebarLoadedReady() {
 }
 
 // Define a cache object to store the memoized results
+const filteredReportIDsCache = new Map<string, string[]>();
+
+// Define a cache object to store the memoized results
 const reportIDsCache = new Map<string, string[]>();
 
 // Function to set a key-value pair while maintaining the maximum key limit
@@ -95,9 +98,9 @@ function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TV
 let hasInitialReportActions = false;
 
 /**
- * @returns An array of reportIDs sorted in the proper order
+ * @returns An array of filtered reportIDs
  */
-function getOrderedReportIDs(
+function getFilteredReportIDs(
     currentReportId: string | null,
     allReports: Record<string, Report>,
     betas: Beta[],
@@ -120,7 +123,7 @@ function getOrderedReportIDs(
     );
 
     // Check if the result is already in the cache
-    const cachedIDs = reportIDsCache.get(cachedReportsKey);
+    const cachedIDs = filteredReportIDsCache.get(cachedReportsKey);
     if (cachedIDs && hasInitialReportActions) {
         return cachedIDs;
     }
@@ -129,7 +132,6 @@ function getOrderedReportIDs(
     hasInitialReportActions = Object.values(lastReportActions).length > 0;
 
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
 
     // Filter out all the reports that shouldn't be displayed
@@ -158,6 +160,38 @@ function getOrderedReportIDs(
         }
     }
 
+    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
+    }
+
+    const filteredReportIDs = reportsToDisplay.map((report) => report.reportID);
+    setWithLimit(filteredReportIDsCache, cachedReportsKey, filteredReportIDs);
+    return filteredReportIDs;
+}
+
+/**
+ * @returns An array of reportIDs sorted in the proper order
+ */
+function getOrderedReportIDs(reportIDs: string[], allOptions: Record<string, ReportUtils.OptionData | undefined>, priorityMode: ValueOf<typeof CONST.OPTION_MODE>): string[] {
+    // Generate a unique cache key based on the function arguments
+    const cachedReportsKey = JSON.stringify(
+        [reportIDs, allOptions, priorityMode],
+        // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
+        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
+    );
+
+    // Check if the result is already in the cache
+    const cachedIDs = reportIDsCache.get(cachedReportsKey);
+    if (cachedIDs && hasInitialReportActions) {
+        return cachedIDs;
+    }
+
+    // This is needed to prevent caching when Onyx is empty for a second render
+    hasInitialReportActions = Object.values(lastReportActions).length > 0;
+
+    const isInGSDMode = priorityMode === CONST.OPTION_MODE.COMPACT;
+    const isInDefaultMode = !isInGSDMode;
+
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Drafts - Always sorted by reportDisplayName
@@ -167,53 +201,51 @@ function getOrderedReportIDs(
     // 4. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedAndGBRReports: Report[] = [];
-    const draftReports: Report[] = [];
-    const nonArchivedReports: Report[] = [];
-    const archivedReports: Report[] = [];
+    const pinnedAndGBRReports: ReportUtils.OptionData[] = [];
+    const draftReports: ReportUtils.OptionData[] = [];
+    const nonArchivedReports: ReportUtils.OptionData[] = [];
+    const archivedReports: ReportUtils.OptionData[] = [];
 
-    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
-    }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reportsToDisplay.forEach((report) => {
+    reportIDs.forEach((reportID) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
+        const option = allOptions[reportID];
 
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(report, allReports).totalDisplaySpend;
+        if (!option) {
+            return;
+        }
 
-        const isPinned = report.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
-            pinnedAndGBRReports.push(report);
-        } else if (report.hasDraft) {
-            draftReports.push(report);
-        } else if (ReportUtils.isArchivedRoom(report)) {
-            archivedReports.push(report);
+        const isPinned = option.isPinned ?? false;
+        const hasRBR = option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        if (isPinned || hasRBR || ReportUtils.requiresAttentionFromCurrentUser(option, option.parentReportAction)) {
+            pinnedAndGBRReports.push(option);
+        } else if (option.hasDraft) {
+            draftReports.push(option);
+        } else if (option.isArchivedRoom) {
+            archivedReports.push(option);
         } else {
-            nonArchivedReports.push(report);
+            nonArchivedReports.push(option);
         }
     });
 
     // Sort each group of reports accordingly
-    pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
-    draftReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
+    pinnedAndGBRReports.sort((a, b) => (a.text && b.text ? a.text.toLowerCase().localeCompare(b.text.toLowerCase()) : 0));
+    draftReports.sort((a, b) => (a.text && b.text ? a.text.toLowerCase().localeCompare(b.text.toLowerCase()) : 0));
 
     if (isInDefaultMode) {
         nonArchivedReports.sort((a, b) => {
-            const compareDates = a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
-            const compareDisplayNames = a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0;
+            const compareDates = a.lastVisibleActionCreated && b.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
+            const compareDisplayNames = a.text && b.text ? a.text.toLowerCase().localeCompare(b.text.toLowerCase()) : 0;
             return compareDates || compareDisplayNames;
         });
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        archivedReports.sort((a, b) => (a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0));
+        archivedReports.sort((a, b) => (a.lastVisibleActionCreated && b.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0));
     } else {
-        nonArchivedReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
-        archivedReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
+        nonArchivedReports.sort((a, b) => (a.text && b.text ? a.text.toLowerCase().localeCompare(b.text.toLowerCase()) : 0));
+        archivedReports.sort((a, b) => (a.text && b.text ? a.text.toLowerCase().localeCompare(b.text.toLowerCase()) : 0));
     }
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
@@ -445,6 +477,7 @@ function getOptionData({
 
 export default {
     getOptionData,
+    getFilteredReportIDs,
     getOrderedReportIDs,
     setIsSidebarLoadedReady,
     isSidebarLoadedReady,

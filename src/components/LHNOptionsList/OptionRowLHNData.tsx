@@ -7,7 +7,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import OptionRowLHN from './OptionRowLHN';
+import LHNOptionsContext from './LHNOptionsContext';
 import type {OptionRowLHNDataProps} from './types';
 
 /*
@@ -17,7 +17,6 @@ import type {OptionRowLHNDataProps} from './types';
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    isFocused = false,
     fullReport,
     reportActions,
     personalDetails = {},
@@ -29,9 +28,9 @@ function OptionRowLHNData({
     transaction,
     transactionViolations,
     canUseViolations,
-    ...propsToForward
+    reportID,
 }: OptionRowLHNDataProps) {
-    const reportID = propsToForward.reportID;
+    const {registerOption} = React.useContext(LHNOptionsContext);
 
     const optionItemRef = useRef<OptionData>();
     const linkedTransaction = useMemo(() => {
@@ -59,29 +58,23 @@ function OptionRowLHNData({
         }
 
         optionItemRef.current = item;
+        registerOption(item);
 
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, transactionViolations, canUseViolations]);
+    }, [fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction, hasViolations, linkedTransaction, transaction]);
 
     useEffect(() => {
-        if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
+        if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0) {
             return;
         }
         Report.setReportWithDraft(reportID, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return (
-        <OptionRowLHN
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...propsToForward}
-            isFocused={isFocused}
-            optionItem={optionItem}
-        />
-    );
+    return null;
 }
 
 OptionRowLHNData.displayName = 'OptionRowLHNData';

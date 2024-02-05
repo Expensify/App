@@ -10,6 +10,8 @@ import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportAc
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
+type RegisterOption = (option: OptionData | undefined) => void;
+
 type LHNOptionsListOnyxProps = {
     /** The policy which the user has access to and which the report could be tied to */
     policy: OnyxCollection<Policy>;
@@ -62,9 +64,6 @@ type CustomLHNOptionsListProps = {
 type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue & LHNOptionsListOnyxProps;
 
 type OptionRowLHNDataProps = {
-    /** Whether row should be focused */
-    isFocused?: boolean;
-
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
@@ -100,15 +99,6 @@ type OptionRowLHNDataProps = {
 
     /** Whether the user can use violations */
     canUseViolations: boolean | undefined;
-
-    /** Toggle between compact and default view */
-    viewMode?: OptionMode;
-
-    /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
-
-    /** Callback to execute when the OptionList lays out */
-    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type OptionRowLHNProps = {
@@ -135,4 +125,4 @@ type OptionRowLHNProps = {
 
 type RenderItemProps = {item: string};
 
-export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps};
+export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps, RegisterOption};

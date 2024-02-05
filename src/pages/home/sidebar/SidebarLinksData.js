@@ -142,7 +142,7 @@ function SidebarLinksData({
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(
+        const reportIDs = SidebarUtils.getFilteredReportIDs(
             null,
             chatReports,
             betas,
@@ -174,7 +174,7 @@ function SidebarLinksData({
     // case we re-generate the list a 2nd time with the current report included.
     const optionListItemsWithCurrentReport = useMemo(() => {
         if (currentReportID && !_.contains(optionListItems, currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(
+            return SidebarUtils.getFilteredReportIDs(
                 currentReportID,
                 chatReports,
                 betas,
