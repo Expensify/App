@@ -452,15 +452,15 @@ function buildOnyxDataForMoneyRequest(
     const successData = [
         ...(isNewChatReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        pendingFields: null,
-                        errorFields: null,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          pendingFields: null,
+                          errorFields: null,
+                      },
+                  },
+              ]
             : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -485,11 +485,11 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(isNewChatReport
                     ? {
-                        [chatCreatedAction.reportActionID]: {
-                            pendingAction: null,
-                            errors: null,
-                        },
-                    }
+                          [chatCreatedAction.reportActionID]: {
+                              pendingAction: null,
+                              errors: null,
+                          },
+                      }
                     : {}),
                 [reportPreviewAction.reportActionID]: {
                     pendingAction: null,
@@ -502,11 +502,11 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
-                        [iouCreatedAction.reportActionID]: {
-                            pendingAction: null,
-                            errors: null,
-                        },
-                    }
+                          [iouCreatedAction.reportActionID]: {
+                              pendingAction: null,
+                              errors: null,
+                          },
+                      }
                     : {}),
                 [iouAction.reportActionID]: {
                     pendingAction: null,
@@ -527,10 +527,10 @@ function buildOnyxDataForMoneyRequest(
                 hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
                 ...(isNewChatReport
                     ? {
-                        errorFields: {
-                            createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                        },
-                    }
+                          errorFields: {
+                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                          },
+                      }
                     : {}),
             },
         },
@@ -567,19 +567,19 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(isNewChatReport
                     ? {
-                        [chatCreatedAction.reportActionID]: {
-                            errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
-                        },
-                        [reportPreviewAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError(null),
-                        },
-                    }
+                          [chatCreatedAction.reportActionID]: {
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
+                          },
+                          [reportPreviewAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                          },
+                      }
                     : {
-                        [reportPreviewAction.reportActionID]: {
-                            created: reportPreviewAction.created,
-                            errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
-                        },
-                    }),
+                          [reportPreviewAction.reportActionID]: {
+                              created: reportPreviewAction.created,
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
+                          },
+                      }),
             },
         },
         {
@@ -588,18 +588,18 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
-                        [iouCreatedAction.reportActionID]: {
-                            errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
-                        },
-                        [iouAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError(null),
-                        },
-                    }
+                          [iouCreatedAction.reportActionID]: {
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
+                          },
+                          [iouAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                          },
+                      }
                     : {
-                        [iouAction.reportActionID]: {
-                            errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
-                        },
-                    }),
+                          [iouAction.reportActionID]: {
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
+                          },
+                      }),
             },
         },
     ];
@@ -823,14 +823,14 @@ function getMoneyRequestInformation(
     // Add optimistic personal details for participant
     const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
         ? {
-            [payerAccountID]: {
-                accountID: payerAccountID,
-                avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
-                login: participant.login,
-                isOptimisticPersonalDetail: true,
-            },
-        }
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
+                  login: participant.login,
+                  isOptimisticPersonalDetail: true,
+              },
+          }
         : undefined;
 
     // STEP 5: Build Onyx Data
@@ -1655,14 +1655,14 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // Add optimistic personal details for new participants
         const oneOnOnePersonalDetailListAction = shouldCreateOptimisticPersonalDetails
             ? {
-                [accountID]: {
-                    accountID,
-                    avatar: UserUtils.getDefaultAvatarURL(accountID),
-                    displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
-                    login: participant.login,
-                    isOptimisticPersonalDetail: true,
-                },
-            }
+                  [accountID]: {
+                      accountID,
+                      avatar: UserUtils.getDefaultAvatarURL(accountID),
+                      displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
+                      login: participant.login,
+                      isOptimisticPersonalDetail: true,
+                  },
+              }
             : undefined;
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
@@ -2416,25 +2416,25 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         },
         ...(!isScanning
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-                    value: {
-                        [transactionThread.parentReportActionID]: {
-                            whisperedToAccountIDs: [],
-                        },
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
-                    value: {
-                        [iouReport.parentReportActionID]: {
-                            whisperedToAccountIDs: [],
-                        },
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                      value: {
+                          [transactionThread.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
+                      value: {
+                          [iouReport.parentReportActionID]: {
+                              whisperedToAccountIDs: [],
+                          },
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -2682,26 +2682,26 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         },
         ...(Permissions.canUseViolations(betas)
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    value: null,
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                      value: null,
+                  },
+              ]
             : []),
         ...(shouldDeleteTransactionThread
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                    value: null,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
-                    value: null,
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                      value: null,
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                      value: null,
+                  },
+              ]
             : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2722,28 +2722,28 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         },
         ...(!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        hasOutstandingChildRequest: false,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: false,
+                      },
+                  },
+              ]
             : []),
         ...(shouldDeleteIOUReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        hasOutstandingChildRequest: false,
-                        iouReportID: null,
-                        lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
-                        lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}), 'created'),
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: false,
+                          iouReportID: null,
+                          lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
+                          lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}), 'created'),
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -2755,8 +2755,8 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                 [reportAction.reportActionID]: shouldDeleteIOUReport
                     ? null
                     : {
-                        pendingAction: null,
-                    },
+                          pendingAction: null,
+                      },
             },
         },
         {
@@ -2766,19 +2766,19 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                 [reportPreviewAction.reportActionID]: shouldDeleteIOUReport
                     ? null
                     : {
-                        pendingAction: null,
-                        errors: null,
-                    },
+                          pendingAction: null,
+                          errors: null,
+                      },
             },
         },
         ...(shouldDeleteIOUReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                    value: null,
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: null,
+                  },
+              ]
             : []),
     ];
 
@@ -2790,21 +2790,21 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         },
         ...(Permissions.canUseViolations(betas)
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    value: transactionViolations,
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                      value: transactionViolations,
+                  },
+              ]
             : []),
         ...(shouldDeleteTransactionThread
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                    value: transactionThread,
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                      value: transactionThread,
+                  },
+              ]
             : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2834,23 +2834,23 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         },
         ...(shouldDeleteIOUReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: chatReport,
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: chatReport,
+                  },
+              ]
             : []),
         ...(!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        hasOutstandingChildRequest: true,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: true,
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -3413,18 +3413,18 @@ function submitReport(expenseReport) {
         },
         ...(parentReport.reportID
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
-                    value: {
-                        ...parentReport,
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+                      value: {
+                          ...parentReport,
 
-                        // In case its a manager who force submitted the report, they are the next user who needs to take an action
-                        hasOutstandingChildRequest: isCurrentUserManager,
-                        iouReportID: null,
-                    },
-                },
-            ]
+                          // In case its a manager who force submitted the report, they are the next user who needs to take an action
+                          hasOutstandingChildRequest: isCurrentUserManager,
+                          iouReportID: null,
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -3460,15 +3460,15 @@ function submitReport(expenseReport) {
         },
         ...(parentReport.reportID
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
-                    value: {
-                        hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
-                        iouReportID: expenseReport.reportID,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
+                          iouReportID: expenseReport.reportID,
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -3588,9 +3588,9 @@ function setMoneyRequestParticipantsFromReport(transactionID, report) {
     const participants = ReportUtils.isPolicyExpenseChat(chatReport)
         ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
         : _.chain(chatReport.participantAccountIDs)
-            .filter((accountID) => currentUserAccountID !== accountID)
-            .map((accountID) => ({accountID, selected: true}))
-            .value();
+              .filter((accountID) => currentUserAccountID !== accountID)
+              .map((accountID) => ({accountID, selected: true}))
+              .value();
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
 
@@ -3736,9 +3736,9 @@ function navigateToNextPage(iou, iouType, report, path = '') {
             const participants = ReportUtils.isPolicyExpenseChat(chatReport)
                 ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
                 : _.chain(chatReport.participantAccountIDs)
-                    .filter((accountID) => currentUserAccountID !== accountID)
-                    .map((accountID) => ({accountID, selected: true}))
-                    .value();
+                      .filter((accountID) => currentUserAccountID !== accountID)
+                      .map((accountID) => ({accountID, selected: true}))
+                      .value();
             setMoneyRequestParticipants(participants);
             resetMoneyRequestCategory();
         }
