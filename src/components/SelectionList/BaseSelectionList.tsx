@@ -75,41 +75,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
 
     /**
-     * Sorts sections in the list based on the selection status and whether items are disabled.
-     * Selected items are moved to the top, followed by unselected items, and then disabled items.
-     */
-    const sortedSections = useMemo(() => {
-        // If multiple selection is not allowed, return the original list
-        if (!canSelectMultiple) {
-            return sections;
-        }
-
-        return sections.map((section) => {
-            const disabledItems: TItem[] = [];
-            const selectedItems: TItem[] = [];
-            const unselectedItems: TItem[] = [];
-
-            section.data.forEach((item) => {
-                if (item.isDisabled) {
-                    disabledItems.push(item);
-                } else if (item.isSelected) {
-                    selectedItems.push(item);
-                } else {
-                    unselectedItems.push(item);
-                }
-            });
-
-            // Combine items in the order: disabled, selected, unselected
-            const sortedData = [...disabledItems, ...selectedItems, ...unselectedItems];
-
-            return {
-                ...section,
-                data: sortedData,
-            };
-        });
-    }, [canSelectMultiple, sections]);
-
-    /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
      * - `disabledOptionsIndexes`: Contains the indexes of all the disabled items in the list, to be used by the ArrowKeyFocusManager
@@ -127,7 +92,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 
         const selectedOptions: TItem[] = [];
 
-        sortedSections.forEach((section, sectionIndex) => {
+        sections.forEach((section, sectionIndex) => {
             const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
@@ -178,7 +143,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [canSelectMultiple, sortedSections]);
+    }, [canSelectMultiple, sections]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
@@ -389,24 +354,12 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         if (prevTextInputValue === textInputValue || flattenedSections.allOptions.length === 0) {
             return;
         }
-        // set the focus on the first item when the sections list is changed
-        let newSelectedIndex = -1;
-
-        if (textInputValue !== '') {
-            // Focus on the first non-selected item if multiple selection, otherwise focus on the first item
-            newSelectedIndex = canSelectMultiple ? flattenedSections.selectedOptions.length + flattenedSections.disabledOptionsIndexes.length : 0;
-        }
+        // Remove the focus if the search input is empty else focus on the first non disabled item
+        const newSelectedIndex = textInputValue !== '' ? flattenedSections.disabledOptionsIndexes.length : -1;
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        canSelectMultiple,
-        flattenedSections.allOptions.length,
-        flattenedSections.disabledOptionsIndexes.length,
-        flattenedSections.selectedOptions.length,
-        textInputValue,
-        updateAndScrollToFocusedIndex,
-    ]);
+    }, [canSelectMultiple, flattenedSections.allOptions.length, flattenedSections.disabledOptionsIndexes.length, textInputValue, updateAndScrollToFocusedIndex]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -497,7 +450,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                 )}
                                 <SectionList
                                     ref={listRef}
-                                    sections={sortedSections}
+                                    sections={sections}
                                     stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
