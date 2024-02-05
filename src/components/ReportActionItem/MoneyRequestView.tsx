@@ -273,7 +273,7 @@ function MoneyRequestView({
                                 ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
                                     CONST.IOU.ACTION.EDIT,
                                     CONST.IOU.TYPE.REQUEST,
-                                    transaction.transactionID,
+                                    transaction?.transactionID ?? '',
                                     report.reportID,
                                     Navigation.getActiveRouteWithoutParams(),
                                 ),
