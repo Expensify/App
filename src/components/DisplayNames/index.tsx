@@ -19,9 +19,19 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
         );
     }
 
+    if (shouldUseFullTitle) {
+        return (
+            <DisplayNamesWithToolTip
+                shouldUseFullTitle
+                fullTitle={title}
+                textStyles={textStyles}
+                numberOfLines={numberOfLines}
+            />
+        );
+    }
+
     return (
         <DisplayNamesWithToolTip
-            shouldUseFullTitle={shouldUseFullTitle}
             fullTitle={title}
             displayNamesWithTooltips={displayNamesWithTooltips}
             textStyles={textStyles}

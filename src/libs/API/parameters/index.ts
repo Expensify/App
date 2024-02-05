@@ -14,6 +14,7 @@ export type {default as ConnectBankAccountWithPlaidParams} from './ConnectBankAc
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
+export type {default as DismissReferralBannerParams} from './DismissReferralBannerParams';
 export type {default as ExpandURLPreviewParams} from './ExpandURLPreviewParams';
 export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMessagesParams';
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';

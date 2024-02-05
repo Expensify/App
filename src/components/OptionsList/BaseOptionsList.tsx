@@ -175,15 +175,7 @@ function BaseOptionsList(
     const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
         const isItemDisabled = isDisabled || !!section.isDisabled || !!item.isDisabled;
         const isSelected = selectedOptions?.some((option) => {
-            if (option.accountID && option.accountID === item.accountID) {
-                return true;
-            }
-
-            if (option.reportID && option.reportID === item.reportID) {
-                return true;
-            }
-
-            if (option.policyID && option.policyID === item.policyID) {
+            if (option.keyForList && option.keyForList === item.keyForList) {
                 return true;
             }
 

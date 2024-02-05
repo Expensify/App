@@ -56,7 +56,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
         >
             {shouldUseFullTitle
                 ? ReportUtils.formatReportLastMessageText(fullTitle)
-                : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
+                : displayNamesWithTooltips?.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
                           <DisplayNamesTooltipItem
