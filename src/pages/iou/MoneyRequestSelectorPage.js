@@ -135,9 +135,7 @@ function MoneyRequestSelectorPage(props) {
                                         />
                                     )}
                                 </OnyxTabNavigator>
-                            ) : (
-                                null
-                            )}
+                            ) : null}
                         </View>
                     </DragAndDropProvider>
                 </FullPageNotFoundView>
