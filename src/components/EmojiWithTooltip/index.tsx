@@ -30,7 +30,7 @@ function EmojiWithTooltip({emojiCode, style = undefined}: EmojiWithTooltipProps)
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`:${emojiName}:`}</Text>
             </View>
         ),
-        [emojiCode, emojiName],
+        [emojiCode, emojiName, styles.alignItemsCenter, styles.ph2, styles.flexRow, styles.emojiTooltipWrapper, styles.fontColorReactionLabel, styles.onlyEmojisText, styles.textMicro],
     );
 
     return (
