@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -92,7 +93,7 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
                     <View style={[styles.mb6]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="welcomeMessage"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM].WELCOME_MESSAGE}
                             label={translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={translate('welcomeMessagePage.welcomeMessage')}
                             role={CONST.ROLE.PRESENTATION}

@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList} from '@src/types/onyx';
+import INPUTS_IDS from '@components/Form/inputs';
 
 type IntroSchoolPrincipalPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -94,8 +95,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="firstName"
-                        name="firstName"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].FIRST_NAME}
+                        name={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].FIRST_NAME}
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -106,8 +107,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View style={styles.mv4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="lastName"
-                        name="lastName"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].LAST_NAME}
+                        name={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].LAST_NAME}
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -118,8 +119,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="partnerUserID"
-                        name="partnerUserID"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].PARTNER_USER_ID}
+                        name={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].PARTNER_USER_ID}
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
                         role={CONST.ROLE.PRESENTATION}

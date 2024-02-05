@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList} from '@src/types/onyx';
+import INPUTS_IDS from '@components/Form/inputs';
 
 type KnowATeacherPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -78,6 +79,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
         },
         [props.loginList],
     );
+ 
 
     return (
         <ScreenWrapper
@@ -100,7 +102,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="firstName"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM].FIRST_NAME}
                         name="fname"
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
@@ -112,7 +114,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                 <View style={styles.mv4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="lastName"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM].LAST_NAME}
                         name="lname"
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
@@ -124,7 +126,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="partnerUserID"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM].PARTNER_USER_ID}
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}

@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -74,7 +75,7 @@ function WorkspaceNamePage({policy}: Props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
-                        inputID="name"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM].NAME}
                         label={translate('workspace.editor.nameInputLabel')}
                         accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                         defaultValue={policy?.name}
