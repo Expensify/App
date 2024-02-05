@@ -1,8 +1,7 @@
 import Str from 'expensify-common/lib/str';
-import {isEmpty} from 'lodash';
 import React, {memo} from 'react';
-import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import type {StyleProp, TextStyle} from 'react-native';
+import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
 import useLocalize from '@hooks/useLocalize';
@@ -82,8 +81,6 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
 
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
     const textMatrix = getTextMatrix(convertToLTR(iouMessage || text));
-
-    console.log(textMatrix);
 
     return (
         <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
