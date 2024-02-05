@@ -72,7 +72,8 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
 };
 
 function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
-    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy));
+    // Check only valid policies
+    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy && policy.id));
 
     const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
     const errorCheckingMethods: CheckingMethod[] = [
