@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -33,6 +34,9 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
+    /** The draft transaction of scan split bill */
+    splitTransactionDraft: transactionPropTypes,
+
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
@@ -49,6 +53,7 @@ const defaultProps = {
     transaction: {},
     policyTaxRates: {},
     policy: {},
+    splitTransactionDraft: {},
 };
 
 const getTaxAmount = (transaction, defaultTaxValue, amount) => {
@@ -62,6 +67,7 @@ function IOURequestStepAmount({
         params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency, action},
     },
     transaction,
+    splitTransactionDraft,
     transaction: {currency: originalCurrency},
     policyTaxRates,
     policy,
@@ -71,11 +77,9 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef(null);
     const iouRequestType = getRequestType(transaction);
     const currency = selectedCurrency || originalCurrency;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(_.isEmpty(splitTransactionDraft) ? transaction : splitTransactionDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-
-    console.log(transaction);
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
