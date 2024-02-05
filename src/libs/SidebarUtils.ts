@@ -349,6 +349,7 @@ function getOptionData({
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
+    result.lastVisibleActionCreated = report.lastVisibleActionCreated;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
