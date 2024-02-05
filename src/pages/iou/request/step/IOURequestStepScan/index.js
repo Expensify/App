@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
-import {ActivityIndicator, PanResponder, PixelRatio, Text, View} from 'react-native';
+import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -12,6 +12,7 @@ import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -135,13 +136,9 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file, source) => {
             IOU.replaceReceipt(transactionID, file, source);
-            if (backTo) {
-                Navigation.goBack(backTo);
-                return;
-            }
             Navigation.dismissModal();
         },
-        [backTo, transactionID],
+        [transactionID],
     );
 
     /**

@@ -144,7 +144,7 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        IOUUtils.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
     }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     useEffect(() => {
@@ -217,7 +217,6 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
                 IOU.startSplitBill(
                     selectedParticipants,
                     currentUserPersonalDetails.login,
@@ -226,7 +225,8 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     receiptFile,
-                    existingSplitChatReportID,
+                    report.reportID,
+                    transaction.billable,
                 );
                 return;
             }
@@ -245,6 +245,7 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     report.reportID,
+                    transaction.billable,
                 );
                 return;
             }
@@ -261,6 +262,7 @@ function IOURequestStepConfirmation({
                     transaction.merchant,
                     transaction.category,
                     transaction.tag,
+                    transaction.billable,
                 );
                 return;
             }
@@ -277,7 +279,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, reportID, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
     );
 
     /**

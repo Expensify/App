@@ -39,4 +39,14 @@ describe('CardUtils', () => {
         expect(cardUtils.getMonthFromExpirationDateString(shortDate)).toBe(expectedMonth);
         expect(cardUtils.getYearFromExpirationDateString(shortDate)).toBe(expectedYear);
     });
+
+    it('Test MM/YYYY format given MM/YY', () => {
+        expect(cardUtils.formatCardExpiration(shortDateSlashed)).toBe(longDateSlashed);
+        expect(cardUtils.formatCardExpiration(shortDateSlashed)).toBe(longDateSlashed);
+    });
+
+    it('Test MM/YYYY format given MMYY', () => {
+        expect(cardUtils.formatCardExpiration(shortDate)).toBe(longDateSlashed);
+        expect(cardUtils.formatCardExpiration(shortDate)).toBe(longDateSlashed);
+    });
 });

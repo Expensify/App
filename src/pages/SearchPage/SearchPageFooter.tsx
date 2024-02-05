@@ -1,59 +1,44 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
+import {withOnyx} from 'react-native-onyx';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {DismissedReferralBanners} from '@src/types/onyx/Account';
 
-function SearchPageFooter() {
+type SearchPageFooterOnyxProps = {
+    dismissedReferralBanners: DismissedReferralBanners;
+};
+function SearchPageFooter({dismissedReferralBanners}: SearchPageFooterOnyxProps) {
+    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]);
     const themeStyles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
+
+    const closeCallToActionBanner = () => {
+        setShouldShowReferralCTA(false);
+        User.dismissReferralBanner(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND);
+    };
 
     return (
-        <View style={[themeStyles.pb5, themeStyles.flexShrink0]}>
-            <PressableWithoutFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND));
-                }}
-                style={[
-                    themeStyles.p5,
-                    themeStyles.w100,
-                    themeStyles.br2,
-                    themeStyles.highlightBG,
-                    themeStyles.flexRow,
-                    themeStyles.justifyContentBetween,
-                    themeStyles.alignItemsCenter,
-                    {gap: 10},
-                ]}
-                accessibilityLabel="referral"
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-            >
-                <Text>
-                    {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.buttonText1`)}
-                    <Text
-                        color={theme.success}
-                        style={themeStyles.textStrong}
-                    >
-                        {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.buttonText2`)}
-                    </Text>
-                </Text>
-                <Icon
-                    src={Info}
-                    height={20}
-                    width={20}
-                />
-            </PressableWithoutFeedback>
-        </View>
+        <>
+            {shouldShowReferralCTA && (
+                <View style={[themeStyles.pb5, themeStyles.flexShrink0]}>
+                    <ReferralProgramCTA
+                        referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
+                        onCloseButtonPress={closeCallToActionBanner}
+                    />
+                </View>
+            )}
+        </>
     );
 }
 
 SearchPageFooter.displayName = 'SearchPageFooter';
 
-export default SearchPageFooter;
+export default withOnyx<SearchPageFooterOnyxProps, SearchPageFooterOnyxProps>({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data?.dismissedReferralBanners ?? {},
+    },
+})(SearchPageFooter);
