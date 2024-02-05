@@ -70,6 +70,10 @@ type CloseAccountForm = Form<{
     phoneOrEmail: string;
 }>;
 
+type RoomNameForm = Form<{
+    roomName: string;
+}>;
+
 type ReimbursementAccountForm = Form<ReimbursementAccountDraft>;
 
 export default Form;
@@ -88,5 +92,6 @@ export type {
     WorkspaceSettingsForm,
     ReportFieldEditForm,
     CloseAccountForm,
+    RoomNameForm,
     ReimbursementAccountForm,
 };
