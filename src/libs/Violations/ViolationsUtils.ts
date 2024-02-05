@@ -1,5 +1,6 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,17 +18,13 @@ const ViolationsUtils = {
         policyTagList: PolicyTagList,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
-    ): {
-        onyxMethod: string;
-        key: string;
-        value: TransactionViolation[];
-    } {
+    ): OnyxUpdate {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const isCategoryInPolicy = Boolean(policyCategories[updatedTransaction.category]?.enabled);
+            const isCategoryInPolicy = !!policyCategories[updatedTransaction.category ?? '']?.enabled;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && updatedTransaction.category && !isCategoryInPolicy) {
@@ -55,7 +52,7 @@ const ViolationsUtils = {
             const policyTags = policyTagList[policyTagListName]?.tags;
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = Boolean(policyTags?.[updatedTransaction.tag]?.enabled);
+            const isTagInPolicy = !!policyTags[updatedTransaction.tag ?? '']?.enabled;
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
             if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
@@ -157,7 +154,7 @@ const ViolationsUtils = {
                     brokenBankConnection: violation.data?.brokenBankConnection ?? false,
                     isAdmin: violation.data?.isAdmin ?? false,
                     email: violation.data?.email,
-                    isTransactionOlderThan7Days: Boolean(violation.data?.isTransactionOlderThan7Days),
+                    isTransactionOlderThan7Days: !!violation.data?.isTransactionOlderThan7Days,
                     member: violation.data?.member,
                 });
             case 'smartscanFailed':
