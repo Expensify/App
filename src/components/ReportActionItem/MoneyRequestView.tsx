@@ -210,7 +210,7 @@ function MoneyRequestView({
                     translationPath: 'common.error.enterAmount',
                 },
                 merchant: {
-                    isError: isPolicyExpenseChat && isEmptyMerchant,
+                    isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
                     translationPath: 'common.error.enterMerchant',
                 },
                 date: {
@@ -333,8 +333,8 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={getErrorForField('merchant')}
+                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant && isPolicyExpenseChat) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -372,9 +372,10 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                            }
                             brickRoadIndicator={getErrorForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={getErrorForField('tag')}
                         />
                     </OfflineWithFeedback>
                 )}
