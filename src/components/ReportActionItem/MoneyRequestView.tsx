@@ -156,7 +156,6 @@ function MoneyRequestView({
                 Navigation.dismissModal();
                 return;
             }
-            // @ts-expect-error: updateMoneyRequestBillable is not typed and the compiler is inferring the wrong type for policy
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
