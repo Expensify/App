@@ -72,6 +72,10 @@ type CloseAccountForm = Form<{
     phoneOrEmail: string;
 }>;
 
+type RoomNameForm = Form<{
+    roomName: string;
+}>;
+
 export default Form;
 
 export type {
@@ -89,4 +93,5 @@ export type {
     WorkspaceSettingsForm,
     ReportFieldEditForm,
     CloseAccountForm,
+    RoomNameForm,
 };

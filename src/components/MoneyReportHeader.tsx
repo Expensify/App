@@ -58,6 +58,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentType>();
     const [confirmationType, setConfirmationType] = useState<string>();
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
@@ -164,6 +165,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
+                            isDisabled={!canAllowSettlement}
                         />
                     </View>
                 )}
@@ -195,6 +197,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={formattedAmount}
+                            isDisabled={!canAllowSettlement}
                         />
                     </View>
                 )}

@@ -178,8 +178,13 @@ function clearMoneyRequest(transactionID) {
  * @param {String} transactionID
  * @param {Number} amount
  * @param {String} currency
+ * @param {Boolean} [removeOriginalCurrency]
  */
-function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
+function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency, removeOriginalCurrency = false) {
+    if (removeOriginalCurrency) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
@@ -194,9 +199,22 @@ function setMoneyRequestCreated_temporaryForRefactor(transactionID, created) {
 /**
  * @param {String} transactionID
  * @param {String} currency
+ * @param {Boolean} [removeOriginalCurrency]
  */
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
+function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency, removeOriginalCurrency = false) {
+    if (removeOriginalCurrency) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency, originalCurrency: null});
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} originalCurrency
+ */
+function setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, originalCurrency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {originalCurrency});
 }
 
 /**
@@ -3939,6 +3957,7 @@ export {
     setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated_temporaryForRefactor,
     setMoneyRequestCurrency_temporaryForRefactor,
+    setMoneyRequestOriginalCurrency_temporaryForRefactor,
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
