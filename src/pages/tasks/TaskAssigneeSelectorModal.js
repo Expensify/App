@@ -57,12 +57,6 @@ const propTypes = {
         report: reportPropTypes,
     }),
 
-    /** The policy of root parent report */
-    rootParentReportPolicy: PropTypes.shape({
-        /** The role of current user */
-        role: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
 };
 
@@ -72,7 +66,6 @@ const defaultProps = {
     session: {},
     route: {},
     task: {},
-    rootParentReportPolicy: {},
 };
 
 function TaskAssigneeSelectorModal(props) {
@@ -198,7 +191,7 @@ function TaskAssigneeSelectorModal(props) {
                     // Pass through the selected assignee
                     Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
                 }
-                Navigation.dismissModal(report.reportID);
+                Navigation.dismissModalWithReport(report);
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
@@ -209,7 +202,7 @@ function TaskAssigneeSelectorModal(props) {
     );
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
@@ -262,16 +255,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-    }),
-    withOnyx({
-        rootParentReportPolicy: {
-            key: ({reports, route}) => {
-                const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID || '0'}`];
-                const rootParentReport = ReportUtils.getRootParentReport(report);
-                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-            },
-            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskAssigneeSelectorModal);
