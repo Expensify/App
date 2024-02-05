@@ -3,7 +3,6 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import type {Route} from './ROUTES';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -36,6 +35,7 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import type {Route} from './ROUTES';
 import type {ScreenShareRequest, Session} from './types/onyx';
 
 Onyx.registerLogger(({level, message}) => {
