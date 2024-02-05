@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import addLog from '@libs/actions/Console';
 import {createLog, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileDownload from '@libs/localFileDownload';
@@ -45,7 +46,7 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
         const sanitizedInput = sanitizeConsoleInput(input);
 
         const customLogs = createLog(sanitizedInput);
-        setLogs((prevLogs) => ({...prevLogs, ...customLogs}));
+        customLogs.forEach((log) => addLog(log));
         setInput('');
     };
 
@@ -73,17 +74,19 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TROUBLESHOOT)}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, {height: CONST.DEBUG_CONSOLE.CONSOLE_HEIGHT}]}>
-                <FlashList
-                    data={Object.values(logs).reverse()}
-                    renderItem={({item}) => (
-                        <View style={styles.mb2}>
-                            <Text family="MONOSPACE">{`${item.time.toLocaleTimeString()} ${item.message}`}</Text>
-                        </View>
-                    )}
-                    estimatedItemSize={70}
-                    contentContainerStyle={styles.p5}
-                    inverted
-                />
+                {logs !== undefined && (
+                    <FlashList
+                        data={Object.values(logs).reverse()}
+                        renderItem={({item}) => (
+                            <View style={styles.mb2}>
+                                <Text family="MONOSPACE">{`${item.time.toLocaleTimeString()} ${item.message}`}</Text>
+                            </View>
+                        )}
+                        estimatedItemSize={70}
+                        contentContainerStyle={styles.p5}
+                        inverted
+                    />
+                )}
             </View>
             <View style={[styles.flex1, styles.flexRow, styles.flexShrink1, styles.m5]}>
                 <Button
