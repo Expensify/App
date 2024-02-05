@@ -87,13 +87,13 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
             </View>
             <View style={[styles.flex1, styles.flexRow, styles.flexShrink1, styles.m5]}>
                 <Button
-                    text="Save log"
+                    text={translate('initialSettingsPage.debugConsole.saveLog')}
                     onPress={saveLogs}
                     icon={Expensicons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
                 <Button
-                    text="Share log"
+                    text={translate('initialSettingsPage.debugConsole.shareLog')}
                     onPress={() => {}}
                     icon={Expensicons.Upload}
                     style={[styles.flex1, styles.ml1]}
@@ -103,14 +103,14 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 <TextInput
                     onChangeText={setInput}
                     value={input}
-                    placeholder="Enter command"
+                    placeholder={translate('initialSettingsPage.debugConsole.enterCommand')}
                     autoGrowHeight
                     autoCorrect={false}
                     accessibilityRole="text"
                 />
                 <Button
                     success
-                    text="Execute"
+                    text={translate('initialSettingsPage.debugConsole.execute')}
                     onPress={handleExecute}
                     style={[styles.mt5]}
                 />

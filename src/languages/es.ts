@@ -810,6 +810,12 @@ export default {
             confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
             resetAndRefresh: 'Restablecer y actualizar',
         },
+        debugConsole: {
+            saveLog: 'Guardar registro',
+            shareLog: 'Compartir registro',
+            enterCommand: 'Introducir comando',
+            execute: 'Ejecutar',
+        },
         security: 'Seguridad',
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',

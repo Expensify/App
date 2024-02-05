@@ -816,6 +816,12 @@ export default {
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
         },
+        debugConsole: {
+            saveLog: 'Save log',
+            shareLog: 'Share log',
+            enterCommand: 'Enter command',
+            execute: 'Execute',
+        },
         goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
         signOut: 'Sign out',
