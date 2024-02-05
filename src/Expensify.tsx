@@ -241,7 +241,7 @@ function Expensify({
                     <NavigationRoot
                         onReady={setNavigationReady}
                         authenticated={isAuthenticated}
-                        lastVisitedPath={lastVisitedPath}
+                        lastVisitedPath={lastVisitedPath as Route}
                         initialUrl={initialUrl}
                     />
                 </SplashScreenHiddenContext.Provider>
