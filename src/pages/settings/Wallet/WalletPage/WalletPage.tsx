@@ -18,8 +18,8 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import Text from '@components/Text';
-import WalletSection from '@components/WalletSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -353,13 +353,17 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             {shouldShowEmptyState ? (
                 <WalletEmptyState onAddPaymentMethod={paymentMethodPressed} />
             ) : (
-                <ScreenWrapper testID={WalletPage.displayName}>
+                <ScreenWrapper
+                    testID={WalletPage.displayName}
+                    shouldShowOfflineIndicatorInWideScreen
+                >
                     <HeaderWithBackButton
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                        shouldShowBackButton={isSmallScreenWidth}
                     />
-                    <View style={[styles.flex1, styles.mb4]}>
-                        <ScrollView>
+                    <ScrollView>
+                        <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <OfflineWithFeedback
                                 style={styles.flex1}
                                 contentContainerStyle={styles.flex1}
@@ -368,10 +372,11 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 errorRowStyles={[styles.ph6]}
                             >
                                 {hasWallet && (
-                                    <WalletSection
+                                    <Section
                                         icon={Illustrations.MoneyIntoWallet}
                                         subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
+                                        isCentralPane
                                     >
                                         <>
                                             {shouldShowLoadingSpinner ? (
@@ -462,7 +467,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                             ref={buttonRef as ForwardedRef<View>}
                                                             text={translate('walletPage.enableWallet')}
                                                             onPress={triggerKYCFlow}
-                                                            style={styles.mh5}
                                                             isDisabled={network.isOffline}
                                                             success
                                                             large
@@ -471,13 +475,14 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                 }}
                                             </KYCWall>
                                         </>
-                                    </WalletSection>
+                                    </Section>
                                 )}
                                 {hasAssignedCard ? (
-                                    <WalletSection
+                                    <Section
                                         icon={Illustrations.CreditCardsNew}
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
+                                        isCentralPane
                                     >
                                         <PaymentMethodList
                                             shouldShowAddBankAccount={false}
@@ -493,12 +498,13 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                             onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         />
-                                    </WalletSection>
+                                    </Section>
                                 ) : null}
-                                <WalletSection
+                                <Section
                                     icon={Illustrations.BankArrow}
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('walletPage.bankAccounts')}
+                                    isCentralPane
                                 >
                                     <PaymentMethodList
                                         shouldShowAddPaymentMethodButton={false}
@@ -512,10 +518,10 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         shouldEnableScroll={false}
                                         style={styles.mt5}
                                     />
-                                </WalletSection>
+                                </Section>
                             </OfflineWithFeedback>
-                        </ScrollView>
-                    </View>
+                        </View>
+                    </ScrollView>
                     <Popover
                         isVisible={shouldShowDefaultDeleteMenu}
                         onClose={hideDefaultDeleteMenu}
