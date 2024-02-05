@@ -1,4 +1,3 @@
-
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
