@@ -549,6 +549,10 @@ function ComposerWithSuggestions({
         onValueChange(value);
     }, [onValueChange, value]);
 
+    useEffect(() => {
+        setSelection({start: value.length, end: value.length});
+    }, []);
+
     const onLayout = useCallback(
         (e) => {
             const composerLayoutHeight = e.nativeEvent.layout.height;
