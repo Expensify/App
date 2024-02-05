@@ -130,9 +130,11 @@ function ReportPreview({
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
+
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
@@ -307,6 +309,7 @@ function ReportPreview({
                                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                     }}
+                                    isDisabled={!canAllowSettlement}
                                 />
                             )}
                             {shouldShowSubmitButton && (
