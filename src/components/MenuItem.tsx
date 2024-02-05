@@ -316,7 +316,7 @@ function MenuItem(
             styles.flexShrink1,
             styles.popoverMenuText,
             // eslint-disable-next-line no-nested-ternary
-            icon && !Array.isArray(icon) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
+            shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
             shouldShowBasicTitle ? {} : styles.textStrong,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
