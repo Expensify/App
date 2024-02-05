@@ -47,7 +47,9 @@ type ComponentPropsWithoutParentReportAction = OnyxPropsWithoutParentReportActio
 
 type ComponentProps = OnyxPropsParentReportAction & ComponentPropsWithoutParentReportAction;
 
-export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
+export default function <TProps extends ComponentProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): ComponentType<Omit<Omit<TProps, keyof OnyxPropsParentReportAction> & RefAttributes<TRef>, keyof OnyxPropsWithoutParentReportAction>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const {isSmallScreenWidth} = useWindowDimensions();
         const getReportAction = useCallback(() => {
@@ -99,7 +101,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return withOnyx<ComponentPropsWithoutParentReportAction, OnyxPropsWithoutParentReportAction>({
+    return withOnyx<Omit<TProps, keyof OnyxPropsParentReportAction> & RefAttributes<TRef>, OnyxPropsWithoutParentReportAction>({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
@@ -120,10 +122,11 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     })(
-        withOnyx<ComponentProps, OnyxPropsParentReportAction>({
+        withOnyx<TProps & RefAttributes<TRef>, OnyxPropsParentReportAction>({
             parentReportAction: {
                 key: (props) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props?.report?.parentReportID ?? 0}`,
-                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
+                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxPropsParentReportAction>): OnyxEntry<OnyxTypes.ReportAction> => {
+                    console.log('timddd', props);
                     const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
                         return null;
