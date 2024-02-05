@@ -53,6 +53,7 @@ const propTypes = {
     /** All the data for the transaction */
     transaction: transactionPropTypes,
 
+    /** Whether we should show the Hold Interstitial explaining the feature */
     shownHoldUseExplaination: PropTypes.bool,
 };
 
