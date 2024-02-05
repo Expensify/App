@@ -190,10 +190,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: {
                             path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
                             exact: true,

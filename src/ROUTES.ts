@@ -125,7 +125,6 @@ const ROUTES = {
         route: 'settings/wallet/card/:domain/activate',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/activate` as const,
     },
-    SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
