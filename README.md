@@ -432,12 +432,12 @@ Updated rules for managing all types of chats (add/remove people)
         | **Can be removed**  | ❌
     
     4. #### Workspace rooms
-        |   |  Creator | Member | 
-        | :---: | :---:  |  :---: 
-        | **Invite** | ✅ |  ✅ 
-        | **Remove** | ✅ |  ✅   
-        | **Leave**  | ✅ |  ✅  
-        | **Can be removed**  | ✅ | ✅
+        |   |  Creator | Member | Guest(outside of the workspace)
+        | :---: | :---:  |  :---: | :---:
+        | **Invite** | ✅ | ✅ | ✅
+        | **Remove** | ✅ | ✅ | ❌
+        | **Leave**  | ✅ | ✅ | ✅
+        | **Can be removed**  | ✅ | ✅ | ✅
 
     4. #### Workspace chats
         |   |  Admin | Member(default) | Member(invited)  
