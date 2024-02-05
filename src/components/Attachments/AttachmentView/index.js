@@ -143,7 +143,7 @@ function AttachmentView({
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         const onPDFLoadComplete = (path) => {
-            if (isUsedInCarousel && reportActionID) {
+            if (isUsedInCarousel && reportActionID && path) {
                 CachedPDFPaths.add(reportActionID, path);
             }
             if (!loadComplete) {

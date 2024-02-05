@@ -1,9 +1,9 @@
-function add(reportActionID: string, path: string): Promise<void> {
-    return Promise.resolve();
-}
+import type {Add, ClearAll, ClearByKey} from './types';
 
-function clearByKey(reportActionID: string) {}
+const add: Add = () => Promise.resolve();
 
-function clearAll() {}
+const clearByKey: ClearByKey = () => {};
+
+const clearAll: ClearAll = () => {};
 
 export {add, clearByKey, clearAll};
