@@ -68,7 +68,7 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
 };
 
 const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount, taxAmount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(taxAmount);
+const isTaxAmountInvalid = (currentAmount, taxAmount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmountAsInteger(taxAmount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -83,7 +83,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmountAsString(amount) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [formError, setFormError] = useState('');
@@ -119,7 +119,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
     };
 
     const initializeAmount = useCallback((newAmount) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount) : '';
         setCurrentAmount(frontendAmount);
         setSelection({
             start: frontendAmount.length,
