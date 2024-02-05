@@ -492,6 +492,21 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        bottomTabBarContainer: {
+            flexDirection: 'row',
+            height: variables.bottomTabHeight,
+            borderTopWidth: 1,
+            borderTopColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        bottomTabBarItem: {
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
         button: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
@@ -860,6 +875,18 @@ const styles = (theme: ThemeColors) =>
             justifyItems: 'center',
         },
 
+        cameraFocusIndicator: {
+            position: 'absolute',
+            left: -32,
+            top: -32,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            borderWidth: 2,
+            borderColor: theme.white,
+            pointerEvents: 'none',
+        },
+
         permissionView: {
             paddingVertical: 108,
             paddingHorizontal: 61,
@@ -1047,6 +1074,11 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 11,
             justifyContent: 'center',
             margin: 1,
+        },
+
+        textInputLeftIconContainer: {
+            justifyContent: 'center',
+            paddingRight: 8,
         },
 
         secureInput: {
@@ -1365,14 +1397,18 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
-        floatingActionButtonContainer: {
+        bottomTabStatusIndicator: (backgroundColor = theme.danger) => ({
+            borderColor: theme.sidebar,
+            backgroundColor,
+            borderRadius: 8,
+            borderWidth: 2,
             position: 'absolute',
-            right: 20,
-
-            // The bottom of the floating action button should align with the bottom of the compose box.
-            // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
-            bottom: variables.fabBottom,
-        },
+            right: -3,
+            top: -4,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        }),
 
         floatingActionButton: {
             backgroundColor: theme.success,
@@ -1463,10 +1499,10 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
             } satisfies AnchorPosition),
 
-        createMenuPositionProfile: (windowWidth: number) =>
+        createAccountMenuPositionProfile: () =>
             ({
-                horizontal: windowWidth - 355,
-                ...getPopOverVerticalOffset(162),
+                horizontal: 18,
+                ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
         createMenuPositionReportActionCompose: (windowHeight: number) =>
@@ -1657,6 +1693,11 @@ const styles = (theme: ThemeColors) =>
         optionsListSectionHeader: {
             marginTop: 8,
             marginBottom: 4,
+        },
+
+        emptyWorkspaceIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
         },
 
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
@@ -2159,6 +2200,15 @@ const styles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
+        subscriptIcon: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            width: 20,
+            height: 20,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         borderTop: {
             borderTopWidth: variables.borderTopWidth,
             borderColor: theme.border,
@@ -2285,6 +2335,17 @@ const styles = (theme: ThemeColors) =>
 
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 400,
+            alignSelf: 'center',
+        },
+
+        forcedBlockingViewContainer: {
+            ...positioning.pFixed,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: theme.appBG,
         },
 
         defaultModalContainer: {
@@ -2497,6 +2558,42 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 20,
         },
 
+        avatarSectionWrapperSettings: {
+            width: '100%',
+            alignItems: 'center',
+        },
+
+        accountSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.mt0,
+            ...spacing.mb0,
+            ...spacing.pt0,
+        },
+
+        centralPaneAnimation: {
+            height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
+        },
+
+        sectionTitle: {
+            ...spacing.pt2,
+            ...spacing.pr3,
+            ...spacing.pb4,
+            paddingLeft: 13,
+            fontSize: 13,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontWeight: 400,
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
+        sectionMenuItem: {
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            height: 56,
+            alignItems: 'center',
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
@@ -2507,6 +2604,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.componentBG,
             marginLeft: 8,
+        },
+
+        optionSelectCircle: {
+            borderRadius: variables.componentSizeSmall / 2 + 1,
+            padding: 1,
         },
 
         unreadIndicatorContainer: {
@@ -2893,26 +2995,34 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderColor: theme.appBG,
-            borderRadius: 14,
+            borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
-            height: 28,
-            width: 28,
+            height: 40,
+            width: 40,
             justifyContent: 'center',
         },
 
         smallAvatarEditIcon: {
             position: 'absolute',
-            right: -4,
-            bottom: -4,
+            right: -8,
+            bottom: -8,
         },
 
         workspaceOwnerAvatarWrapper: {
             margin: 6,
         },
 
+        workspaceOwnerSectionTitle: {
+            marginLeft: 6,
+        },
+
         workspaceTypeWrapper: {
             margin: 3,
+        },
+
+        workspaceTypeSectionTitle: {
+            marginLeft: 3,
         },
 
         autoGrowHeightMultilineInput: {
@@ -3102,7 +3212,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchPressable: {
-            height: 40,
+            height: variables.componentSizeNormal,
         },
 
         searchContainer: {
@@ -3111,8 +3221,9 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             gap: 8,
             paddingHorizontal: 24,
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusRounded,
+            justifyContent: 'center',
         },
 
         searchContainerHovered: {
@@ -3120,10 +3231,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchInputStyle: {
-            color: colors.productDark800,
+            color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
-            width: '100%',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
@@ -3242,14 +3352,19 @@ const styles = (theme: ThemeColors) =>
                 top: receiptImageTopPosition,
             } satisfies ViewStyle),
 
-        cardSection: {
+        cardSectionContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusCard,
-            marginBottom: 20,
-            marginHorizontal: 16,
-            padding: 20,
             width: 'auto',
             textAlign: 'left',
+            overflow: 'hidden',
+            marginBottom: 20,
+            marginHorizontal: variables.sectionMargin,
+        },
+
+        cardSectionIllustration: {
+            width: 'auto',
+            height: variables.sectionIllustrationHeight,
         },
 
         cardSectionTitle: {
@@ -3613,10 +3728,6 @@ const styles = (theme: ThemeColors) =>
             ...pointerEventsAuto,
             ...display.dFlex,
             ...flex.alignItemsCenter,
-        },
-
-        shareCodePage: {
-            paddingHorizontal: 38.5,
         },
 
         shareCodeContainer: {
@@ -4163,7 +4274,16 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
+        workspaceSection: {
+            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+        },
+
+        workspaceSectionMobile: {
+            width: '100%',
+            alignSelf: 'center',
+        },
+
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,

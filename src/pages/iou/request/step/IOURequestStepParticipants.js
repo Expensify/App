@@ -70,7 +70,7 @@ function IOURequestStepParticipants({
 
     const goToNextStep = useCallback(() => {
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
-        IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
+        IOU.setMoneyRequestTag(transactionID, '');
         IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
     }, [iouType, transactionID, reportID]);

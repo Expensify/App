@@ -3,7 +3,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {RootStackParamList} from './types';
 
-// This function is in a separate file than Navigation.js to avoid cyclic dependency.
+// This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
 /**
  * Find the last visited report screen in the navigation state and get the linked reportActionID of it.

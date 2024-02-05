@@ -197,6 +197,9 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled?: boolean;
 
+    /** Should we use default cursor for disabled content */
+    shouldUseDefaultCursorWhenDisabled?: boolean;
+
     /** The action accept for anonymous user or not */
     isAnonymousAction?: boolean;
 
@@ -223,6 +226,9 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
 
     /** Determines how the icon should be resized to fit its container */
     contentFit?: ImageContentFit;
+
+    /** Is this in the Pane */
+    isPaneMenu?: boolean;
 
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
@@ -280,6 +286,7 @@ function MenuItem(
         brickRoadIndicator,
         shouldRenderAsHTML = false,
         shouldGreyOutWhenDisabled = true,
+        shouldUseDefaultCursorWhenDisabled = false,
         isAnonymousAction = false,
         shouldBlockSelection = false,
         shouldParseTitle = false,
@@ -288,6 +295,7 @@ function MenuItem(
         titleWithTooltips,
         displayInDefaultIconColor = false,
         contentFit = 'cover',
+        isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
     }: MenuItemProps,
     ref: ForwardedRef<View>,
@@ -393,11 +401,12 @@ function MenuItem(
                             combinedStyle,
                             !interactive && styles.cursorDefault,
                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
-                            (isHovered || pressed) && hoverAndPressStyle,
+                            !focused && (isHovered || pressed) && hoverAndPressStyle,
                             ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                             shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                         ] as StyleProp<ViewStyle>
                     }
+                    disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                     disabled={disabled}
                     ref={ref}
                     role={CONST.ROLE.MENUITEM}
@@ -412,7 +421,7 @@ function MenuItem(
                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                                     </View>
                                 )}
-                                <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
+                                <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
                                     {!!icon && Array.isArray(icon) && (
                                         <MultipleAvatars
                                             isHovered={isHovered}
@@ -440,7 +449,8 @@ function MenuItem(
                                                     fill={
                                                         displayInDefaultIconColor
                                                             ? undefined
-                                                            : iconFill ?? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)
+                                                            : iconFill ??
+                                                              StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true, isPaneMenu)
                                                     }
                                                 />
                                             )}
@@ -568,7 +578,7 @@ function MenuItem(
                                     </View>
                                 )}
                                 {!!brickRoadIndicator && (
-                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, styles.mr2]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
@@ -581,7 +591,7 @@ function MenuItem(
                                     </View>
                                 )}
                                 {shouldShowRightIcon && (
-                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
+                                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
                                         <Icon
                                             src={iconRight}
                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}

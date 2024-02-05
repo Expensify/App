@@ -50,6 +50,9 @@ const propTypes = {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 
+    /** Denotes whether it is an icon (ex: SVG) */
+    maybeIcon: PropTypes.bool,
+
     /** The id of the transaction related to the attachment */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string,
@@ -64,6 +67,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
+    maybeIcon: false,
     transactionID: '',
     isHovered: false,
 };
@@ -85,6 +89,7 @@ function AttachmentView({
     carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
+    maybeIcon,
     fallbackSource,
     transaction,
     isHovered,
@@ -107,8 +112,9 @@ function AttachmentView({
 
     useNetwork({onReconnect: () => setImageError(false)});
 
-    // Handles case where source is a component (ex: SVG)
-    if (_.isFunction(source)) {
+    // Handles case where source is a component (ex: SVG) or a number
+    // Number may represent a SVG or an image
+    if ((maybeIcon && typeof source === 'number') || _.isFunction(source)) {
         let iconFillColor = '';
         let additionalStyles = [];
         if (isWorkspaceAvatar) {
