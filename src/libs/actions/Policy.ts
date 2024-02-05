@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
@@ -39,7 +38,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
@@ -353,8 +351,8 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
 /**
  * Build optimistic data for removing users from the announcement room
  */
-function removeOptimisticAnnounceRoomMembers(policy: Policy | EmptyObject, accountIDs: number[]): AnnounceRoomMembersOnyxData {
-    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policy.id);
+function removeOptimisticAnnounceRoomMembers(policyID: string, policyName: string, accountIDs: number[]): AnnounceRoomMembersOnyxData {
+    const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
@@ -377,7 +375,7 @@ function removeOptimisticAnnounceRoomMembers(policy: Policy | EmptyObject, accou
                     ? {
                           statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                           stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                          oldPolicyName: policy.name,
+                          oldPolicyName: policyName,
                           hasDraft: false,
                       }
                     : {}),
@@ -419,7 +417,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
 
-    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy, accountIDs);
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
 
     const optimisticMembersState: OnyxCollection<PolicyMember> = {};
     const successMembersState: OnyxCollection<PolicyMember> = {};
@@ -543,12 +541,6 @@ function removeMembers(accountIDs: number[], policyID: string) {
         emailList: accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).join(','),
         policyID,
     };
-
-    console.log('WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData}', WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {
-        optimisticData,
-        successData,
-        failureData,
-    });
 
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
