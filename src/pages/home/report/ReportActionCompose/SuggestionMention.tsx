@@ -1,3 +1,4 @@
+import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -142,20 +143,8 @@ function SuggestionMention(
                 return true;
             });
 
-            const sortedPersonalDetails = filteredPersonalDetails.sort((a, b) => {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-                const nameA = a?.displayName || a?.login || '';
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-                const nameB = b?.displayName || b?.login || '';
-
-                if (nameA < nameB) {
-                    return -1;
-                }
-                if (nameA > nameB) {
-                    return 1;
-                }
-                return 0;
-            });
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: PersonalDetailsUtils.getDisplayNameOrDefault(detail),
@@ -201,9 +190,9 @@ function SuggestionMention(
             const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
 
-            let atSignIndex;
+            let atSignIndex: number | undefined;
             let suggestionWord = '';
-            let prefix;
+            let prefix: string;
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
