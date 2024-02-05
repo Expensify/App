@@ -13,13 +13,16 @@ function ValidateLoginPage({
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
     useEffect(() => {
-        if (session?.authToken) {
-            // If already signed in, do not show the validate code if not on web,
-            // because we don't want to block the user with the interstitial page.
-            Navigation.goBack();
-        } else {
-            Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode);
-        }
+        // Wait till navigation becomes available
+        Navigation.isNavigationReady().then(() => {
+            if (session?.authToken) {
+                // If already signed in, do not show the validate code if not on web,
+                // because we don't want to block the user with the interstitial page.
+                Navigation.goBack();
+            } else {
+                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode);
+            }
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
