@@ -131,7 +131,7 @@ function InitialSettingsPage(props) {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
         const paymentCardList = props.fundList || {};
 
-        const defaultMenuItems = {
+        const defaultMenu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
@@ -183,7 +183,7 @@ function InitialSettingsPage(props) {
             ],
         };
 
-        if (NativeModules.HybridAppModule) {
+        if (!NativeModules.HybridAppModule) {
             const hybridAppMenuItems = _.filter(
                 [
                     {
@@ -193,15 +193,15 @@ function InitialSettingsPage(props) {
                         iconRight: Expensicons.NewWindow,
                         action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
                     },
-                    ...defaultMenuItems,
+                    ...defaultMenu.items,
                 ],
                 (item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic',
             );
 
-            return hybridAppMenuItems;
+            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
         }
 
-        return defaultMenuItems;
+        return defaultMenu;
     }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer]);
 
     /**
