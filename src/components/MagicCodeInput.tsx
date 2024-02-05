@@ -278,7 +278,7 @@ function MagicCodeInput(
 
                 const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
                 const formElement = inputRefs.current as HTMLFormElement | null;
-                (formElement?.[indexToFocus] as HTMLInputElement).focus();
+                (formElement?.[indexToFocus] as HTMLInputElement)?.focus();
                 onChangeTextProp(value.substring(0, indexToFocus));
 
                 return;
