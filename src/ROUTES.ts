@@ -218,6 +218,10 @@ const ROUTES = {
         route: 'r/:reportID/welcomeMessage',
         getRoute: (reportID: string) => `r/${reportID}/welcomeMessage` as const,
     },
+    REPORT_SETTINGS_VISIBILITY: {
+        route: 'r/:reportID/settings/visibility',
+        getRoute: (reportID: string) => `r/${reportID}/settings/visibility` as const,
+    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,

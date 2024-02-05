@@ -278,6 +278,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
                             path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.route,
                         },
+                        [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
+                            path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE]: {

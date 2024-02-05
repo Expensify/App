@@ -76,6 +76,7 @@ function ReportSettingsPage(props) {
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
@@ -174,8 +175,17 @@ function ReportSettingsPage(props) {
                                 />
                             </View>
                         )}
-                        {Boolean(report.visibility) && (
-                            <View style={[styles.pv3]}>
+                    </View>
+                    {Boolean(report.visibility) &&
+                        (shouldAllowChangeVisibility ? (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
+                                description={translate('newRoomPage.visibility')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
+                            />
+                        ) : (
+                            <View style={[styles.pv3, styles.ph5]}>
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
                                     numberOfLines={1}
@@ -190,8 +200,7 @@ function ReportSettingsPage(props) {
                                 </Text>
                                 <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate(`newRoomPage.${report.visibility}Description`)}</Text>
                             </View>
-                        )}
-                    </View>
+                        ))}
                     {!shouldDisableWelcomeMessage && (
                         <MenuItem
                             title={translate('welcomeMessagePage.welcomeMessage')}
