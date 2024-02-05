@@ -96,6 +96,9 @@ const propTypes = {
 
     /** List container style */
     style: stylePropTypes,
+
+    /** List item style */
+    listItemStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -120,6 +123,7 @@ const defaultProps = {
     onListContentSizeChange: () => {},
     shouldEnableScroll: true,
     style: {},
+    listItemStyle: {},
     shouldShowSelectedState: false,
 };
 
@@ -205,6 +209,7 @@ function PaymentMethodList({
     onListContentSizeChange,
     shouldEnableScroll,
     style,
+    listItemStyle,
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -286,12 +291,12 @@ function PaymentMethodList({
                 onPress={onPress}
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
-                wrapperStyle={styles.paymentMethod}
+                wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 ref={buttonRef}
             />
         ),
 
-        [onPress, styles.paymentMethod, translate, buttonRef],
+        [onPress, translate, styles.paymentMethod, listItemStyle, buttonRef],
     );
 
     /**
@@ -322,7 +327,7 @@ function PaymentMethodList({
                     iconWidth={item.iconWidth || item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
-                    wrapperStyle={styles.paymentMethod}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
@@ -332,7 +337,7 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

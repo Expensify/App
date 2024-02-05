@@ -245,17 +245,6 @@ function InitialSettingsPage(props) {
                                         item.action();
                                     } else {
                                         waitForNavigate(() => {
-                                            window.Onyx.merge(`cardList`, {
-                                                5678: {
-                                                    cardID: 5678,
-                                                    state: 3,
-                                                    bank: '1000',
-                                                    availableSpend: 10000,
-                                                    domainName: 'Expensify',
-                                                    lastFourPAN: '2345',
-                                                    isVirtual: false,
-                                                },
-                                            });
                                             Navigation.navigate(item.routeName);
                                         })();
                                     }

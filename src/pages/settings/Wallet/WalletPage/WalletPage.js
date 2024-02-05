@@ -342,6 +342,8 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                         shouldShowBackButton={isSmallScreenWidth}
+                        icon={Illustrations.MoneyIntoWallet}
+                        isCentralPaneSettings
                     />
                     <ScrollView>
                         <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -468,7 +470,8 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                             shouldShowEmptyListMessage={false}
                                             shouldEnableScroll={false}
                                             onPress={paymentMethodPressed}
-                                            style={[styles.mt5, styles.fullWidthPaymentMethod]}
+                                            style={[styles.mt5, [isSmallScreenWidth ? styles.mhn5 : styles.mhn8]]}
+                                            listItemStyle={isSmallScreenWidth ? styles.ph5 : styles.ph8}
                                             isAddPaymentMenuActive={shouldShowAddPaymentMenu}
                                             actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                             activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
@@ -493,7 +496,8 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                         buttonRef={addPaymentMethodAnchorRef}
                                         onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         shouldEnableScroll={false}
-                                        style={[styles.mt5, styles.fullWidthPaymentMethod]}
+                                        style={[styles.mt5, [isSmallScreenWidth ? styles.mhn5 : styles.mhn8]]}
+                                        listItemStyle={isSmallScreenWidth ? styles.ph5 : styles.ph8}
                                     />
                                 </Section>
                             </OfflineWithFeedback>
