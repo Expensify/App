@@ -46,7 +46,7 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
 
                 App.setLocale(locale);
             }}
-            isDisabled={true}
+            isDisabled={shouldDisablePicker}
             items={localesToLanguages}
             shouldAllowDisabledStyle={false}
             shouldShowOnlyTextWhenDisabled={false}
