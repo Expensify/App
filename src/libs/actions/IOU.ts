@@ -59,10 +59,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-type MoneyRequestRoute = StackScreenProps<
-    MoneyRequestNavigatorParamList,
-    typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.TAG | typeof SCREENS.MONEY_REQUEST.CONFIRMATION
->['route'];
+type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
