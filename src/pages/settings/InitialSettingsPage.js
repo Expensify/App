@@ -183,7 +183,7 @@ function InitialSettingsPage(props) {
             ],
         };
 
-        if (!NativeModules.HybridAppModule) {
+        if (NativeModules.HybridAppModule) {
             const hybridAppMenuItems = _.filter(
                 [
                     {
