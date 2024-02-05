@@ -4073,8 +4073,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.appBG,
-            borderColor: theme.textSupporting,
+            backgroundColor: colors.highlightBG,
+            borderColor: colors.border,
+            borderWidth: 1,
         },
 
         mapViewContainer: {
