@@ -2645,9 +2645,9 @@ export default {
     },
     videoPlayer: {
         play: 'Reproducir',
-        pause: 'Pausa',
+        pause: 'Pausar',
         fullscreen: 'Pantalla completa',
-        playbackSpeed: 'Velocidad de reproducción',
+        playbackSpeed: 'Velocidad',
         expand: 'Expandir',
         mute: 'Silenciar',
         unmute: 'Activar sonido',
