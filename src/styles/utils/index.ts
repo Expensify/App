@@ -22,6 +22,7 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getUserListItemStyles from './getUserListItemStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import type {
@@ -1084,6 +1085,7 @@ const staticStyleUtils = {
     getCardStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
+    getUserListItemStyles,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
