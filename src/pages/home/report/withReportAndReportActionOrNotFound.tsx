@@ -39,8 +39,6 @@ type OnyxPropsWithoutParentReportAction = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type OnyxProps = OnyxPropsWithoutParentReportAction & OnyxPropsParentReportAction;
-
 type ComponentPropsWithoutParentReportAction = OnyxPropsWithoutParentReportAction & {
     route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
 };
@@ -126,7 +124,6 @@ export default function <TProps extends ComponentProps, TRef>(
             parentReportAction: {
                 key: (props) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props?.report?.parentReportID ?? 0}`,
                 selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxPropsParentReportAction>): OnyxEntry<OnyxTypes.ReportAction> => {
-                    console.log('timddd', props);
                     const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
                         return null;
