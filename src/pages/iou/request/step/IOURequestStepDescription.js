@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
@@ -28,10 +29,14 @@ const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: transactionPropTypes,
+
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    draftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
+    draftTransaction: undefined,
 };
 
 function IOURequestStepDescription({
@@ -39,6 +44,7 @@ function IOURequestStepDescription({
         params: {action, iouType, reportID, backTo},
     },
     transaction,
+    draftTransaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -60,6 +66,8 @@ function IOURequestStepDescription({
         }, []),
     );
 
+    const currentDescription = lodashGet(draftTransaction, 'comment.comment', undefined) || lodashGet(transaction, 'comment.comment', '');
+
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
     };
@@ -79,7 +87,7 @@ function IOURequestStepDescription({
         }
 
         // Only update comment if it has changed
-        if (newComment === lodashGet(transaction, 'comment.comment', '')) {
+        if (newComment === currentDescription) {
             navigateBack();
             return;
         }
@@ -112,7 +120,7 @@ function IOURequestStepDescription({
                         InputComponent={TextInput}
                         inputID="moneyRequestComment"
                         name="moneyRequestComment"
-                        defaultValue={lodashGet(transaction, 'comment.comment', '')}
+                        defaultValue={currentDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
@@ -137,4 +145,12 @@ IOURequestStepDescription.propTypes = propTypes;
 IOURequestStepDescription.defaultProps = defaultProps;
 IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepDescription);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        draftTransaction: {
+            key: ({transaction}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`,
+        },
+    }),
+)(IOURequestStepDescription);
