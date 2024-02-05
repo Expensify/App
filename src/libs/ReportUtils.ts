@@ -503,13 +503,6 @@ Onyx.connect({
     },
 });
 
-let reportMetadata: OnyxCollection<ReportMetadata> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-    waitForCollectionCallback: true,
-    callback: (value) => (reportMetadata = value),
-});
-
 function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
@@ -930,7 +923,7 @@ function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMem
 /**
  * Given an array of reports, return them sorted by the last read timestamp.
  */
-function sortReportsByLastRead(reports: Report[]): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(reports: Report[], reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return reports
         .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
         .sort((a, b) => {
@@ -1010,6 +1003,7 @@ function findLastAccessedReport(
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: boolean,
     openOnAdminRoom = false,
+    reportMetadata: OnyxCollection<ReportMetadata> = {},
     policyID?: string,
     policyMemberAccountIDs: number[] = [],
 ): OnyxEntry<Report> {
@@ -1025,7 +1019,7 @@ function findLastAccessedReport(
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
-    let sortedReports = sortReportsByLastRead(reportsValues);
+    let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {
@@ -4771,41 +4765,6 @@ function isReportOwner(report: OnyxEntry<Report>): boolean {
     return report?.ownerAccountID === currentUserPersonalDetails?.accountID;
 }
 
-function navigateUserOnceLeaveReport(reportID: string) {
-    const sortedReportsByLastRead = sortReportsByLastRead(Object.values(allReports ?? {}) as Report[]);
-
-    // We want to filter out the current report, hidden reports and empty chats
-    const filteredReportsByLastRead = sortedReportsByLastRead.filter(
-        (sortedReport) =>
-            sortedReport?.reportID !== reportID &&
-            sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
-            shouldReportBeInOptionList({
-                report: sortedReport,
-                currentReportId: '',
-                isInGSDMode: false,
-                betas: [],
-                policies: {},
-                excludeEmptyChats: true,
-                doesReportHaveViolations: false,
-            }),
-    );
-    const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
-
-    if (lastAccessedReportID) {
-        // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-        Navigation.goBack(ROUTES.HOME);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
-    } else {
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
-        const chat = getChatByParticipants(participantAccountIDs);
-        if (chat?.reportID) {
-            // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            Navigation.goBack(ROUTES.HOME);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
-        }
-    }
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4994,7 +4953,6 @@ export {
     isReportFieldDisabled,
     getAvailableReportFields,
     isReportOwner,
-    navigateUserOnceLeaveReport,
     getAllAncestorReportActionIDs,
 };
 
