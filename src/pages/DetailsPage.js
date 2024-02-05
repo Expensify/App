@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -23,6 +22,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
@@ -138,6 +138,7 @@ function DetailsPage(props) {
                                     source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
                                     isAuthTokenRequired
                                     originalFileName={details.originalFileName}
+                                    maybeIcon
                                 >
                                     {({show}) => (
                                         <PressableWithoutFocus
@@ -148,10 +149,10 @@ function DetailsPage(props) {
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                 <Avatar
-                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                    imageStyles={[styles.avatarLarge]}
+                                                    containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarXLarge]}
                                                     source={UserUtils.getAvatar(details.avatar, details.accountID)}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                    size={CONST.AVATAR_SIZE.XLARGE}
                                                     fallbackIcon={details.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>

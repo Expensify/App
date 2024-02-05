@@ -36,6 +36,7 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
@@ -638,7 +639,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {(receiptImage || receiptThumbnail) && (
+            {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptThumbnail || receiptImage}}
@@ -647,6 +648,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
+            ) : (
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(policy) &&
+                !isDistanceRequest &&
+                iouType === CONST.IOU.TYPE.REQUEST && (
+                    <ReceiptEmptyState
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            )
+                        }
+                    />
+                )
             )}
             {shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
@@ -726,26 +740,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             )}
             {shouldShowAllFields && (
                 <>
-                    {shouldShowDate && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
-                            description={translate('common.date')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                            }}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
-                        />
-                    )}
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly && isTypeRequest}
@@ -780,6 +774,26 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             error={merchantError ? translate('common.error.fieldRequired') : ''}
                         />
                     )}
+                    {shouldShowDate && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!isReadOnly}
+                            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                            description={translate('common.date')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                            }}
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                        />
+                    )}
                     {shouldShowCategories && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
@@ -799,16 +813,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={iouTag}
+                            title={PolicyUtils.getCleanedTagName(iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
                             }
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
+                            rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTax && (

@@ -27,6 +27,9 @@ type Icon = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
+
+    /** Fill color of the icon */
+    fill?: string;
 };
 
 export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};
