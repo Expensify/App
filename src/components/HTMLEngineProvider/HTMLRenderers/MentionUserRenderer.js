@@ -57,7 +57,7 @@ function MentionUserRenderer(props) {
     if (!_.isEmpty(htmlAttributeAccountID)) {
         const user = lodashGet(personalDetails, htmlAttributeAccountID);
         accountID = parseInt(htmlAttributeAccountID, 10);
-        displayNameOrLogin = ReportUtils.getDisplayNameForParticipant(accountID);
+        displayNameOrLogin = lodashGet(user, 'displayName', '') || LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || translate('common.hidden');
         displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttributeAccountID, lodashGet(user, 'login', ''));
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttributeAccountID);
     } else if (!_.isEmpty(tnode.data)) {
