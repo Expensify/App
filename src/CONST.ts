@@ -46,6 +46,8 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    // Multiplier for gyroscope animation in order to make it a bit more subtle
+    ANIMATION_GYROSCOPE_VALUE: 0.4,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     ARROW_HIDE_DELAY: 3000,
 
@@ -150,7 +152,7 @@ const CONST = {
             CONTAINER_MINHEIGHT: 500,
             VIEW_HEIGHT: 275,
         },
-        MONEY_REPORT: {
+        MONEY_OR_TASK_REPORT: {
             SMALL_SCREEN: {
                 IMAGE_HEIGHT: 300,
                 CONTAINER_MINHEIGHT: 280,
