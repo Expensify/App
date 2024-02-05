@@ -3175,6 +3175,10 @@ const CONST = {
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    DEBUG_CONSOLE: {
+        CONSOLE_HEIGHT: 400,
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

@@ -1,5 +1,6 @@
+import {FlashList} from '@shopify/flash-list';
 import React, {useEffect, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -14,6 +15,7 @@ import {createLog, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -70,19 +72,18 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TROUBLESHOOT)}
             />
-            <ScrollView
-                bounces={false}
-                style={[styles.border, styles.highlightBG, styles.borderNone, styles.p5, styles.mh5]}
-            >
-                {Object.entries(logs).map(([timestamp, log]) => (
-                    <View
-                        key={timestamp}
-                        style={styles.mb2}
-                    >
-                        <Text family="MONOSPACE">{`${new Date(log.time).toLocaleDateString()} ${log.message}`}</Text>
-                    </View>
-                ))}
-            </ScrollView>
+            <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.p5, styles.mh5, {height: CONST.DEBUG_CONSOLE.CONSOLE_HEIGHT}]}>
+                <FlashList
+                    data={Object.values(logs).reverse()}
+                    renderItem={({item}) => (
+                        <View style={styles.mb2}>
+                            <Text family="MONOSPACE">{`${new Date(item.time).toLocaleTimeString()} ${item.message}`}</Text>
+                        </View>
+                    )}
+                    estimatedItemSize={70}
+                    inverted
+                />
+            </View>
             <View style={[styles.flex1, styles.flexRow, styles.flexShrink1, styles.m5]}>
                 <Button
                     text="Save log"
