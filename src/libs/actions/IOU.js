@@ -178,8 +178,13 @@ function clearMoneyRequest(transactionID) {
  * @param {String} transactionID
  * @param {Number} amount
  * @param {String} currency
+ * @param {Boolean} [removeOriginalCurrency]
  */
-function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
+function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency, removeOriginalCurrency = false) {
+    if (removeOriginalCurrency) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
@@ -194,9 +199,22 @@ function setMoneyRequestCreated_temporaryForRefactor(transactionID, created) {
 /**
  * @param {String} transactionID
  * @param {String} currency
+ * @param {Boolean} [removeOriginalCurrency]
  */
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
+function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency, removeOriginalCurrency = false) {
+    if (removeOriginalCurrency) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency, originalCurrency: null});
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} originalCurrency
+ */
+function setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, originalCurrency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {originalCurrency});
 }
 
 /**
@@ -234,15 +252,8 @@ function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
  * @param {String} transactionID
  * @param {String} tag
  */
-function setMoneyRequestTag_temporaryForRefactor(transactionID, tag) {
+function setMoneyRequestTag(transactionID, tag) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
-}
-
-/*
- * @param {String} transactionID
- */
-function resetMoneyRequestTag_temporaryForRefactor(transactionID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag: null});
 }
 
 /**
@@ -1198,8 +1209,8 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val, p
  * Updates the billable field of a money request
  *
  * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} val
+ * @param {String} transactionThreadReportID
+ * @param {Boolean} val
  * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param {Array} policyTags
  * @param {Array} policyCategories
@@ -1441,10 +1452,11 @@ function requestMoney(
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param {Boolean} billable
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '', billable = false) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1468,6 +1480,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         undefined,
         category,
         tag,
+        billable,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -1669,6 +1682,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             undefined,
             category,
             tag,
+            billable,
         );
 
         // STEP 4: Build optimistic reportActions. We need:
@@ -1786,8 +1800,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param {Boolean} billable
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '', billable = false) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1799,6 +1814,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         category,
         tag,
         existingSplitChatReportID,
+        billable,
     );
     API.write(
         'SplitBill',
@@ -1811,6 +1827,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
             category,
             merchant,
             tag,
+            billable,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1834,9 +1851,10 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} merchant
  * @param {String} category
  * @param {String} tag
+ * @param {Boolean} billable
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, billable) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, billable);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -1849,6 +1867,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             comment,
             category,
             tag,
+            billable,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
             createdReportActionID: splitData.createdReportActionID,
@@ -1873,8 +1892,9 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
  * @param {String} tag
  * @param {Object} receipt
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param {Boolean} billable
  */
-function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, category, tag, receipt, existingSplitChatReportID = '') {
+function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, category, tag, receipt, existingSplitChatReportID = '', billable = false) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1902,6 +1922,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         undefined,
         category,
         tag,
+        billable,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -2115,13 +2136,14 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             category,
             tag,
             isFromGroupDM: !existingSplitChatReport,
+            billable,
             ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         },
         {optimisticData, successData, failureData},
     );
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(splitChatReport.reportID);
+    Navigation.dismissModalWithReport(splitChatReport);
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
@@ -3547,7 +3569,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModalWithReport(chatReport);
 }
 
 function detachReceipt(transactionID) {
@@ -3692,17 +3714,6 @@ function resetMoneyRequestCategory() {
     Onyx.merge(ONYXKEYS.IOU, {category: ''});
 }
 
-/*
- * @param {String} tag
- */
-function setMoneyRequestTag(tag) {
-    Onyx.merge(ONYXKEYS.IOU, {tag});
-}
-
-function resetMoneyRequestTag() {
-    Onyx.merge(ONYXKEYS.IOU, {tag: ''});
-}
-
 /**
  * @param {String} transactionID
  * @param {Object} taxRate
@@ -3783,7 +3794,6 @@ function navigateToNextPage(iou, iouType, report, path = '') {
                       .value();
             setMoneyRequestParticipants(participants);
             resetMoneyRequestCategory();
-            resetMoneyRequestTag();
         }
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
@@ -3832,6 +3842,15 @@ function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath,
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
+/**
+ * Save the preferred payment method for a policy
+ * @param {String} policyID
+ * @param {String} paymentMethod
+ */
+function savePreferredPaymentMethod(policyID, paymentMethod) {
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3852,19 +3871,17 @@ export {
     resetMoneyRequestCategory,
     resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
-    resetMoneyRequestTag,
-    resetMoneyRequestTag_temporaryForRefactor,
     clearMoneyRequest,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated_temporaryForRefactor,
     setMoneyRequestCurrency_temporaryForRefactor,
+    setMoneyRequestOriginalCurrency_temporaryForRefactor,
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
     setMoneyRequestReceipt,
-    setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
@@ -3892,4 +3909,5 @@ export {
     getIOUReportID,
     editMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
+    savePreferredPaymentMethod,
 };
