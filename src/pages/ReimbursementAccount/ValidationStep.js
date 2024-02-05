@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -159,7 +160,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     <View style={[styles.mv5]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="amount1"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].AMOUNT1}
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
@@ -168,7 +169,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         />
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="amount2"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].AMOUNT2}
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
@@ -178,7 +179,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         <InputWrapper
                             InputComponent={TextInput}
                             shouldSaveDraft
-                            inputID="amount3"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].AMOUNT3}
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
                             inputMode={CONST.INPUT_MODE.DECIMAL}

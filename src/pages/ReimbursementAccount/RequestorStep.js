@@ -4,6 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -175,7 +176,7 @@ const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido,
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('requestorStep.isControllingOfficer')}
-                    inputID="isControllingOfficer"
+                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].IS_CONTROLLING_OFFICER}
                     defaultValue={getDefaultStateForField('isControllingOfficer', false)}
                     LabelComponent={renderLabelComponent}
                     style={[styles.mt4]}

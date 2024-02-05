@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -127,8 +128,8 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                     <View style={styles.mb4}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            inputID="moneyRequestComment"
-                            name="moneyRequestComment"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM].MONEY_REQUEST_COMMENT}
+                            name={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM].MONEY_REQUEST_COMMENT}
                             defaultValue={iou.comment}
                             label={translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}

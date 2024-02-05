@@ -1,6 +1,7 @@
 import React from 'react';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -69,7 +70,7 @@ function IOURequestStepDate({
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID="moneyRequestCreated"
+                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM].MONEY_REQUEST_CREATED}
                     label={translate('common.date')}
                     defaultValue={transaction.created}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}

@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
@@ -99,7 +100,7 @@ function RoomNamePage({policy, report, reports, translate}) {
                         <InputWrapper
                             InputComponent={RoomNameInput}
                             ref={roomNameInputRef}
-                            inputID="roomName"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.ROOM_NAME_FORM].ROOM_NAME}
                             defaultValue={report.reportName}
                             isFocused={isFocused}
                         />

@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -103,8 +104,8 @@ function TaskDescriptionPage(props) {
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID="description"
-                            name="description"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.EDIT_TASK_FORM].DESCRIPTION}
+                            name={INPUTS_IDS[ONYXKEYS.FORMS.EDIT_TASK_FORM].DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                             defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}

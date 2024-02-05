@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -106,7 +107,7 @@ function LegalNamePage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalFirstName"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.LEGAL_NAME_FORM].LEGAL_FIRST_NAME}
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
                             aria-label={props.translate('privatePersonalDetails.legalFirstName')}
@@ -119,7 +120,7 @@ function LegalNamePage(props) {
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalLastName"
+                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.LEGAL_NAME_FORM].LEGAL_LAST_NAME}
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
                             aria-label={props.translate('privatePersonalDetails.legalLastName')}

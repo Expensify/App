@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
+import INPUTS_IDS from './Form/inputs';
 import InputWrapper from './Form/InputWrapper';
 import StatePicker from './StatePicker';
 import TextInput from './TextInput';
@@ -127,7 +128,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <View>
                 <InputWrapper
                     InputComponent={AddressSearch}
-                    inputID="addressLine1"
+                    inputID={INPUTS_IDS[formID].ADDRESS_LINE_1}
                     label={translate('common.addressLine', {lineNumber: 1})}
                     onValueChange={(data, key) => {
                         onAddressChanged(data, key);
@@ -136,12 +137,12 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                     }}
                     defaultValue={street1 || ''}
                     renamedInputKeys={{
-                        street: 'addressLine1',
-                        street2: 'addressLine2',
-                        city: 'city',
-                        state: 'state',
-                        zipCode: 'zipPostCode',
-                        country: 'country',
+                        street: INPUTS_IDS[formID].ADDRESS_LINE_1,
+                        street2: INPUTS_IDS[formID].ADDRESS_LINE_2,
+                        city: INPUTS_IDS[formID].CITY,
+                        state: INPUTS_IDS[formID].STATE,
+                        zipCode: INPUTS_IDS[formID].ZIP_POST_CODE,
+                        country: INPUTS_IDS[formID].COUNTRY,
                     }}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     shouldSaveDraft={shouldSaveDraft}
@@ -150,7 +151,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="addressLine2"
+                inputID={INPUTS_IDS[formID].ADDRESS_LINE_2}
                 label={translate('common.addressLine', {lineNumber: 2})}
                 aria-label={translate('common.addressLine', {lineNumber: 2})}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -163,7 +164,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <View style={styles.mhn5}>
                 <InputWrapper
                     InputComponent={CountrySelector}
-                    inputID="country"
+                    inputID={INPUTS_IDS[formID].COUNTRY}
                     value={country}
                     shouldSaveDraft={shouldSaveDraft}
                 />
@@ -173,7 +174,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 <View style={styles.mhn5}>
                     <InputWrapper
                         InputComponent={StatePicker}
-                        inputID="state"
+                        inputID={INPUTS_IDS[formID].STATE}
                         defaultValue={state}
                         onValueChange={onAddressChanged}
                         shouldSaveDraft={shouldSaveDraft}
@@ -182,7 +183,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             ) : (
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="state"
+                    inputID={INPUTS_IDS[formID].STATE}
                     label={translate('common.stateOrProvince')}
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -196,7 +197,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="city"
+                inputID={INPUTS_IDS[formID].CITY}
                 label={translate('common.city')}
                 aria-label={translate('common.city')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -209,7 +210,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="zipPostCode"
+                inputID={INPUTS_IDS[formID].ZIP_POST_CODE}
                 label={translate('common.zipPostCode')}
                 aria-label={translate('common.zipPostCode')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}

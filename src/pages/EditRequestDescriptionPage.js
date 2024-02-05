@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -62,8 +63,8 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                     <InputWrapperWithRef
                         // Comment field does not have its modified counterpart
                         InputComponent={TextInput}
-                        inputID="comment"
-                        name="comment"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM].COMMENT}
+                        name={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM].COMMENT}
                         defaultValue={defaultDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}

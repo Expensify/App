@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -102,7 +103,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID="moneyRequestCreated"
+                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM].MONEY_REQUEST_CREATED}
                     label={translate('common.date')}
                     defaultValue={iou.created}
                     maxDate={new Date()}

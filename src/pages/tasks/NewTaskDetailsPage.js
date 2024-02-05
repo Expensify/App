@@ -4,6 +4,7 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -95,7 +96,7 @@ function NewTaskDetailsPage(props) {
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
                         role={CONST.ROLE.PRESENTATION}
-                        inputID="taskTitle"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_TASK_FORM].TASK_TITLE}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
@@ -107,7 +108,7 @@ function NewTaskDetailsPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
-                        inputID="taskDescription"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_TASK_FORM].TASK_DESCRIPTION}
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight

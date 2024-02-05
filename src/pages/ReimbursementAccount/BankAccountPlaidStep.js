@@ -7,6 +7,7 @@ import _ from 'underscore';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -127,7 +128,7 @@ function BankAccountPlaidStep(props) {
                         InputComponent={CheckboxWithLabel}
                         accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                         style={styles.mt4}
-                        inputID="acceptTerms"
+                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].ACCEPT_TERMS}
                         LabelComponent={() => (
                             <Text>
                                 {translate('common.iAcceptThe')}

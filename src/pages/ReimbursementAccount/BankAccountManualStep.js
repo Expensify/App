@@ -3,6 +3,7 @@ import React, {useCallback} from 'react';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -99,7 +100,7 @@ function BankAccountManualStep(props) {
                     InputComponent={TextInput}
                     autoFocus
                     shouldDelayFocus={shouldDelayFocus}
-                    inputID="routingNumber"
+                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].ROUTING_NUMBER}
                     label={translate('bankAccount.routingNumber')}
                     aria-label={translate('bankAccount.routingNumber')}
                     role={CONST.ROLE.PRESENTATION}
@@ -111,7 +112,7 @@ function BankAccountManualStep(props) {
                 />
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="accountNumber"
+                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].ACCOUNT_NUMBER}
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
                     aria-label={translate('bankAccount.accountNumber')}
@@ -126,7 +127,7 @@ function BankAccountManualStep(props) {
                     InputComponent={CheckboxWithLabel}
                     aria-label={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
-                    inputID="acceptTerms"
+                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].ACCEPT_TERMS}
                     LabelComponent={() => (
                         <Text>
                             {translate('common.iAcceptThe')}

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import INPUTS_IDS from '@components/Form/inputs';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -67,8 +68,8 @@ function GetPhysicalCardPhone({
         >
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="phoneNumber"
-                name="phoneNumber"
+                inputID={INPUTS_IDS[ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM].PHONE_NUMBER}
+                name={INPUTS_IDS[ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM].PHONE_NUMBER}
                 label={translate('getPhysicalCard.phoneNumber')}
                 aria-label={translate('getPhysicalCard.phoneNumber')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
