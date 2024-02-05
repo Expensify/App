@@ -23,20 +23,7 @@ type PersonalDetailsInitialPageOnyxProps = {
 
 type PersonalDetailsInitialPageProps = PersonalDetailsInitialPageOnyxProps;
 
-function PersonalDetailsInitialPage({
-    privatePersonalDetails = {
-        legalFirstName: '',
-        legalLastName: '',
-        dob: '',
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
-    },
-}: PersonalDetailsInitialPageProps) {
+function PersonalDetailsInitialPage({privatePersonalDetails}: PersonalDetailsInitialPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     usePrivatePersonalDetails();

@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,7 +33,7 @@ const updateLegalName = (values: PrivatePersonalDetails) => {
     PersonalDetails.updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
 };
 
-function LegalNamePage({privatePersonalDetails = {legalFirstName: '', legalLastName: ''}}: LegalNamePageProps) {
+function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     usePrivatePersonalDetails();
@@ -40,7 +41,7 @@ function LegalNamePage({privatePersonalDetails = {legalFirstName: '', legalLastN
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
-    const validate = useCallback((values: PrivatePersonalDetails) => {
+    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
         const errors: Errors = {};
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName ?? '')) {
@@ -48,7 +49,7 @@ function LegalNamePage({privatePersonalDetails = {legalFirstName: '', legalLastN
         } else if (values.legalFirstName === '') {
             errors.legalFirstName = 'common.error.fieldRequired';
         }
-        if (ValidationUtils.doesContainReservedWord(values.legalFirstName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES as unknown as string[])) {
+        if (ValidationUtils.doesContainReservedWord(values.legalFirstName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
         }
         if ((values.legalFirstName?.length ?? 0) > CONST.LEGAL_NAME.MAX_LENGTH) {
@@ -60,7 +61,7 @@ function LegalNamePage({privatePersonalDetails = {legalFirstName: '', legalLastN
         } else if (values.legalLastName === '') {
             errors.legalLastName = 'common.error.fieldRequired';
         }
-        if (ValidationUtils.doesContainReservedWord(values.legalLastName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES as unknown as string[])) {
+        if (ValidationUtils.doesContainReservedWord(values.legalLastName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
         }
         if ((values.legalLastName?.length ?? 0) > CONST.LEGAL_NAME.MAX_LENGTH) {

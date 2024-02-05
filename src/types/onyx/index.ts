@@ -16,6 +16,7 @@ import type {
     DisplayNameForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
+    LegalNameForm,
     NewRoomForm,
     PrivateNotesForm,
     ReportFieldEditForm,
@@ -165,4 +166,5 @@ export type {
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    LegalNameForm,
 };

@@ -367,6 +367,8 @@ const ONYXKEYS = {
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
         PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
         PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
+        // LEGAL_NAME: 'legalName',
+        // LEGAL_NAME_DRAFT: 'legalNameDraft',
     },
 } as const;
 
@@ -503,8 +505,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.ROOM_NAME_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.LEGAL_NAME_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: OnyxTypes.LegalNameForm;
+    [ONYXKEYS.FORMS.LEGAL_NAME_FORM_DRAFT]: OnyxTypes.LegalNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM]: OnyxTypes.DateOfBirthForm;
