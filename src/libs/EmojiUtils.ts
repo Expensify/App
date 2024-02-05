@@ -549,8 +549,7 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
 };
 
 /**
- * Get base emoji without skintone
- * @returns emoji without skin tone
+ * Given an emoji code, returns an base emoji code without skin tone
  */
 const getRemovedSkinToneEmoji = (emoji: string) => emoji.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
 
