@@ -73,13 +73,11 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
         );
     } else {
         receiptImageComponent = (
-            <View style={[styles.w100, styles.h100]}>
-                <Image
-                    source={{uri: thumbnail ?? image}}
-                    style={[styles.w100, styles.h100]}
-                    objectPositionTop
-                />
-            </View>
+            <Image
+                source={{uri: thumbnail ?? image}}
+                style={[styles.w100, styles.h100]}
+                objectPositionTop
+            />
         );
     }
 
