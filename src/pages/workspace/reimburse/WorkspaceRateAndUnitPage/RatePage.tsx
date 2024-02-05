@@ -44,7 +44,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
 
     const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
         const rate = values.rate as string;
-        Policy.setRateForReimburseView((parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString());
+        Policy.setRateForReimburseView((parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(1));
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
@@ -99,7 +99,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
                         extraDecimals={1}
                         defaultValue={(
                             (typeof props.workspaceRateAndUnit?.rate === 'string' ? parseFloat(props.workspaceRateAndUnit.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET
-                        ).toString()}
+                        ).toFixed(3)}
                     />
                 </FormProvider>
             )}
