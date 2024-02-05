@@ -25,7 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
 import IOURequestStepScan from './request/step/IOURequestStepScan';
-import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
 const propTypes = {
     /** React Navigation route */
@@ -127,11 +126,6 @@ function MoneyRequestSelectorPage(props) {
                                         />
                                     )}
                                 >
-                                    <TopTab.Screen
-                                        name={CONST.TAB_REQUEST.MANUAL}
-                                        component={NewRequestAmountPage}
-                                        initialParams={{reportID, iouType}}
-                                    />
                                     <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={props.route} />}</TopTab.Screen>
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
@@ -142,7 +136,7 @@ function MoneyRequestSelectorPage(props) {
                                     )}
                                 </OnyxTabNavigator>
                             ) : (
-                                <NewRequestAmountPage route={props.route} />
+                                null
                             )}
                         </View>
                     </DragAndDropProvider>
