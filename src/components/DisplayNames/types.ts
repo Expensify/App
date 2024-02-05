@@ -20,7 +20,7 @@ type DisplayNamesProps = {
     fullTitle: string;
 
     /** Array of objects that map display names to their corresponding tooltip */
-    displayNamesWithTooltips: DisplayNameWithTooltip[];
+    displayNamesWithTooltips?: DisplayNameWithTooltip[];
 
     /** Number of lines before wrapping */
     numberOfLines: number;
