@@ -51,7 +51,7 @@ type ReportActionItemFragmentProps = {
     isApprovedOrSubmittedReportAction?: boolean;
 
     /** Whether the report action type is 'UNHOLD' or 'HOLD'. Used to style messages related to hold requests */
-    isHoldReportAction?: boolean,
+    isHoldReportAction?: boolean;
 
     /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
     isFragmentContainingDisplayName?: boolean;

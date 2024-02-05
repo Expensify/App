@@ -22,8 +22,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {usePersonalDetails} from './OnyxProvider';
+import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
@@ -65,7 +65,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
     const isPayer = isPaidGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
-        isPolicyAdmin && (isApproved || isManager)
+          isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const shouldShowPayButton = useMemo(

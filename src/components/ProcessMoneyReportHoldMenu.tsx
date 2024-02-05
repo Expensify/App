@@ -1,8 +1,8 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as IOU from '@userActions/IOU';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {OnyxEntry} from "react-native-onyx";
 import DecisionModal from './DecisionModal';
 
 type ProcessMoneyRequestHoldMenuProps = {
@@ -35,16 +35,16 @@ type ProcessMoneyRequestHoldMenuProps = {
 };
 
 function ProcessMoneyRequestHoldMenu({
-                                         requestType,
-                                         nonHeldAmount,
-                                         fullAmount,
-                                         isSmallScreenWidth = false,
-                                         onClose,
-                                         isVisible,
-                                         paymentType,
-                                         chatReport,
-                                         moneyRequestReport,
-                                     }: ProcessMoneyRequestHoldMenuProps) {
+    requestType,
+    nonHeldAmount,
+    fullAmount,
+    isSmallScreenWidth = false,
+    onClose,
+    isVisible,
+    paymentType,
+    chatReport,
+    moneyRequestReport,
+}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === 'approve';
 

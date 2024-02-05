@@ -104,7 +104,7 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     isWhisper?: boolean;
 
     /** Optimistic status of the report used in partial payment/approval flow when there are some money requests on hold */
-    optimisticFlowStatus?: string,
+    optimisticFlowStatus?: string;
 };
 
 function MoneyRequestPreview({
@@ -125,7 +125,7 @@ function MoneyRequestPreview({
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
-    optimisticFlowStatus = ''
+    optimisticFlowStatus = '',
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -362,8 +362,12 @@ function MoneyRequestPreview({
             onLongPress={showContextMenu}
             accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={[styles.moneyRequestPreviewBox, containerStyles, shouldDisableOnPress && styles.cursorDefault,
-            (isSettled || ReportUtils.isReportApproved(iouReport)) && optimisticFlowStatus === CONST.REPORT.OPTIMISTIC_FLOW_STATUS.PARTIAL && styles.offlineFeedback.pending,]}
+            style={[
+                styles.moneyRequestPreviewBox,
+                containerStyles,
+                shouldDisableOnPress && styles.cursorDefault,
+                (isSettled || ReportUtils.isReportApproved(iouReport)) && optimisticFlowStatus === CONST.REPORT.OPTIMISTIC_FLOW_STATUS.PARTIAL && styles.offlineFeedback.pending,
+            ]}
         >
             {childContainer}
         </PressableWithFeedback>
