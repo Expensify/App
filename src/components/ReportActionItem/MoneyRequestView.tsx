@@ -56,7 +56,7 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     /** Collection of tags attached to a policy */
     policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
 
-   /** Collection of tax rates attached to a policy */
+    /** Collection of tax rates attached to a policy */
     policyTaxRates: OnyxEntry<OnyxTypes.PolicyTaxRates>;
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
@@ -124,7 +124,8 @@ function MoneyRequestView({
 
     const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
 
-    const taxRateTitle = TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode);
+    const policyTaxRatesDescription = (policyTaxRates && policyTaxRates.name) ?? '';
+    const taxRateTitle = (transactionTaxCode && policyTaxRates && TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode)) ?? '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
@@ -155,8 +156,8 @@ function MoneyRequestView({
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(Object.values(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
-       // A flag for showing tax rate
-       const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy) && transactionTaxCode && transactionTaxAmount;
+    // A flag for showing tax rate
+    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy) && transactionTaxCode && transactionTaxAmount;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
@@ -370,7 +371,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
                             title={taxRateTitle}
-                            description={policyTaxRates.name}
+                            description={policyTaxRatesDescription}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
@@ -383,7 +384,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
                             title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
-                            description={policyTaxRates.name}
+                            description={policyTaxRatesDescription}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
