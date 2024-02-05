@@ -769,10 +769,19 @@ function MoneyRequestConfirmationList(props) {
                                 numberOfLinesTitle={2}
                                 onPress={() => {
                                     if (props.isEditingSplitBill) {
-                                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.TAG, index));
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                CONST.IOU.TYPE.SPLIT,
+                                                index,
+                                                props.transaction.transactionID,
+                                                props.reportID,
+                                                Navigation.getActiveRouteWithoutParams(),
+                                            ),
+                                        );
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, index, props.reportID));
+                                    Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
                                 }}
                                 style={[styles.moneyRequestMenuItem]}
                                 disabled={didConfirm}

@@ -7,11 +7,13 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -44,7 +46,7 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {tagIndex: rawTagIndex, transactionID, backTo},
+        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType},
     },
     transaction,
 }) {
@@ -55,6 +57,8 @@ function IOURequestStepTag({
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
     const transactionTag = TransactionUtils.getTag(transaction);
     const tag = TransactionUtils.getTag(transaction, tagIndex);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -65,11 +69,19 @@ function IOURequestStepTag({
      * @param {String} selectedTag.searchText
      */
     const updateTag = (selectedTag) => {
-        if (tag === selectedTag.searchText) {
-            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID, transactionTag, tagIndex);
-        } else {
-            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, transactionTag, selectedTag.searchText, tagIndex);
+        const isSelectedTag = selectedTag.searchText === tag;
+        const updatedTag = IOUUtils.insertTagIntoReportTagsSting(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagIndex);
+        if (isSplitBill) {
+            IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
+            navigateBack();
+            return;
         }
+        if (isEditing) {
+            IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag);
+            Navigation.dismissModal();
+            return;
+        }
+        IOU.setMoneyRequestTag(transactionID, updatedTag);
         navigateBack();
     };
 
