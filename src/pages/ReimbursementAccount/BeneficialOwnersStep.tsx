@@ -88,7 +88,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
         const newBeneficialOwners = [...beneficialOwnerKeys, beneficialOwnerID];
 
         setBeneficialOwnerKeys(newBeneficialOwners);
-        FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
+        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
     };
     const handleBeneficialOwnerDetailsFormSubmit = () => {
         const shouldAddBeneficialOwner = !beneficialOwnerKeys.find((beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) && canAddMoreUBOS;
