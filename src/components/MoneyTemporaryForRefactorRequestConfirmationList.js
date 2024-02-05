@@ -759,7 +759,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     title={PolicyUtils.getCleanedTagName(iouTag)}
                     description={policyTagListName}
                     numberOfLinesTitle={2}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
