@@ -369,6 +369,8 @@ const ONYXKEYS = {
         PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
         IDOLOGY_QUESTIONS_FORM: 'idologyQuestions',
         IDOLOGY_QUESTIONS_FORM_DRAFT: 'idologyQuestionsDraft',
+        ADDITIONAL_DETAILS_FORM: 'additionalDetailStep',
+        ADDITIONAL_DETAILS_FORM_DRAFT: 'additionalDetailStepDraft',
     },
 } as const;
 
@@ -560,6 +562,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM]: OnyxTypes.IdologyQuestionsForm;
     [ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM_DRAFT]: OnyxTypes.IdologyQuestionsForm;
+    [ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM]: OnyxTypes.AdditionalDetailStepForm;
+    [ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM_DRAFT]: OnyxTypes.AdditionalDetailStepForm;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

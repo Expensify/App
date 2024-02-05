@@ -11,6 +11,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {
     AddDebitCardForm,
+    AdditionalDetailStepForm,
     CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
@@ -167,4 +168,5 @@ export type {
     PrivateNotesForm,
     ReportFieldEditForm,
     IdologyQuestionsForm,
+    AdditionalDetailStepForm,
 };

@@ -72,6 +72,18 @@ type IdologyQuestionsForm = Form<{
     answer: string;
 }>;
 
+type AdditionalDetailStepForm = Form<{
+    legalFirstName: string;
+    legalLastName: string;
+    addressStreet: string;
+    addressCity: string;
+    addressZipCode: string;
+    phoneNumber: string;
+    dob: string;
+    ssn: string;
+    addressState: string;
+}>;
+
 export default Form;
 
 export type {
@@ -89,4 +101,5 @@ export type {
     ReportFieldEditForm,
     CloseAccountForm,
     IdologyQuestionsForm,
+    AdditionalDetailStepForm,
 };

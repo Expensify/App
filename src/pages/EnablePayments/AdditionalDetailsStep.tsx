@@ -1,21 +1,21 @@
 import {subYears} from 'date-fns';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
@@ -23,51 +23,24 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {WalletAdditionalDetails} from '@src/types/onyx';
 import IdologyQuestions from './IdologyQuestions';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
+const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
+    errorFields: {},
+    isLoading: false,
+    errors: {},
+    questions: [],
+    idNumber: '',
+    errorCode: '',
+};
 
+type AdditionalDetailsStepOnyxProps = {
     /** Stores additional information about the additional details step e.g. loading state and errors with fields */
-    walletAdditionalDetails: PropTypes.shape({
-        /** Are we waiting for a response? */
-        isLoading: PropTypes.bool,
-
-        /** Which field needs attention? */
-        errorFields: PropTypes.objectOf(PropTypes.bool),
-
-        /** Any additional error message to show */
-        errors: PropTypes.objectOf(PropTypes.string),
-
-        /** Questions returned by Idology */
-        questions: PropTypes.arrayOf(
-            PropTypes.shape({
-                prompt: PropTypes.string,
-                type: PropTypes.string,
-                answer: PropTypes.arrayOf(PropTypes.string),
-            }),
-        ),
-
-        /** ExpectID ID number related to those questions */
-        idNumber: PropTypes.string,
-
-        /** Error code to determine additional behavior */
-        errorCode: PropTypes.string,
-    }),
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
 };
 
-const defaultProps = {
-    walletAdditionalDetails: {
-        errorFields: {},
-        isLoading: false,
-        errors: {},
-        questions: [],
-        idNumber: '',
-        errorCode: '',
-    },
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
+type AdditionalDetailsStepProps = AdditionalDetailsStepOnyxProps & WithCurrentUserPersonalDetailsProps;
 
 const fieldNameTranslationKeys = {
     legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
@@ -77,20 +50,17 @@ const fieldNameTranslationKeys = {
     dob: 'common.dob',
     ssn: 'common.ssnLast4',
     ssnFull9: 'common.ssnFull9',
-};
+} as const;
 
-function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
+function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIONAL_DETAILS, currentUserPersonalDetails}: AdditionalDetailsStepProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const currentDate = new Date();
     const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
-    const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
-    /**
-     * @param {Object} values The values object is passed from FormProvider and contains info for each form element that has an inputID
-     * @returns {Object}
-     */
-    const validate = (values) => {
+    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM>) => {
         const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn', 'addressState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
@@ -116,7 +86,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
 
         // walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
-        if (walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
+        if (walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN) {
             if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
                 errors.ssn = 'additionalDetailsStep.ssnFull9Error';
             }
@@ -127,26 +97,23 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
         return errors;
     };
 
-    /**
-     * @param {Object} values The values object is passed from FormProvider and contains info for each form element that has an inputID
-     */
-    const activateWallet = (values) => {
+    const activateWallet = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM>) => {
         const personalDetails = {
-            phoneNumber: parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number.significant || '',
-            legalFirstName: values.legalFirstName || '',
-            legalLastName: values.legalLastName || '',
-            addressStreet: values.addressStreet || '',
-            addressCity: values.addressCity || '',
-            addressState: values.addressState || '',
-            addressZip: values.addressZipCode || '',
-            dob: values.dob || '',
-            ssn: values.ssn || '',
+            phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
+            legalFirstName: values.legalFirstName ?? '',
+            legalLastName: values.legalLastName ?? '',
+            addressStreet: values.addressStreet ?? '',
+            addressCity: values.addressCity ?? '',
+            addressState: values.addressState ?? '',
+            addressZip: values.addressZipCode ?? '',
+            dob: values.dob ?? '',
+            ssn: values.ssn ?? '',
         };
         // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
     };
 
-    if (!_.isEmpty(walletAdditionalDetails.questions)) {
+    if (walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0) {
         return (
             <ScreenWrapper
                 shouldShowOfflineIndicator={false}
@@ -156,11 +123,11 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}
-                    onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
+                    onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions([], walletAdditionalDetails?.idNumber ?? '')}
                 />
                 <IdologyQuestions
                     questions={walletAdditionalDetails.questions}
-                    idNumber={walletAdditionalDetails.idNumber}
+                    idNumber={walletAdditionalDetails.idNumber ?? ''}
                 />
             </ScreenWrapper>
         );
@@ -180,7 +147,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     </TextLink>
                 </View>
                 <FormProvider
-                    formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
+                    formID={ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM}
                     validate={validate}
                     onSubmit={activateWallet}
                     scrollContextEnabled
@@ -233,6 +200,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID="dob"
+                        // @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript.
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
                         placeholder={translate('common.dob')}
@@ -256,16 +224,12 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     );
 }
 
-AdditionalDetailsStep.propTypes = propTypes;
-AdditionalDetailsStep.defaultProps = defaultProps;
 AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-    withOnyx({
+export default withCurrentUserPersonalDetails(
+    withOnyx<AdditionalDetailsStepProps, AdditionalDetailsStepOnyxProps>({
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
         },
-    }),
-)(AdditionalDetailsStep);
+    })(AdditionalDetailsStep),
+);
