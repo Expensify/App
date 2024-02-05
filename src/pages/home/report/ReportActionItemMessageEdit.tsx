@@ -52,10 +52,6 @@ type ReportActionItemMessageEditProps = {
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
-    /** The report currently being looked at */
-    // eslint-disable-next-line react/no-unused-prop-types
-    report?: OnyxTypes.Report;
-
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
 

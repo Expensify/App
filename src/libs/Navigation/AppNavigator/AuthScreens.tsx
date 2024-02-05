@@ -8,11 +8,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
-import type {AuthScreensParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -36,7 +36,9 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
@@ -55,7 +57,6 @@ type AuthScreensProps = {
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
-const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default as React.ComponentType;
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default as React.ComponentType;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
@@ -264,9 +265,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
                 <RootStack.Screen
-                    name={SCREENS.HOME}
-                    options={screenOptions.homeScreen}
-                    getComponent={loadSidebarScreen}
+                    name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
+                    options={screenOptions.bottomTab}
+                    component={BottomTabNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
@@ -338,6 +339,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     options={screenOptions.rightModalNavigator}
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
+                    options={screenOptions.fullScreen}
+                    component={FullScreenNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
