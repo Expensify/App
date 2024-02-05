@@ -62,6 +62,9 @@ type ButtonWithDropdownMenuProps = {
 
     /* ref for the button */
     buttonRef: RefObject<View>;
+
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
 };
 
 function ButtonWithDropdownMenu({
@@ -79,6 +82,7 @@ function ButtonWithDropdownMenu({
     onPress,
     options,
     onOptionSelected,
+    enterKeyEventListenerPriority = 0,
 }: ButtonWithDropdownMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -129,6 +133,7 @@ function ButtonWithDropdownMenu({
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton]}
+                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     />
 
                     <Button
@@ -141,6 +146,7 @@ function ButtonWithDropdownMenu({
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
                         innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
+                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     >
                         <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                             <View style={[styles.buttonDivider]} />
@@ -166,6 +172,7 @@ function ButtonWithDropdownMenu({
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
             {options.length > 1 && popoverAnchorPosition && (

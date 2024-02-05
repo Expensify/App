@@ -4656,6 +4656,21 @@ function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, repor
 }
 
 /**
+ * Check if money report has any transactions updated optimistically
+ */
+function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+
+    const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
+    const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
+    const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
+
+    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency);
+}
+
+/**
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
@@ -4954,6 +4969,7 @@ export {
     isValidReport,
     isReportFieldOfTypeTitle,
     isIOUReportUsingReport,
+    hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
     getAllAncestorReportActionIDs,

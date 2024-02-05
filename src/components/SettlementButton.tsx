@@ -89,6 +89,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
+
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
 };
 
 function SettlementButton({
@@ -120,6 +123,7 @@ function SettlementButton({
     shouldShowApproveButton = false,
     style,
     shouldShowPersonalBankAccountOption = false,
+    enterKeyEventListenerPriority = 0,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -229,6 +233,7 @@ function SettlementButton({
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
         </KYCWall>
