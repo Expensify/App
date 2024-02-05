@@ -27,9 +27,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
         }
 
         activePopoverRef.current.close();
-        if (activePopoverRef.current.onCloseCallback) {
-            activePopoverRef.current.onCloseCallback();
-        }
         activePopoverRef.current = null;
         setIsOpen(false);
     }, []);
@@ -107,9 +104,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
-            if (popoverParams?.onOpenCallback) {
-                popoverParams.onOpenCallback();
-            }
             setIsOpen(true);
         },
         [closePopover],
