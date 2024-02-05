@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -10,11 +11,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 
 type PrivateNotesListPageOnyxProps = {
@@ -22,7 +25,9 @@ type PrivateNotesListPageOnyxProps = {
     personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
-type PrivateNotesListPageProps = PrivateNotesListPageOnyxProps & WithReportAndPrivateNotesOrNotFoundProps;
+type PrivateNotesListPageProps = PrivateNotesListPageOnyxProps &
+    WithReportAndPrivateNotesOrNotFoundProps &
+    StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>;
 
 type NoteListItem = {
     title: string;

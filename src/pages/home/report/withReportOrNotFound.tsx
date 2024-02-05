@@ -27,7 +27,7 @@ type WithReportOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {route: RouteProp<{params: {reportID?: string}}>};
+type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {route: RouteProp<Record<string, {reportID?: string} | undefined>, string>};
 
 export default function (
     shouldRequireReportID = true,

@@ -1,13 +1,12 @@
 import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {useEffect, useMemo} from 'react';
+import React, {forwardRef, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import * as Report from '@libs/actions/Report';
-import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -24,16 +23,17 @@ type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 };
 
-type WithReportAndPrivateNotesOrNotFoundProps = WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundProps & {route: RouteProp<{params: {accountID?: string}}>};
+type WithReportAndPrivateNotesOrNotFoundProps = WithReportAndPrivateNotesOrNotFoundOnyxProps &
+    WithReportOrNotFoundProps & {route: RouteProp<Record<string, {accountID?: string} | undefined>, string>};
 
 export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(pageTitle: TranslationPaths) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     return (WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) => {
         // eslint-disable-next-line rulesdir/no-negated-variables
-        function WithReportAndPrivateNotesOrNotFound(props: TProps & {forwardedRef: ForwardedRef<TRef>}) {
+        function WithReportAndPrivateNotesOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const {translate} = useLocalize();
             const network = useNetwork();
-            const {route, report, session, forwardedRef} = props;
+            const {route, report, session} = props;
             const accountID = route.params?.accountID;
             const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(network.isOffline);
@@ -82,7 +82,7 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
-                    ref={forwardedRef}
+                    ref={ref}
                 />
             );
         }
@@ -98,14 +98,13 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
             />
         ));
 
-        return compose(
-            withOnyx<TProps, WithReportAndPrivateNotesOrNotFoundOnyxProps>({
+        return withReportOrNotFound()(
+            withOnyx<TProps & RefAttributes<TRef>, WithReportAndPrivateNotesOrNotFoundOnyxProps>({
                 session: {
                     key: ONYXKEYS.SESSION,
                 },
-            }),
-            withReportOrNotFound(),
-        )(WithReportAndPrivateNotesOrNotFoundWithRef);
+            })(forwardRef(WithReportAndPrivateNotesOrNotFoundWithRef)),
+        );
     };
 }
 
