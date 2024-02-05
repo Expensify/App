@@ -60,7 +60,12 @@ function EmojiPickerButtonDropdown(props) {
                             style={styles.emojiPickerButtonDropdownIcon}
                             numberOfLines={1}
                         >
-                            {props.value}
+                            {props.value || (
+                                <Icon
+                                    src={Expensicons.Emoji}
+                                    fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
+                                />
+                            )}
                         </Text>
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon

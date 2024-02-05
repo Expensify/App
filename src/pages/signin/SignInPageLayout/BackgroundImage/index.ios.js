@@ -21,11 +21,11 @@ function BackgroundImage(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const src = useMemo(() => (props.isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [props.isSmallScreen]);
-
     return (
         <Image
             source={src}
             style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width)]}
+            transition={props.transitionDuration}
         />
     );
 }

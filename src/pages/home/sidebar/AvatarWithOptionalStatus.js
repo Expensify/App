@@ -41,24 +41,22 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
 
     return (
         <View style={styles.sidebarStatusAvatarContainer}>
+            <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 role={CONST.ROLE.BUTTON}
                 onPress={showStatusPage}
-                style={styles.flex1}
+                style={[styles.sidebarStatusAvatar]}
             >
                 <Tooltip text={translate('statusPage.status')}>
-                    <View style={styles.sidebarStatusAvatar}>
-                        <Text
-                            style={styles.emojiStatusLHN}
-                            numberOfLines={1}
-                        >
-                            {emojiStatus}
-                        </Text>
-                    </View>
+                    <Text
+                        style={styles.emojiStatusLHN}
+                        numberOfLines={1}
+                    >
+                        {emojiStatus}
+                    </Text>
                 </Tooltip>
             </PressableWithoutFeedback>
-            <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
         </View>
     );
 }
