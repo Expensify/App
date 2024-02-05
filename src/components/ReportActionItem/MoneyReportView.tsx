@@ -1,8 +1,7 @@
+import Str from 'expensify-common/lib/str';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -20,13 +19,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
-type MoneyReportViewComponentProps = {
+type MoneyReportViewProps = {
     /** The report currently being looked at */
     report: Report;
+
+    /** Policy that the report belongs to */
+    policy: Policy;
 
     /** Policy report fields */
     policyReportFields: PolicyReportField[];
@@ -35,14 +36,7 @@ type MoneyReportViewComponentProps = {
     shouldShowHorizontalRule: boolean;
 };
 
-type MoneyReportViewOnyxProps = {
-    /** Policies that the user is part of */
-    policies: OnyxCollection<Policy>;
-};
-
-type MoneyReportViewProps = MoneyReportViewComponentProps & MoneyReportViewOnyxProps;
-
-function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule, policies}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -65,30 +59,34 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule, 
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const sortedPolicyReportFields = useMemo(
-        () => policyReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight),
-        [policyReportFields],
-    );
-    const isAdmin = ReportUtils.isPolicyAdmin(report.policyID ?? '', policies);
+    const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
+        const fields = ReportUtils.getAvailableReportFields(report, policyReportFields);
+        return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+    }, [policyReportFields, report]);
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {canUseReportFields &&
                     sortedPolicyReportFields.map((reportField) => {
-                        const title = ReportUtils.getReportFieldTitle(report, reportField);
-                        const isDisabled = !isAdmin || isSettled || ReportUtils.isReportFieldOfTypeTitle(reportField);
+                        const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
+                        const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
+                        const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+
                         return (
                             <OfflineWithFeedback
                                 pendingAction={report.pendingFields?.[reportField.fieldID]}
+                                errors={report.errorFields?.[reportField.fieldID]}
+                                errorRowStyles={styles.ph5}
                                 key={`menuItem-${reportField.fieldID}`}
                             >
                                 <MenuItemWithTopDescription
-                                    description={reportField.name}
-                                    title={title}
+                                    description={Str.UCFirst(reportField.name)}
+                                    title={fieldValue}
                                     onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
                                     shouldShowRightIcon
-                                    disabled={isDisabled}
+                                    disabled={isFieldDisabled}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                     shouldGreyOutWhenDisabled={false}
                                     numberOfLinesTitle={0}
@@ -178,8 +176,4 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule, 
 
 MoneyReportView.displayName = 'MoneyReportView';
 
-export default withOnyx<MoneyReportViewProps, MoneyReportViewOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(MoneyReportView);
+export default MoneyReportView;
