@@ -55,7 +55,7 @@ function WalletEmptyState({onAddPaymentMethod}) {
                 subtitle={translate('walletPage.addPaymentMethod')}
                 ctaText={translate('paymentMethodList.addPaymentMethod')}
                 ctaAccessibilityLabel={translate('paymentMethodList.addPaymentMethod')}
-                onCtaPress={onAddPaymentMethod}
+                onCTAPress={onAddPaymentMethod}
             />
         </HeaderPageLayout>
     );
