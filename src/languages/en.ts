@@ -1045,14 +1045,6 @@ export default {
         defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
-        appSection: {
-            title: 'App preferences',
-            subtitle: 'That is when you can experience true joy, when you have no fear.',
-        },
-        testSection: {
-            title: 'Test preferences',
-            subtitle: 'That is when you can experience true joy, when you have no fear.',
-        },
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
     },
     priorityModePage: {
