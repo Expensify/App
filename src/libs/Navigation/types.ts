@@ -194,7 +194,6 @@ type RoomInviteNavigatorParamList = {
 
 type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.ROOT]: undefined;
-    [SCREENS.MONEY_REQUEST.AMOUNT]: undefined;
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;

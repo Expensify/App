@@ -59,7 +59,7 @@ const getTaxAmount = (transaction, defaultTaxValue, amount) => {
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency, action},
     },
     transaction,
     transaction: {currency: originalCurrency},
@@ -71,6 +71,8 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef(null);
     const iouRequestType = getRequestType(transaction);
     const currency = selectedCurrency || originalCurrency;
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
@@ -128,21 +130,40 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
+    const saveAmountAndCurrency = ({amount}) => {
+        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+        // If the value hasn't changed, don't request to save changes on the server and just close the modal
+        if (newAmount === TransactionUtils.getAmount(transaction) && currency === TransactionUtils.getCurrency(transaction)) {
+            Navigation.dismissModal();
+            return;
+        }
+
+        if (isSplitBill) {
+            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency});
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        IOU.updateMoneyRequestAmountAndCurrency(transactionID, reportID, currency, newAmount);
+        Navigation.dismissModal();
+    };
+
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={Boolean(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo)}
+                isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
-                amount={transaction.amount}
+                amount={transaction.modifiedAmount || transaction.amount}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                onSubmitButtonPress={navigateToNextPage}
+                onSubmitButtonPress={isEditing ? saveAmountAndCurrency : navigateToNextPage}
                 selectedTab={iouRequestType}
             />
         </StepScreenWrapper>

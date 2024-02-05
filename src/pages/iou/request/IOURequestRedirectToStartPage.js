@@ -43,7 +43,7 @@ function IOURequestRedirectToStartPage({
         if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
         } else if (iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
         } else if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
         }

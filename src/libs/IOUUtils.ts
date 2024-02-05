@@ -17,7 +17,7 @@ function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.R
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID));
             break;
         default:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             break;
     }
 }

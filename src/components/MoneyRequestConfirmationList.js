@@ -645,7 +645,15 @@ function MoneyRequestConfirmationList(props) {
                             return;
                         }
                         if (props.isEditingSplitBill) {
-                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.SPLIT,
+                                    props.transaction.transactionID,
+                                    props.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            );
                             return;
                         }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(props.iouType, props.reportID));

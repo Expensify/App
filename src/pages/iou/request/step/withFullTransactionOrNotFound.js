@@ -71,7 +71,16 @@ export default function (WrappedComponent) {
             key: ({route}) => {
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 const userAction = lodashGet(route, 'params.action', CONST.IOU.ACTION.CREATE);
-                return `${userAction === CONST.IOU.ACTION.CREATE ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                const isSplitBill = lodashGet(route, 'params.iouType', CONST.IOU.TYPE.REQUEST) === CONST.IOU.TYPE.SPLIT;
+                let transactionCollectionKey = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
+                if (userAction === CONST.IOU.ACTION.EDIT) {
+                    if (isSplitBill) {
+                        transactionCollectionKey = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
+                    } else {
+                        transactionCollectionKey = ONYXKEYS.COLLECTION.TRANSACTION;
+                    }
+                }
+                return `${transactionCollectionKey}${transactionID}`;
             },
         },
     })(WithFullTransactionOrNotFoundWithRef);
