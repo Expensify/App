@@ -72,7 +72,7 @@ function IOURequestStepTag({
         const isSelectedTag = selectedTag.searchText === tag;
         const updatedTag = IOUUtils.insertTagIntoReportTagsSting(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagIndex);
         if (isSplitBill) {
-            IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
+            IOU.setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;
         }
