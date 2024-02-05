@@ -85,7 +85,7 @@ const WRITE_COMMANDS = {
     DELETE_COMMENT: 'DeleteComment',
     UPDATE_COMMENT: 'UpdateComment',
     UPDATE_REPORT_NOTIFICATION_PREFERENCE: 'UpdateReportNotificationPreference',
-    UPDATE_WELCOME_MESSAGE: 'UpdateWelcomeMessage',
+    UPDATE_ROOM_DESCRIPTION: 'UpdateRoomDescription',
     UPDATE_REPORT_WRITE_CAPABILITY: 'UpdateReportWriteCapability',
     ADD_WORKSPACE_ROOM: 'AddWorkspaceRoom',
     UPDATE_POLICY_ROOM_NAME: 'UpdatePolicyRoomName',
@@ -196,7 +196,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_COMMENT]: Parameters.DeleteCommentParams;
     [WRITE_COMMANDS.UPDATE_COMMENT]: Parameters.UpdateCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE]: Parameters.UpdateReportNotificationPreferenceParams;
-    [WRITE_COMMANDS.UPDATE_WELCOME_MESSAGE]: Parameters.UpdateWelcomeMessageParams;
+    [WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION]: Parameters.UpdateRoomDescriptionParams;
     [WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY]: Parameters.UpdateReportWriteCapabilityParams;
     [WRITE_COMMANDS.ADD_WORKSPACE_ROOM]: Parameters.AddWorkspaceRoomParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME]: Parameters.UpdatePolicyRoomNameParams;
