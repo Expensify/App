@@ -3333,6 +3333,10 @@ function buildOptimisticChatReport(
     };
 }
 
+function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
+    return allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
+}
+
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param [created] - Action created time
@@ -3363,7 +3367,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created,
         shouldShow: true,
     };
@@ -3372,7 +3376,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
 /**
  * Returns the necessary reportAction onyx data to indicate that the report has been renamed
  */
-function buildOptimisticRenamedReportAction(title: string, oldTitle: string): OptimisticRenamedReportAction {
+function buildOptimisticRenamedReportAction(newName: string, oldName: string): OptimisticRenamedReportAction {
     const now = DateUtils.getDBTime();
     return {
         reportActionID: NumberUtils.rand64(),
@@ -3388,7 +3392,7 @@ function buildOptimisticRenamedReportAction(title: string, oldTitle: string): Op
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: ` renamed this report. New title is '${title}' (previously '${oldTitle}').`,
+                text: ` renamed this report. New title is '${newName}' (previously '${oldName}').`,
             },
         ],
         person: [
@@ -3399,15 +3403,15 @@ function buildOptimisticRenamedReportAction(title: string, oldTitle: string): Op
             },
         ],
         originalMessage: {
-            html: 'string', // todo
+            oldName,
+            newName,
+            html: `Room renamed to ${newName}`,
             lastModified: now,
-            oldName: oldTitle,
-            newName: title,
         },
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: now,
-        shouldShow: false,
+        shouldShow: true,
     };
 }
 
@@ -3440,7 +3444,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string): Optimi
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -3456,7 +3460,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         message: [
             {
