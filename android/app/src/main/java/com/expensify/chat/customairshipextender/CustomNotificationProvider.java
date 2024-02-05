@@ -212,8 +212,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
 
                 // Add all conversation messages to the notification, including the last one we just received.
-                NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
-                List<NotificationCompat.MessagingStyle.Message> messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
+                List<NotificationCompat.MessagingStyle.Message> messages;
+                if (hasExistingNotification) {
+                    NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
+                    messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
+                } else {
+                    messages = new ArrayList<>();
+                }
 
                 // add the last one message we just received.
                 messages.add(newMessage);
