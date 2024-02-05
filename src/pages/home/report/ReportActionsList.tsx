@@ -23,6 +23,7 @@ import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import FloatingMessageCounter from './FloatingMessageCounter';
@@ -122,7 +123,7 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const route = useRoute<RouteProp<CentralPaneNavigatorParamList>>();
+    const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef<string | null>(null);
 

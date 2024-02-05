@@ -113,7 +113,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
-function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
