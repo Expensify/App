@@ -105,6 +105,7 @@ function IOURequestStepConfirmation({
         [transaction.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    let formHasBeenSubmitted = false;
 
     useEffect(() => {
         if (!transaction || !transaction.originalCurrency) {
@@ -227,6 +228,13 @@ function IOURequestStepConfirmation({
     const createTransaction = useCallback(
         (selectedParticipants) => {
             const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
+
+            // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
+            if (formHasBeenSubmitted) {
+                return;
+            }
+
+            formHasBeenSubmitted = true;
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
