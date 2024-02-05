@@ -1,6 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,6 +13,7 @@ import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
@@ -60,14 +63,14 @@ const messageCopy = {
     [CONST.INTRO_CHOICES.CHAT_SPLIT]:
         'Hi there, to split an expense such as with a friend, please:\n' +
         '\n' +
-        'Press the big green + button\n' +
-        'Choose *Request money*\n' +
-        'Indicate how much was spent, either manually, by scanning a receipt, or by tracking distance\n' +
-        'Enter the email address or phone number of your friend\n' +
-        'Press *Split* next to their name\n' +
-        'Repeat as many times as you like for each of your friends\n' +
-        'Press *Add to split* when done adding friends\n' +
-        'Press Split to split the bill\n' +
+        '1. Press the big green + button\n' +
+        '2. Choose *Request money*\n' +
+        '3. Indicate how much was spent, either manually, by scanning a receipt, or by tracking distance\n' +
+        '4. Enter the email address or phone number of your friend\n' +
+        '5. Press *Split* next to their name\n' +
+        '6. Repeat as many times as you like for each of your friends\n' +
+        '7. Press *Add to split* when done adding friends\n' +
+        '8. Press Split to split the bill\n' +
         '\n' +
         "This will send a money request to each of your friends for however much they owe you, and we'll take care of getting you paid back. Thanks for asking, and let me know how it goes!",
 };
@@ -78,8 +81,12 @@ const menuIcons = {
     [CONST.INTRO_CHOICES.MANAGE_TEAM]: Expensicons.MoneyBag,
     [CONST.INTRO_CHOICES.CHAT_SPLIT]: Expensicons.Briefcase,
 };
+type PurposeForUsingExpensifyModalOnyxProps = {
+    isLoadingApp: OnyxEntry<boolean>;
+};
+type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
 
-function PurposeForUsingExpensifyModal() {
+function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -92,13 +99,13 @@ function PurposeForUsingExpensifyModal() {
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
         const currentRoute = routes[navigationState.index];
-        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRoute.name && currentRoute.name !== SCREENS.HOME) {
+        if (currentRoute && NAVIGATORS.BOTTOM_TAB_NAVIGATOR !== currentRoute.name) {
             return;
         }
 
         Welcome.show(routes, () => setIsModalOpen(true));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isLoadingApp]);
 
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
@@ -174,5 +181,8 @@ function PurposeForUsingExpensifyModal() {
 }
 
 PurposeForUsingExpensifyModal.displayName = 'PurposeForUsingExpensifyModal';
-
-export default PurposeForUsingExpensifyModal;
+export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+})(PurposeForUsingExpensifyModal);
