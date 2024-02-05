@@ -1239,7 +1239,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
     const report = getReport(reportID);
 
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         // For now, users cannot delete split actions
