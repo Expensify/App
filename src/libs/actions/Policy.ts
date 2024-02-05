@@ -1518,7 +1518,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
-function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category: string) {
+function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
     if (!policyID || !category) {
         return [];
     }
@@ -1528,7 +1528,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category:
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): RecentlyUsedTags {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, tag?: string): RecentlyUsedTags {
     if (!policyID || !tag) {
         return {};
     }
