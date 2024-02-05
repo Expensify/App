@@ -54,15 +54,6 @@ module.exports = (env) => {
                     loader: 'babel-loader',
                     exclude: /node_modules/,
                 },
-                {
-                    test: /react-native-onyx/,
-                    use: {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: ['@babel/preset-react'],
-                        },
-                    },
-                },
             ],
         },
     };

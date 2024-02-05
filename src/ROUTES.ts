@@ -12,7 +12,13 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 }
 
 const ROUTES = {
-    HOME: '',
+    // If the user opens this route, we'll redirect them to the path saved in the last visited path or to the home page if the last visited path is empty.
+    ROOT: '',
+
+    // This route renders the list of reports.
+    HOME: 'home',
+
+    ALL_SETTINGS: 'all-settings',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -59,7 +65,7 @@ const ROUTES = {
         route: 'bank-account/:stepToOpen?',
         getRoute: (stepToOpen = '', policyID = '', backTo?: string) => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
-
+    WORKSPACE_SWITCHER: 'workspace-switcher',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -237,10 +243,6 @@ const ROUTES = {
         route: 'r/:reportID/assignee',
         getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
     },
-    PRIVATE_NOTES_VIEW: {
-        route: 'r/:reportID/notes/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}` as const,
-    },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
         getRoute: (reportID: string) => `r/${reportID}/notes` as const,
@@ -290,10 +292,6 @@ const ROUTES = {
     MONEY_REQUEST_CATEGORY: {
         route: ':iouType/new/category/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
-    },
-    MONEY_REQUEST_TAG: {
-        route: ':iouType/new/tag/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}` as const,
     },
     MONEY_REQUEST_MERCHANT: {
         route: ':iouType/new/merchant/:reportID?',
@@ -378,9 +376,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: 'create/:iouType/tag/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/tag/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/tag/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -443,9 +441,17 @@ const ROUTES = {
         route: 'workspace/:policyID/invite-message',
         getRoute: (policyID: string) => `workspace/${policyID}/invite-message` as const,
     },
-    WORKSPACE_SETTINGS: {
-        route: 'workspace/:policyID/settings',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings` as const,
+    WORKSPACE_OVERVIEW: {
+        route: 'workspace/:policyID/overview',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview` as const,
+    },
+    WORKSPACE_OVERVIEW_CURRENCY: {
+        route: 'workspace/:policyID/overview/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview/currency` as const,
+    },
+    WORKSPACE_OVERVIEW_NAME: {
+        route: 'workspace/:policyID/overview/name',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview/name` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
