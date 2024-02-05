@@ -47,7 +47,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange}: Co
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRouteWithoutParams();
-                    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
+                    Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
                 }}
             />
             <View style={styles.ml5}>

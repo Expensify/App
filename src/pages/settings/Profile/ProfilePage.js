@@ -140,17 +140,17 @@ function ProfilePage(props) {
         {
             description: props.translate('privatePersonalDetails.legalName'),
             title: legalName,
-            pageRoute: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
+            pageRoute: ROUTES.SETTINGSLEGAL_NAME,
         },
         {
             description: props.translate('common.dob'),
             title: privateDetails.dob || '',
-            pageRoute: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
+            pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
         },
         {
             description: props.translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails),
-            pageRoute: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
+            pageRoute: ROUTES.SETTINGS_ADDRESS,
         },
     ];
 
