@@ -118,7 +118,3 @@ platforms:
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
 
-      - href: workspace-and-domain-settings
-        title: Workspace & Domain Settings
-        icon: /assets/images/shield.svg
-        description: Discover how to set up and manage your workspace, define user permissions, and implement domain-level rules.
