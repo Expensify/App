@@ -57,7 +57,6 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}: 
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            style={[styles.mh2]}
         >
             <HeaderWithBackButton
                 title={isBankAccountPending ? translate('connectBankAccountStep.validateYourBankAccount') : translate('connectBankAccountStep.connectBankAccount')}

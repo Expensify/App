@@ -48,7 +48,7 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.p5, styles.mb0]}
         >
-            <Text style={[styles.textHeadline, styles.mt5, styles.ph5]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5, styles.ph5]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
             <InputWrapper
                 InputComponent={BusinessTypePicker}
                 inputID={COMPANY_INCORPORATION_TYPE_KEY}

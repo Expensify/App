@@ -34,7 +34,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
             <Section
                 title={translate('workspace.bankAccount.letsFinishInChat')}
                 icon={Illustrations.ConciergeBubble}
-                containerStyles={[styles.mb8]}
+                containerStyles={[styles.mb8, styles.mh5]}
                 titleStyles={[styles.mb3]}
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>

@@ -65,7 +65,7 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline, styles.mt5, styles.mb6]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5, styles.mb6]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
                 <View style={[styles.flex2, styles.mb6]}>
                     <InputWrapper
                         InputComponent={TextInput}

@@ -39,7 +39,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
             style={[styles.pt0]}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.textHeadline, styles.ph5, styles.mt5, styles.mb3]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt5, styles.mb3]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('beneficialOwnerInfoStep.legalName')}
                     title={`${values.firstName} ${values.lastName}`}

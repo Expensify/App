@@ -76,8 +76,8 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
             style={[styles.mh5, styles.flexGrow1]}
         >
             <View>
-                <Text style={[styles.textHeadline, styles.mt5, styles.mb3]}>{translate('personalInfoStep.enterYourAddress')}</Text>
-                <Text style={[styles.textLabel, styles.textSupporting]}>{translate('common.noPO')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5, styles.mb3]}>{translate('personalInfoStep.enterYourAddress')}</Text>
+                <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
                 <AddressForm
                     inputKeys={INPUT_KEYS}
                     translate={translate}

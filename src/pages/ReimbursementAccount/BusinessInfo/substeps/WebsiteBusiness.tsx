@@ -73,7 +73,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={[styles.textHeadline, styles.mt5]}>{translate('businessInfoStep.enterYourCompanysWebsite')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5]}>{translate('businessInfoStep.enterYourCompanysWebsite')}</Text>
             <Text style={[styles.label, styles.textSupporting]}>{translate('common.websiteExample')}</Text>
             <InputWrapper
                 InputComponent={TextInput}

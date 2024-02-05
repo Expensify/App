@@ -22,6 +22,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
             title={translate('validationStep.enable2FATitle')}
             icon={Illustrations.ShieldYellow}
             titleStyles={[styles.mb4]}
+            containerStyles={[styles.mh5]}
             menuItems={[
                 {
                     title: translate('validationStep.secureYourAccount'),

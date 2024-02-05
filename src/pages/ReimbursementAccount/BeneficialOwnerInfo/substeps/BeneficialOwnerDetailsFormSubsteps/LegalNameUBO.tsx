@@ -52,7 +52,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={[styles.textHeadline, styles.mt5]}>{translate('beneficialOwnerInfoStep.enterLegalFirstAndLastName')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5]}>{translate('beneficialOwnerInfoStep.enterLegalFirstAndLastName')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('beneficialOwnerInfoStep.legalFirstName')}

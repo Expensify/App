@@ -59,8 +59,8 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline, styles.mt5, styles.mb3]}>{translate('personalInfoStep.enterTheLast4')}</Text>
-                <Text style={[styles.textLabel, styles.textSupporting]}>{translate('personalInfoStep.dontWorry')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5, styles.mb3]}>{translate('personalInfoStep.enterTheLast4')}</Text>
+                <Text style={[styles.textSupporting]}>{translate('personalInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}

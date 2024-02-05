@@ -59,7 +59,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
             style={[styles.pt0]}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.textHeadline, styles.ph5, styles.mt5, styles.mb3]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt5, styles.mb3]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.businessName')}
                     title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}

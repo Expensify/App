@@ -51,8 +51,8 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
             style={[styles.pt0]}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.textHeadline, styles.ph5, styles.mt5]}>{translate('bankAccount.letsDoubleCheck')}</Text>
-                <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textLabel, styles.textSupporting]}>{translate('bankAccount.thisBankAccount')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt5]}>{translate('bankAccount.letsDoubleCheck')}</Text>
+                <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.thisBankAccount')}</Text>
                 {setupType === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL && (
                     <View style={[styles.mb5]}>
                         <MenuItemWithTopDescription

@@ -60,7 +60,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={[styles.textHeadline, styles.mt5]}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5]}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.businessName')}

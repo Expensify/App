@@ -62,7 +62,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
             testID={ConfirmAgreements.displayName}
             style={[styles.pt5]}
         >
-            <Text style={[styles.textHeadline, styles.ph5]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}
