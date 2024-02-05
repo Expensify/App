@@ -66,7 +66,7 @@ function updatePronouns(pronouns: string) {
         });
     }
 
-    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack();
 }
 
 function updateDisplayName(firstName: string, lastName: string) {
@@ -93,7 +93,7 @@ function updateDisplayName(firstName: string, lastName: string) {
         });
     }
 
-    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack();
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {
