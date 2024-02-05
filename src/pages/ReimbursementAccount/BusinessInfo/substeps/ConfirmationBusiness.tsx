@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -134,7 +135,8 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     submitButtonText={translate('common.confirm')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <CheckboxWithLabel
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
                         aria-label={`${translate('businessInfoStep.confirmCompanyIsNot')} ${translate('businessInfoStep.listOfRestrictedBusinesses')}`}
                         inputID={BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS}
                         defaultValue={defaultCheckboxState}
