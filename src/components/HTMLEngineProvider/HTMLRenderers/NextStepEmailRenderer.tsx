@@ -13,7 +13,7 @@ function NextStepEmailRenderer({tnode}: NextStepEmailRendererProps) {
 
     return (
         <Text
-            testID="email-with-break-opportunities"
+            nativeID="email-with-break-opportunities"
             style={[styles.breakWord, styles.textLabelSupporting, styles.textStrong]}
         >
             {tnode.data}
