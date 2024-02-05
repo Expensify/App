@@ -222,7 +222,7 @@ function getOrderedReportIDs(reportIDs: string[], allOptions: Record<string, Rep
         const hasRBR = option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         if (isPinned || hasRBR || ReportUtils.requiresAttentionFromCurrentUser(option, option.parentReportAction)) {
             pinnedAndGBRReports.push(option);
-        } else if (option.hasDraft) {
+        } else if (option.hasDraftComment) {
             draftReports.push(option);
         } else if (option.isArchivedRoom) {
             archivedReports.push(option);
