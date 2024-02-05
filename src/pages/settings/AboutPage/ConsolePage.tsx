@@ -72,15 +72,16 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TROUBLESHOOT)}
             />
-            <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.p5, styles.mh5, {height: CONST.DEBUG_CONSOLE.CONSOLE_HEIGHT}]}>
+            <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, {height: CONST.DEBUG_CONSOLE.CONSOLE_HEIGHT}]}>
                 <FlashList
                     data={Object.values(logs).reverse()}
                     renderItem={({item}) => (
                         <View style={styles.mb2}>
-                            <Text family="MONOSPACE">{`${new Date(item.time).toLocaleTimeString()} ${item.message}`}</Text>
+                            <Text family="MONOSPACE">{`${item.time.toLocaleTimeString()} ${item.message}`}</Text>
                         </View>
                     )}
                     estimatedItemSize={70}
+                    contentContainerStyle={styles.p5}
                     inverted
                 />
             </View>
