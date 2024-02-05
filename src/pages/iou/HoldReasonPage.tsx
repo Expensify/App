@@ -1,10 +1,9 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {useCallback, useRef} from 'react';
+import type {RouteProp} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -12,48 +11,47 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import * as IOU from '@userActions/IOU';
-import CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */
-        params: PropTypes.shape({
-            /** ID of the transaction the page was opened for */
-            transactionID: PropTypes.string,
+type HoldReasonPageRouteParams = {
+    /** ID of the transaction the page was opened for */
+    transactionID: string;
 
-            /** ID of the report that user is providing hold reason to */
-            reportID: PropTypes.string,
+    /** ID of the report that user is providing hold reason to */
+    reportID: string;
 
-            /** Link to previous page */
-            backTo: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Link to previous page */
+    backTo: Route;
 };
 
-function HoldReasonPage({route}) {
+type HoldReasonPageProps = {
+    /** Navigation route context info provided by react navigation */
+    route: RouteProp<{params: HoldReasonPageRouteParams}>;
+};
+
+function HoldReasonPage({route}: HoldReasonPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const reasonRef = useRef();
 
-    const transactionID = lodashGet(route, 'params.transactionID', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
-    const backTo = lodashGet(route, 'params.backTo', '');
+    const {transactionID, reportID, backTo} = route.params;
 
     const navigateBack = () => {
         Navigation.navigate(backTo);
     };
 
-    const onSubmit = (values) => {
+    const onSubmit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         IOU.putOnHold(transactionID, values.comment, reportID);
         navigateBack();
     };
 
-    const validate = useCallback((value) => {
-        const errors = {};
+    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+        const requiredFields = ['comment'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (_.isEmpty(value.comment)) {
+        if (!values.comment) {
             errors.comment = 'common.error.fieldRequired';
         }
 
@@ -71,7 +69,7 @@ function HoldReasonPage({route}) {
                 onBackButtonPress={navigateBack}
             />
             <FormProvider
-                formID="moneyHoldReason"
+                formID="moneyHoldReasonForm"
                 submitButtonText={translate('iou.holdRequest')}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
@@ -85,11 +83,9 @@ function HoldReasonPage({route}) {
                         inputID="comment"
                         valueType="string"
                         name="comment"
-                        defaultValue=""
+                        defaultValue={undefined}
                         label="Reason"
                         accessibilityLabel={translate('iou.reason')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(e) => (reasonRef.current = e)}
                         autoFocus
                     />
                 </View>
@@ -99,6 +95,5 @@ function HoldReasonPage({route}) {
 }
 
 HoldReasonPage.displayName = 'MoneyRequestHoldReasonPage';
-HoldReasonPage.propTypes = propTypes;
 
 export default HoldReasonPage;

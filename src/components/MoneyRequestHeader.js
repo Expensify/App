@@ -24,6 +24,7 @@ import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import {usePersonalDetails} from './OnyxProvider';
+import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
@@ -49,6 +50,9 @@ const propTypes = {
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: PropTypes.shape(reportActionPropTypes),
 
+    /** Whether we should show the Hold Interstitial explaining the feature */
+    shownHoldUseExplaination: PropTypes.bool,
+
     /** All the data for the transaction */
     transaction: transactionPropTypes,
 };
@@ -60,14 +64,16 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
+    shownHoldUseExplaination: false,
     policy: {},
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplaination, policy}) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
@@ -91,7 +97,9 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const canModifyRequest = isActionOwner && isRequestModifiable;
 
     const changeMoneyRequestStatus = () => {
-        if (!isOnHold) {
+        if (isOnHold) {
+            IOU.unholdRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), lodashGet(report, 'reportID'));
+        } else {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
             Navigation.navigate(
                 ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(
@@ -101,8 +109,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     activeRoute,
                 ),
             );
-        } else {
-            IOU.unholdRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), lodashGet(report, 'reportID'));
         }
     };
 
@@ -116,16 +122,17 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
     if (isRequestModifiable) {
-        const isHoldCreator = ReportUtils.isHoldCreator(transaction, lodashGet(report, 'reportID'));
         const isRequestIOU = lodashGet(parentReport, 'type') === 'iou';
-        if (isOnHold && ((isRequestIOU && isHoldCreator) || (!isRequestIOU && (isPolicyAdmin || isActionOwner || isApprover)))) {
+        const isHoldCreator = ReportUtils.isHoldCreator(transaction, lodashGet(report, 'reportID')) && isRequestIOU;
+        const canModifyStatus = isPolicyAdmin || isActionOwner || isApprover;
+        if (isOnHold && (isHoldCreator || canModifyStatus)) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.unholdRequest'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || isPolicyAdmin || isActionOwner || isApprover)) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus)) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.holdRequest'),
@@ -133,6 +140,28 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             });
         }
     }
+
+    useEffect(() => {
+        setShouldShowHoldMenu(isOnHold && !shownHoldUseExplaination);
+    }, [isOnHold, shownHoldUseExplaination]);
+
+    useEffect(() => {
+        if (!shouldShowHoldMenu) {
+            return;
+        }
+
+        if (isSmallScreenWidth) {
+            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
+                Navigation.goBack();
+            }
+        } else {
+            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
+        }
+    }, [isSmallScreenWidth, shouldShowHoldMenu]);
+
+    const handleHoldRequestClose = () => {
+        IOU.setShownHoldUseExplaination();
+    };
 
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
@@ -203,6 +232,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 cancelText={translate('common.cancel')}
                 danger
             />
+            {isSmallScreenWidth && shouldShowHoldMenu && (
+                <ProcessMoneyRequestHoldMenu
+                    onClose={handleHoldRequestClose}
+                    onConfirm={handleHoldRequestClose}
+                    isVisible={shouldShowHoldMenu}
+                />
+            )}
         </>
     );
 }
@@ -231,6 +267,10 @@ export default compose(
                 const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
             },
+        },
+        shownHoldUseExplaination: {
+            key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
+            initWithStoredValues: true,
         },
     }),
 )(MoneyRequestHeader);

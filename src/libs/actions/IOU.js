@@ -3681,6 +3681,10 @@ function setMoneyRequestParticipants(participants, isSplitRequest) {
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
+function setShownHoldUseExplaination() {
+    Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
+}
+
 function setUpDistanceTransaction() {
     const transactionID = NumberUtils.rand64();
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -3760,10 +3764,7 @@ function getIOUReportID(iou, route) {
  * @param {string} reportID
  */
 function putOnHold(transactionID, comment, reportID) {
-    const createdDate = new Date();
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment, DateUtils.getDBTime(createdDate));
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
 
     const optimisticData = [
         {
@@ -3809,7 +3810,6 @@ function putOnHold(transactionID, comment, reportID) {
     API.write(
         'HoldRequest',
         {
-            ...transactionDetails,
             transactionID,
             comment,
         },
@@ -3824,8 +3824,6 @@ function putOnHold(transactionID, comment, reportID) {
  */
 function unholdRequest(transactionID, reportID) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
 
     const optimisticData = [
         {
@@ -3868,7 +3866,6 @@ function unholdRequest(transactionID, reportID) {
     API.write(
         'UnHoldRequest',
         {
-            ...transactionDetails,
             transactionID,
         },
         {optimisticData, successData, failureData: []},
@@ -3956,6 +3953,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setUpDistanceTransaction,
+    setShownHoldUseExplaination,
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestMerchant,
