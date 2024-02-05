@@ -25,7 +25,7 @@ const propTypes = {
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
 
-     /** The application ID for our Onfido instance */
+    /** The application ID for our Onfido instance */
     onfidoApplicantID: PropTypes.string,
 };
 
