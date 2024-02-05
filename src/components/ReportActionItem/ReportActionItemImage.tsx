@@ -3,11 +3,7 @@ import React from 'react';
 import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-<<<<<<< HEAD
-=======
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentModal from '@components/AttachmentModal';
->>>>>>> main
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
