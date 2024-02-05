@@ -53,7 +53,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const draftText = lodashGet(draftStatus, 'text');
     const draftClearAfter = lodashGet(draftStatus, 'clearAfter');
 
-    const defaultEmoji = draftEmojiCode || currentUserEmojiCode || initialEmoji;
+    const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftText || currentUserStatusText;
 
     const customClearAfter = useMemo(() => {
@@ -70,7 +70,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
+    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack('', false, true), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
             const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
@@ -79,10 +79,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
-
             User.updateCustomStatus({
                 text: statusText,
-                emojiCode,
+                emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
 
@@ -101,7 +100,10 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             emojiCode: '',
             clearAfter: DateUtils.getEndOfToday(),
         });
-        formRef.current.resetForm({[INPUT_IDS.EMOJI_CODE]: initialEmoji});
+        formRef.current.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
+        InteractionManager.runAfterInteractions(() => {
+            navigateBackToPreviousScreen();
+        });
     };
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
