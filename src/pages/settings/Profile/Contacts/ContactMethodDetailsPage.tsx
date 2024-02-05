@@ -15,6 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -148,8 +149,9 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
-        if (!loginData?.validatedDate) {
+        if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
