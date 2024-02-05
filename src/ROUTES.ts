@@ -289,16 +289,6 @@ const ROUTES = {
         route: ':iouType/new/description/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}` as const,
     },
-<<<<<<< HEAD
-    MONEY_REQUEST_TAG: {
-        route: ':iouType/new/tag/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}` as const,
-=======
-    MONEY_REQUEST_CATEGORY: {
-        route: ':iouType/new/category/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
->>>>>>> main
-    },
     MONEY_REQUEST_MERCHANT: {
         route: ':iouType/new/merchant/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,

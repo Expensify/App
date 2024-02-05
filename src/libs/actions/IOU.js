@@ -237,15 +237,8 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
  * @param {String} transactionID
  * @param {String} category
  */
-function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
+function setMoneyRequestCategory(transactionID, category) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
-}
-
-/*
- * @param {String} transactionID
- */
-function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
 /*
@@ -3636,17 +3629,6 @@ function setMoneyRequestMerchant(merchant) {
 }
 
 /**
- * @param {String} category
- */
-function setMoneyRequestCategory(category) {
-    Onyx.merge(ONYXKEYS.IOU, {category});
-}
-
-function resetMoneyRequestCategory() {
-    Onyx.merge(ONYXKEYS.IOU, {category: ''});
-}
-
-/**
  * @param {String} transactionID
  * @param {Object} taxRate
  */
@@ -3725,7 +3707,6 @@ function navigateToNextPage(iou, iouType, report, path = '') {
                       .map((accountID) => ({accountID, selected: true}))
                       .value();
             setMoneyRequestParticipants(participants);
-            resetMoneyRequestCategory();
         }
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
@@ -3800,13 +3781,10 @@ export {
     sendMoneyWithWallet,
     startMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
-    resetMoneyRequestCategory,
-    resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
     clearMoneyRequest,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
-    setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated_temporaryForRefactor,
     setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestOriginalCurrency_temporaryForRefactor,

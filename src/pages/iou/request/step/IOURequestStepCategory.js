@@ -42,7 +42,7 @@ function IOURequestStepCategory({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isBillSplit = iouType === CONST.IOU.TYPE.SPLIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -57,7 +57,7 @@ function IOURequestStepCategory({
         const updatedCategory = isSelectedCategory ? '' : category.searchText;
 
         // The case edit split bill
-        if (isBillSplit && isEditing) {
+        if (isSplitBill && isEditing) {
             IOU.setDraftSplitTransaction(transaction.transactionID, {category: category.searchText});
             navigateBack();
             return;
@@ -68,12 +68,7 @@ function IOURequestStepCategory({
             Navigation.dismissModal();
             return;
         }
-        // The case create request monney or split bill or send money
-        if (isSelectedCategory) {
-            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
-        } else {
-            IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, updatedCategory);
-        }
+        IOU.setMoneyRequestCategory(transactionID, updatedCategory);
         navigateBack();
     };
 
