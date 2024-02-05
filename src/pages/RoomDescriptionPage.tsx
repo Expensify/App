@@ -40,7 +40,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
     const handleReportDescriptionChange = useCallback((value: string) => {
-        setdescription(value);
+        setDescription(value);
     }, []);
 
     const submitForm = useCallback(() => {
