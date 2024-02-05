@@ -4770,14 +4770,12 @@ function hasAddBankAccountAction(iouReportID: string): boolean {
     const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(iouReportID) && !isSettled(iouReportID);
     const hasCreditBankAccount = store.hasCreditBankAccount();
 
-    if(!isSubmitterOfUnsettledReport || hasCreditBankAccount){
+    if (!isSubmitterOfUnsettledReport || hasCreditBankAccount) {
         return false;
     }
-    
+
     return !!Object.values(reportActions).find(
-        (action) =>
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED &&
-            (action.originalMessage as IOUMessage)?.paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+        (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED && (action.originalMessage as IOUMessage)?.paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
     );
 }
 
