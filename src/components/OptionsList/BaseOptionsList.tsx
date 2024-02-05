@@ -9,6 +9,8 @@ import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Timing from '@libs/actions/Timing';
+import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
@@ -33,7 +35,7 @@ function BaseOptionsList(
         optionHoveredStyle,
         contentContainerStyles,
         sectionHeaderStyle,
-        showScrollIndicator = false,
+        showScrollIndicator = true,
         listContainerStyles: listContainerStylesProp,
         shouldDisableRowInnerPadding = false,
         shouldPreventDefaultFocusOnSelectRow = false,
@@ -108,6 +110,16 @@ function BaseOptionsList(
         flattenedData.current = buildFlatSectionArray();
     });
 
+    useEffect(() => {
+        if (isLoading) {
+            return;
+        }
+
+        // Mark the end of the search page load time. This data is collected only for Search page.
+        Timing.end(CONST.TIMING.OPEN_SEARCH);
+        Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
+    }, [isLoading]);
+
     const onViewableItemsChanged = () => {
         if (didLayout.current || !onLayout) {
             return;
@@ -171,6 +183,10 @@ function BaseOptionsList(
                 return true;
             }
 
+            if (option.policyID && option.policyID === item.policyID) {
+                return true;
+            }
+
             if (!option.name || StringUtils.isEmptyString(option.name)) {
                 return false;
             }
@@ -192,7 +208,7 @@ function BaseOptionsList(
                 selectedStateButtonText={multipleOptionSelectorButtonText}
                 onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
-                boldStyle={boldStyle}
+                boldStyle={item.boldStyle ?? boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
