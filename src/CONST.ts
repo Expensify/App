@@ -100,6 +100,10 @@ const CONST = {
         MAX_LENGTH: 40,
     },
 
+    REPORT_DESCRIPTION: {
+        MAX_LENGTH: 1024,
+    },
+
     PULL_REQUEST_NUMBER,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
@@ -1588,7 +1592,6 @@ const CONST = {
         INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
-        WELCOME_MESSAGE: 'welcomeMessage',
         PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {
