@@ -12,6 +12,7 @@ type ThumbnailAndImageURI = {
     transaction?: Transaction;
     isLocalFile?: boolean;
     isThumbnail?: boolean;
+    filename?: string;
     fileExtension?: string;
 };
 
@@ -36,21 +37,21 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
     const hasEReceipt = transaction?.hasEReceipt;
 
     if (hasEReceipt) {
-        return {image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
+        return {image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction, filename};
     }
 
     // For local files, we won't have a thumbnail yet
     if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        return {image: path, isLocalFile: true};
+        return {image: path, isLocalFile: true, filename};
     }
 
     if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path};
+        return {thumbnail: `${path}.1024.jpg`, image: path, filename};
     }
 
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
     const {fileExtension} = splitExtensionFromFileName(filename);
-    return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile};
+    return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile, filename};
 }
 
 // eslint-disable-next-line import/prefer-default-export

@@ -38,6 +38,9 @@ type ReportActionItemImageProps = {
 
     /** whether the receipt can be replaced */
     canEditReceipt?: boolean;
+
+    /** Filename of attachment */
+    filename?: string;
 };
 
 /**
@@ -55,6 +58,7 @@ function ReportActionItemImage({
     canEditReceipt = false,
     isLocalFile = false,
     fileExtension,
+    filename,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -83,7 +87,7 @@ function ReportActionItemImage({
                         isReceiptAttachment
                         canEditReceipt={canEditReceipt}
                         allowDownload
-                        originalFileName={transaction?.filename}
+                        originalFileName={filename}
                     >
                         {({show}) => (
                             <PressableWithoutFocus

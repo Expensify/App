@@ -249,6 +249,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 isThumbnail={receiptURIs.isThumbnail}
                                 image={receiptURIs.image}
                                 isLocalFile={receiptURIs.isLocalFile}
+                                filename={receiptURIs.filename}
                                 transaction={transaction}
                                 enablePreviewModal
                                 canEditReceipt={canEditReceipt}
