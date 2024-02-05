@@ -2257,9 +2257,10 @@ function getReportPreviewMessage(
         }
     }
 
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
-    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+    const payerName = isExpenseReport(report) && !containsNonReimbursable ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
@@ -2302,8 +2303,6 @@ function getReportPreviewMessage(
         const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID ?? -1, true) ?? '';
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
-
-    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
 
     const lastActorID = reportAction?.actorAccountID;
 
