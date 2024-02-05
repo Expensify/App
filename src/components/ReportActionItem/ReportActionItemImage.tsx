@@ -3,6 +3,11 @@ import React from 'react';
 import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+<<<<<<< HEAD
+=======
+import type {OnyxEntry} from 'react-native-onyx';
+import AttachmentModal from '@components/AttachmentModal';
+>>>>>>> main
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -22,13 +27,13 @@ type ReportActionItemImageProps = {
     thumbnail?: string | ImageSourcePropType | null;
 
     /** URI for the image or local numeric reference for the image  */
-    image: string | ImageSourcePropType;
+    image?: string | ImageSourcePropType;
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal?: boolean;
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
-    transaction?: Transaction;
+    transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
     isLocalFile?: boolean;

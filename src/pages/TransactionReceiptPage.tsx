@@ -40,7 +40,7 @@ function TransactionReceipt({transaction, report}: TransactionReceiptProps) {
             isReceiptAttachment
             canEditReceipt={canEditReceipt}
             allowDownload
-            originalFileName={transaction?.filename}
+            originalFileName={receiptURIs?.filename}
             defaultOpen
             onModalClose={() => {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
