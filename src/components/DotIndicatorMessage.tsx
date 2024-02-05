@@ -8,12 +8,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
-
-type ReceiptError = {error?: string; source: string; filename: string};
 
 type DotIndicatorMessageProps = {
     /**
@@ -23,7 +22,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, Localize.MaybePhraseKey>;
+    messages: Record<string, Localize.MaybePhraseKey | ReceiptError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';

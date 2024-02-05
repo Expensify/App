@@ -1,12 +1,16 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BaseImage from './BaseImage';
-import type { ImageProps, ImageOwnProps, ImageOnyxProps } from './types';
+import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired, session, ...forwardedProps}: ImageProps) {
-    // Update the source to include the auth token if required
+function Image(props: ImageProps) {
+    const {source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps} = props;
+    /**
+     * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
+     * to the source.
+     */
     const source = useMemo(() => {
         if (typeof propsSource === 'object' && 'uri' in propsSource && typeof propsSource.uri === 'number') {
             return propsSource.uri;
@@ -26,8 +30,26 @@ function Image({source: propsSource, isAuthTokenRequired, session, ...forwardedP
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
+    /**
+     * The natural image dimensions are retrieved using the updated source
+     * and as a result the `onLoad` event needs to be manually invoked to return these dimensions
+     */
+    useEffect(() => {
+        // If an onLoad callback was specified then manually call it and pass
+        // the natural image dimensions to match the native API
+        if (onLoad == null) {
+            return;
+        }
+
+        if (typeof source === 'object' && 'uri' in source && source.uri) {
+            RNImage.getSize(source.uri, (width, height) => {
+                onLoad({nativeEvent: {width, height}});
+            });
+        }
+    }, [onLoad, source]);
+
     return (
-        <BaseImage
+        <RNImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             source={source}
