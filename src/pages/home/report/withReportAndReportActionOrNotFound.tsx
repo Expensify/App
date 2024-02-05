@@ -80,7 +80,9 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         }
 
         // Perform the access/not found checks
-        if (shouldHideReport || isEmptyObject(reportAction)) {
+        // Be sure to avoid showing the not-found page while the parent report actions are still being read from Onyx. The parentReportAction will be undefined while it's being read from Onyx
+        // and then reportAction it will either be a valid parentReportAction or an empty object. In the case of an empty object, then it's OK to show the not-found page.
+        if (shouldHideReport || (props?.parentReportAction !== undefined && isEmptyObject(reportAction))) {
             return <NotFoundPage />;
         }
 
