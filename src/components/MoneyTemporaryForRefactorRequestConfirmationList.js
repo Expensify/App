@@ -824,12 +824,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const relevantFields = _.map(
         _.filter(classifiedFields, (classifiedField) => !classifiedField || classifiedField.isRelevant),
-        (relevantMenuItem) => relevantMenuItem.item,
+        (relevantField) => relevantField.item,
     );
 
     const supplementaryFields = _.map(
         _.filter(classifiedFields, (classifiedField) => !classifiedField || !classifiedField.isRelevant),
-        (supplementaryMenuItem) => supplementaryMenuItem.item,
+        (supplementaryField) => supplementaryField.item,
     );
 
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
