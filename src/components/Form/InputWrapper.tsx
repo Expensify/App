@@ -9,6 +9,7 @@ type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey =
     InputComponentValueProps<TValue> & {
         InputComponent: TInput;
         inputID: string;
+        isFocused?: boolean;
     };
 
 function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(
