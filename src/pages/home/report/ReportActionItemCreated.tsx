@@ -1,3 +1,4 @@
+import lodashIsEqual from 'lodash/isEqual';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -116,6 +117,7 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
             prevProps.report?.stateNum === nextProps.report?.stateNum &&
             prevProps.report?.statusNum === nextProps.report?.statusNum &&
             prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
+            lodashIsEqual(prevProps.report?.participantAccountIDs, nextProps.report?.participantAccountIDs) &&
             prevProps.personalDetails === nextProps.personalDetails,
     ),
 );
