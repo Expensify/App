@@ -171,14 +171,10 @@ type Report = {
     selected?: boolean;
 
     /** If the report contains reportFields, save the field id and its value */
-<<<<<<< HEAD
-    reportFields?: Record<string, string>;
+    reportFields?: Record<string, PolicyReportField>;
 
     /** Optimistic status used for handling of partial payment/approval flow in offline */
     optimisticFlowStatus?: ValueOf<typeof CONST.REPORT.OPTIMISTIC_FLOW_STATUS>;
-=======
-    reportFields?: Record<string, PolicyReportField>;
->>>>>>> origin/main
 };
 
 export default Report;
