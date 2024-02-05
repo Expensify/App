@@ -695,7 +695,7 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        pickerSmall: (backgroundColor = theme.highlightBG) =>
+        pickerSmall: (disabled = false, backgroundColor = theme.highlightBG) =>
             ({
                 inputIOS: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -737,7 +737,7 @@ const styles = (theme: ThemeColors) =>
                     height: 26,
                     opacity: 1,
                     backgroundColor,
-                    ...cursor.cursorPointer,
+                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
                 },
                 inputAndroid: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,

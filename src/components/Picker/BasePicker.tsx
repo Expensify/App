@@ -32,7 +32,9 @@ function BasePicker<TPickerValue>(
         containerStyles,
         placeholder = {},
         size = 'normal',
+        shouldAllowDisabledStyle = true,
         shouldFocusPicker = false,
+        shouldShowOnlyTextWhenDisabled = true,
         onBlur = () => {},
         additionalPickerEvents = () => {},
     }: BasePickerProps<TPickerValue>,
@@ -154,7 +156,7 @@ function BasePicker<TPickerValue>(
 
     const hasError = !!errorText;
 
-    if (isDisabled) {
+    if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
                 {!!label && (
@@ -175,14 +177,20 @@ function BasePicker<TPickerValue>(
         <>
             <View
                 ref={root}
-                style={[styles.pickerContainer, isDisabled && styles.inputDisabled, containerStyles, isHighlighted && styles.borderColorFocus, hasError && styles.borderColorDanger]}
+                style={[
+                    styles.pickerContainer,
+                    isDisabled && shouldAllowDisabledStyle && styles.inputDisabled,
+                    containerStyles,
+                    isHighlighted && styles.borderColorFocus,
+                    hasError && styles.borderColorDanger,
+                ]}
             >
                 {label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{label}</Text>}
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
                     items={items.map((item) => ({...item, color: itemColor}))}
-                    style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
+                    style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(isDisabled, backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
                     value={value}
