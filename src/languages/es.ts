@@ -705,14 +705,6 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
         profileAvatar: 'Perfil avatar',
-        publicSection: {
-            title: 'Público',
-            subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',
-        },
-        privateSection: {
-            title: 'Privada',
-            subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
-        },
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',

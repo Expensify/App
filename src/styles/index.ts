@@ -2582,11 +2582,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        accountSettingsSectionTitle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: FontUtils.fontWeight.bold,
-        },
-
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
