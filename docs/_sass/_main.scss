@@ -350,10 +350,14 @@ button {
     h1 {
         &.title {
             font-size: 2.25em;
+            flex: 1;
         }
     }
 
     .article {
+        .hidden {
+            display: none;
+        }
         img {
             display: block;
             margin: 20px auto;
@@ -457,6 +461,49 @@ button {
                 font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
                 opacity: 0.8;
             }
+        }
+
+        .selector-container {
+            background-color: $color-highlightBG;
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 20px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            * > ol, ul {
+                padding: 0;
+            }
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                flex-direction: column;
+            }
+        }
+
+        select {
+            height: 28px;
+            border-radius: 20px;
+            padding: 0px 26px 0px 12px;
+            color: $color-text;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100px;
+            }
+
+        }
+
+        select {
+            background: url("/assets/images/down.svg") no-repeat right $color-button-background;
+            background-size: 12px;
+            background-position-x: 85%;
+            appearance: none !important;
+            -moz-appearance: none !important;
+            -webkit-appearance: none !important;
         }
 
         .info {
@@ -861,4 +908,46 @@ button {
             width: 25%;
         }
     }
+}
+
+.title-platform-tabs {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    h1 {
+        padding: 0;
+    }
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+#platform-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    gap: 4px;
+}
+
+#platform-tabs > * {
+    cursor: pointer;
+    border-radius: 20px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    height: 36px;
+    line-height: 16px;
+}
+
+#platform-tabs > .active {
+    color: $color-text;
+    background-color: $color-button-background;
+}
+
+.hidden {
+    display: none;
 }

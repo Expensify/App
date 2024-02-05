@@ -1,7 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import Str from 'expensify-common/lib/str';
 import React from 'react';
-import type {ViewStyle} from 'react-native';
+import type {ReactElement} from 'react';
+import type {ImageSourcePropType, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
@@ -31,7 +34,7 @@ type ReportActionItemImageProps = {
     enablePreviewModal?: boolean;
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
-    transaction?: Transaction;
+    transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
     isLocalFile?: boolean;
