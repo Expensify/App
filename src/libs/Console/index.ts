@@ -1,16 +1,17 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-type Log = {
-    time: Date;
-    level: string;
-    message: string;
-};
+import addLog from '@libs/actions/Console';
+import type {Log} from '@src/types/onyx';
 
 type UpdateLogsFunction = (newLog: Log) => void;
 
 let updateLogs: UpdateLogsFunction | null = null;
-const capturedLogs: Log[] = [];
 // eslint-disable-next-line no-console
 const originalConsoleLog = console.log;
+
+const logPatternsToIgnore = [`merge() called for key: logs`];
+
+function shouldAttachLog(message: string) {
+    return !logPatternsToIgnore.some((pattern) => message.includes(pattern));
+}
 
 function setUpdateLogsFunction(func: UpdateLogsFunction | null) {
     updateLogs = func;
@@ -31,7 +32,7 @@ function logMessage(args: unknown[]) {
         })
         .join(' ');
     const newLog = {time: new Date(), level: 'LOG', message};
-    capturedLogs.push(newLog);
+    addLog(newLog);
     if (updateLogs) {
         updateLogs(newLog);
     }
@@ -81,5 +82,5 @@ function createLog(text: string) {
     }
 }
 
-export {sanitizeConsoleInput, createLog, capturedLogs, setUpdateLogsFunction};
+export {sanitizeConsoleInput, createLog, setUpdateLogsFunction, shouldAttachLog};
 export type {Log};

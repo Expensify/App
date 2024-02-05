@@ -5,7 +5,8 @@
 import Logger from 'expensify-common/lib/Logger';
 import type {Merge} from 'type-fest';
 import pkg from '../../package.json';
-import {capturedLogs} from './Console';
+import addLog from './actions/Console';
+import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import * as Network from './Network';
 import requireParameters from './requireParameters';
@@ -51,8 +52,12 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message) => {
+        if (!shouldAttachLog(message)) {
+            return;
+        }
+
         console.debug(message);
-        capturedLogs.push({time: new Date(), level: 'DEBUG', message});
+        addLog({time: new Date(), level: 'DEBUG', message});
     },
     isDebug: true,
 });

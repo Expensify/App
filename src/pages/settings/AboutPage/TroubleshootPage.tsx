@@ -41,7 +41,7 @@ const keysToPreserve: OnyxKey[] = [
 type BaseMenuItem = {
     translationKey: TranslationPaths;
     icon: React.FC<SvgProps>;
-    action: () => Promise<void>;
+    action: () => void | Promise<void>;
 };
 
 function TroubleshootPage() {
