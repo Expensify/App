@@ -88,6 +88,9 @@ type Report = {
     /** ID of the report */
     reportID: string;
 
+    /** ID of the report action */
+    reportActionID?: string;
+
     /** ID of the chat report */
     chatReportID?: string;
 
