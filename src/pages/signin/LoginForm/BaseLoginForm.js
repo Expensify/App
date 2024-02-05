@@ -28,7 +28,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import willBlurTextInputOnTapOutside from '@libs/willBlurTextInputOnTapOutside';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -91,6 +91,8 @@ const defaultProps = {
     innerRef: () => {},
     isInModal: false,
 };
+
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function LoginForm(props) {
     const styles = useThemeStyles();
@@ -282,17 +284,18 @@ function LoginForm(props) {
                         // As we have only two signin buttons (Apple/Google) other than the text input,
                         // for natives onBlur is called only when the buttons are pressed and we don't need
                         // to validate in those case as the user has opted for other signin flow.
-                        willBlurTextInputOnTapOutside() &&
-                        (() =>
-                            // This delay is to avoid the validate being called before google iframe is rendered to
-                            // avoid error message appearing after pressing google signin button.
-                            setTimeout(() => {
-                                if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                                    return;
-                                }
-                                firstBlurred.current = true;
-                                validate(login);
-                            }, 500))
+                        willBlurTextInputOnTapOutside
+                            ? () =>
+                                  // This delay is to avoid the validate being called before google iframe is rendered to
+                                  // avoid error message appearing after pressing google signin button.
+                                  setTimeout(() => {
+                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                          return;
+                                      }
+                                      firstBlurred.current = true;
+                                      validate(login);
+                                  }, 500)
+                            : undefined
                     }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
