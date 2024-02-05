@@ -16,7 +16,7 @@ function Image({source: propsSource, isAuthTokenRequired, session, ...forwardedP
             return {
                 ...propsSource,
                 headers: {
-                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
+                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken ?? '',
                 },
             };
         }
