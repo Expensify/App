@@ -5,8 +5,7 @@ import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, WithOnyxInstanceState} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import withWindowDimensions from '@components/withWindowDimensions';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -42,15 +41,15 @@ type OnyxPropsWithoutParentReportAction = {
 
 type OnyxProps = OnyxPropsWithoutParentReportAction & OnyxPropsParentReportAction;
 
-type ComponentPropsWithoutParentReportAction = OnyxPropsWithoutParentReportAction &
-    WindowDimensionsProps & {
-        route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
-    };
+type ComponentPropsWithoutParentReportAction = OnyxPropsWithoutParentReportAction & {
+    route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
+};
 
 type ComponentProps = OnyxPropsParentReportAction & ComponentPropsWithoutParentReportAction;
 
 export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+        const {isSmallScreenWidth} = useWindowDimensions();
         const getReportAction = useCallback(() => {
             let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
 
@@ -67,12 +66,12 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!props.isSmallScreenWidth || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
+            if (!isSmallScreenWidth || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [props.isSmallScreenWidth, props.route.params.reportID]);
+        }, [isSmallScreenWidth, props.route.params.reportID]);
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && !props.report?.reportID;
@@ -133,6 +132,6 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
                 },
                 canEvict: false,
             },
-        })(withWindowDimensions(React.forwardRef(WithReportOrNotFound))),
+        })(React.forwardRef(WithReportOrNotFound)),
     );
 }
