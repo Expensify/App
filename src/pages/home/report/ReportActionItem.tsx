@@ -269,12 +269,15 @@ function ReportActionItem({
         }
 
         setModerationDecision(latestDecision);
-        if (![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === latestDecision)) {
+        if (
+            ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === latestDecision) &&
+            !ReportActionsUtils.isPendingRemove(action)
+        ) {
             setIsHidden(true);
             return;
         }
         setIsHidden(false);
-    }, [latestDecision, action.actionName]);
+    }, [latestDecision, action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
@@ -474,7 +477,9 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(action)} />;
         } else {
-            const hasBeenFlagged = ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision);
+            const hasBeenFlagged =
+                ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
+                !ReportActionsUtils.isPendingRemove(action);
             children = (
                 // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 <ShowContextMenuContext.Provider value={contextValue}>
@@ -611,7 +616,10 @@ function ReportActionItem({
                     report={report}
                     iouReport={iouReport}
                     isHovered={hovered}
-                    hasBeenFlagged={![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision)}
+                    hasBeenFlagged={
+                        ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
+                        !ReportActionsUtils.isPendingRemove(action)
+                    }
                 >
                     {content}
                 </ReportActionItemSingle>
