@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import Str from 'expensify-common/lib/str';
 import React from 'react';
+import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
