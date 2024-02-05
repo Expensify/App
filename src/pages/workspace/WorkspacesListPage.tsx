@@ -340,7 +340,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCTAPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                            onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                             // @ts-expect-error TODO: Remove once FeatureList (https://github.com/Expensify/App/issues/25039) is migrated to TS
                             illustration={LottieAnimations.WorkspacePlanet}
                             illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
