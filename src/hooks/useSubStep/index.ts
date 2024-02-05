@@ -1,6 +1,9 @@
 import {useCallback, useRef, useState} from 'react';
 import type {SubStepProps, UseSubStep} from './types';
 
+/**
+ * This hook ensures uniform handling of components across different screens, enabling seamless integration and navigation through sub steps of the VBBA flow.
+ */
 export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0}: UseSubStep<TProps>) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
