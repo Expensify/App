@@ -2,7 +2,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, WithOnyxInstanceState} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -120,7 +120,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             },
             parentReportAction: {
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxPropsParentReportAction>): OnyxEntry<OnyxTypes.ReportAction> => {
+                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
                     const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
                         return null;
