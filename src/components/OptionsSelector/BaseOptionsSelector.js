@@ -37,6 +37,9 @@ const propTypes = {
     /** Whether referral CTA should be displayed */
     shouldShowReferralCTA: PropTypes.bool,
 
+    /** A method triggered when the user closes the call to action banner */
+    onCallToActionClosed: PropTypes.func,
+
     /** Referral content type */
     referralContentType: PropTypes.string,
 
@@ -45,6 +48,7 @@ const propTypes = {
 
 const defaultProps = {
     shouldShowReferralCTA: false,
+    onCallToActionClosed: () => {},
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
@@ -226,6 +230,7 @@ function BaseOptionsSelector(props) {
 
     const handleReferralModal = () => {
         setShouldShowReferralModal((prev) => !prev);
+        props.onCallToActionClosed(props.referralContentType);
     };
 
     const handleFocusIn = () => {
