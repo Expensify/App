@@ -7,7 +7,6 @@ import type {OnyxCollection, OnyxEntry, WithOnyxInstanceState} from 'react-nativ
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -16,7 +15,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type OnyxPropsA = {
+type OnyxPropsParentReportAction = {
+    /** The report's parentReportAction */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+};
+
+type OnyxPropsWithoutParentReportAction = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -36,15 +40,14 @@ type OnyxPropsA = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type OnyxPropsB = {
-    /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-};
+type OnyxProps = OnyxPropsWithoutParentReportAction & OnyxPropsParentReportAction;
 
-type ComponentProps = OnyxPropsA & OnyxPropsB &
+type ComponentPropsWithoutParentReportAction = OnyxPropsWithoutParentReportAction &
     WindowDimensionsProps & {
         route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
     };
+
+type ComponentProps = OnyxPropsParentReportAction & ComponentPropsWithoutParentReportAction;
 
 export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
@@ -97,29 +100,28 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return compose(
-        withOnyx<TProps & RefAttributes<TRef>, OnyxPropsA>({
-            report: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-            },
-            reportMetadata: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
-            },
-            reportActions: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-                canEvict: false,
-            },
-            betas: {
-                key: ONYXKEYS.BETAS,
-            },
-            policies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
-            isLoadingReportData: {
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            },
-        }),
-        withOnyx<TProps & RefAttributes<TRef>, OnyxPropsB>({
+    return withOnyx<ComponentPropsWithoutParentReportAction, OnyxPropsWithoutParentReportAction>({
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        reportMetadata: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
+        },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+            canEvict: false,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+    })(
+        withOnyx<ComponentProps, OnyxPropsParentReportAction>({
             parentReportAction: {
                 key: (props) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props?.report?.parentReportID ?? 0}`,
                 selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
@@ -131,7 +133,6 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
                 },
                 canEvict: false,
             },
-        }),
-        withWindowDimensions,
-    )(React.forwardRef(WithReportOrNotFound));
+        })(withWindowDimensions(React.forwardRef(WithReportOrNotFound))),
+    );
 }
