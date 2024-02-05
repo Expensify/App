@@ -151,6 +151,7 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
@@ -165,7 +166,7 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
-    }, [loginData?.validatedDate, isDefaultContactMethod]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
 
     if (isLoadingReportData && isEmptyObject(loginList)) {
         return <FullscreenLoadingIndicator />;
