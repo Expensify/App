@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
-import {UserWallet} from '@src/types/onyx';
+import type {UserWallet} from '@src/types/onyx';
 
 type ShortTermsFormProps = {
     /** The user's wallet */

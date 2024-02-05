@@ -1,9 +1,8 @@
-import lodashGet from 'lodash/get';
 import React, {useRef} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
+import type {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import _ from 'underscore';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormScrollView from '@components/FormScrollView';
@@ -15,7 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {WalletOnfido} from '@src/types/onyx';
+import type {WalletOnfido} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const DEFAULT_WALLET_ONFIDO_DATA = {
     applicantID: '',
@@ -31,22 +31,25 @@ type OnfidoPrivacyOnyxProps = {
     walletOnfidoData: OnyxEntry<WalletOnfido>;
 };
 
-type OnfidoPrivacyProps = OnfidoPrivacyOnyxProps & {};
+type OnfidoPrivacyProps = OnfidoPrivacyOnyxProps;
 
 function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData ?? {};
-
     const formRef = useRef<ScrollView>(null);
+    const styles = useThemeStyles();
+    if (!walletOnfidoData) {
+        return;
+    }
+    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
 
     const openOnfidoFlow = () => {
         BankAccounts.openOnfidoFlow();
     };
 
     let onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData ?? {}) || '';
-    const onfidoFixableErrors = lodashGet(walletOnfidoData, 'fixableErrors', []);
-    onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
+
+    const onfidoFixableErrors = walletOnfidoData?.fixableErrors ?? [];
+    onfidoError += !isEmptyObject(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween]}>

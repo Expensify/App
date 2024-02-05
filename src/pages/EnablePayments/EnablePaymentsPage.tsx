@@ -25,7 +25,7 @@ type EnablePaymentsPageOnyxProps = {
     userWallet: OnyxEntry<UserWallet>;
 };
 
-type EnablePaymentsPageProps = EnablePaymentsPageOnyxProps & {};
+type EnablePaymentsPageProps = EnablePaymentsPageOnyxProps;
 
 function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
     const {translate} = useLocalize();
@@ -38,6 +38,7 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
             return;

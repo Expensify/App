@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {UserWallet, WalletTerms} from '@src/types/onyx';
+import type {UserWallet, WalletTerms} from '@src/types/onyx';
 
 type ActivateStepOnyxProps = {
     /** Information about the user accepting the terms for payments */

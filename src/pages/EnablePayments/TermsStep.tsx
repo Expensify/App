@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {UserWallet, WalletTerms} from '@src/types/onyx';
+import type {UserWallet, WalletTerms} from '@src/types/onyx';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 

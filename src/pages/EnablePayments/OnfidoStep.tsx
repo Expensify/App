@@ -13,7 +13,7 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {WalletOnfido} from '@src/types/onyx';
+import type {WalletOnfido} from '@src/types/onyx';
 import OnfidoPrivacy from './OnfidoPrivacy';
 
 const DEFAULT_WALLET_ONFIDO_DATA = {

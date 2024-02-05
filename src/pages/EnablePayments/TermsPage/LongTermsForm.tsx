@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import CollapsibleSection from '@components/CollapsibleSection';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
