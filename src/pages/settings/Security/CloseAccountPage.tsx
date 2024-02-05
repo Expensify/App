@@ -7,7 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -54,7 +54,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
         hideConfirmModal();
     };
 
-    const showConfirmModal = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
+    const showConfirmModal = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         setConfirmModalVisibility(true);
         setReasonForLeaving(values.reasonForLeaving);
     };
@@ -66,7 +66,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
      */
     const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
 
-    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): Errors => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): Errors => {
         const requiredFields = ['phoneOrEmail'];
         const userEmailOrPhone = formatPhoneNumber(session?.email);
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
