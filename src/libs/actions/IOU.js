@@ -313,14 +313,32 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
 }
 
 /**
+ * @param {Object} iouReport
+ *
+ * @returns {Boolean}
+ */
+function needsToBeManuallySubmitted(iouReport) {
+    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
+
+    if (isPolicyExpenseChat) {
+        const policy = ReportUtils.getPolicy(iouReport.policyID);
+        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        return isFromPaidPolicy && !(policy.isHarvestingEnabled || false);
+    }
+
+    return true;
+}
+
+/**
  * Return the object to update hasOutstandingChildRequest
  * @param {Object} [policy]
  * @param {Object} iouReport
- * @param {Boolean} needsToBeManuallySubmitted
  * @returns {Object}
  */
-function getOutstandingChildRequest(policy, iouReport, needsToBeManuallySubmitted) {
-    if (!needsToBeManuallySubmitted) {
+function getOutstandingChildRequest(policy, iouReport) {
+    if (!needsToBeManuallySubmitted(iouReport)) {
         return {
             hasOutstandingChildRequest: false,
         };
@@ -355,7 +373,6 @@ function getOutstandingChildRequest(policy, iouReport, needsToBeManuallySubmitte
  * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param {Array} policyTags
  * @param {Array} policyCategories
- * @param {Boolean} needsToBeManuallySubmitted
  * @returns {Array} - An array containing the optimistic data, success data, and failure data.
  */
 function buildOnyxDataForMoneyRequest(
@@ -374,10 +391,9 @@ function buildOnyxDataForMoneyRequest(
     policy,
     policyTags,
     policyCategories,
-    needsToBeManuallySubmitted = true,
 ) {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = getOutstandingChildRequest(policy, iouReport, needsToBeManuallySubmitted);
+    const outstandingChildRequest = getOutstandingChildRequest(policy, iouReport);
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -722,14 +738,9 @@ function getMoneyRequestInformation(
         iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
     }
 
-    // Check if the Scheduled Submit is enabled in case of expense report
-    let needsToBeManuallySubmitted = true;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-
-        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        needsToBeManuallySubmitted = isFromPaidPolicy && !(lodashGet(policy, 'harvesting.enabled', policy.isHarvestingEnabled) || false);
 
         // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
         if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
@@ -859,7 +870,6 @@ function getMoneyRequestInformation(
         policy,
         policyTags,
         policyCategories,
-        needsToBeManuallySubmitted,
     );
 
     return {
@@ -1033,7 +1043,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         // from the server with the currency conversion
         let updatedMoneyRequestReport = {...iouReport};
         if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
-            const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+            const diff = TransactionUtils.getAmount(updatedTransaction, isFromExpenseReport) - TransactionUtils.getAmount(transaction, isFromExpenseReport);
             if (ReportUtils.isExpenseReport(iouReport)) {
                 updatedMoneyRequestReport.total += diff;
             } else {
@@ -1041,11 +1051,23 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
             }
 
             updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                value: updatedMoneyRequestReport,
-            });
+            optimisticData.push(
+                ...[
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                        value: updatedMoneyRequestReport,
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.parentReportID}`,
+                        value: {
+                            hasOutstandingChildRequest:
+                                needsToBeManuallySubmitted(iouReport) && updatedMoneyRequestReport.managerID === userAccountID && updatedMoneyRequestReport.total !== 0,
+                        },
+                    },
+                ],
+            );
             successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -2653,18 +2675,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     const updatedReportPreviewAction = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
-    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
-
-    let needsToBeManuallySubmitted = true;
-    if (isPolicyExpenseChat) {
-        const policy = ReportUtils.getPolicy(iouReport.policyID);
-        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-
-        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        needsToBeManuallySubmitted = isFromPaidPolicy && !(policy.isHarvestingEnabled || false);
-    }
-
-    if (isPolicyExpenseChat) {
+    if (ReportUtils.isExpenseReport(iouReport)) {
         updatedIOUReport = {...iouReport};
 
         // Because of the Expense reports are stored as negative values, we add the total from the amount
@@ -2770,7 +2781,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: needsToBeManuallySubmitted && updatedIOUReport.managerID === userAccountID && updatedIOUReport.total !== 0,
+                hasOutstandingChildRequest: needsToBeManuallySubmitted(iouReport) && updatedIOUReport.managerID === userAccountID && updatedIOUReport.total !== 0,
             },
         },
     ];
