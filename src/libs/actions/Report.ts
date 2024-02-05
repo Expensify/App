@@ -2138,7 +2138,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                     navigateToConciergeChat(true);
                     return;
                 }
-                if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
                 }
