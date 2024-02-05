@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OptionsSelector from '@components/OptionsSelector';
@@ -23,7 +24,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {DismissedReferralBanners} from '@src/types/onyx/Account';
+import type {DismissedReferralBanners} from '@src/types/onyx/Account';
 
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
@@ -230,7 +231,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         updateOptions();
     }, [didScreenTransitionEnd, updateOptions]);
 
-    const dismissCallToAction = (referralContentType) => {
+    const dismissCallToAction = (referralContentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>) => {
         User.dismissReferralBanner(referralContentType);
     };
 
@@ -294,7 +295,7 @@ NewChatPage.displayName = 'NewChatPage';
 export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
     dismissedReferralBanners: {
         key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data?.dismissedReferralBanners || {},
+        selector: (data) => data?.dismissedReferralBanners ?? {},
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,

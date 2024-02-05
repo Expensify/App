@@ -1940,7 +1940,7 @@ function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
-    filteredPersonalDetails: PersonalDetails[],
+    filteredPersonalDetails: ReportUtils.OptionData[],
     maxOptionsSelected: boolean,
     indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
