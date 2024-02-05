@@ -64,6 +64,9 @@ type Report = {
     /** The current user's notification preference for this report */
     notificationPreference?: NotificationPreference;
 
+    /** The policy avatar to use, if any */
+    policyAvatar?: string | null;
+
     /** The policy name to use */
     policyName?: string | null;
 

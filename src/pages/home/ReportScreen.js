@@ -205,6 +205,7 @@ function ReportScreen({
             visibility: reportProp.visibility,
             oldPolicyName: reportProp.oldPolicyName,
             policyName: reportProp.policyName,
+            policyAvatar: reportProp.policyAvatar,
             isOptimisticReport: reportProp.isOptimisticReport,
         }),
         [
@@ -241,6 +242,7 @@ function ReportScreen({
             reportProp.visibility,
             reportProp.oldPolicyName,
             reportProp.policyName,
+            reportProp.policyAvatar,
             reportProp.isOptimisticReport,
         ],
     );
