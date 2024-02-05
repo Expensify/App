@@ -354,10 +354,10 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                             >
                                 {hasWallet && (
                                     <Section
-                                        icon={Illustrations.MoneyIntoWallet}
                                         subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
                                         isCentralPane
+                                        titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <>
                                             {shouldShowLoadingSpinner ? (
@@ -372,7 +372,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                                     errors={walletTerms.errors}
                                                     onClose={PaymentMethods.clearWalletTermsError}
                                                     errorRowStyles={[styles.ml10, styles.mr2]}
-                                                    style={[styles.mt7, styles.mb5]}
+                                                    style={[styles.mt7, styles.mb5, styles.alignSelfStart]}
                                                 >
                                                     <CurrentWalletBalance balanceStyles={[styles.walletBalance]} />
                                                 </OfflineWithFeedback>
@@ -456,10 +456,10 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                 )}
                                 {hasAssignedCard ? (
                                     <Section
-                                        icon={Illustrations.CreditCardsNew}
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
                                         isCentralPane
+                                        titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <PaymentMethodList
                                             shouldShowAddBankAccount={false}
@@ -468,7 +468,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                             shouldShowEmptyListMessage={false}
                                             shouldEnableScroll={false}
                                             onPress={paymentMethodPressed}
-                                            style={styles.mt5}
+                                            style={[styles.mt5, styles.fullWidthPaymentMethod]}
                                             isAddPaymentMenuActive={shouldShowAddPaymentMenu}
                                             actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                             activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
@@ -478,10 +478,10 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                     </Section>
                                 ) : null}
                                 <Section
-                                    icon={Illustrations.BankArrow}
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('walletPage.bankAccounts')}
                                     isCentralPane
+                                    titleStyles={styles.accountSettingsSectionTitle}
                                 >
                                     <PaymentMethodList
                                         shouldShowAddPaymentMethodButton={false}
@@ -493,7 +493,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                         buttonRef={addPaymentMethodAnchorRef}
                                         onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         shouldEnableScroll={false}
-                                        style={styles.mt5}
+                                        style={[styles.mt5, styles.fullWidthPaymentMethod]}
                                     />
                                 </Section>
                             </OfflineWithFeedback>

@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Lottie from '@components/Lottie';
@@ -42,8 +42,8 @@ type SectionProps = ChildrenProps & {
     /** Customize the Section container */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Customize the Section container */
-    titleStyles?: StyleProp<ViewStyle>;
+    /** Customize the Section title */
+    titleStyles?: StyleProp<TextStyle>;
 
     /** Customize the Section container */
     subtitleStyles?: StyleProp<ViewStyle>;
@@ -114,9 +114,9 @@ function Section({
                     </View>
                 )}
                 <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1, titleStyles]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                         <View style={[styles.flexShrink1]}>
-                            <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{title}</Text>
+                            <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>
                         </View>
                         {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                             <IconSection
@@ -127,7 +127,7 @@ function Section({
                     </View>
 
                     {!!subtitle && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt4, subtitleStyles]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}>
                             <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
                         </View>
                     )}

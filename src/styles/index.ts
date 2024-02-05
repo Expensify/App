@@ -2578,6 +2578,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        accountSettingsSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
@@ -3359,7 +3364,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            lineHeight: variables.lineHeightXXLarge,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         cardMenuItem: {
@@ -3376,6 +3382,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 0,
             height: 64,
             alignItems: 'center',
+        },
+
+        walletSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         paymentMethod: {
