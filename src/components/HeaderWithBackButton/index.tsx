@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -58,7 +59,6 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
-    isCentralPaneSettings = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -67,6 +67,10 @@ function HeaderWithBackButton({
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
 
     return (
         <View
@@ -75,7 +79,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                isCentralPaneSettings && styles.headerBarExtendedHeight,
+                isCentralPaneSettings && !isSmallScreenWidth && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton ? styles.pl0 : styles.pl5,
                 shouldOverlay && StyleSheet.absoluteFillObject,

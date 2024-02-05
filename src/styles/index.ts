@@ -2254,8 +2254,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        headerBarExtendedHeight: {
-            height: variables.contentHeaderExtendedHeight,
+        headerBarDesktopHeight: {
+            height: variables.contentHeaderDesktopHeight,
         },
 
         imageViewContainer: {
