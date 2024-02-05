@@ -269,4 +269,8 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, getUpdatedWaypointsTransaction(waypoints));
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, getUpdatedWaypointsTransaction, updateWaypoints};
+function clearError(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, getUpdatedWaypointsTransaction, updateWaypoints, clearError};
