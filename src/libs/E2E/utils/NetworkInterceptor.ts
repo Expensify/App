@@ -123,7 +123,6 @@ export default function installNetworkInterceptor(
         globalResolveIsNetworkInterceptorInstalled();
     }
 
-    // @ts-expect-error Fetch global types weirdly include URL
     global.fetch = async (...args: Parameters<typeof fetch>) => {
         const options = fetchArgsGetRequestInit(args);
         const headers = getFetchRequestHeadersAsObject(options);
