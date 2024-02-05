@@ -71,8 +71,11 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef(null);
     const iouRequestType = getRequestType(transaction);
     const currency = selectedCurrency || originalCurrency;
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(transaction);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+
+    console.log(transaction);
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
@@ -160,7 +163,7 @@ function IOURequestStepAmount({
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
-                amount={transaction.modifiedAmount || transaction.amount}
+                amount={transactionAmount}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={isEditing ? saveAmountAndCurrency : navigateToNextPage}

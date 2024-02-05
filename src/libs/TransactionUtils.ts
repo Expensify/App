@@ -281,12 +281,12 @@ function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport?: bo
     // we need to return an opposite sign than is saved in the transaction object
     let amount = transaction?.modifiedAmount ?? 0;
     if (amount) {
-        return -amount;
+        return Math.abs(amount);
     }
 
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     amount = transaction?.amount ?? 0;
-    return amount ? -amount : 0;
+    return amount ? Math.abs(amount) : 0;
 }
 
 /**
