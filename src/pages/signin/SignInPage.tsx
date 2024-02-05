@@ -18,6 +18,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
+import type navigationRef from '@navigation/navigationRef';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -288,8 +289,8 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
 
 SignInPageInner.displayName = 'SignInPage';
 
-type SignInPageProps = SignInPageInnerProps;
-type SignInPageOnyxProps = SignInPageInnerOnyxProps
+type SignInPageProps = SignInPageInnerProps & {navigation?: Partial<typeof navigationRef>};
+type SignInPageOnyxProps = SignInPageInnerOnyxProps;
 
 function SignInPage(props: SignInPageProps) {
     return (
