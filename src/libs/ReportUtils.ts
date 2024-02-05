@@ -1555,7 +1555,6 @@ function getIcons(
         return [domainIcon];
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report)) {
-        console.log('run in here');
         const workspaceIcon = getWorkspaceIcon(report, policy);
         return [workspaceIcon];
     }
