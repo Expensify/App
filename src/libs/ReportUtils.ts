@@ -402,6 +402,18 @@ type OnyxDataTaskAssigneeChat = {
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
 
+type Ancestor = {
+    report: Report;
+    reportAction: ReportAction;
+    shouldDisplayNewMarker: boolean;
+    shouldHideThreadDividerLine: boolean;
+};
+
+type AncestorIDs = {
+    reportIDs: string[];
+    reportActionsIDs: string[];
+};
+
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
@@ -4637,6 +4649,21 @@ function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, repor
 }
 
 /**
+ * Check if money report has any transactions updated optimistically
+ */
+function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+
+    const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
+    const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
+    const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
+
+    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency);
+}
+
+/**
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
@@ -4659,6 +4686,78 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
         isThreadFirstChat(reportAction, reportID)
     );
+}
+
+function getAllAncestorReportActions(report: Report | null | undefined, shouldHideThreadDividerLine: boolean): Ancestor[] {
+    if (!report) {
+        return [];
+    }
+    const allAncestors: Ancestor[] = [];
+    let parentReportID = report.parentReportID;
+    let parentReportActionID = report.parentReportActionID;
+
+    // Store the child of parent report
+    let currentReport = report;
+    let currentUnread = shouldHideThreadDividerLine;
+
+    while (parentReportID) {
+        const parentReport = getReport(parentReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
+
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+            break;
+        }
+
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
+        allAncestors.push({
+            report: currentReport,
+            reportAction: parentReportAction,
+            shouldDisplayNewMarker: isParentReportActionUnread,
+            // We should hide the thread divider line if the previous ancestor action is unread
+            shouldHideThreadDividerLine: currentUnread,
+        });
+        parentReportID = parentReport?.parentReportID;
+        parentReportActionID = parentReport?.parentReportActionID;
+        if (!isEmptyObject(parentReport)) {
+            currentReport = parentReport;
+            currentUnread = isParentReportActionUnread;
+        }
+    }
+
+    return allAncestors.reverse();
+}
+
+function getAllAncestorReportActionIDs(report: Report | null | undefined): AncestorIDs {
+    if (!report) {
+        return {
+            reportIDs: [],
+            reportActionsIDs: [],
+        };
+    }
+
+    const allAncestorIDs: AncestorIDs = {
+        reportIDs: [],
+        reportActionsIDs: [],
+    };
+    let parentReportID = report.parentReportID;
+    let parentReportActionID = report.parentReportActionID;
+
+    while (parentReportID) {
+        const parentReport = getReport(parentReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
+
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+            break;
+        }
+
+        allAncestorIDs.reportIDs.push(parentReportID ?? '');
+        allAncestorIDs.reportActionsIDs.push(parentReportActionID ?? '');
+
+        parentReportID = parentReport?.parentReportID;
+        parentReportActionID = parentReport?.parentReportActionID;
+    }
+
+    return allAncestorIDs;
 }
 
 function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
@@ -4858,11 +4957,14 @@ export {
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
+    getAllAncestorReportActions,
     isReportParticipant,
     isValidReport,
     isReportFieldOfTypeTitle,
+    hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
+    getAllAncestorReportActionIDs,
 };
 
 export type {
@@ -4874,4 +4976,5 @@ export type {
     OptimisticAddCommentReportAction,
     OptimisticCreatedReportAction,
     OptimisticClosedReportAction,
+    Ancestor,
 };
