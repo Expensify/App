@@ -48,6 +48,7 @@ function WalletEmptyState({onAddPaymentMethod}: WalletEmptyStateProps) {
         >
             <FeatureList
                 menuItems={WALLET_FEATURES}
+                // @ts-expect-error TODO: Remove once FeatureList (https://github.com/Expensify/App/issues/25039) is migrated to TS
                 illustration={LottieAnimations.FastMoney}
                 illustrationBackgroundColor={theme.fallbackIconColor}
                 title={translate('walletPage.getPaidFaster')}
