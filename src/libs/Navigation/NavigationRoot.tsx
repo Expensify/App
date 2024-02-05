@@ -23,7 +23,7 @@ type NavigationRootProps = {
     authenticated: boolean;
 
     /** Stores path of last visited page */
-    lastVisitedPath: string | undefined | null;
+    lastVisitedPath: Route;
 
     /** Initial url */
     initialUrl: string | null;
