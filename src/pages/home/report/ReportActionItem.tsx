@@ -132,6 +132,9 @@ type ReportActionItemProps = {
     shouldHideThreadDividerLine?: boolean;
 
     linkedReportActionID?: string;
+
+    /** Callback to be called on onPress */
+    onPress?: () => void;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
@@ -154,6 +157,7 @@ function ReportActionItem({
     shouldShowSubscriptAvatar = false,
     policyReportFields,
     policy,
+    onPress = undefined,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -170,7 +174,7 @@ function ReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput & HTMLTextAreaElement>();
-    const popoverAnchorRef = useRef<View | HTMLDivElement>(null);
+    const popoverAnchorRef = useRef<ReportActionContextMenu.ContextMenuAnchor>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
@@ -324,7 +328,7 @@ function ReportActionItem({
 
     const contextValue = useMemo(
         () => ({
-            anchor: popoverAnchorRef,
+            anchor: popoverAnchorRef.current,
             report,
             action,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
@@ -373,13 +377,13 @@ function ReportActionItem({
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
-                    chatReportID={action.originalMessage.IOUReportID ? report.chatReportID : report.reportID}
+                    chatReportID={action.originalMessage.IOUReportID ? report.chatReportID ?? '' : report.reportID}
                     requestReportID={iouReportID}
                     reportID={report.reportID}
                     action={action}
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
-                    contextMenuAnchor={popoverAnchorRef}
+                    contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
@@ -407,16 +411,15 @@ function ReportActionItem({
             children = <TaskAction actionName={action.actionName} />;
         } else if (ReportActionsUtils.isCreatedTaskReportAction(action)) {
             children = (
-                // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
-                        taskReportID={action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ? action.originalMessage?.taskReportID?.toString() ?? '' : ''}
+                        taskReportID={action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ? action.originalMessage.taskReportID?.toString() ?? '' : ''}
                         chatReportID={report.reportID}
-                        policyID={ReportUtils.getRootParentReport(report)?.policyID ?? ''}
                         action={action}
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                        policyID={report.policyID ?? ''}
                     />
                 </ShowContextMenuContext.Provider>
             );
@@ -481,7 +484,6 @@ function ReportActionItem({
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
                 !ReportActionsUtils.isPendingRemove(action);
             children = (
-                // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 <ShowContextMenuContext.Provider value={contextValue}>
                     {draftMessage === undefined ? (
                         <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
@@ -633,10 +635,8 @@ function ReportActionItem({
         const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
-                        //  @ts-expect-error TODO: Remove this once MoneyRequestView (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                         report={report}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                     />
@@ -723,8 +723,7 @@ function ReportActionItem({
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
-            // TODO - Remove this once we have a better way to handle this
-            onPress={() => {}}
+            onPress={onPress}
             style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
