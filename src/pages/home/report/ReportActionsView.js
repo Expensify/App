@@ -314,15 +314,7 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    return (
-        oldProps.report.lastReadTime === newProps.report.lastReadTime &&
-        oldProps.report.reportID === newProps.report.reportID &&
-        oldProps.report.policyID === newProps.report.policyID &&
-        oldProps.report.managerID === newProps.report.managerID &&
-        oldProps.report.lastVisibleActionCreated === newProps.report.lastVisibleActionCreated &&
-        oldProps.report.isOptimisticReport === newProps.report.isOptimisticReport &&
-        _.isEqual(oldProps.report.pendingFields, newProps.report.pendingFields)
-    );
+    return _.isEqual(oldProps.report, newProps.report);
 }
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
