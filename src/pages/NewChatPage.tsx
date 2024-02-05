@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -18,9 +19,11 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {DismissedReferralBanners} from '@src/types/onyx/Account';
 
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
@@ -30,6 +33,9 @@ type NewChatPageWithOnyxProps = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: DismissedReferralBanners;
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: OnyxEntry<boolean>;
@@ -41,7 +47,7 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports}: NewChatPageProps) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
@@ -54,6 +60,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length !== 0,
         Boolean(filteredUserToInvite),
@@ -68,8 +76,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         const sectionsList: OptionsListUtils.CategorySection[] = [];
         let indexOffset = 0;
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
-
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, maxParticipantsReached, indexOffset);
         sectionsList.push(formatResults.section);
 
         indexOffset = formatResults.newIndexOffset;
@@ -140,7 +147,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             {},
             [],
             true,
-            true,
         );
 
         setSelectedOptions(newSelectedOptions);
@@ -195,7 +201,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             {},
             [],
             true,
-            true,
         );
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
@@ -225,11 +230,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         updateOptions();
     }, [didScreenTransitionEnd, updateOptions]);
 
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
-        setSearchTerm(text);
-    }, []);
+    const dismissCallToAction = (referralContentType) => {
+        User.dismissReferralBanner(referralContentType);
+    };
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -267,8 +270,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
-                            shouldShowReferralCTA
+                            shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
+                            onCallToActionClosed={dismissCallToAction}
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onConfirmSelection={createGroup}
@@ -288,6 +292,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
 NewChatPage.displayName = 'NewChatPage';
 
 export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data?.dismissedReferralBanners || {},
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

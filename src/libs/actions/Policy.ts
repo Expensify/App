@@ -4,9 +4,8 @@ import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxEntry} from 'react-native-onyx/lib/types';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -1158,6 +1157,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1219,6 +1219,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1596,6 +1597,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
         owner: sessionEmail,
+        ownerAccountID: sessionAccountID,
         isPolicyExpenseChatEnabled: true,
 
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
@@ -1607,12 +1609,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: newWorkspace,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
                 [sessionAccountID]: {
@@ -1626,7 +1628,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1636,12 +1638,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: announceReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: {
                 pendingFields: {
@@ -1651,12 +1653,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: adminsReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1666,7 +1668,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: workspaceChatReportActionData,
         },

@@ -248,7 +248,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction?.created);
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction) ?? '';
+            Report.markCommentAsUnread(originalReportID, reportAction?.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -371,7 +372,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, selection}) => {
+        onPress: (closePopover, {reportAction, selection, reportID}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionHtml(reportAction);
@@ -385,7 +386,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportAction);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
