@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './types';
 
@@ -25,6 +26,16 @@ function ValidateLoginPage({
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (session?.autoAuthState !== CONST.AUTO_AUTH_STATE.FAILED) {
+            return;
+        }
+        // Go back to initial route if validation fails
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack();
+        });
+    }, [session?.autoAuthState]);
 
     return <FullScreenLoadingIndicator />;
 }
