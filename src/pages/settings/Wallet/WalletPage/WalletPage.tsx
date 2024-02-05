@@ -84,7 +84,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     });
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
     const hasWallet = !_.isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -219,7 +218,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
             BankAccounts.openPersonalBankAccountSetupView();
             return;
@@ -343,7 +341,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
@@ -401,7 +398,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                                 onSuccessfulKYC={(_iouPaymentType?: TransferMethod, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod: string) => {
-                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                                     if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                                                         return;
                                                     }
@@ -495,7 +491,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                             activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                             buttonRef={addPaymentMethodAnchorRef}
-                                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                             onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         />
                                     </Section>
@@ -513,7 +508,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                         activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                         buttonRef={addPaymentMethodAnchorRef}
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         shouldEnableScroll={false}
                                         style={styles.mt5}

@@ -16,10 +16,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-const defaultPrivatePersonalDetails = {
+const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     address: {
         street: '',
-        street2: '',
         city: '',
         state: '',
         zip: '',
