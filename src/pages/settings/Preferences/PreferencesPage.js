@@ -13,6 +13,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -45,13 +46,15 @@ function PreferencesPage(props) {
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.PreferencesDJ}
+            shouldShowBackButton={isSmallScreenWidth}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <View style={styles.mb6}>
                 <Text

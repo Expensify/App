@@ -140,6 +140,7 @@ export default {
         magicCode: 'Magic code',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
+        chats: 'Chats',
         profile: 'Profile',
         referral: 'Referral',
         payments: 'Payments',
@@ -536,6 +537,10 @@ export default {
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
     },
+    allSettingsScreen: {
+        subscriptions: 'Subscriptions',
+        cardsAndDomains: 'Cards & Domains',
+    },
     tabSelector: {
         chat: 'Chat',
         room: 'Room',
@@ -813,6 +818,9 @@ export default {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        accountSettings: 'Account Settings',
+        account: 'Account',
+        general: 'General',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
@@ -1521,6 +1529,7 @@ export default {
             travel: 'Travel',
             members: 'Members',
             plan: 'Plan',
+            overview: 'Overview',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
@@ -1532,6 +1541,9 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceName: 'Workspace name',
+            workspaceOwner: 'Owner',
+            workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
@@ -1542,7 +1554,7 @@ export default {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Manage business expenses, issue cards, send invoices, and more.',
+            subtitle: 'Workspaces are where you’ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more - all in one place.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -1551,6 +1563,11 @@ export default {
             },
             notFound: 'No workspace found',
             description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
+        },
+        switcher: {
+            headerTitle: 'Choose a workspace',
+            everythingSection: 'Everything',
+            placeholder: 'Find a workspace',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -1890,6 +1907,8 @@ export default {
     report: {
         genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+        genericUpdateReportFieldFailureMessage: 'Unexpected error while updating the field, please try again later',
+        genericUpdateReporNameEditFailureMessage: 'Unexpected error while renaming the report, please try again later',
         noActivityYet: 'No activity yet',
     },
     chronos: {
