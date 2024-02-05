@@ -4073,8 +4073,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: colors.highlightBG,
-            borderColor: colors.border,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.border,
             borderWidth: 1,
         },
 
