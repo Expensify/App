@@ -34,7 +34,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -164,11 +163,10 @@ function HeaderView(props) {
         });
     } else if (canLeave) {
         const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
-        const action = isPolicyExpenseChat ? () => Policy.leavePolicyExpenseChat(props.reportID) : () => Report.leaveRoom(props.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
-            onSelected: Session.checkIfActionIsAllowed(action),
+            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
         });
     }
 

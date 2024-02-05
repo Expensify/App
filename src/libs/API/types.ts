@@ -116,9 +116,6 @@ const WRITE_COMMANDS = {
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_REPORT_FIELD: 'Report_SetFields',
     SET_REPORT_NAME: 'RenameReport',
-    // TODO: Clarify
-    LEAVE_WORKSPACE: 'LeaveWorkspace',
-    LEAVE_POLICY_EXPENSE_CHAT: 'LeaveWorkspaceExpenseChat',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -232,8 +229,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
-    [WRITE_COMMANDS.LEAVE_WORKSPACE]: Parameters.LeaveWorkspaceParams;
-    [WRITE_COMMANDS.LEAVE_POLICY_EXPENSE_CHAT]: Parameters.LeavePolicyExpenseChatParams;
 };
 
 const READ_COMMANDS = {
