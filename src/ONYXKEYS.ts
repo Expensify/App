@@ -549,7 +549,8 @@ type EnsureOnyxKeysMatch<T extends OnyxKey & AllOnyxKeys> = T;
  * If `OnyxKey` or `AllOnyxKeys` contains a key that the other one doesn't,
  * this type will cause a compile-time error
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type OnyxKeysValidator = EnsureOnyxKeysMatch<OnyxKey | AllOnyxKeys>;
 
 export default ONYXKEYS;
-export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormDraftKey, OnyxKeysValidator};
+export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormDraftKey};

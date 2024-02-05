@@ -14,9 +14,6 @@ import Button from './Button';
 type TaskHeaderActionButtonOnyxProps = {
     /** Current user session */
     session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The policy of root parent report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
@@ -24,7 +21,7 @@ type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
     report: OnyxTypes.Report;
 };
 
-function TaskHeaderActionButton({report, session, policy}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -32,7 +29,7 @@ function TaskHeaderActionButton({report, session, policy}: TaskHeaderActionButto
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!Task.canModifyTask(report, session?.accountID ?? 0, policy?.role)}
+                isDisabled={!Task.canModifyTask(report, session?.accountID ?? 0)}
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}
@@ -47,11 +44,5 @@ TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 export default withOnyx<TaskHeaderActionButtonProps, TaskHeaderActionButtonOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    policy: {
-        key: ({report}) => {
-            const rootParentReport = ReportUtils.getRootParentReport(report);
-            return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-        },
     },
 })(TaskHeaderActionButton);
