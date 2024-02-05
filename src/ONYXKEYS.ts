@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as OnyxTypes from './types/onyx';
+import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
 /**
@@ -537,20 +538,12 @@ type OnyxValueKey = keyof OnyxValuesMapping;
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
 type OnyxValue<TOnyxKey extends OnyxKey> = OnyxEntry<OnyxValues[TOnyxKey]>;
 
-/**
- * This utility type `EnsureOnyxKeysMatch` takes a type argument `T` which extends the intersection of
- * `OnyxKey` and `AllOnyxKeys`. This means `T` needs to be a subset of `OnyxKey` and `AllOnyxKeys`
- * which ensures that `OnyxKey` and `AllOnyxKeys` are identical.
- */
-type EnsureOnyxKeysMatch<T extends OnyxKey & AllOnyxKeys> = T;
-
-/**
- * The 'OnyxKeysValidator' type here enforces that `OnyxKey` and `AllOnyxKeys` match exactly.
- * If `OnyxKey` or `AllOnyxKeys` contains a key that the other one doesn't,
- * this type will cause a compile-time error
- */
+/** If this type errors, it means that the `OnyxKey` type is missing some keys. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type OnyxKeysValidator = EnsureOnyxKeysMatch<OnyxKey | AllOnyxKeys>;
+type AssertOnyxKeys = AssertTypesEqual<OnyxKey, AllOnyxKeys>;
+/** Type `MissingKeys` represents the keys that are missing from the `OnyxKey` type. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type MissingKeys = Exclude<AllOnyxKeys, OnyxKey>;
 
 export default ONYXKEYS;
 export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormDraftKey};
