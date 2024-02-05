@@ -122,7 +122,7 @@ function AddressPage({privatePersonalDetails, route}) {
             <HeaderWithBackButton
                 title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
