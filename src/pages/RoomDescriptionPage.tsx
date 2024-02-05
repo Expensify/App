@@ -33,7 +33,7 @@ type RoomDescriptionPageProps = {
 function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     const styles = useThemeStyles();
     const parser = new ExpensiMark();
-    const [description, setdescription] = useState(() => parser.htmlToMarkdown(report?.description ?? ''));
+    const [description, setDescription] = useState(() => parser.htmlToMarkdown(report?.description ?? ''));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
