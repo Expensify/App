@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import addLog from '@libs/actions/Console';
 import type {Log} from '@src/types/onyx';
 
