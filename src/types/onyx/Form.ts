@@ -82,6 +82,10 @@ type AdditionalDetailStepForm = Form<{
     dob: string;
     ssn: string;
     addressState: string;
+}>
+
+type RoomNameForm = Form<{
+    roomName: string;
 }>;
 
 export default Form;
@@ -102,4 +106,5 @@ export type {
     CloseAccountForm,
     IdologyQuestionsForm,
     AdditionalDetailStepForm,
+    RoomNameForm,
 };
