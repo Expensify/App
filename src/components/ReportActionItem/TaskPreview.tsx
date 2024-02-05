@@ -28,22 +28,14 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-type PolicyRole = {
-    /** The role of current user */
-    role: Task.PolicyValue | undefined;
-};
 
 type TaskPreviewOnyxProps = {
     /* Onyx Props */
 
     /* current report of TaskPreview */
     taskReport: OnyxEntry<Report>;
-
-    /** The policy of root parent report */
-    rootParentReportpolicy: OnyxEntry<PolicyRole>;
 };
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
@@ -73,18 +65,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         onShowContextMenu: (callback: () => void) => void;
     };
 
-function TaskPreview({
-    taskReport,
-    taskReportID,
-    action,
-    contextMenuAnchor,
-    chatReportID,
-    checkIfContextMenuActive,
-    currentUserPersonalDetails,
-    rootParentReportpolicy,
-    onShowContextMenu,
-    isHovered = false,
-}: TaskPreviewProps) {
+function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, onShowContextMenu, isHovered = false}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -127,7 +108,7 @@ function TaskPreview({
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID, rootParentReportpolicy?.role)}
+                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(taskReport);
@@ -154,10 +135,6 @@ export default withCurrentUserPersonalDetails(
     withOnyx<TaskPreviewProps, TaskPreviewOnyxProps>({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-        },
-        rootParentReportpolicy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '0'}`,
-            selector: (policy: Policy | null) => ({role: policy?.role}),
         },
     })(TaskPreview),
 );
