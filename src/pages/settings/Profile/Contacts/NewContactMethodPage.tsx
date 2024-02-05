@@ -47,7 +47,7 @@ function NewContactMethodPage({loginList = {}, route}: NewContactMethodPageProps
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
 
-    const navigateBackTo = route?.params.backTo ?? ROUTES.SETTINGS_PROFILE;
+    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
     const validate = React.useCallback(
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {

@@ -171,7 +171,6 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
             <MagicCodeInput
                 autoComplete={autoComplete}
                 ref={inputValidateCodeRef}
-                label={translate('common.magicCode')}
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
