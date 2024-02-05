@@ -46,7 +46,10 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function AmountForm({value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps, forwardedRef: ForwardedRef<TextInput>) {
+function AmountForm(
+    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps,
+    forwardedRef: ForwardedRef<TextInput>,
+) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
