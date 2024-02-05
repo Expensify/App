@@ -49,6 +49,8 @@ function IOURequestStepMerchant({
         Navigation.goBack(backTo || ROUTES.HOME);
     };
 
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+
     /**
      * @param {Object} value
      * @param {String} value.moneyRequestMerchant
@@ -73,7 +75,7 @@ function IOURequestStepMerchant({
     const updateMerchant = (value) => {
         const newMerchant = value.moneyRequestMerchant.trim();
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-        if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT) {
+        if (iouType === CONST.IOU.TYPE.SPLIT && isEditing) {
             IOU.setDraftSplitTransaction(transactionID, {merchant: newMerchant});
             navigateBack();
             return;
@@ -86,9 +88,9 @@ function IOURequestStepMerchant({
             return;
         }
 
-        IOU.setMoneyRequestMerchant(transactionID, newMerchant, action === CONST.IOU.ACTION.CREATE);
+        IOU.setMoneyRequestMerchant(transactionID, newMerchant, !isEditing);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (isEditing) {
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
         }
         navigateBack();
