@@ -71,7 +71,7 @@ describe('SidebarUtils', () => {
         );
     });
 
-    test('[SidebarUtils] getOrderedReportIDs on 1k reports', async () => {
+    test('[SidebarUtils] getFilteredReportIDs on 1k reports', async () => {
         const currentReportId = '1';
         const allReports = getMockedReports();
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -101,6 +101,6 @@ describe('SidebarUtils', () => {
         ) as unknown as OnyxCollection<ReportAction[]>;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations));
+        await measureFunction(() => SidebarUtils.getFilteredReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations));
     });
 });

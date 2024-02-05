@@ -40,7 +40,6 @@ function LHNOptionsList({
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [optionItems, setOptionItems] = React.useState<Record<string, OptionData | undefined>>({});
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -55,16 +54,12 @@ function LHNOptionsList({
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
-    const registerOption = useCallback<RegisterOption>(
-        (optionItem: OptionData | undefined) => {
-            optionItems[optionItem?.reportID ?? ''] = optionItem;
-            // setOptionItems(items => ({
-            //     ...items,
-            //     [optionItem.reportID]: optionItem,
-            // }));
-        },
-        [optionItems],
-    );
+    const registerOption = useCallback<RegisterOption>((optionItem: OptionData | undefined) => {
+        setOptionItems((items) => ({
+            ...items,
+            [optionItem?.reportID ?? '']: optionItem,
+        }));
+    }, []);
 
     const sortedReportIDs = SidebarUtils.getOrderedReportIDs(data, optionItems, optionMode);
 
