@@ -843,9 +843,31 @@ function clearDraftCustomStatus() {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
+function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                dismissedReferralBanners: {
+                    [type]: true,
+                },
+            },
+        },
+    ];
+    API.write(
+        WRITE_COMMANDS.DISMISS_REFERRAL_BANNER,
+        {type},
+        {
+            optimisticData,
+        },
+    );
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
+    dismissReferralBanner,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
