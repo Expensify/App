@@ -1,6 +1,7 @@
 import type {Form} from '@src/types/onyx';
 
 const INPUT_IDS = {
+    SETUP_COMPLETE: 'setupComplete',
     NAME_ON_CARD: 'nameOnCard',
     CARD_NUMBER: 'cardNumber',
     EXPIRATION_DATE: 'expirationDate',
@@ -12,6 +13,9 @@ const INPUT_IDS = {
 } as const;
 
 type AddDebitCardForm = Form<{
+    /** Whether the form has been submitted */
+    [INPUT_IDS.SETUP_COMPLETE]: boolean;
+
     [INPUT_IDS.NAME_ON_CARD]: string;
     [INPUT_IDS.CARD_NUMBER]: string;
     [INPUT_IDS.EXPIRATION_DATE]: string;

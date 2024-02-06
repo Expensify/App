@@ -5,6 +5,7 @@ const INPUT_IDS = {
 } as const;
 
 type DateOfBirthForm = Form<{
+    /** Date of birth */
     [INPUT_IDS.DOB]: string;
 }>;
 

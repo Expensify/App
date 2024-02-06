@@ -22,7 +22,7 @@ const INPUT_IDS = {
     AMOUNT3: 'amount3',
 } as const;
 
-type ReimbursementAccount = Form<{
+type ReimbursementAccountForm = Form<{
     [INPUT_IDS.OWNS_MORE_THAN_25_PERCENT]: string;
     [INPUT_IDS.HAS_OTHER_BENEFICIAL_OWNERS]: string;
     [INPUT_IDS.ACCEPT_TERMS_AND_CONDITIONS]: string;
@@ -44,5 +44,5 @@ type ReimbursementAccount = Form<{
     [INPUT_IDS.AMOUNT3]: string;
 }>;
 
-export type {ReimbursementAccount};
+export type {ReimbursementAccountForm};
 export default INPUT_IDS;
