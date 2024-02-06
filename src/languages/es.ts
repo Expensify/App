@@ -481,7 +481,7 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
             send: 'enviar dinero',
             split: 'dividir una factura',
@@ -673,6 +673,7 @@ export default {
             always: 'Inmediatamente',
             daily: 'Cada día',
             mute: 'Nunca',
+            hidden: 'Oculto',
         },
     },
     loginField: {
@@ -811,6 +812,7 @@ export default {
             phrase3: 'y',
             phrase4: 'Privacidad',
         },
+        returnToClassic: 'Volver a Expensify Clásico',
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
@@ -1051,10 +1053,10 @@ export default {
             },
         },
     },
-    welcomeMessagePage: {
-        welcomeMessage: 'Mensaje de bienvenida',
-        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
-        explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
+    reportDescriptionPage: {
+        roomDescription: 'Descripción de la sala de chat',
+        roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
+        explainerText: 'Establece una descripción personalizada para la sala de chat.',
     },
     languagePage: {
         language: 'Idioma',

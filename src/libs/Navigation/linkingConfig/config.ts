@@ -286,9 +286,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                     },
                 },
-                [SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE]: {
+                [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {
                     screens: {
-                        [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: ROUTES.REPORT_WELCOME_MESSAGE.route,
+                        [SCREENS.REPORT_DESCRIPTION_ROOT]: ROUTES.REPORT_DESCRIPTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_CHAT]: {
@@ -412,7 +412,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.DESCRIPTION]: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
                         [SCREENS.MONEY_REQUEST.CATEGORY]: ROUTES.MONEY_REQUEST_CATEGORY.route,
-                        [SCREENS.MONEY_REQUEST.TAG]: ROUTES.MONEY_REQUEST_TAG.route,
                         [SCREENS.MONEY_REQUEST.MERCHANT]: ROUTES.MONEY_REQUEST_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
                         [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
@@ -431,7 +430,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {
                     screens: {
                         [SCREENS.TASK.TITLE]: ROUTES.TASK_TITLE.route,
-                        [SCREENS.TASK.DESCRIPTION]: ROUTES.TASK_DESCRIPTION.route,
                         [SCREENS.TASK.ASSIGNEE]: ROUTES.TASK_ASSIGNEE.route,
                     },
                 },

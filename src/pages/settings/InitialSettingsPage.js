@@ -2,7 +2,7 @@ import {useNavigationState} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -131,7 +131,7 @@ function InitialSettingsPage(props) {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
         const paymentCardList = props.fundList || {};
 
-        return {
+        const defaultMenu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
@@ -171,7 +171,7 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
-                    link: Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
+                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',
@@ -182,6 +182,26 @@ function InitialSettingsPage(props) {
                 },
             ],
         };
+
+        if (NativeModules.HybridAppModule) {
+            const hybridAppMenuItems = _.filter(
+                [
+                    {
+                        translationKey: 'initialSettingsPage.returnToClassic',
+                        icon: Expensicons.RotateLeft,
+                        shouldShowRightIcon: true,
+                        iconRight: Expensicons.NewWindow,
+                        action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
+                    },
+                    ...defaultMenu.items,
+                ],
+                (item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic',
+            );
+
+            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
+        }
+
+        return defaultMenu;
     }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer]);
 
     /**
@@ -225,6 +245,15 @@ function InitialSettingsPage(props) {
              * @returns {String|undefined} the user's wallet balance
              */
             const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
+
+            const openPopover = (link, event) => {
+                if (typeof link === 'function') {
+                    link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
+                } else if (link) {
+                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
+                }
+            };
+
             return (
                 <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
                     <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
@@ -259,9 +288,7 @@ function InitialSettingsPage(props) {
                                 ref={popoverAnchor}
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
-                                onSecondaryInteraction={
-                                    !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
-                                }
+                                onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
                                 isPaneMenu
                             />
@@ -313,6 +340,7 @@ function InitialSettingsPage(props) {
                             errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                             errorRowStyles={[styles.mt6]}
                             onErrorClose={PersonalDetails.clearAvatarErrors}
+                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                             originalFileName={currentUserDetails.originalFileName}
                             headerTitle={props.translate('profilePage.profileAvatar')}
@@ -347,6 +375,7 @@ function InitialSettingsPage(props) {
             onBackButtonPress={() => Navigation.closeFullScreen()}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
             childrenContainerStyles={[styles.m0, styles.p0]}
+            testID={InitialSettingsPage.displayName}
         >
             <View style={styles.w100}>
                 {accountMenuItems}
