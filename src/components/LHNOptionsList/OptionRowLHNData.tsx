@@ -1,9 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo, useRef} from 'react';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
@@ -27,7 +25,7 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     transaction,
-    lastReportActionTransaction,
+    lastReportActionTransaction = {},
     transactionViolations,
     canUseViolations,
     ...propsToForward

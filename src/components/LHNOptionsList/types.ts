@@ -7,6 +7,7 @@ import type {CurrentReportIDContextValue} from '@components/withCurrentReportID'
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -84,7 +85,7 @@ type OptionRowLHNDataProps = {
     transaction: OnyxEntry<Transaction>;
 
     /** The transaction linked to the report's last action */
-    lastReportActionTransaction: OnyxEntry<Transaction>;
+    lastReportActionTransaction?: OnyxEntry<Transaction | EmptyObject>;
 
     /** Comment added to report */
     comment: string;
