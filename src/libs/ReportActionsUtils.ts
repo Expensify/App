@@ -125,13 +125,6 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
-function isInvisibleWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    if (!reportAction?.whisperedToAccountIDs || !currentUserAccountID) {
-        return false;
-    }
-    return (reportAction?.whisperedToAccountIDs).includes(currentUserAccountID);
-}
-
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
@@ -879,7 +872,6 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
-    isInvisibleWhisperAction,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldHideNewMarker,
