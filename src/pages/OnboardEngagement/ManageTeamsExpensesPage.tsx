@@ -58,10 +58,10 @@ function ManageTeamsExpensesModal() {
         [translate],
     );
 
-    const completeEngagement = useCallback(() => {
+    const completeEngagement = () => {
         Report.completeEngagementModal(messageCopy, CONST.INTRO_CHOICES.MANAGE_TEAM);
         Report.navigateToConciergeChat();
-    }, []);
+    };
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.ONBOARD);
