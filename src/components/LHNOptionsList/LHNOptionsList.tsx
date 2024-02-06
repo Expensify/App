@@ -68,7 +68,14 @@ function LHNOptionsList({
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
-            const lastReportActionTransaction = TransactionUtils.getLinkedTransaction(lastReportAction);
+
+            // Get the transaction for the last report action
+            let lastReportActionTransactionID = '';
+
+            if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                lastReportActionTransactionID = lastReportAction.originalMessage?.IOUTransactionID ?? '';
+            }
+            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
 
             return (
                 <OptionRowLHNData
