@@ -241,7 +241,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
 /**
  * Fetches additional personal data like legal name, date of birth, address
  */
-function openPersonalDetailsPage() {
+function openPersonalDetails() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -272,7 +272,7 @@ function openPersonalDetailsPage() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS_PAGE, {}, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -455,7 +455,7 @@ export {
     clearAvatarErrors,
     deleteAvatar,
     getPrivatePersonalDetails,
-    openPersonalDetailsPage,
+    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,
