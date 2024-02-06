@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -61,10 +62,10 @@ type BuildNextStepParameters = {
  * @param parameters.isPaidWithWallet - Whether a report has been paid with the wallet or outside of Expensify
  * @returns nextStep
  */
-function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
-    const policy = ReportUtils.getPolicy(report.policyID ?? '');
+function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
+    const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
+    const policy = ReportUtils.getPolicy(policyID);
     const {submitsTo, isHarvestingEnabled, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
-    const {ownerAccountID = -1, managerID = -1} = report;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
