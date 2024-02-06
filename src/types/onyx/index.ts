@@ -20,7 +20,6 @@ import type {
     PrivateNotesForm,
     ReportFieldEditForm,
     RoomNameForm,
-    WelcomeMessageForm,
     WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
@@ -169,6 +168,5 @@ export type {
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
     ReportFieldEditForm,
-    WelcomeMessageForm,
     RoomNameForm,
 };
