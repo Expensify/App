@@ -3437,12 +3437,12 @@ function submitReport(expenseReport: OnyxTypes.Report) {
 }
 
 function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Report) {
-    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -expenseReport.total, expenseReport.currency);
+    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -expenseReport.total ?? 0, expenseReport.currency ?? '');
     const policy = ReportUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
-    const approvalMode = policy.approvalMode || CONST.POLICY.APPROVAL_MODE.BASIC;
-    let stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
-    let statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const approvalMode = policy.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
+    let stateNum: number = CONST.REPORT.STATE_NUM.SUBMITTED;
+    let statusNum: number = CONST.REPORT.STATUS_NUM.SUBMITTED;
     if (!isFree) {
         stateNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
         statusNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
@@ -3463,8 +3463,8 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
-                lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
-                lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
+                lastMessageText: optimisticReportAction.message?.[0].text,
+                lastMessageHtml: optimisticReportAction.message?.[0].html,
                 stateNum,
                 statusNum,
             },
@@ -3515,7 +3515,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
     ];
 
     API.write(
-        'CancelPayment',
+        WRITE_COMMANDS.CANCEL_PAYMENT,
         {
             iouReportID: expenseReport.reportID,
             chatReportID: chatReport.reportID,

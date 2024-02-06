@@ -141,6 +141,7 @@ const WRITE_COMMANDS = {
     DETACH_RECEIPT: 'DetachReceipt',
     PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
     PAY_MONEY_REQUEST: 'PayMoneyRequest',
+    CANCEL_PAYMENT: 'CancelPayment' ,
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
