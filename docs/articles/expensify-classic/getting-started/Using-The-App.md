@@ -2,6 +2,8 @@
 title: Using the app
 description: Streamline expense management effortlessly with the Expensify mobile app. Learn how to install, enable push notifications, and use SmartScan to capture, categorize, and track expenses. Versatile for personal and business use, Expensify is a secure and automated solution for managing your finances on the go.
 ---
+
+<div id="expensify-classic" markdown="1">
 # Overview
 The Expensify mobile app is the ultimate expense management solution that makes it effortless to track and submit your receipts and expenses. Use the app to snap a picture of your receipts, categorize and submit expenses, and even review and approve expense reports.
 # How to install the Expensify app
@@ -9,7 +11,7 @@ To get started with Expensify on your mobile device, you need to download the ap
 1. Visit the App Store (iOS) or Google Play Store (Android).
 2. Search for "Expensify" and select the official Expensify app.
 3. Tap "Download" or "Install."
-   
+
 Once the app is installed, open it and log in with your Expensify credentials. If you don't have an Expensify account, you can create one during the sign-up process.
 # How to enable on push notifications
 Push notifications keep you informed about expense approvals, reimbursements, and more. To enable push notifications:
@@ -54,3 +56,10 @@ Expensify takes security seriously and employs encryption and other security mea
 Yes, you can use the mobile app offline to capture receipts and create expenses. The app will sync your data once you have an internet connection.
 
 {% include faq-end.md %}
+</div>
+<div id="new-expensify" markdown="1">
+
+# Coming soon
+
+
+</div>

@@ -59,18 +59,14 @@ function IOURequestStepCurrency({
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
 
-    const navigateBack = (selectedCurrency = undefined) => {
+    const navigateBack = () => {
         // If the currency selection was done from the confirmation step (eg. + > request money > manual > confirm > amount > currency)
         // then the user needs taken back to the confirmation page instead of the initial amount page. This is because the route params
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
         // to the confirmation page
         if (pageIndex === 'confirm') {
             const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(backTo, `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID)}`);
-            if (selectedCurrency) {
-                Navigation.navigate(`${routeToAmountPageWithConfirmationAsBackTo}&currency=${selectedCurrency}`);
-            } else {
-                Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
-            }
+            Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
             return;
         }
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -82,10 +78,8 @@ function IOURequestStepCurrency({
      */
     const confirmCurrencySelection = (option) => {
         Keyboard.dismiss();
-        if (pageIndex !== 'confirm') {
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
-        }
-        navigateBack(option.currencyCode);
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
+        navigateBack();
     };
 
     const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {
