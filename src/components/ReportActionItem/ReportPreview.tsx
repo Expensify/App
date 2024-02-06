@@ -290,12 +290,11 @@ function ReportPreview({
                             )}
                             {shouldShowSettlementButton && (
                                 <SettlementButton
-                                    // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                                     currency={iouReport?.currency}
                                     policyID={policyID}
                                     chatReportID={chatReportID}
                                     iouReport={iouReport}
-                                    onPress={(paymentType: PaymentMethodType) => chatReport && iouReport && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                    onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
                                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                     addBankAccountRoute={bankAccountRoute}
                                     shouldHidePaymentOptions={!shouldShowPayButton}

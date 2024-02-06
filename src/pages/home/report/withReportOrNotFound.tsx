@@ -29,6 +29,9 @@ type WithReportOrNotFoundOnyxProps = {
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route: RouteProp<{params: {reportID: string}}>;
+
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
 };
 
 export default function (
