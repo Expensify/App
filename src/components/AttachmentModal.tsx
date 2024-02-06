@@ -283,7 +283,7 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(transaction?.transactionID);
+        IOU.detachReceipt(transaction?.transactionID ?? '');
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.dismissModal(report?.reportID);
     }, [transaction, report]);

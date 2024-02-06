@@ -2533,7 +2533,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 74d18ad516037536c2f671ef0914bcce7739b2f5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
-  react-native-live-markdown: 8d72b168d5e8b44888aa610c4c999f0f4afebd04
+  react-native-live-markdown: 53109b3c11c0da51be1df916b05b366f83fa2a97
   react-native-netinfo: 6479e7e2198f936e5abc14a3ec4d469ccbaf81e2
   react-native-pager-view: 9ac6bc0fb3fa31c6d403b253ee361e62ff7ccf7f
   react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
@@ -2599,4 +2599,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 2748a60cfcfb5c160d044e3e7700449d03902536
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.3
