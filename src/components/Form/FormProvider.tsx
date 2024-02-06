@@ -7,6 +7,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form, Network} from '@src/types/onyx';
@@ -20,6 +21,7 @@ import type {FormInputErrors, FormOnyxValues, FormProps, InputComponentBaseProps
 // More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
 
+type GenericFormInputErrors = Partial<Record<string, TranslationPaths>>;
 type InitialDefaultValue = false | Date | '';
 
 function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
@@ -84,7 +86,7 @@ function FormProvider(
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
-    const [errors, setErrors] = useState<FormInputErrors>({});
+    const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
 
     const onValidate = useCallback(
@@ -96,7 +98,7 @@ function FormProvider(
             }
             FormActions.clearErrorFields(formID);
 
-            const validateErrors = validate?.(trimmedStringValues) ?? {};
+            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
 
             // Validate the input for html tags. It should supersede any other error
             Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {

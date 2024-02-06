@@ -1,6 +1,6 @@
 import type {FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
-import type {EmptyObject, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -65,7 +65,7 @@ type InputComponentBaseProps = InputComponentValueProps & {
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
-type FormOnyxKeys<TFormID extends OnyxFormKey = OnyxFormKey> = FormOnyxValues<TFormID> extends EmptyObject ? string : keyof FormOnyxValues<TFormID>;
+type FormOnyxKeys<TFormID extends OnyxFormKey = OnyxFormKey> = keyof FormOnyxValues<TFormID>;
 
 type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** A unique Onyx key identifying the form */
