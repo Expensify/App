@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -97,12 +98,15 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
-type MaybePhraseKey = string | [string, Record<string, unknown> & {isTranslated?: true}] | [];
+type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: true}] | [];
 
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey(message: MaybePhraseKey): string {
+function translateIfPhraseKey(message: MaybePhraseKey): string;
+function translateIfPhraseKey(message: ReceiptError): ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError {
     if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }
