@@ -140,7 +140,7 @@ function ProfilePage(props) {
         {
             description: props.translate('privatePersonalDetails.legalName'),
             title: legalName,
-            pageRoute: ROUTES.SETTINGSLEGAL_NAME,
+            pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
         },
         {
             description: props.translate('common.dob'),
