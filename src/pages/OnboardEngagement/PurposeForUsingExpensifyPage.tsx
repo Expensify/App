@@ -74,8 +74,10 @@ function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
     const theme = useTheme();
+    const backgroundColorStyle = StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor);
+    const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
 
     const navigateBack = useCallback(() => {
         Report.dismissEngagementModal();
@@ -110,12 +112,14 @@ function PurposeForUsingExpensifyModal() {
 
     return (
         <ScreenWrapper
+            style={backgroundColorStyle}
+            shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             testID={PurposeForUsingExpensifyModal.displayName}
         >
-            <View style={{maxHeight: windowHeight}}>
+            <View style={[{maxHeight: windowHeight}, styles.flex1, appBGColor]}>
                 <ScrollView>
-                    <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
+                    <View style={backgroundColorStyle}>
                         <Lottie
                             source={LottieAnimations.Hands}
                             style={styles.w100}
