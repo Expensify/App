@@ -87,8 +87,10 @@ function signOut() {
     Log.info('Flushing logs before signing out', true, {}, true);
     
     // In case this is a supportal token, we won't have infinite sessions setup since the token will be
-    // short lived and we can just skip calling logout.
-    if (!isSupportalToken()) {
+    // short lived. So we can just remove the token and we can just skip calling logout.
+    if (isSupportalToken()) {
+        setSupportAuthToken("");
+    } else {
         const params: LogOutParams = {
             // Send current authToken because we will immediately clear it once triggering this command
             authToken: NetworkStore.getAuthToken(),
@@ -547,18 +549,23 @@ function invalidateAuthToken() {
 /**
  * Sets the SupportToken
  */
-function setSupportAuthToken(supportAuthToken: string, email: string, accountID: number) {
+function setSupportAuthToken(supportAuthToken: string, email?: string, accountID?: number) {
     if (supportAuthToken) {
         Onyx.merge(ONYXKEYS.SESSION, {
             authTokenType: 'supportal',
-            authToken: '1',
+            authToken: 'dummy-token-supportal-will-be-used',
             supportAuthToken,
             email,
             accountID,
-        }).then(() => Log.info("[Supportal] Auth token set"));
+        }).then(() => {
+            Log.info("[Supportal] Authtoken set");
+        });
     } else {
-        Onyx.set(ONYXKEYS.SESSION, {});
+        Onyx.set(ONYXKEYS.SESSION, {}).then(()=> {
+            Log.info("[Supportal] Authtoken removed");
+        });
     }
+    Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
     NetworkStore.setSupportAuthToken(supportAuthToken);
 }
 
