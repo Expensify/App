@@ -6,7 +6,7 @@ import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/NewRoomForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -299,7 +299,7 @@ function WorkspaceNewRoomPage(props) {
                                 <InputWrapper
                                     InputComponent={RoomNameInput}
                                     ref={inputCallbackRef}
-                                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_ROOM_FORM].ROOM_NAME}
+                                    inputID={INPUT_IDS.ROOM_NAME}
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
                                     autoFocus
@@ -308,7 +308,7 @@ function WorkspaceNewRoomPage(props) {
                             <View style={styles.mb5}>
                                 <InputWrapper
                                     InputComponent={TextInput}
-                                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_ROOM_FORM].REPORT_DESCRIPTION}
+                                    inputID={INPUT_IDS.REPORT_DESCRIPTION}
                                     label={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -321,7 +321,7 @@ function WorkspaceNewRoomPage(props) {
                             <View style={[styles.mhn5]}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_ROOM_FORM].POLICY_ID}
+                                    inputID={INPUT_IDS.POLICY_ID}
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
                                     value={policyID}
@@ -332,7 +332,7 @@ function WorkspaceNewRoomPage(props) {
                                 <View style={styles.mhn5}>
                                     <InputWrapper
                                         InputComponent={ValuePicker}
-                                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_ROOM_FORM].WRITE_CAPABILITY}
+                                        inputID={INPUT_IDS.WRITE_CAPABILITY}
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
                                         value={writeCapability}
@@ -343,7 +343,7 @@ function WorkspaceNewRoomPage(props) {
                             <View style={[styles.mb1, styles.mhn5]}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_ROOM_FORM].VISIBILITY}
+                                    inputID={INPUT_IDS.VISIBILITY}
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
                                     onValueChange={setVisibility}

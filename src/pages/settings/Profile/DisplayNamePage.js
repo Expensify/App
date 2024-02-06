@@ -4,7 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/DisplayNameForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -101,7 +101,7 @@ function DisplayNamePage(props) {
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.DISPLAY_NAME_FORM].FIRST_NAME}
+                            inputID={INPUT_IDS.FIRST_NAME}
                             name="fname"
                             label={props.translate('common.firstName')}
                             aria-label={props.translate('common.firstName')}
@@ -114,7 +114,7 @@ function DisplayNamePage(props) {
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.DISPLAY_NAME_FORM].LAST_NAME}
+                            inputID={INPUT_IDS.LAST_NAME}
                             name="lname"
                             label={props.translate('common.lastName')}
                             aria-label={props.translate('common.lastName')}

@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/EditTaskForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -96,8 +96,8 @@ function TaskTitlePage(props) {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
-                                inputID={INPUTS_IDS[ONYXKEYS.FORMS.EDIT_TASK_FORM].TITLE}
-                                name={INPUTS_IDS[ONYXKEYS.FORMS.EDIT_TASK_FORM].TITLE}
+                                inputID={INPUT_IDS.TITLE}
+                                name={INPUT_IDS.TITLE}
                                 label={props.translate('task.title')}
                                 accessibilityLabel={props.translate('task.title')}
                                 defaultValue={(props.report && props.report.reportName) || ''}

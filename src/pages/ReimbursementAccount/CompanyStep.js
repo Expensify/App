@@ -8,7 +8,7 @@ import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/ReimbursementAccountForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Picker from '@components/Picker';
@@ -176,7 +176,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     label={translate('companyStep.legalBusinessName')}
                     accessibilityLabel={translate('companyStep.legalBusinessName')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].COMPANY_NAME}
+                    inputID={INPUT_IDS.COMPANY_NAME}
                     containerStyles={[styles.mt4]}
                     disabled={shouldDisableCompanyName}
                     defaultValue={getDefaultStateForField('companyName')}
@@ -202,7 +202,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 />
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].COMPANY_PHONE}
+                    inputID={INPUT_IDS.COMPANY_PHONE}
                     label={translate('common.phoneNumber')}
                     accessibilityLabel={translate('common.phoneNumber')}
                     role={CONST.ROLE.PRESENTATION}
@@ -214,7 +214,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 />
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].WEBSITE}
+                    inputID={INPUT_IDS.WEBSITE}
                     label={translate('companyStep.companyWebsite')}
                     accessibilityLabel={translate('companyStep.companyWebsite')}
                     role={CONST.ROLE.PRESENTATION}
@@ -226,7 +226,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 />
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].COMPANY_TAX_ID}
+                    inputID={INPUT_IDS.COMPANY_TAX_ID}
                     label={translate('companyStep.taxIDNumber')}
                     accessibilityLabel={translate('companyStep.taxIDNumber')}
                     role={CONST.ROLE.PRESENTATION}
@@ -241,7 +241,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <View style={styles.mt4}>
                     <InputWrapper
                         InputComponent={Picker}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].INCORPORATION_TYPE}
+                        inputID={INPUT_IDS.INCORPORATION_TYPE}
                         label={translate('companyStep.companyType')}
                         items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({
                             value: key,
@@ -255,7 +255,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <View style={styles.mt4}>
                     <InputWrapper
                         InputComponent={DatePicker}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].INCORPORATION_DATE}
+                        inputID={INPUT_IDS.INCORPORATION_DATE}
                         label={translate('companyStep.incorporationDate')}
                         placeholder={translate('companyStep.incorporationDatePlaceholder')}
                         defaultValue={getDefaultStateForField('incorporationDate')}
@@ -265,7 +265,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <View style={[styles.mt4, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={StatePicker}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].INCORPORATION_STATE}
+                        inputID={INPUT_IDS.INCORPORATION_STATE}
                         label={translate('companyStep.incorporationState')}
                         defaultValue={getDefaultStateForField('incorporationState')}
                         shouldSaveDraft
@@ -274,7 +274,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('companyStep.confirmCompanyIsNot')} ${translate('companyStep.listOfRestrictedBusinesses')}`}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].HAS_NO_CONNECTION_TO_CANNABIS}
+                    inputID={INPUT_IDS.HAS_NO_CONNECTION_TO_CANNABIS}
                     defaultValue={getDefaultStateForField('hasNoConnectionToCannabis', false)}
                     LabelComponent={() => (
                         <Text>

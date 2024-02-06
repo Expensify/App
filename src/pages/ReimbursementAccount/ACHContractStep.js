@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/ReimbursementAccountForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -174,7 +174,7 @@ function ACHContractStep(props) {
                         <InputWrapper
                             InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].OWNS_MORE_THAN_25_PERCENT}
+                            inputID={INPUT_IDS.OWNS_MORE_THAN_25_PERCENT}
                             style={[styles.mb2]}
                             LabelComponent={() => (
                                 <Text>
@@ -196,7 +196,7 @@ function ACHContractStep(props) {
                         <InputWrapper
                             InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].HAS_OTHER_BENEFICIAL_OWNERS}
+                            inputID={INPUT_IDS.HAS_OTHER_BENEFICIAL_OWNERS}
                             style={[styles.mb2]}
                             LabelComponent={() => (
                                 <Text>
@@ -263,7 +263,7 @@ function ACHContractStep(props) {
                         <InputWrapper
                             InputComponent={CheckboxWithLabel}
                             accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('beneficialOwnersStep.termsAndConditions')}`}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].ACCEPT_TERMS_AND_CONDITIONS}
+                            inputID={INPUT_IDS.ACCEPT_TERMS_AND_CONDITIONS}
                             style={[styles.mt4]}
                             LabelComponent={() => (
                                 <Text>
@@ -277,7 +277,7 @@ function ACHContractStep(props) {
                         <InputWrapper
                             InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM].CERTIFY_TRUE_INFORMATION}
+                            inputID={INPUT_IDS.CERTIFY_TRUE_INFORMATION}
                             style={[styles.mt4]}
                             LabelComponent={() => <Text>{props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>}
                             defaultValue={props.getDefaultStateForField('certifyTrueInformation', false)}

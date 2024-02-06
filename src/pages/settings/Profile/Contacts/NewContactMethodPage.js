@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/NewContactMethodForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -134,7 +134,7 @@ function NewContactMethodPage(props) {
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM].PHONE_OR_EMAIL}
+                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
                         autoCapitalize="none"
                         enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}

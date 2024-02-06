@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
+import INPUT_IDS from '@components/Form/inputs/IKnowTeacherForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,7 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList} from '@src/types/onyx';
-import INPUTS_IDS from '@components/Form/inputs';
 
 type KnowATeacherPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -79,7 +79,6 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
         },
         [props.loginList],
     );
- 
 
     return (
         <ScreenWrapper
@@ -102,7 +101,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM].FIRST_NAME}
+                        inputID={INPUT_IDS.FIRST_NAME}
                         name="fname"
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
@@ -114,7 +113,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                 <View style={styles.mv4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM].LAST_NAME}
+                        inputID={INPUT_IDS.LAST_NAME}
                         name="lname"
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
@@ -126,7 +125,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM].PARTNER_USER_ID}
+                        inputID={INPUT_IDS.PARTNER_USER_ID}
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}

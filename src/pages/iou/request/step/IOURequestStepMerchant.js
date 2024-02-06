@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/MoneyRequestMerchantForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -94,8 +94,8 @@ function IOURequestStepMerchant({
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM].MONEY_REQUEST_MERCHANT}
-                        name={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM].MONEY_REQUEST_MERCHANT}
+                        inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                        name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         defaultValue={isEmptyMerchant ? '' : merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}

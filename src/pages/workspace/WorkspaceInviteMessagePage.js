@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/WorkspaceInviteMessageForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -183,7 +183,7 @@ function WorkspaceInviteMessagePage(props) {
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM].WELCOME_MESSAGE}
+                            inputID={INPUT_IDS.WELCOME_MESSAGE}
                             label={translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"

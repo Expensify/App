@@ -5,7 +5,7 @@ import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/DateOfBirthForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -85,7 +85,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM].DOB}
+                        inputID={INPUT_IDS.DOB}
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}

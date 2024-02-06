@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/MoneyRequestDescriptionForm';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -92,8 +92,8 @@ function IOURequestStepDescription({
                 <View style={styles.mb4}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM].MONEY_REQUEST_COMMENT}
-                        name={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM].MONEY_REQUEST_COMMENT}
+                        inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                        name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={lodashGet(transaction, 'comment.comment', '')}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}

@@ -8,7 +8,7 @@ import {Keyboard} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/PrivateNotesForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -142,7 +142,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                     <InputWrapper
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.PRIVATE_NOTES_FORM].PRIVATE_NOTES}
+                        inputID={INPUT_IDS.PRIVATE_NOTES}
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}
                         autoCompleteType="off"

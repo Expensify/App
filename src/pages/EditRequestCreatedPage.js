@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/MoneyRequestCreatedForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -39,7 +39,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM].CREATED}
+                    inputID={INPUT_IDS.CREATED}
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}

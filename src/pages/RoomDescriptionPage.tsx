@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/ReportDescriptionForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -84,7 +84,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     <View style={[styles.mb6]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM].REPORT_DESCRIPTION}
+                            inputID={INPUT_IDS.REPORT_DESCRIPTION}
                             label={translate('reportDescriptionPage.roomDescription')}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}

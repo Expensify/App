@@ -4,7 +4,7 @@ import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/WorkspaceRateAndUnitForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
@@ -128,7 +128,7 @@ function WorkspaceRateAndUnitPage(props) {
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM].RATE}
+                            inputID={INPUT_IDS.RATE}
                             containerStyles={[props.themeStyles.mt4]}
                             defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, props.toLocaleDigit)}
                             label={props.translate('workspace.reimburse.trackDistanceRate')}
@@ -143,7 +143,7 @@ function WorkspaceRateAndUnitPage(props) {
                         <View style={[props.themeStyles.mt4]}>
                             <InputWrapper
                                 InputComponent={Picker}
-                                inputID={INPUTS_IDS[ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM].UNIT}
+                                inputID={INPUT_IDS.UNIT}
                                 label={props.translate('workspace.reimburse.trackDistanceUnit')}
                                 items={unitItems}
                                 defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}

@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/AddDebitCardForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -119,7 +119,7 @@ function DebitCardPage(props) {
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].NAME_ON_CARD}
+                    inputID={INPUT_IDS.NAME_ON_CARD}
                     label={translate('addDebitCardPage.nameOnCard')}
                     aria-label={translate('addDebitCardPage.nameOnCard')}
                     role={CONST.ROLE.PRESENTATION}
@@ -128,7 +128,7 @@ function DebitCardPage(props) {
                 />
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].CARD_NUMBER}
+                    inputID={INPUT_IDS.CARD_NUMBER}
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
                     role={CONST.ROLE.PRESENTATION}
@@ -139,7 +139,7 @@ function DebitCardPage(props) {
                     <View style={[styles.flex1, styles.mr2]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].EXPIRATION_DATE}
+                            inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate('addDebitCardPage.expiration')}
                             aria-label={translate('addDebitCardPage.expiration')}
                             role={CONST.ROLE.PRESENTATION}
@@ -151,7 +151,7 @@ function DebitCardPage(props) {
                     <View style={[styles.flex1]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].SECURITY_CODE}
+                            inputID={INPUT_IDS.SECURITY_CODE}
                             label={translate('addDebitCardPage.cvv')}
                             aria-label={translate('addDebitCardPage.cvv')}
                             role={CONST.ROLE.PRESENTATION}
@@ -163,7 +163,7 @@ function DebitCardPage(props) {
                 <View>
                     <InputWrapper
                         InputComponent={AddressSearch}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].ADDRESS_STREET}
+                        inputID={INPUT_IDS.ADDRESS_STREET}
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
@@ -173,7 +173,7 @@ function DebitCardPage(props) {
                 </View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].ADDRESS_ZIP_CODE}
+                    inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
                     role={CONST.ROLE.PRESENTATION}
@@ -185,13 +185,13 @@ function DebitCardPage(props) {
                 <View style={[styles.mt4, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={StatePicker}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].ADDRESS_STATE}
+                        inputID={INPUT_IDS.ADDRESS_STATE}
                     />
                 </View>
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM].ACCEPT_TERMS}
+                    inputID={INPUT_IDS.ACCEPT_TERMS}
                     defaultValue={false}
                     LabelComponent={() => (
                         <Text>

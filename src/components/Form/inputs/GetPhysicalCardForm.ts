@@ -1,8 +1,8 @@
 import type {Form} from '@src/types/onyx';
-import ADDRESS_INPUTS_IDS from './HomeAddressForm';
+import ADDRESS_INPUT_IDS from './HomeAddressForm';
 
 const INPUT_IDS = {
-    ...ADDRESS_INPUTS_IDS,
+    ...ADDRESS_INPUT_IDS,
     LEGAL_FIRST_NAME: 'legalFirstName',
     LEGAL_LAST_NAME: 'legalLastName',
     PHONE_NUMBER: 'phoneNumber',

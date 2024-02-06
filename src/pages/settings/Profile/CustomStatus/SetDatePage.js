@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/SettingsStatusClearDateForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -62,7 +62,7 @@ function SetDatePage({translate, customStatus}) {
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID={INPUTS_IDS[ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM].DATE_TIME}
+                    inputID={INPUT_IDS.DATE_TIME}
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={new Date()}

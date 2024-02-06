@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/NewTaskForm';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -87,7 +87,7 @@ function NewTaskTitlePage(props) {
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={props.task.title}
                         ref={inputCallbackRef}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_TASK_FORM].TASK_TITLE}
+                        inputID={INPUT_IDS.TASK_TITLE}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                     />

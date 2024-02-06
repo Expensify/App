@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/GetPhysicalCardForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -76,8 +76,8 @@ function GetPhysicalCardName({
         >
             <InputWrapper
                 InputComponent={TextInput}
-                inputID={INPUTS_IDS[ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM].LEGAL_FIRST_NAME}
-                name={INPUTS_IDS[ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM].LEGAL_FIRST_NAME}
+                inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                name={INPUT_IDS.LEGAL_FIRST_NAME}
                 label={translate('getPhysicalCard.legalFirstName')}
                 aria-label={translate('getPhysicalCard.legalFirstName')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -87,8 +87,8 @@ function GetPhysicalCardName({
             />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID={INPUTS_IDS[ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM].LEGAL_LAST_NAME}
-                name={INPUTS_IDS[ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM].LEGAL_LAST_NAME}
+                inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                name={INPUT_IDS.LEGAL_LAST_NAME}
                 label={translate('getPhysicalCard.legalLastName')}
                 aria-label={translate('getPhysicalCard.legalLastName')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}

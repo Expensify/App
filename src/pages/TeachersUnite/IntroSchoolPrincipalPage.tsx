@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/IntroSchoolPrincipalForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -95,8 +95,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].FIRST_NAME}
-                        name={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].FIRST_NAME}
+                        inputID={INPUT_IDS.FIRST_NAME}
+                        name={INPUT_IDS.FIRST_NAME}
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -107,8 +107,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View style={styles.mv4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].LAST_NAME}
-                        name={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].LAST_NAME}
+                        inputID={INPUT_IDS.LAST_NAME}
+                        name={INPUT_IDS.LAST_NAME}
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -119,8 +119,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].PARTNER_USER_ID}
-                        name={INPUTS_IDS[ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM].PARTNER_USER_ID}
+                        inputID={INPUT_IDS.PARTNER_USER_ID}
+                        name={INPUT_IDS.PARTNER_USER_ID}
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
                         role={CONST.ROLE.PRESENTATION}

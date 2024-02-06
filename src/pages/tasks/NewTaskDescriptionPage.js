@@ -4,7 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/NewTaskForm';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -71,7 +71,7 @@ function NewTaskDescriptionPage(props) {
                         <InputWrapperWithRef
                             InputComponent={TextInput}
                             defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
-                            inputID={INPUTS_IDS[ONYXKEYS.FORMS.NEW_TASK_FORM].TASK_DESCRIPTION}
+                            inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}

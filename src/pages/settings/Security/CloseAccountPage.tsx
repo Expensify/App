@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
-import INPUTS_IDS from '@components/Form/inputs';
+import INPUT_IDS from '@components/Form/inputs/CloseAccountForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -101,7 +101,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                     <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM].REASON_FOR_LEAVING}
+                        inputID={INPUT_IDS.REASON_FOR_LEAVING}
                         autoGrowHeight
                         label={translate('closeAccountPage.enterMessageHere')}
                         aria-label={translate('closeAccountPage.enterMessageHere')}
@@ -113,7 +113,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                     </Text>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUTS_IDS[ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM].PHONE_OR_EMAIL}
+                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
                         autoCapitalize="none"
                         label={translate('closeAccountPage.enterDefaultContact')}
                         aria-label={translate('closeAccountPage.enterDefaultContact')}
