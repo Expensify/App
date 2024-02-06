@@ -2,6 +2,7 @@ import type {ParamListBase} from '@react-navigation/routers';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -33,7 +34,6 @@ import type {
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import subRouteOptions from './modalStackNavigatorOptions';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
