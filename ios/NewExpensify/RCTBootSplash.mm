@@ -24,6 +24,11 @@ RCT_EXPORT_MODULE();
   return dispatch_get_main_queue();
 }
 
++ (void)invalidateBootSplash {
+    _rootView = nil;
+    _nativeHidden = false;
+}
+
 + (bool)isLoadingViewHidden {
   return _loadingView == nil || [_loadingView isHidden];
 }
