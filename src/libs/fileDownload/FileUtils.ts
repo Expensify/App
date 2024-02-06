@@ -7,11 +7,12 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
+ * @param successMessage
  */
-function showSuccessAlert() {
+function showSuccessAlert(successMessage?: string) {
     Alert.alert(
         Localize.translateLocal('fileDownload.success.title'),
-        Localize.translateLocal('fileDownload.success.message'),
+        successMessage ?? Localize.translateLocal('fileDownload.success.message'),
         [
             {
                 text: Localize.translateLocal('common.ok'),

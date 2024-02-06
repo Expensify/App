@@ -4,18 +4,13 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
-import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import type PolicyTaxRate from '@src/types/onyx/PolicyTaxRates';
-import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
+import type {Comment, Receipt, TransactionChanges, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-
-type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
-
-type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -37,10 +32,10 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-function isDistanceRequest(transaction: Transaction): boolean {
+function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
 
     // This is the case for transaction objects once they have been saved to the server
@@ -81,7 +76,8 @@ function isManualRequest(transaction: Transaction): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
+ * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
+ * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(
     amount: number,
@@ -140,11 +136,19 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function isMerchantMissing(transaction: Transaction) {
+    if (transaction.modifiedMerchant && transaction.modifiedMerchant !== '') {
+        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    }
     const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
-    const isModifiedMerchantEmpty = !transaction.modifiedMerchant || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === '';
+    return isMerchantEmpty;
+}
 
-    return isMerchantEmpty && isModifiedMerchantEmpty;
+/**
+ * Check if the merchant is partial i.e. `(none)`
+ */
+function isPartialMerchant(merchant: string): boolean {
+    return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
 function isAmountMissing(transaction: Transaction) {
@@ -258,7 +262,7 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport?: boolean): number {
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         const amount = transaction?.modifiedAmount ?? 0;
@@ -385,8 +389,8 @@ function getHeaderTitleTranslationKey(transaction: Transaction): string {
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: Transaction): boolean {
-    if (!transaction.cardID) {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.cardID) {
         return false;
     }
     return isExpensifyCard(transaction.cardID);
@@ -395,7 +399,7 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
 /**
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
-function isCardTransaction(transaction: Transaction): boolean {
+function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     const cardID = transaction?.cardID ?? 0;
     return isCorporateCard(cardID);
 }
@@ -403,8 +407,8 @@ function isCardTransaction(transaction: Transaction): boolean {
 /**
  * Check if the transaction status is set to Pending.
  */
-function isPending(transaction: Transaction): boolean {
-    if (!transaction.status) {
+function isPending(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.status) {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
@@ -521,6 +525,13 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Checks if any violations for the provided transaction are of type 'violation'
+ */
+function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+}
+
+/**
  * this is the formulae to calculate tax
  */
 function calculateTaxAmount(percentage: string, amount: number) {
@@ -573,10 +584,12 @@ export {
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
+    isPartialMerchant,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasViolation,
 };

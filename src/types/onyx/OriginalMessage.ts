@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
+
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
     | 'ADDCOMMENT'
@@ -19,6 +21,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -42,7 +45,7 @@ type IOUMessage = {
     lastModified?: string;
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
-    paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    paymentType?: PaymentMethodType;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -106,6 +109,18 @@ type OriginalMessageAddComment = {
         moderationDecisions?: Decision[];
         whisperedTo: number[];
         reactions?: Reaction[];
+    };
+};
+
+type OriginalMessageActionableMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+    originalMessage: {
+        inviteeAccountIDs: number[];
+        inviteeEmails: string;
+        lastModified: string;
+        reportID: number;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
     };
 };
 
@@ -222,7 +237,9 @@ type OriginalMessageReimbursementQueued = {
 
 type OriginalMessageReimbursementDequeued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
-    originalMessage: unknown;
+    originalMessage: {
+        expenseReportID: string;
+    };
 };
 
 type OriginalMessageMoved = {
@@ -239,6 +256,7 @@ type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageActionableMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
@@ -266,4 +284,9 @@ export type {
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageAddComment,
+    OriginalMessageChronosOOOList,
+    OriginalMessageSource,
+    OriginalMessageReimbursementDequeued,
+    DecisionName,
+    PaymentMethodType,
 };

@@ -20,7 +20,7 @@ import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
     /** The text for the button label */
-    text: string;
+    text?: string;
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
