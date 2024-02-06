@@ -39,7 +39,7 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string): Errors {
+function getMicroSecondOnyxError(error: string | null): Errors {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -64,7 +64,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
 
     const key = Object.keys(errors).sort().reverse()[0];
 
-    return errors[key];
+    return errors[key] ?? '';
 }
 
 function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Errors {
