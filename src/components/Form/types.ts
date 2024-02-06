@@ -97,6 +97,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Custom content to display in the footer after submit button */
     footerContent?: ReactNode;
+
+    /** Disable press on enter for submit button */
+    disablePressOnEnter?: boolean;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;

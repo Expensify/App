@@ -41,8 +41,8 @@ const INPUTS_IDS = {
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: {
         ROOM_NAME: 'roomName',
     },
-    [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM]: {
-        WELCOME_MESSAGE: 'welcomeMessage',
+    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: {
+        REPORT_DESCRIPTION: 'reportDescription',
     },
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: {
         LEGAL_FIRST_NAME: 'legalFirstName',
@@ -57,7 +57,7 @@ const INPUTS_IDS = {
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: ADDRESS_INPUTS_IDS,
     [ONYXKEYS.FORMS.NEW_ROOM_FORM]: {
         ROOM_NAME: 'roomName',
-        WELCOME_MESSAGE: 'welcomeMessage',
+        REPORT_DESCRIPTION: 'reportDescription',
         POLICY_ID: 'policyID',
         WRITE_CAPABILITY: 'writeCapability',
         VISIBILITY: 'visibility',
