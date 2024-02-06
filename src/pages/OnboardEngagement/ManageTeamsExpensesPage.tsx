@@ -89,7 +89,7 @@ function ManageTeamsExpensesModal() {
                             style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                             numberOfLines={2}
                         >
-                            {translate('manageTeams.title')};
+                            {translate('manageTeams.title')}
                         </Text>
                     </View>
                     <MenuItemList
