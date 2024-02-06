@@ -91,6 +91,9 @@ type Report = {
     /** ID of the report */
     reportID: string;
 
+    /** ID of the report action */
+    reportActionID?: string;
+
     /** ID of the chat report */
     chatReportID?: string;
 
@@ -124,7 +127,6 @@ type Report = {
     lastVisibleActionLastModified?: string;
     displayName?: string;
     lastMessageHtml?: string;
-    welcomeMessage?: string;
     lastActorAccountID?: number;
     ownerAccountID?: number;
     ownerEmail?: string;
