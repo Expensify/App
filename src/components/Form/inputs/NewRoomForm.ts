@@ -9,11 +9,11 @@ const INPUT_IDS = {
 } as const;
 
 type NewRoomForm = Form<{
-    [INPUT_IDS.ROOM_NAME]: string;
-    [INPUT_IDS.REPORT_DESCRIPTION]: string;
-    [INPUT_IDS.POLICY_ID]: string;
-    [INPUT_IDS.WRITE_CAPABILITY]: string;
-    [INPUT_IDS.VISIBILITY]: string;
+    [INPUT_IDS.ROOM_NAME]?: string;
+    [INPUT_IDS.REPORT_DESCRIPTION]?: string;
+    [INPUT_IDS.POLICY_ID]?: string;
+    [INPUT_IDS.WRITE_CAPABILITY]?: string;
+    [INPUT_IDS.VISIBILITY]?: string;
 }>;
 
 export type {NewRoomForm};
