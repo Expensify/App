@@ -157,6 +157,14 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 });
             }
 
+            if (!(isAdmin || isOwner)) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.ChatBubbles,
+                    text: translate('common.leave'),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.removeMembers([session?.accountID ?? 0], item.policyID ?? '')),
+                });
+            }
+
             if (isAdmin && item.adminRoom) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Hashtag,
@@ -170,14 +178,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     icon: Expensicons.Hashtag,
                     text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
                     onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom ?? '')),
-                });
-            }
-
-            if (!(isAdmin || isOwner)) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.ChatBubbles,
-                    text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.removeMembers([session?.accountID ?? 0], item.policyID ?? '')),
                 });
             }
 
