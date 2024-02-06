@@ -5,7 +5,6 @@ import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AttachmentModal from '@components/AttachmentModal';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -103,7 +102,6 @@ function ProfilePage(props) {
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
-    const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
     const timezone = lodashGet(details, 'timezone', {});
 
@@ -132,7 +130,7 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+    const navigateBackTo = lodashGet(props.route, 'params.backTo');
 
     const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
@@ -154,32 +152,22 @@ function ProfilePage(props) {
                 {hasMinimumDetails && (
                     <ScrollView>
                         <View style={styles.avatarSectionWrapper}>
-                            <AttachmentModal
-                                headerTitle={displayName}
-                                source={UserUtils.getFullSizeAvatar(avatar, accountID)}
-                                isAuthTokenRequired
-                                originalFileName={originalFileName}
-                                fallbackSource={fallbackIcon}
+                            <PressableWithoutFocus
+                                style={[styles.noOutline]}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                accessibilityLabel={props.translate('common.profile')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             >
-                                {({show}) => (
-                                    <PressableWithoutFocus
-                                        style={[styles.noOutline]}
-                                        onPress={show}
-                                        accessibilityLabel={props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                                    >
-                                        <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
-                                            <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={UserUtils.getAvatar(avatar, accountID)}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                                fallbackIcon={fallbackIcon}
-                                            />
-                                        </OfflineWithFeedback>
-                                    </PressableWithoutFocus>
-                                )}
-                            </AttachmentModal>
+                                <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                                    <Avatar
+                                        containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                        imageStyles={[styles.avatarXLarge]}
+                                        source={UserUtils.getAvatar(avatar, accountID)}
+                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        fallbackIcon={fallbackIcon}
+                                    />
+                                </OfflineWithFeedback>
+                            </PressableWithoutFocus>
                             {Boolean(displayName) && (
                                 <Text
                                     style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}

@@ -19,10 +19,12 @@ type PolicyReportField = {
     /** Tells if the field is required or not */
     deletable: boolean;
 
+    /** Value of the field */
+    value: string;
+
     /** Options to select from if field is of type dropdown */
     values: string[];
 };
 
 type PolicyReportFields = Record<string, PolicyReportField>;
-export default PolicyReportField;
-export type {PolicyReportFields};
+export type {PolicyReportField, PolicyReportFields};

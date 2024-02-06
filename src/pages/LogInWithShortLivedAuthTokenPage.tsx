@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -12,6 +12,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
@@ -38,6 +39,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
         if (token && !account?.isLoading) {
+            Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             Session.signInWithShortLivedAuthToken(email, token);
             return;
         }
@@ -49,7 +51,8 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(exitTo);
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                Navigation.navigate(url);
             });
         }
         // The only dependencies of the effect are based on props.route

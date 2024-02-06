@@ -133,11 +133,12 @@ function ActivatePhysicalCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}
+            testID={ActivatePhysicalCardPage.displayName}
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>

@@ -8,7 +8,7 @@ function SearchPageFooter() {
     const themeStyles = useThemeStyles();
 
     return (
-        <View style={[themeStyles.pb5, themeStyles.flexShrink0]}>
+        <View style={[themeStyles.flexShrink0]}>
             <ReferralProgramCTA referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND} />
         </View>
     );
