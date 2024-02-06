@@ -32,6 +32,7 @@ function EnvironmentBadge() {
             badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge]}
             textStyles={[styles.headerEnvBadgeText, {fontWeight: '700'}]}
             environment={environment}
+            pressable
         />
     );
 }

@@ -56,6 +56,7 @@ function WorkspaceCardVBAWithECardView(props) {
             title={props.translate('workspace.card.headerWithEcard')}
             icon={Illustrations.CreditCardsNew}
             menuItems={menuItems}
+            isCentralPane
         >
             <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>

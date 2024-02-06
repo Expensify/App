@@ -22,6 +22,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
+import {usePersonalDetails} from './OnyxProvider';
 import SettlementButton from './SettlementButton';
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
@@ -43,18 +44,17 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
 
     /** The policy tied to the money request report */
     policy: OnyxTypes.Policy;
-
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: OnyxTypes.PersonalDetailsList;
 };
 
-function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
+function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
@@ -86,8 +86,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy.isHarvestingEnabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !(policy.harvesting?.enabled ?? policy.isHarvestingEnabled),
+        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled, policy.isHarvestingEnabled],
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
@@ -128,7 +128,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
                     <View style={styles.pv2}>
                         <SettlementButton
-                            // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport?.reportID}
@@ -141,6 +140,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
+                            isDisabled={!canAllowSettlement}
                         />
                     </View>
                 )}
@@ -160,7 +160,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
-                            // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={moneyRequestReport.chatReportID}
@@ -172,6 +171,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={formattedAmount}
+                            isDisabled={!canAllowSettlement}
                         />
                     </View>
                 )}
