@@ -18,7 +18,7 @@ type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = never> = keyof TO
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
-type Errors = Record<string, string>;
+type Errors = Record<string, string | null>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
@@ -37,6 +37,9 @@ type Icon = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
+
+    /** Fill color of the icon */
+    fill?: string;
 };
 
 export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};

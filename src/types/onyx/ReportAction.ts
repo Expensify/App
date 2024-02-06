@@ -143,6 +143,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Type of child report  */
     childType?: string;
 
+    /** The user's ID */
+    accountID?: number;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
@@ -176,7 +179,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;
