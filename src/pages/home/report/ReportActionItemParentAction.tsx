@@ -92,6 +92,7 @@ function ReportActionItemParentAction({report, index = 0, shouldHideThreadDivide
                             isMostRecentIOUReportAction={false}
                             shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                             index={index}
+                            showDateIndicator={false}
                         />
                         {!ancestor.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
                     </OfflineWithFeedback>

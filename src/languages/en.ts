@@ -209,9 +209,9 @@ export default {
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
-        todayAt: 'Today at',
-        tomorrowAt: 'Tomorrow at',
-        yesterdayAt: 'Yesterday at',
+        today: 'Today',
+        tomorrow: 'Tomorrow',
+        yesterday: 'Yesterday',
         conjunctionAt: 'at',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {

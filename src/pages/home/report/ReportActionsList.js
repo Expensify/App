@@ -26,6 +26,7 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import ReportDateIndicator from './ReportDateIndicator';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -159,6 +160,8 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
+    const [dateIndicatorLabel, setDateIndicatorLabel] = useState('');
+    const [visibleItemIndex, setVisibleItemIndex] = useState(0);
 
     const sortedVisibleReportActions = useMemo(
         () => _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors),
@@ -178,6 +181,49 @@ function ReportActionsList({
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
+
+    useEffect(() => {
+        if (visibleItemIndex === -1 || visibleItemIndex === sortedReportActions.length - 1) {
+            setDateIndicatorLabel('');
+        }
+        setDateIndicatorLabel(sortedReportActions[visibleItemIndex]);
+    }, [sortedReportActions, visibleItemIndex]);
+
+    /**
+     * Determines whether we should display the date indicator label in chat messages
+     * @return {Boolean}
+     */
+    const shouldShowStaticDateIndicator = useCallback(
+        (index) => {
+            if (index === sortedReportActions.length - 1) {
+                return true;
+            }
+
+            const currentItem = sortedReportActions[index];
+            const nextItem = sortedReportActions[index + 1];
+
+            if (nextItem) {
+                return DateUtils.formatDate(currentItem.created) !== DateUtils.formatDate(nextItem.created);
+            }
+        },
+        [sortedReportActions],
+    );
+
+    const onViewableItemsChanged = useCallback(
+        ({viewableItems}) => {
+            if (viewableItems.length <= 0) {
+                return null;
+            }
+
+            const firstVisibleItem = viewableItems[viewableItems.length - 1];
+            const {index, isViewable} = firstVisibleItem;
+
+            if (isViewable) {
+                setVisibleItemIndex(index);
+            }
+        },
+        [setVisibleItemIndex],
+    );
 
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
@@ -419,9 +465,10 @@ function ReportActionsList({
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                showDateIndicator={shouldShowStaticDateIndicator(index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldShowStaticDateIndicator, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -483,6 +530,12 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
+            {dateIndicatorLabel ? (
+                <ReportDateIndicator
+                    created={dateIndicatorLabel.created}
+                    style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.pt1, styles.chatItemDateIndicatorWrapper]}
+                />
+            ) : null}
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -505,6 +558,10 @@ function ReportActionsList({
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    viewabilityConfig={{
+                        itemVisiblePercentThreshold: 100,
+                    }}
                 />
             </Animated.View>
         </>

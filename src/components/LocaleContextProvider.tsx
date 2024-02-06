@@ -40,6 +40,9 @@ type LocaleContextProps = {
     /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
 
+    /** Formats a datetime to local time string */
+    datetimeToLocalString: (datetime: string, includeTimezone: boolean) => string;
+
     /** Updates date-fns internal locale */
     updateLocale: () => void;
 
@@ -62,6 +65,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     numberFormat: () => '',
     datetimeToRelative: () => '',
     datetimeToCalendarTime: () => '',
+    datetimeToLocalString: () => '',
     updateLocale: () => '',
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
@@ -87,8 +91,13 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const datetimeToCalendarTime = useMemo<LocaleContextProps['datetimeToCalendarTime']>(
         () =>
-            (datetime, includeTimezone, isLowercase = false) =>
-                DateUtils.datetimeToCalendarTime(locale, datetime, includeTimezone, selectedTimezone, isLowercase),
+            (datetime, isLowercase = false) =>
+                DateUtils.datetimeToCalendarTime(locale, datetime, selectedTimezone, isLowercase),
+        [locale, selectedTimezone],
+    );
+
+    const datetimeToLocalString = useMemo<LocaleContextProps['datetimeToLocalString']>(
+        () => (datetime, includedTimezone) => DateUtils.datetimeToLocalString(locale, datetime, selectedTimezone, includedTimezone),
         [locale, selectedTimezone],
     );
 
@@ -106,13 +115,14 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
             numberFormat,
             datetimeToRelative,
             datetimeToCalendarTime,
+            datetimeToLocalString,
             updateLocale,
             formatPhoneNumber,
             toLocaleDigit,
             fromLocaleDigit,
             preferredLocale: locale,
         }),
-        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, updateLocale, formatPhoneNumber, toLocaleDigit, fromLocaleDigit, locale],
+        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, datetimeToLocalString, updateLocale, formatPhoneNumber, toLocaleDigit, fromLocaleDigit, locale],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
