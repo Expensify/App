@@ -189,7 +189,6 @@ export default {
     sectionMargin: 16,
     oldDotWireframeIconWidth: 263.38,
     oldDotWireframeIconHeight: 143.28,
-    oldDotWireframeIconWrapperHeightFactor: 3,
     workspaceSectionMaxWidth: 600,
     sectionIllustrationHeight: 240,
     photoUploadPopoverWidth: 335,
