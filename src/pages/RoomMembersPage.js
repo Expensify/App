@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -221,7 +222,7 @@ function RoomMembersPage(props) {
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                pendingAction: pendingVisibleChatMember.pendingAction || undefined,
+                pendingAction: lodashGet(pendingVisibleChatMember, 'pendingAction', undefined)
             });
         });
 
