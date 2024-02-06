@@ -57,7 +57,7 @@ type NoIcon = {
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     /** Function to fire when component is pressed */
-    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** Whether the menu item should be interactive at all */
     interactive?: boolean;
