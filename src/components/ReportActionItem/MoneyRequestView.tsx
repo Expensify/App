@@ -189,7 +189,7 @@ function MoneyRequestView({
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
-    let hasErrors = Boolean(
+    const hasErrors = Boolean(
         canEdit &&
             transaction &&
             !TransactionUtils.isDistanceRequest(transaction) &&
