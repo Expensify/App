@@ -2257,7 +2257,14 @@ function getReportPreviewMessage(
         });
     }
 
-    if (!isEmptyObject(linkedTransaction) && !isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction) && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (
+        !isEmptyObject(linkedTransaction) &&
+        !isEmptyObject(reportAction) &&
+        shouldConsiderReceiptBeingScanned &&
+        TransactionUtils.hasReceipt(linkedTransaction) &&
+        TransactionUtils.isReceiptBeingScanned(linkedTransaction) &&
+        ReportActionsUtils.isMoneyRequestAction(reportAction)
+    ) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
