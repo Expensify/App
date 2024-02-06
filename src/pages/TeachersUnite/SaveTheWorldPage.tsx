@@ -21,8 +21,9 @@ function SaveTheWorldPage() {
             shouldShowBackButton
             title={translate('sidebarScreen.saveTheWorld')}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+            onBackButtonPress={Navigation.goBack}
             illustration={LottieAnimations.SaveTheWorld}
+            testID={SaveTheWorldPage.displayName}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('teachersUnitePage.teachersUnite')}</Text>
