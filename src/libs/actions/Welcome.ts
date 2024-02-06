@@ -185,12 +185,8 @@ function resetReadyCheck() {
     isLoadingReportData = true;
 }
 
-function isFirstTimeExpensifyUser() {
-    return isFirstTimeNewExpensifyUser;
-}
-
 function serverDataIsReadyPromise(): Promise<void> {
     return isReadyPromise;
 }
 
-export {show, serverDataIsReadyPromise, resetReadyCheck, isFirstTimeExpensifyUser};
+export {show, serverDataIsReadyPromise, resetReadyCheck};
