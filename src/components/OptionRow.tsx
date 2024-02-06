@@ -209,14 +209,14 @@ function OptionRow({
                                         <SubscriptAvatar
                                             mainAvatar={option.icons[0]}
                                             secondaryAvatar={option.icons[1]}
-                                            backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
+                                            backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={option.icons}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? hoveredBackgroundColor : subscriptColor)]}
+                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                             shouldShowTooltip={showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(option)}
                                         />
                                     ))}
@@ -278,8 +278,12 @@ function OptionRow({
                                                 disabled={isDisabled}
                                                 role={CONST.ROLE.BUTTON}
                                                 accessibilityLabel={CONST.ROLE.BUTTON}
+                                                style={[styles.ml2, styles.optionSelectCircle]}
                                             >
-                                                <SelectCircle isChecked={isSelected} />
+                                                <SelectCircle
+                                                    isChecked={isSelected}
+                                                    selectCircleStyles={styles.ml0}
+                                                />
                                             </PressableWithFeedback>
                                         )}
                                     </>
