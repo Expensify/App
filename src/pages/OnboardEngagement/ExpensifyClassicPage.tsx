@@ -47,7 +47,6 @@ function ExpensifyClassicModal() {
                         shouldOverlay
                         shouldShowBackButton
                         onBackButtonPress={navigateBack}
-                        iconFill={theme.iconColorfulBackground}
                     />
                     <View style={styles.pt10}>
                         <Icon
