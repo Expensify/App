@@ -4,8 +4,6 @@ import {ScrollView, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -34,9 +32,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID) ?? null, [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-
-    // We only want policy owners and admins to be able to modify the welcome message, but not in thread chat
-    const shouldDisableWelcomeMessage = ReportUtils.shouldDisableWelcomeMessage(report, linkedWorkspace);
 
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
@@ -164,14 +159,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             </View>
                         )}
                     </View>
-                    {!shouldDisableWelcomeMessage && (
-                        <MenuItem
-                            title={translate('welcomeMessagePage.welcomeMessage')}
-                            icon={Expensicons.ChatBubble}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WELCOME_MESSAGE.getRoute(reportID))}
-                            shouldShowRightIcon
-                        />
-                    )}
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
