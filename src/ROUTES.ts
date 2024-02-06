@@ -214,10 +214,6 @@ const ROUTES = {
         route: 'r/:reportID/settings/who-can-post',
         getRoute: (reportID: string) => `r/${reportID}/settings/who-can-post` as const,
     },
-    REPORT_WELCOME_MESSAGE: {
-        route: 'r/:reportID/welcomeMessage',
-        getRoute: (reportID: string) => `r/${reportID}/welcomeMessage` as const,
-    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
@@ -235,7 +231,7 @@ const ROUTES = {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title` as const,
     },
-    TASK_DESCRIPTION: {
+    REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
         getRoute: (reportID: string) => `r/${reportID}/description` as const,
     },
