@@ -740,11 +740,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={
-                                    !_.isUndefined(props.draftMessage)
-                                        ? null
-                                        : props.action.pendingAction ||
-                                          (props.action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : '') ||
-                                          lodashGet(props, 'iouReport.pendingFields.preview')
+                                    !_.isUndefined(props.draftMessage) ? null : props.action.pendingAction || (props.action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : '')
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(props.action, props.report.reportID)}
                                 errors={ErrorUtils.getLatestErrorMessageField(props.action)}
