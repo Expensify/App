@@ -99,7 +99,7 @@ function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingEx
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
         const currentRoute = routes[navigationState.index];
-        if (currentRoute && NAVIGATORS.BOTTOM_TAB_NAVIGATOR !== currentRoute.name) {
+        if (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
             return;
         }
 
