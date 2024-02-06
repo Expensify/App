@@ -8,9 +8,9 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +45,7 @@ function TimezoneInitialPage(props) {
         <ScreenWrapper testID={TimezoneInitialPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('timezonePage.timezone')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={styles.flex1}>
                 <View style={[styles.ph5]}>

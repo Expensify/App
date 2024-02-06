@@ -7,7 +7,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -22,6 +22,7 @@ function WorkspaceCardNoVBAView(props) {
         <Section
             title={props.translate('workspace.card.header')}
             icon={Illustrations.CreditCardsNew}
+            isCentralPane
         >
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.card.noVBACopy')}</Text>

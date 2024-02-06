@@ -6,7 +6,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 
 const propTypes = {
@@ -56,6 +56,7 @@ function WorkspaceCardVBAWithECardView(props) {
             title={props.translate('workspace.card.headerWithEcard')}
             icon={Illustrations.CreditCardsNew}
             menuItems={menuItems}
+            isCentralPane
         >
             <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>

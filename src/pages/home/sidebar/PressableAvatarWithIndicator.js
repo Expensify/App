@@ -52,13 +52,13 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
             onPress={showSettingsPage}
         >
             <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                 <AvatarWithIndicator
                     source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
-                    tooltipText={translate('common.settings')}
+                    tooltipText={translate('profilePage.profile')}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     isLoading={isLoading && !currentUserPersonalDetails.avatar}
                 />

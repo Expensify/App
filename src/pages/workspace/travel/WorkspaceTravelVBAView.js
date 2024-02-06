@@ -5,7 +5,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -20,6 +20,7 @@ function WorkspaceTravelVBAView(props) {
         <Section
             title={props.translate('workspace.travel.packYourBags')}
             icon={Illustrations.Luggage}
+            isCentralPane
             menuItems={[
                 {
                     title: props.translate('workspace.common.issueAndManageCards'),

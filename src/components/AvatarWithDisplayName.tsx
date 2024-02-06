@@ -1,17 +1,18 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -22,6 +23,9 @@ import Text from './Text';
 type AvatarWithDisplayNamePropsWithOnyx = {
     /** All of the actions of the report */
     parentReportActions: OnyxEntry<ReportActions>;
+
+    /** Personal details of all users */
+    personalDetails: OnyxCollection<PersonalDetails>;
 };
 
 type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
@@ -34,9 +38,6 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
     /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Personal details of all the users */
-    personalDetails: OnyxCollection<PersonalDetails>;
-
     /** Whether if it's an unauthenticated user */
     isAnonymous?: boolean;
 
@@ -45,13 +46,13 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
 };
 
 function AvatarWithDisplayName({
-    personalDetails,
     policy,
     report,
     parentReportActions,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
+    personalDetails = CONST.EMPTY_OBJECT,
 }: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -62,10 +63,9 @@ function AvatarWithDisplayName({
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report);
     const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
-    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : size;
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
@@ -111,14 +111,14 @@ function AvatarWithDisplayName({
                     <PressableWithoutFeedback
                         onPress={showActorDetails}
                         accessibilityLabel={title}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                     >
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
                                 backgroundColor={avatarBorderColor}
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
-                                size={defaultSubscriptSize}
+                                size={size}
                             />
                         ) : (
                             <MultipleAvatars
@@ -141,6 +141,7 @@ function AvatarWithDisplayName({
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                 parentReportID={report?.parentReportID}
+                                pressableStyles={[styles.alignSelfStart, styles.mw100]}
                             />
                         )}
                         {!!subtitle && (
@@ -166,7 +167,7 @@ function AvatarWithDisplayName({
             onPress={() => ReportUtils.navigateToDetailsPage(report)}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
         >
             {headerView}
         </PressableWithoutFeedback>
@@ -179,5 +180,8 @@ export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWi
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
 })(AvatarWithDisplayName);

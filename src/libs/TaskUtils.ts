@@ -1,8 +1,9 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Report} from '@src/types/onyx';
-import ReportAction from '@src/types/onyx/ReportAction';
+import type {Report} from '@src/types/onyx';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as Localize from './Localize';
 

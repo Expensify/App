@@ -1,13 +1,16 @@
 import React, {useCallback} from 'react';
-import {ImageStyle, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MessagesRow from './MessagesRow';
 
 /**
@@ -18,13 +21,13 @@ import MessagesRow from './MessagesRow';
 
 type OfflineWithFeedbackProps = ChildrenProps & {
     /** The type of action that's pending  */
-    pendingAction: OnyxCommon.PendingAction;
+    pendingAction?: OnyxCommon.PendingAction;
 
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | ReceiptErrors | null;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
@@ -56,11 +59,6 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
 
-function omitBy<T>(obj: Record<string, T> | undefined, predicate: (value: T) => boolean) {
-    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
-    return Object.fromEntries(Object.entries(obj ?? {}).filter(([_, value]) => !predicate(value)));
-}
-
 function OfflineWithFeedback({
     pendingAction,
     canDismissError = true,
@@ -80,10 +78,14 @@ function OfflineWithFeedback({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
-    const hasErrors = isNotEmptyObject(errors ?? {});
+    const hasErrors = !isEmptyObject(errors ?? {});
+
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorMessages = omitBy(errors, (e) => e === null);
-    const hasErrorMessages = isNotEmptyObject(errorMessages);
+    const errorEntries = Object.entries(errors ?? {});
+    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError] => errorEntry[1] !== null);
+    const errorMessages = Object.fromEntries(filteredErrorEntries);
+
+    const hasErrorMessages = !isEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -96,8 +98,8 @@ function OfflineWithFeedback({
      * This method applies the strikethrough to all the children passed recursively
      */
     const applyStrikeThrough = useCallback(
-        (childrenProp: React.ReactNode): React.ReactNode =>
-            React.Children.map(childrenProp, (child) => {
+        (childrenProp: React.ReactNode): React.ReactNode => {
+            const strikedThroughChildren = mapChildrenFlat(childrenProp, (child) => {
                 if (!React.isValidElement(child)) {
                     return child;
                 }
@@ -111,7 +113,10 @@ function OfflineWithFeedback({
                 }
 
                 return React.cloneElement(child, props);
-            }),
+            });
+
+            return strikedThroughChildren;
+        },
         [StyleUtils, styles],
     );
 
@@ -145,3 +150,4 @@ function OfflineWithFeedback({
 OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default OfflineWithFeedback;
+export type {OfflineWithFeedbackProps};

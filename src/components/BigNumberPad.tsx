@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
-import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
 
 type BigNumberPadProps = {
@@ -15,6 +15,9 @@ type BigNumberPadProps = {
 
     /** Used to locate this view from native classes. */
     id?: string;
+
+    /** Whether long press is disabled */
+    isLongPressDisabled: boolean;
 };
 
 const padNumbers = [
@@ -24,11 +27,11 @@ const padNumbers = [
     ['.', '0', '<'],
 ] as const;
 
-function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView'}: BigNumberPadProps) {
+function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView', isLongPressDisabled = false}: BigNumberPadProps) {
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
-    const [timer, setTimer] = useState<NodeJS.Timer | null>(null);
+    const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
     const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**
@@ -85,6 +88,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                 }}
+                                isLongPressDisabled={isLongPressDisabled}
                             />
                         );
                     })}

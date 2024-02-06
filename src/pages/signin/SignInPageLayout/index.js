@@ -3,15 +3,17 @@ import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from
 import {ScrollView, View} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
+import ImageSVG from '@components/ImageSVG';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
@@ -126,11 +128,13 @@ function SignInPageLayout(props) {
                                     isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
+                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                                 />
                             </View>
                             <View>
                                 <View style={[styles.t0, styles.l0, styles.h100, styles.pAbsolute, styles.signInPageGradient]}>
-                                    <SignInGradient
+                                    <ImageSVG
+                                        src={SignInGradient}
                                         height="100%"
                                         preserveAspectRatio="none"
                                     />
@@ -147,7 +151,7 @@ function SignInPageLayout(props) {
                                         customHeadline={props.customHeadline}
                                         customHeroBody={props.customHeroBody}
                                     />
-                                    <Footer scrollPageToTop={scrollPageToTop} />
+                                    <Footer navigateFocus={props.navigateFocus} />
                                 </View>
                             </View>
                         </View>
@@ -164,6 +168,7 @@ function SignInPageLayout(props) {
                             isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
+                            transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                         />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
@@ -177,7 +182,7 @@ function SignInPageLayout(props) {
                     </View>
                     <View style={[styles.flex0]}>
                         <Footer
-                            scrollPageToTop={scrollPageToTop}
+                            navigateFocus={props.navigateFocus}
                             shouldShowSmallScreen
                         />
                     </View>

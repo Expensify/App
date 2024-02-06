@@ -2,6 +2,8 @@
 title: Using the app
 description: Streamline expense management effortlessly with the Expensify mobile app. Learn how to install, enable push notifications, and use SmartScan to capture, categorize, and track expenses. Versatile for personal and business use, Expensify is a secure and automated solution for managing your finances on the go.
 ---
+
+<div id="expensify-classic" markdown="1">
 # Overview
 The Expensify mobile app is the ultimate expense management solution that makes it effortless to track and submit your receipts and expenses. Use the app to snap a picture of your receipts, categorize and submit expenses, and even review and approve expense reports.
 # How to install the Expensify app
@@ -9,7 +11,7 @@ To get started with Expensify on your mobile device, you need to download the ap
 1. Visit the App Store (iOS) or Google Play Store (Android).
 2. Search for "Expensify" and select the official Expensify app.
 3. Tap "Download" or "Install."
-   
+
 Once the app is installed, open it and log in with your Expensify credentials. If you don't have an Expensify account, you can create one during the sign-up process.
 # How to enable on push notifications
 Push notifications keep you informed about expense approvals, reimbursements, and more. To enable push notifications:
@@ -39,7 +41,9 @@ SmartScan's performance can vary depending on factors such as receipt quality, l
 **Receipt quality**: The clarity and condition of a receipt can impact SmartScan's accuracy. For best results, ensure your environment is well-lit and the receipt is straight and free of obstructions.
 **Language support**: While SmartScan supports multiple languages, its accuracy may differ from one language to another. Users dealing with non-English receipts should be aware of potential variations in data extraction.
 **Handwriting recognition**: Handwritten receipts might pose challenges for SmartScan. In such cases, manual verification may be necessary to ensure accurate data entry.
-# FAQ
+
+{% include faq-begin.md %}
+
 ## Can I use the mobile app for both personal and business expenses?
 Yes, you can use Expensify for personal and business expenses. It's versatile and suitable for both individual and corporate use. Check out our personal and business plans [here](https://www.expensify.com/pricing) to see what might be right for you.
 ## Is it possible to categorize and tag expenses on the mobile app?
@@ -50,3 +54,12 @@ If you experience issues, first make sure you’re using the most recent version
 Expensify takes security seriously and employs encryption and other security measures to protect your data. It's important to use strong, unique passwords and enable device security features like biometric authentication.
 ## Can I use the mobile app offline, and will my data sync when I'm back online?
 Yes, you can use the mobile app offline to capture receipts and create expenses. The app will sync your data once you have an internet connection.
+
+{% include faq-end.md %}
+</div>
+<div id="new-expensify" markdown="1">
+
+# Coming soon
+
+
+</div>

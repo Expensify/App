@@ -6,9 +6,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -58,7 +58,7 @@ function ChooseTransferAccountPage(props) {
                 title={props.translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
             />
-            <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
+            <View style={[styles.mt3, styles.flexShrink1, styles.flexBasisAuto]}>
                 <PaymentMethodList
                     onPress={selectAccountAndNavigateBack}
                     shouldShowSelectedState

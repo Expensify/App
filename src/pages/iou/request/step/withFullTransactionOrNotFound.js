@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -5,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import transactionPropTypes from '@components/transactionPropTypes';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
@@ -31,9 +33,13 @@ export default function (WrappedComponent) {
             transaction: {transactionID},
         } = props;
 
-        // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown
+        const isFocused = useIsFocused();
+
+        // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown.
+        // In addition, the not-found page should be shown only if the component screen's route is active (i.e. is focused).
+        // This is to prevent it from showing when the modal is being dismissed while navigating to a different route (e.g. on requesting money).
         if (!transactionID) {
-            return <FullPageNotFoundView shouldShow />;
+            return <FullPageNotFoundView shouldShow={isFocused} />;
         }
 
         return (
@@ -62,7 +68,11 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                const userAction = lodashGet(route, 'params.action', CONST.IOU.ACTION.CREATE);
+                return `${userAction === CONST.IOU.ACTION.CREATE ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            },
         },
     })(WithFullTransactionOrNotFoundWithRef);
 }

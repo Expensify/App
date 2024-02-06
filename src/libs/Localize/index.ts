@@ -1,11 +1,13 @@
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -96,12 +98,15 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
-type MaybePhraseKey = string | [string, Record<string, unknown> & {isTranslated?: true}] | [];
+type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: true}] | [];
 
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey(message: MaybePhraseKey): string {
+function translateIfPhraseKey(message: MaybePhraseKey): string;
+function translateIfPhraseKey(message: ReceiptError): ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError {
     if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }
@@ -121,15 +126,48 @@ function translateIfPhraseKey(message: MaybePhraseKey): string {
     }
 }
 
-/**
- * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
- */
-function arrayToString(anArray: string[]) {
+function getPreferredListFormat(): Intl.ListFormat {
     if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
         init();
     }
-    const listFormat = CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
-    return listFormat.format(anArray);
+
+    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+}
+
+/**
+ * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
+ */
+function formatList(components: string[]) {
+    const listFormat = getPreferredListFormat();
+    return listFormat.format(components);
+}
+
+function formatMessageElementList<E extends MessageElementBase>(elements: readonly E[]): ReadonlyArray<E | MessageTextElement> {
+    const listFormat = getPreferredListFormat();
+    const parts = listFormat.formatToParts(elements.map((e) => e.content));
+    const resultElements: Array<E | MessageTextElement> = [];
+
+    let nextElementIndex = 0;
+    for (const part of parts) {
+        if (part.type === 'element') {
+            /**
+             * The standard guarantees that all input elements will be present in the constructed parts, each exactly
+             * once, and without any modifications: https://tc39.es/ecma402/#sec-createpartsfromlist
+             */
+            const element = elements[nextElementIndex++];
+
+            resultElements.push(element);
+        } else {
+            const literalElement: MessageTextElement = {
+                kind: 'text',
+                content: part.value,
+            };
+
+            resultElements.push(literalElement);
+        }
+    }
+
+    return resultElements;
 }
 
 /**
@@ -139,5 +177,5 @@ function getDevicePreferredLocale(): string {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
 export type {PhraseParameters, Phrase, MaybePhraseKey};

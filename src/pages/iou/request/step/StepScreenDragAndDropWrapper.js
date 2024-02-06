@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The things to display inside the screenwrapper */
@@ -32,8 +32,9 @@ const defaultProps = {
 };
 
 function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}) {
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
     const styles = useThemeStyles();
+
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     if (!shouldShowWrapper) {
         return children;

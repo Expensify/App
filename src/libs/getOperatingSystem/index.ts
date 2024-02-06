@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import GetOperatingSystem from './types';
+import type GetOperatingSystem from './types';
 
 /**
  * Reads the current operating system when running on Web/Mobile-Web/Desktop

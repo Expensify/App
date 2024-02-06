@@ -13,12 +13,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -97,7 +97,7 @@ function TaskAssigneeSelectorModal(props) {
             false,
             {},
             [],
-            false,
+            true,
         );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));
@@ -177,31 +177,29 @@ function TaskAssigneeSelectorModal(props) {
         return sectionsList;
     }, [filteredCurrentUserOption, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, props]);
 
-    const selectReport = (option) => {
-        if (!option) {
-            return;
-        }
-
-        // Check to see if we're creating a new task
-        // If there's no route params, we're creating a new task
-        if (!props.route.params && option.accountID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
-            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
-            return Navigation.goBack(ROUTES.NEW_TASK);
-        }
-
-        // Check to see if we're editing a task and if so, update the assignee
-        if (report) {
-            if (option.accountID !== report.managerID) {
-                const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
-
-                // Pass through the selected assignee
-                Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+    const selectReport = useCallback(
+        (option) => {
+            if (!option) {
+                return;
             }
-            return Navigation.dismissModal(report.reportID);
-        }
-    };
+
+            // Check to see if we're editing a task and if so, update the assignee
+            if (report) {
+                if (option.accountID !== report.managerID) {
+                    const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, report.reportID, OptionsListUtils.isCurrentUser(option));
+
+                    // Pass through the selected assignee
+                    Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+                }
+                Navigation.dismissModalWithReport(report);
+                // If there's no report, we're creating a new task
+            } else if (option.accountID) {
+                Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+                Navigation.goBack(ROUTES.NEW_TASK);
+            }
+        },
+        [props.session.accountID, props.task.shareDestination, report],
+    );
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
@@ -221,7 +219,6 @@ function TaskAssigneeSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}

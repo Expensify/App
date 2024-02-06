@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 
@@ -15,15 +15,15 @@ function SignInButton() {
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-            onPress={Session.signOutAndRedirectToSignIn}
+            role={CONST.ROLE.BUTTON}
+            onPress={() => Session.signOutAndRedirectToSignIn()}
         >
             <View style={styles.signInButtonAvatar}>
                 <Button
                     medium
                     success
                     text={translate('common.signIn')}
-                    onPress={Session.signOutAndRedirectToSignIn}
+                    onPress={() => Session.signOutAndRedirectToSignIn()}
                 />
             </View>
         </PressableWithoutFeedback>

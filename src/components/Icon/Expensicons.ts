@@ -25,8 +25,11 @@ import Building from '@assets/images/building.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import Car from '@assets/images/car.svg';
+import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
+import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
 import Checkmark from '@assets/images/checkmark.svg';
@@ -51,10 +54,11 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
+import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
+import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
-import ExpensifyCard from '@assets/images/expensifycard.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Flag from '@assets/images/flag.svg';
@@ -67,6 +71,7 @@ import Globe from '@assets/images/globe.svg';
 import Hashtag from '@assets/images/hashtag.svg';
 import Heart from '@assets/images/heart.svg';
 import History from '@assets/images/history.svg';
+import Home from '@assets/images/home.svg';
 import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
@@ -86,6 +91,7 @@ import Menu from '@assets/images/menu.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import Monitor from '@assets/images/monitor.svg';
+import NewExpensify from '@assets/images/new-expensify.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -104,6 +110,7 @@ import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
+import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
@@ -117,6 +124,7 @@ import Youtube from '@assets/images/social-youtube.svg';
 import Sync from '@assets/images/sync.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
+import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -126,6 +134,7 @@ import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
+import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
 import LoungeAccess from './svgs/LoungeAccessIcon';
 
@@ -140,6 +149,7 @@ export {
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
+    Wrench,
     BackArrow,
     Bank,
     Bill,
@@ -152,6 +162,7 @@ export {
     Calendar,
     Camera,
     Car,
+    CardsAndDomains,
     Cash,
     ChatBubble,
     ChatBubbles,
@@ -180,6 +191,7 @@ export {
     EmptyStateAttachReceipt,
     Exclamation,
     Exit,
+    ExpensifyAppIcon,
     ExpensifyCard,
     ExpensifyWordmark,
     ExpensifyFooterLogo,
@@ -200,6 +212,7 @@ export {
     Hashtag,
     Heart,
     History,
+    Home,
     Hourglass,
     ImageCropCircleMask,
     ImageCropSquareMask,
@@ -220,6 +233,7 @@ export {
     MoneyBag,
     MoneyCircle,
     Monitor,
+    NewExpensify,
     NewWindow,
     NewWorkspace,
     Offline,
@@ -238,10 +252,12 @@ export {
     ReceiptSearch,
     Rotate,
     RotateLeft,
+    Scan,
     Send,
     Shield,
     Sync,
     Task,
+    ThumbsUp,
     ThreeDots,
     Transfer,
     Trashcan,
@@ -260,4 +276,6 @@ export {
     Podcast,
     Linkedin,
     Instagram,
+    ChatBubbleAdd,
+    ChatBubbleUnread,
 };

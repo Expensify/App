@@ -1,4 +1,4 @@
-import HapticFeedback from './types';
+import type HapticFeedback from './types';
 
 /**
  * Web does not support Haptic feedback

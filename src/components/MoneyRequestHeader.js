@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as HeaderUtils from '@libs/HeaderUtils';
@@ -13,7 +14,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,7 @@ import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import participantPropTypes from './participantPropTypes';
+import {usePersonalDetails} from './OnyxProvider';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
@@ -34,9 +34,6 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }),
-
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     /* Onyx Props */
     /** Session info for the currently logged in user. */
@@ -65,7 +62,8 @@ const defaultProps = {
     policy: {},
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}) {
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -100,7 +98,16 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             threeDotsMenuItems.push({
                 icon: Expensicons.Receipt,
                 text: translate('receipt.addReceipt'),
-                onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                onSelected: () =>
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.REQUEST,
+                            transaction.transactionID,
+                            report.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    ),
             });
         }
         threeDotsMenuItems.push({

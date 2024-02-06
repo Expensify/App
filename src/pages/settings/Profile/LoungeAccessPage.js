@@ -5,11 +5,11 @@ import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import userPropTypes from '@pages/settings/userPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -36,8 +36,9 @@ function LoungeAccessPage(props) {
     return (
         <IllustratedHeaderPageLayout
             title={translate('loungeAccessPage.loungeAccess')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            onBackButtonPress={() => Navigation.goBack(ROUTES)}
             illustration={LottieAnimations.ExpensifyLounge}
+            testID={LoungeAccessPage.displayName}
         >
             <Text
                 style={[styles.flex1, styles.ph5, styles.textHeadline, styles.preWrap, styles.mb2]}

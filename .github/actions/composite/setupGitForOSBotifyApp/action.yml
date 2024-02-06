@@ -60,6 +60,11 @@ runs:
       if: runner.debug == '1'
       run: echo "GIT_TRACE=true" >> "$GITHUB_ENV"
 
+    - name: Sync clock
+      shell: bash
+      run: sudo sntp -sS time.windows.com
+      if: runner.os == 'macOS'
+
     - name: Generate a token
       id: generateToken
       uses: actions/create-github-app-token@9d97a4282b2c51a2f4f0465b9326399f53c890d4

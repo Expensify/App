@@ -2,7 +2,8 @@
 // If we update our react native version, we need to test this file again
 import Geolocation from '@react-native-community/geolocation';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
-import {GeolocationErrorCode, GetCurrentPosition} from './getCurrentPosition.types';
+import type {GetCurrentPosition} from './getCurrentPosition.types';
+import {GeolocationErrorCode} from './getCurrentPosition.types';
 
 Geolocation.setRNConfiguration({
     skipPermissionRequests: false,
