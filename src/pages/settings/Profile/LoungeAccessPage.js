@@ -38,6 +38,7 @@ function LoungeAccessPage(props) {
             title={translate('loungeAccessPage.loungeAccess')}
             onBackButtonPress={() => Navigation.goBack(ROUTES)}
             illustration={LottieAnimations.ExpensifyLounge}
+            testID={LoungeAccessPage.displayName}
         >
             <Text
                 style={[styles.flex1, styles.ph5, styles.textHeadline, styles.preWrap, styles.mb2]}
