@@ -174,10 +174,14 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
             testID={SearchPage.displayName}
             onEntryTransitionEnd={updateOptions}
             navigation={navigation}
+            shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')} />
+                    <HeaderWithBackButton
+                        title={translate('common.search')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
                     <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
