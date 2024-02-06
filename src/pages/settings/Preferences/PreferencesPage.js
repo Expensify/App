@@ -57,6 +57,7 @@ function PreferencesPage(props) {
             shouldShowBackButton={isSmallScreenWidth}
             shouldShowOfflineIndicatorInWideScreen
             icon={Illustrations.Gears}
+            testID={PreferencesPage.displayName}
         >
             <View style={styles.mb6}>
                 <Text

@@ -134,6 +134,7 @@ function AboutPage() {
             overlayContent={overlayContent}
             shouldShowOfflineIndicatorInWideScreen
             icon={Illustrations.PalmTree}
+            testID={AboutPage.displayName}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
                 <Text style={[styles.textHeadline, styles.mb1]}>{translate('footer.aboutExpensify')}</Text>

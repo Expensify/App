@@ -79,7 +79,7 @@ function HeaderWithBackButton({
                 styles.headerBar,
                 isCentralPaneSettings && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton ? styles.pl0 : styles.pl5,
+                shouldShowBackButton && styles.pl2,
                 shouldOverlay && StyleSheet.absoluteFillObject,
             ]}
         >
@@ -98,7 +98,7 @@ function HeaderWithBackButton({
                                     onBackButtonPress();
                                 }
                             }}
-                            style={[styles.LHNToggle]}
+                            style={[styles.touchableButtonImage]}
                             role="button"
                             accessibilityLabel={translate('common.back')}
                             nativeID={CONST.BACK_BUTTON_NATIVE_ID}
