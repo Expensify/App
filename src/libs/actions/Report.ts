@@ -1832,7 +1832,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
         return;
     }
 
-    const optimisticRenamedAction = ReportUtils.buildOptimisticRenamedReportAction(policyRoomName, previousName ?? '');
+    const optimisticRenamedAction = ReportUtils.buildOptimisticRenamedRoomReportAction(policyRoomName, previousName ?? '');
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1890,7 +1890,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
     const parameters: UpdatePolicyRoomNameParams = {
         reportID,
         policyRoomName,
-        renamedReportActionID: optimisticRenamedAction.reportActionID,
+        renamedRoomReportActionID: optimisticRenamedAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME, parameters, {optimisticData, successData, failureData});

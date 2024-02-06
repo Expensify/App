@@ -3374,9 +3374,9 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
 }
 
 /**
- * Returns the necessary reportAction onyx data to indicate that the report has been renamed
+ * Returns the necessary reportAction onyx data to indicate that the room has been renamed
  */
-function buildOptimisticRenamedReportAction(newName: string, oldName: string): OptimisticRenamedReportAction {
+function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string): OptimisticRenamedReportAction {
     const now = DateUtils.getDBTime();
     return {
         reportActionID: NumberUtils.rand64(),
@@ -4879,7 +4879,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
-    buildOptimisticRenamedReportAction,
+    buildOptimisticRenamedRoomReportAction,
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
