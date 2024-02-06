@@ -97,7 +97,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                     </TextLink>
                 </Text>
                 <View style={[styles.ph5, styles.mtAuto]}>
-                    {error.length > 0 && (
+                    {error && error.length > 0 && (
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
                             type="error"
