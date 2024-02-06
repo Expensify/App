@@ -1053,28 +1053,35 @@ function getUpdateMoneyRequestParams(
         // Should only update if the transaction matches the currency of the report, else we wait for the update
         // from the server with the currency conversion
         let updatedMoneyRequestReport = {...iouReport};
-        if (updatedTransaction?.currency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
-            const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
-            if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-                updatedMoneyRequestReport.total += diff;
-            } else {
-                updatedMoneyRequestReport = iouReport
-                    ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
-                    : {};
-            }
-
-            updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                value: updatedMoneyRequestReport,
-            });
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                value: {pendingAction: null},
-            });
+        let diff = 0;
+        const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+        const updatedCurrency = TransactionUtils.getCurrency(updatedTransaction);
+        const currentCurrency = TransactionUtils.getCurrency(transaction);
+        if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
+            diff = TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
+        } else if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
+            diff = -TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
+        } else if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
+            diff = TransactionUtils.getAmount(updatedTransaction, isExpenseReport) - TransactionUtils.getAmount(transaction, isExpenseReport);
         }
+        if (isExpenseReport && typeof updatedMoneyRequestReport.total === 'number') {
+            updatedMoneyRequestReport.total += diff;
+        } else {
+            updatedMoneyRequestReport = iouReport
+                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(updatedTransaction), false)
+                : {};
+        }
+        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: updatedMoneyRequestReport,
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {pendingAction: null},
+        });
     }
 
     // Optimistically modify the transaction
