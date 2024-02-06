@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -94,21 +95,23 @@ function ManageTeamsExpensesModal() {
                         shouldUseSingleExecution
                     />
                 </ScrollView>
-                <View style={[styles.flexRow, styles.ph5, styles.pv4]}>
-                    <Button
-                        medium={isExtraSmallScreenHeight}
-                        style={[styles.flexGrow1, styles.mr1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        text={translate('common.no')}
-                        onPress={completeEngagement}
-                    />
-                    <Button
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        style={[styles.flexGrow1, styles.ml1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        text={translate('common.yes')}
-                        onPress={navigateToExpensifyClassicPage}
-                    />
-                </View>
+                <FixedFooter>
+                    <View style={[styles.flexRow, styles.ph5]}>
+                        <Button
+                            medium={isExtraSmallScreenHeight}
+                            style={[styles.flexGrow1, styles.mr1, styles.mtAuto]}
+                            text={translate('common.no')}
+                            onPress={completeEngagement}
+                        />
+                        <Button
+                            pressOnEnter
+                            medium={isExtraSmallScreenHeight}
+                            style={[styles.flexGrow1, styles.ml1, styles.mtAuto]}
+                            text={translate('common.yes')}
+                            onPress={navigateToExpensifyClassicPage}
+                        />
+                    </View>
+                </FixedFooter>
             </View>
         </ScreenWrapper>
     );
