@@ -51,6 +51,7 @@ function FormWrapper({
     formID,
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
+    disablePressOnEnter = true,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<ScrollView>(null);
@@ -109,7 +110,7 @@ function FormWrapper({
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
-                        disablePressOnEnter
+                        disablePressOnEnter={disablePressOnEnter}
                     />
                 )}
             </FormSubmit>
@@ -134,6 +135,7 @@ function FormWrapper({
             submitButtonText,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,
+            disablePressOnEnter,
         ],
     );
 
