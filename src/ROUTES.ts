@@ -156,6 +156,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: 'settings/troubleshoot/console',
+    SETTINGS_SHARE_LOG: 'settings/troubleshoot/console/share-log',
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 

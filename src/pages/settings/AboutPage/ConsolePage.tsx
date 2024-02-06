@@ -66,6 +66,10 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
         localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), 'File was saved in your Downloads folder.');
     };
 
+    const shareLogs = () => {
+        Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG);
+    };
+
     return (
         <ScreenWrapper testID={ConsolePage.displayName}>
             <HeaderWithBackButton
@@ -96,7 +100,7 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 />
                 <Button
                     text={translate('initialSettingsPage.debugConsole.shareLog')}
-                    onPress={() => {}}
+                    onPress={shareLogs}
                     icon={Expensicons.UploadAlt}
                     style={[styles.flex1, styles.ml1]}
                 />
