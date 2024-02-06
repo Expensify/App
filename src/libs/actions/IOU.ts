@@ -1184,7 +1184,14 @@ function getUpdateMoneyRequestParams(
     if (policy?.id && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, !!policy.requiresTag, policyTags ?? {}, !!policy.requiresCategory, policyCategories ?? {}),
+            ViolationsUtils.getViolationsOnyxData(
+                updatedTransaction,
+                currentTransactionViolations,
+                !!policy.requiresTag,
+                policyTags ?? {},
+                !!policy.requiresCategory,
+                policyCategories ?? {},
+            ),
         );
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
