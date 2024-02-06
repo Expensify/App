@@ -28,7 +28,6 @@ describe('libs/NextStepUtils', () => {
             role: 'admin',
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
-            areChatRoomsEnabled: true,
             isPolicyExpenseChatEnabled: true,
         };
         const optimisticNextStep: ReportNextStep = {
