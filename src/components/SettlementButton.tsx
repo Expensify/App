@@ -49,7 +49,7 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     chatReportID?: string;
 
     /** The IOU/Expense report we are paying */
-    iouReport?: OnyxEntry<Report> | Report | EmptyObject;
+    iouReport?: OnyxEntry<Report> | EmptyObject;
 
     /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
