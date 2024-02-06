@@ -122,7 +122,7 @@ function setLocale(locale: Locale) {
 
 function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
-    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack();
 }
 
 function setSidebarLoaded() {
@@ -504,6 +504,10 @@ function handleRestrictedEvent(eventName: string) {
     API.write(WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT, parameters);
 }
 
+function updateLastVisitedPath(path: string) {
+    Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, path);
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -521,4 +525,5 @@ export {
     finalReconnectAppAfterActivatingReliableUpdates,
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
+    updateLastVisitedPath,
 };
