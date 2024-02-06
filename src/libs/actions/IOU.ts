@@ -3075,7 +3075,7 @@ function getSendMoneyParams(
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : '',
+            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : '0',
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
         },
         optimisticData,
