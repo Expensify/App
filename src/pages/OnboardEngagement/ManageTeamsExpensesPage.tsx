@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,15 +26,15 @@ const menuIcons = {
 };
 
 // This is not translated because it is a message coming from concierge, which only supports english
-const messageCopy = 
-        "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
-        '\n' +
-        '1. Press your avatar icon\n' +
-        '2. Choose Workspaces\n' +
-        '3. Choose New Workspace\n' +
-        '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
-        '\n' +
-        'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!'
+const messageCopy =
+    "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
+    '\n' +
+    '1. Press your avatar icon\n' +
+    '2. Choose Workspaces\n' +
+    '3. Choose New Workspace\n' +
+    '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
+    '\n' +
+    'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!';
 
 function ManageTeamsExpensesModal() {
     const styles = useThemeStyles();
