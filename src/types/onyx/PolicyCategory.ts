@@ -1,3 +1,5 @@
+import type * as OnyxCommon from './OnyxCommon';
+
 type PolicyCategory = {
     /** Name of a category */
     name: string;
@@ -17,6 +19,8 @@ type PolicyCategory = {
 
     /** The external accounting service that this category comes from */
     origin: string;
+
+    errors?: OnyxCommon.Errors;
 };
 
 type PolicyCategories = Record<string, PolicyCategory>;
