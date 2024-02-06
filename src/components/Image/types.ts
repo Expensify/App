@@ -10,6 +10,13 @@ type ImageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
+type ImageOnLoadEvent = {
+    nativeEvent: {
+        width: number;
+        height: number;
+    };
+};
+
 type ImageOwnProps = {
     /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
@@ -33,12 +40,7 @@ type ImageOwnProps = {
     onError?: () => void;
 
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
-    onLoad?: (event: {
-        nativeEvent: {
-            width: number;
-            height: number;
-        };
-    }) => void;
+    onLoad?: (event: ImageOnLoadEvent) => void;
 
     /** Progress events while the image is downloading */
     onProgress?: () => void;
@@ -46,12 +48,4 @@ type ImageOwnProps = {
 
 type ImageProps = ImageOnyxProps & ImageOwnProps;
 
-export type {ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource};
-type BaseImageProps = {
-    /** Event called with image dimensions when image is loaded */
-    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
-};
-
-export type {BaseImageProps};
-
-export default BaseImageProps;
+export type {ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource, ImageOnLoadEvent};
