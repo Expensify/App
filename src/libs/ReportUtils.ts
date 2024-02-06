@@ -1945,7 +1945,8 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
-    const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
+    const payerOrApproverName =
+        isExpenseReport(report) && !hasNonReimbursableTransactions(report?.reportID ?? '') ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
@@ -2248,9 +2249,10 @@ function getReportPreviewMessage(
         }
     }
 
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
-    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+    const payerName = isExpenseReport(report) && !containsNonReimbursable ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
