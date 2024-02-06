@@ -13,7 +13,7 @@ import type {
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as Routes} from '@src/ROUTES';
+import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -422,7 +422,7 @@ type PublicScreensParamList = {
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
-        exitTo?: Routes;
+        exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
