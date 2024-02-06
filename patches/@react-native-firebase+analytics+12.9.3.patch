@@ -1,0 +1,18 @@
+diff --git a/node_modules/@react-native-firebase/analytics/android/build.gradle b/node_modules/@react-native-firebase/analytics/android/build.gradle
+index d223ebf..821b730 100644
+--- a/node_modules/@react-native-firebase/analytics/android/build.gradle
++++ b/node_modules/@react-native-firebase/analytics/android/build.gradle
+@@ -45,6 +45,8 @@ if (coreVersionDetected != coreVersionRequired) {
+   }
+ }
+ 
++apply plugin: 'com.android.library'
++
+ project.ext {
+   set('react-native', [
+     versions: [
+@@ -144,4 +146,3 @@ dependencies {
+ ReactNative.shared.applyPackageVersion()
+ ReactNative.shared.applyDefaultExcludes()
+ ReactNative.module.applyAndroidVersions()
+-ReactNative.module.applyReactNativeDependency("api")
