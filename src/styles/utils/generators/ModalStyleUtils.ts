@@ -1,10 +1,10 @@
-import {ViewStyle} from 'react-native';
-import {ModalProps} from 'react-native-modal';
-import {ValueOf} from 'type-fest';
-import {ThemeStyles} from '@styles/index';
+import type {ViewStyle} from 'react-native';
+import type {ModalProps} from 'react-native-modal';
+import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import StyleUtilGenerator from './types';
+import type ModalType from '@src/types/utils/ModalType';
+import type StyleUtilGenerator from './types';
 
 function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
     const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
@@ -14,8 +14,6 @@ function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmal
         width: isSmallScreenWidth ? '100%' : windowWidth - modalStyles.marginHorizontal * 2,
     };
 }
-
-type ModalType = ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 
 type WindowDimensions = {
     windowWidth: number;

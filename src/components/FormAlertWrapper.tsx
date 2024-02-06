@@ -1,8 +1,10 @@
-import React, {ReactNode} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {ReactNode} from 'react';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Network from '@src/types/onyx/Network';
+import type Network from '@src/types/onyx/Network';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import RenderHTML from './RenderHTML';
@@ -26,7 +28,7 @@ type FormAlertWrapperProps = {
     isMessageHtml?: boolean;
 
     /** Error message to display above button */
-    message?: string;
+    message?: string | null;
 
     /** Props to detect online status */
     network: Network;

@@ -1,11 +1,13 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Header from './Header';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
 
 type BreadcrumbHeader = {
@@ -41,7 +43,9 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                 <View style={styles.breadcrumbLogo}>
                     <Header
                         title={
-                            <LogoComponent
+                            <ImageSVG
+                                contentFit="contain"
+                                src={LogoComponent}
                                 fill={theme.text}
                                 width={variables.lhnLogoWidth}
                                 height={variables.lhnLogoHeight}

@@ -14,6 +14,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
@@ -56,10 +57,12 @@ function DistanceEReceipt({transaction}) {
                 contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
             >
                 <View style={styles.eReceiptPanel}>
-                    <EReceiptBackground
+                    <ImageSVG
+                        src={EReceiptBackground}
                         style={styles.eReceiptBackground}
                         pointerEvents="none"
                     />
+
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
                         {isOffline || !thumbnailSource ? (
                             <PendingMapView />
@@ -94,7 +97,7 @@ function DistanceEReceipt({transaction}) {
                                 >
                                     <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
                                     {waypoint.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
-                                    {waypoint.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
+                                    {waypoint.address && <Text style={styles.eReceiptGuaranteed}>{waypoint.address}</Text>}
                                 </View>
                             );
                         })}

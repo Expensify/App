@@ -88,8 +88,16 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
         ];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
+        if (values.companyName && !ValidationUtils.isValidCompanyName(values.companyName)) {
+            errors.companyName = 'bankAccount.error.companyName';
+        }
+
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'bankAccount.error.addressStreet';
+        }
+
+        if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
+            errors.addressCity = 'bankAccount.error.addressCity';
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
@@ -154,7 +162,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 onBackButtonPress={onBackButtonPress}
             />
             <FormProvider
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled

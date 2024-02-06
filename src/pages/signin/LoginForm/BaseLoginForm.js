@@ -28,6 +28,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -91,6 +92,8 @@ const defaultProps = {
     isInModal: false,
 };
 
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+
 function LoginForm(props) {
     const styles = useThemeStyles();
     const input = useRef();
@@ -99,6 +102,7 @@ function LoginForm(props) {
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
+    const isLoading = useRef(false);
 
     const {translate} = props;
 
@@ -165,9 +169,10 @@ function LoginForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (props.network.isOffline || props.account.isLoading) {
+        if (props.network.isOffline || props.account.isLoading || isLoading.current) {
             return;
         }
+        isLoading.current = true;
 
         // If account was closed and have success message in Onyx, we clear it here
         if (!_.isEmpty(props.closeAccount.success)) {
@@ -181,6 +186,7 @@ function LoginForm(props) {
         }
 
         if (!validate(login)) {
+            isLoading.current = false;
             return;
         }
 
@@ -220,6 +226,13 @@ function LoginForm(props) {
     }, []);
 
     useEffect(() => {
+        if (props.account.isLoading !== false) {
+            return;
+        }
+        isLoading.current = false;
+    }, [props.account.isLoading]);
+
+    useEffect(() => {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
@@ -234,6 +247,15 @@ function LoginForm(props) {
     useImperativeHandle(props.innerRef, () => ({
         isInputFocused() {
             return input.current && input.current.isFocused();
+        },
+        clearDataAndFocus(clearLogin = true) {
+            if (!input.current) {
+                return;
+            }
+            if (clearLogin) {
+                Session.clearSignInData();
+            }
+            input.current.focus();
         },
     }));
 
@@ -257,13 +279,24 @@ function LoginForm(props) {
                     textContentType="username"
                     id="username"
                     name="username"
-                    onBlur={() => {
-                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                            return;
-                        }
-                        firstBlurred.current = true;
-                        validate(login);
-                    }}
+                    testID="username"
+                    onBlur={
+                        // As we have only two signin buttons (Apple/Google) other than the text input,
+                        // for natives onBlur is called only when the buttons are pressed and we don't need
+                        // to validate in those case as the user has opted for other signin flow.
+                        willBlurTextInputOnTapOutside
+                            ? () =>
+                                  // This delay is to avoid the validate being called before google iframe is rendered to
+                                  // avoid error message appearing after pressing google signin button.
+                                  setTimeout(() => {
+                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                          return;
+                                      }
+                                      firstBlurred.current = true;
+                                      validate(login);
+                                  }, 500)
+                            : undefined
+                    }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
@@ -313,10 +346,10 @@ function LoginForm(props) {
                                     </Text>
 
                                     <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <AppleSignIn />
                                         </View>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <GoogleSignIn />
                                         </View>
                                     </View>

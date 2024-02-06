@@ -1,6 +1,7 @@
 import React, {createContext, useMemo} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as LocaleDigitUtils from '@libs/LocaleDigitUtils';
@@ -8,9 +9,10 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
@@ -43,7 +45,7 @@ type LocaleContextProps = {
 
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
-    formatPhoneNumber: (phoneNumber: string) => string;
+    formatPhoneNumber: (phoneNumber: string | undefined) => string;
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: (digit: string) => string;
