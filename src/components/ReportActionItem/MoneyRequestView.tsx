@@ -376,6 +376,7 @@ function MoneyRequestView({
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
                             }
                             brickRoadIndicator={getErrorForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={getErrorForField('tag')}
                         />
                     </OfflineWithFeedback>
                 )}
