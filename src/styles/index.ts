@@ -415,6 +415,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        fontWeightNormal: {
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -1810,6 +1814,12 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        renderHTML: {
             maxWidth: '100%',
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
