@@ -28,14 +28,11 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 type TaskViewOnyxProps = {
     /** All of the personal details for everyone */
     personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** The policy for the current route */
-    policy: Pick<Policy, 'role'> | null;
 };
 
 type TaskViewProps = TaskViewOnyxProps &
@@ -47,7 +44,7 @@ type TaskViewProps = TaskViewOnyxProps &
         shouldShowHorizontalRule: boolean;
     };
 
-function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskViewProps) {
+function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     useEffect(() => {
@@ -61,7 +58,7 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
     );
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, policy?.role);
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -145,7 +142,7 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
                         shouldParseTitle
                         description={translate('task.description')}
                         title={report.description ?? ''}
-                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -198,13 +195,6 @@ TaskView.displayName = 'TaskView';
 const TaskViewWithOnyx = withOnyx<TaskViewProps, TaskViewOnyxProps>({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    policy: {
-        key: ({report}) => {
-            const rootParentReport = ReportUtils.getRootParentReport(report);
-            return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-        },
-        selector: (policy: OnyxEntry<Policy>) => (policy ? {role: policy.role} : null),
     },
 })(TaskView);
 
