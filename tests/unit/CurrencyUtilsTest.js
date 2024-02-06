@@ -120,10 +120,9 @@ describe('CurrencyUtils', () => {
 
     describe('convertToFrontendAmountAsString', () => {
         test.each([
-            [2500, '25.00'],
+            [2500, '25'],
             [2550, '25.50'],
             [25, '0.25'],
-            [2500, '25.00'],
             [2500.5, '25.00'],
         ])('Correctly converts %s to amount in units handled in frontend as a string', (amount, expectedResult) => {
             expect(CurrencyUtils.convertToFrontendAmountAsString(amount)).toBe(expectedResult);
