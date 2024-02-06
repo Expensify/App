@@ -156,6 +156,7 @@ function MoneyRequestView({
                 Navigation.dismissModal();
                 return;
             }
+            // @ts-expect-error: the type used across the app for policyTags is not what is returned by Onyx, PolicyTagList represents that, but existing policy tag utils need a refactor to fix this
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
