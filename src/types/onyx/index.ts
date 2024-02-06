@@ -11,6 +11,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {
     AddDebitCardForm,
+    CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
     IKnowATeacherForm,
@@ -18,6 +19,7 @@ import type {
     NewRoomForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    RoomNameForm,
     WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
@@ -26,6 +28,7 @@ import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
 import type IOU from './IOU';
+import type LastPaymentMethod from './LastPaymentMethod';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -92,6 +95,7 @@ export type {
     Credentials,
     Currency,
     CustomStatusDraft,
+    CloseAccountForm,
     DateOfBirthForm,
     Download,
     Form,
@@ -158,9 +162,11 @@ export type {
     PolicyReportField,
     PolicyReportFields,
     RecentlyUsedReportFields,
+    LastPaymentMethod,
     NewRoomForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    RoomNameForm,
 };

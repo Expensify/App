@@ -8,7 +8,7 @@ import type {OnyxCollectionKey, OnyxKey} from '@src/ONYXKEYS';
  * @param mapping Same as for Onyx.connect()
  * @return Unsubscribe callback
  */
-function onyxSubscribe<TKey extends OnyxKey | OnyxCollectionKey>(mapping: ConnectOptions<TKey>) {
+function onyxSubscribe<TKey extends OnyxKey | OnyxCollectionKey | `${OnyxCollectionKey}${string}`>(mapping: ConnectOptions<TKey>) {
     const connectionId = Onyx.connect(mapping);
     return () => Onyx.disconnect(connectionId);
 }
