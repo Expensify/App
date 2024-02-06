@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -51,7 +51,8 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(exitTo);
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                Navigation.navigate(url);
             });
         }
         // The only dependencies of the effect are based on props.route
