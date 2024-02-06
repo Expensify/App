@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -19,7 +19,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -103,6 +105,7 @@ function IOURequestStepConfirmation({
         [transaction.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
         if (!transaction || !transaction.originalCurrency) {
@@ -170,7 +173,7 @@ function IOURequestStepConfirmation({
      * @param {File} [receiptObj]
      */
     const requestMoney = useCallback(
-        (selectedParticipants, trimmedComment, receiptObj) => {
+        (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
             IOU.requestMoney(
                 report,
                 transaction.amount,
@@ -190,6 +193,7 @@ function IOURequestStepConfirmation({
                 policy,
                 policyTags,
                 policyCategories,
+                gpsPoints,
             );
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
@@ -224,6 +228,13 @@ function IOURequestStepConfirmation({
     const createTransaction = useCallback(
         (selectedParticipants) => {
             const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
+
+            // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
+            if (formHasBeenSubmitted.current) {
+                return;
+            }
+
+            formHasBeenSubmitted.current = true;
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
@@ -278,7 +289,26 @@ function IOURequestStepConfirmation({
             }
 
             if (receiptFile) {
-                requestMoney(selectedParticipants, trimmedComment, receiptFile);
+                getCurrentPosition(
+                    (successData) => {
+                        requestMoney(selectedParticipants, trimmedComment, receiptFile, {
+                            lat: successData.coords.latitude,
+                            long: successData.coords.longitude,
+                        });
+                    },
+                    (errorData) => {
+                        Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        requestMoney(selectedParticipants, trimmedComment, receiptFile);
+                    },
+                    {
+                        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                        maximumAge: 1000 * 60 * 60,
+
+                        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+                        timeout: 15000,
+                    },
+                );
                 return;
             }
 
