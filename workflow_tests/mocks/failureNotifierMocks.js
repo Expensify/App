@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-negated-variables */
 const utils = require('../utils/utils');
 
 // notifyfailure

@@ -1,6 +1,5 @@
 const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
 const assertions = require('./assertions/failureNotifierAssertions');
 const mocks = require('./mocks/failureNotifierMocks');
 const eAct = require('./utils/ExtendedAct');
@@ -15,7 +14,6 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 describe('test workflow failureNotifier', () => {
-    const githubToken = 'dummy_github_token';
     const actor = 'Dummy Actor';
     beforeEach(async () => {
         // create a local repository and copy required files
