@@ -13,6 +13,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
@@ -595,13 +596,19 @@ function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Checks if a report is an IOU report.
+ * Checks if a report is an IOU report using report or reportID
  */
 function isIOUReport(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
 
+/**
+ * Checks if a report is an IOU report using report
+ */
+function isIOUReportUsingReport(report: OnyxEntry<Report> | EmptyObject): report is Report {
+    return report?.type === CONST.REPORT.TYPE.IOU;
+}
 /**
  * Checks if a report is a task report.
  */
@@ -837,7 +844,7 @@ function isPublicAnnounceRoom(report: OnyxEntry<Report>): boolean {
  * If the report is a policy expense, the route should be for adding bank account for that policy
  * else since the report is a personal IOU, the route should be for personal bank account.
  */
-function getBankAccountRoute(report: OnyxEntry<Report>): string {
+function getBankAccountRoute(report: OnyxEntry<Report>): Route {
     return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', report?.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
 }
 
@@ -4947,6 +4954,7 @@ export {
     isValidReport,
     getReportDescriptionText,
     isReportFieldOfTypeTitle,
+    isIOUReportUsingReport,
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
