@@ -94,7 +94,7 @@ function ManageTeamsExpensesModal() {
                     />
                 </ScrollView>
                 <FixedFooter>
-                    <View style={[styles.flexRow, styles.ph5]}>
+                    <View style={styles.flexRow}>
                         <Button
                             medium={isExtraSmallScreenHeight}
                             style={[styles.flexGrow1, styles.mr1, styles.mtAuto]}
