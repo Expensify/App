@@ -4,10 +4,26 @@ import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxEntry} from 'react-native-onyx/lib/types';
 import * as API from '@libs/API';
+import type {
+    AddMembersToWorkspaceParams,
+    CreateWorkspaceFromIOUPaymentParams,
+    CreateWorkspaceParams,
+    DeleteMembersFromWorkspaceParams,
+    DeleteWorkspaceAvatarParams,
+    DeleteWorkspaceParams,
+    OpenDraftWorkspaceRequestParams,
+    OpenWorkspaceInvitePageParams,
+    OpenWorkspaceMembersPageParams,
+    OpenWorkspaceParams,
+    OpenWorkspaceReimburseViewParams,
+    UpdateWorkspaceAvatarParams,
+    UpdateWorkspaceCustomUnitAndRateParams,
+    UpdateWorkspaceGeneralSettingsParams,
+} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -22,6 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
@@ -277,13 +294,9 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
         });
     });
 
-    type DeleteWorkspaceParams = {
-        policyID: string;
-    };
-
     const params: DeleteWorkspaceParams = {policyID};
 
-    API.write('DeleteWorkspace', params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, failureData});
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
@@ -528,17 +541,12 @@ function removeMembers(accountIDs: number[], policyID: string) {
         });
     });
 
-    type DeleteMembersFromWorkspaceParams = {
-        emailList: string;
-        policyID: string;
-    };
-
     const params: DeleteMembersFromWorkspaceParams = {
         emailList: accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).join(','),
         policyID,
     };
 
-    API.write('DeleteMembersFromWorkspace', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -705,13 +713,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
         ...announceRoomMembers.onyxFailureData,
     ];
 
-    type AddMembersToWorkspaceParams = {
-        employees: string;
-        welcomeNote: string;
-        policyID: string;
-        reportCreationData?: string;
-    };
-
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
         welcomeNote: new ExpensiMark().replace(welcomeNote),
@@ -720,7 +721,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
     }
-    API.write('AddMembersToWorkspace', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -764,17 +765,12 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
         },
     ];
 
-    type UpdateWorkspaceAvatarParams = {
-        policyID: string;
-        file: File;
-    };
-
     const params: UpdateWorkspaceAvatarParams = {
         policyID,
         file,
     };
 
-    API.write('UpdateWorkspaceAvatar', params, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -819,13 +815,9 @@ function deleteWorkspaceAvatar(policyID: string) {
         },
     ];
 
-    type DeleteWorkspaceAvatarParams = {
-        policyID: string;
-    };
-
     const params: DeleteWorkspaceAvatarParams = {policyID};
 
-    API.write('DeleteWorkspaceAvatar', params, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -922,19 +914,13 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
         },
     ];
 
-    type UpdateWorkspaceGeneralSettingsParams = {
-        policyID: string;
-        workspaceName: string;
-        currency: string;
-    };
-
     const params: UpdateWorkspaceGeneralSettingsParams = {
         policyID,
         workspaceName: name,
         currency,
     };
 
-    API.write('UpdateWorkspaceGeneralSettings', params, {
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
         optimisticData,
         finallyData,
         failureData,
@@ -1054,21 +1040,14 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
     const {pendingAction, errors, ...newRates} = newCustomUnitParam.rates ?? {};
     newCustomUnitParam.rates = newRates;
 
-    type UpdateWorkspaceCustomUnitAndRate = {
-        policyID: string;
-        lastModified: number;
-        customUnit: string;
-        customUnitRate: string;
-    };
-
-    const params: UpdateWorkspaceCustomUnitAndRate = {
+    const params: UpdateWorkspaceCustomUnitAndRateParams = {
         policyID,
         lastModified,
         customUnit: JSON.stringify(newCustomUnitParam),
         customUnitRate: JSON.stringify(newCustomUnitParam.rates),
     };
 
-    API.write('UpdateWorkspaceCustomUnitAndRate', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT_AND_RATE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1215,10 +1194,10 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
                 makeMeAdmin,
             },
@@ -1276,10 +1255,10 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
             },
         },
@@ -1453,22 +1432,6 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         },
     ];
 
-    type CreateWorkspaceParams = {
-        policyID: string;
-        announceChatReportID: string;
-        adminsChatReportID: string;
-        expenseChatReportID: string;
-        ownerEmail: string;
-        makeMeAdmin: boolean;
-        policyName: string;
-        type: string;
-        announceCreatedReportActionID: string;
-        adminsCreatedReportActionID: string;
-        expenseCreatedReportActionID: string;
-        customUnitID: string;
-        customUnitRateID: string;
-    };
-
     const params: CreateWorkspaceParams = {
         policyID,
         announceChatReportID,
@@ -1485,7 +1448,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         customUnitRateID,
     };
 
-    API.write('CreateWorkspace', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     return adminsChatReportID;
 }
@@ -1516,13 +1479,9 @@ function openWorkspaceReimburseView(policyID: string) {
         },
     ];
 
-    type OpenWorkspaceReimburseViewParams = {
-        policyID: string;
-    };
-
     const params: OpenWorkspaceReimburseViewParams = {policyID};
 
-    API.read('OpenWorkspaceReimburseView', params, {successData, failureData});
+    API.read(READ_COMMANDS.OPEN_WORKSPACE_REIMBURSE_VIEW, params, {successData, failureData});
 }
 
 /**
@@ -1534,17 +1493,12 @@ function openWorkspace(policyID: string, clientMemberAccountIDs: number[]) {
         return;
     }
 
-    type OpenWorkspaceParams = {
-        policyID: string;
-        clientMemberAccountIDs: string;
-    };
-
     const params: OpenWorkspaceParams = {
         policyID,
         clientMemberAccountIDs: JSON.stringify(clientMemberAccountIDs),
     };
 
-    API.read('OpenWorkspace', params);
+    API.read(READ_COMMANDS.OPEN_WORKSPACE, params);
 }
 
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
@@ -1553,17 +1507,12 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
         return;
     }
 
-    type OpenWorkspaceMembersPageParams = {
-        policyID: string;
-        clientMemberEmails: string;
-    };
-
     const params: OpenWorkspaceMembersPageParams = {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
     };
 
-    API.read('OpenWorkspaceMembersPage', params);
+    API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
 }
 
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
@@ -1572,27 +1521,18 @@ function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[])
         return;
     }
 
-    type OpenWorkspaceInvitePageParams = {
-        policyID: string;
-        clientMemberEmails: string;
-    };
-
     const params: OpenWorkspaceInvitePageParams = {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
     };
 
-    API.read('OpenWorkspaceInvitePage', params);
+    API.read(READ_COMMANDS.OPEN_WORKSPACE_INVITE_PAGE, params);
 }
 
 function openDraftWorkspaceRequest(policyID: string) {
-    type OpenDraftWorkspaceRequestParams = {
-        policyID: string;
-    };
-
     const params: OpenDraftWorkspaceRequestParams = {policyID};
 
-    API.read('OpenDraftWorkspaceRequest', params);
+    API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
 }
 
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: Record<string, number>) {
@@ -1615,7 +1555,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
-function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category: string) {
+function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
     if (!policyID || !category) {
         return [];
     }
@@ -1625,7 +1565,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category:
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): RecentlyUsedTags {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, tag?: string): RecentlyUsedTags {
     if (!policyID || !tag) {
         return {};
     }
@@ -1648,9 +1588,9 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): R
  *
  * @returns policyID of the workspace we have created
  */
-function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
+function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string | undefined {
     // This flow only works for IOU reports
-    if (!ReportUtils.isIOUReport(iouReport)) {
+    if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
     }
 
@@ -1692,23 +1632,23 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
         owner: sessionEmail,
+        ownerAccountID: sessionAccountID,
         isPolicyExpenseChatEnabled: true,
 
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        areChatRoomsEnabled: true,
         customUnits,
     };
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: newWorkspace,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
                 [sessionAccountID]: {
@@ -1722,7 +1662,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1732,12 +1672,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: announceReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: {
                 pendingFields: {
@@ -1747,12 +1687,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: adminsReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1762,7 +1702,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: workspaceChatReportActionData,
         },
@@ -2054,26 +1994,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         value: {[movedReportAction.reportActionID]: null},
     });
 
-    type CreateWorkspaceFromIOUPayment = {
-        policyID: string;
-        announceChatReportID: string;
-        adminsChatReportID: string;
-        expenseChatReportID: string;
-        ownerEmail: string;
-        makeMeAdmin: boolean;
-        policyName: string;
-        type: string;
-        announceCreatedReportActionID: string;
-        adminsCreatedReportActionID: string;
-        expenseCreatedReportActionID: string;
-        customUnitID: string;
-        customUnitRateID: string;
-        iouReportID: string;
-        memberData: string;
-        reportActionID: string;
-    };
-
-    const params: CreateWorkspaceFromIOUPayment = {
+    const params: CreateWorkspaceFromIOUPaymentParams = {
         policyID,
         announceChatReportID,
         adminsChatReportID,
@@ -2092,7 +2013,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         reportActionID: movedReportAction.reportActionID,
     };
 
-    API.write('CreateWorkspaceFromIOUPayment', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
 
     return policyID;
 }
