@@ -176,8 +176,8 @@ type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
 };
 
-type ReportWelcomeMessageNavigatorParamList = {
-    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: {reportID: string};
+type ReportDescriptionNavigatorParamList = {
+    [SCREENS.REPORT_DESCRIPTION_ROOT]: {reportID: string};
 };
 
 type ParticipantsNavigatorParamList = {
@@ -288,7 +288,6 @@ type TeachersUniteNavigatorParamList = {
 
 type TaskDetailsNavigatorParamList = {
     [SCREENS.TASK.TITLE]: undefined;
-    [SCREENS.TASK.DESCRIPTION]: undefined;
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
     };
@@ -370,7 +369,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE]: NavigatorScreenParams<ReportWelcomeMessageNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
@@ -504,7 +503,7 @@ export type {
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     TaskDetailsNavigatorParamList,
-    ReportWelcomeMessageNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
     ParticipantsNavigatorParamList,
     RoomMembersNavigatorParamList,
     RoomInviteNavigatorParamList,

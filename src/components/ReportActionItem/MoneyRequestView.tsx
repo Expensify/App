@@ -305,8 +305,12 @@ function MoneyRequestView({
                                     ),
                                 )
                             }
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant && isPolicyExpenseChat) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={
+                                hasViolations('merchant') || (!isSettled && !isCancelled && hasErrors && isEmptyMerchant && isPolicyExpenseChat)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined
+                            }
+                            error={!isSettled && !isCancelled && hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
