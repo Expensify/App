@@ -1,9 +1,9 @@
-import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import type {AnimatedTextInputRef} from '@components/AnimatedMarkdownTextInput';
+import MarkdownTextInput from '@components/AnimatedMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
