@@ -3562,23 +3562,11 @@ function setMoneyRequestMerchant(merchant: string) {
     Onyx.merge(ONYXKEYS.IOU, {merchant: merchant.trim()});
 }
 
-<<<<<<< HEAD:src/libs/actions/IOU.js
 /**
  * @param {String} transactionID
  * @param {Object} taxRate
  */
 function setMoneyRequestTaxRate(transactionID, taxRate) {
-=======
-function setMoneyRequestCategory(category: string) {
-    Onyx.merge(ONYXKEYS.IOU, {category});
-}
-
-function resetMoneyRequestCategory() {
-    Onyx.merge(ONYXKEYS.IOU, {category: ''});
-}
-
-function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
->>>>>>> main:src/libs/actions/IOU.ts
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 
