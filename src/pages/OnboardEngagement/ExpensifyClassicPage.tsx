@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 function ExpensifyClassicModal() {
     const styles = useThemeStyles();
@@ -33,7 +34,7 @@ function ExpensifyClassicModal() {
         <HeaderPageLayout
             title="Expensify Classic"
             onBackButtonPress={navigateBack}
-            backgroundColor={theme.success}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC].backgroundColor}
             testID={ExpensifyClassicModal.displayName}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
             headerContent={
