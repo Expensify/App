@@ -265,7 +265,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: undefined,
+        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -307,7 +307,6 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
-    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
