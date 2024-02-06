@@ -4,6 +4,7 @@ import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
+import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -74,7 +75,7 @@ function isValidPastDate(date: string | Date): boolean {
 /**
  * Used to validate a value that is "required".
  */
-function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
+function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown> | null): boolean {
     if (typeof value === 'string') {
         return !StringUtils.isEmptyString(value);
     }
@@ -361,8 +362,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: Record<string, Report>, policyID: string): boolean {
-    return Object.values(reports).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
+    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
