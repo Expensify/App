@@ -121,6 +121,7 @@ function PopoverWithoutOverlay(
         <View
             style={[modalStyle, {zIndex: 1}]}
             ref={viewRef(withoutOverlayRef)}
+            onClick={(e) => e.stopPropagation()}
         >
             <View
                 style={{

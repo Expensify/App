@@ -176,6 +176,7 @@ function BaseModal(
 
     return (
         <ReactNativeModal
+            onClick={(e) => e.stopPropagation()}
             onBackdropPress={handleBackdropPress}
             // Note: Escape key on web/desktop will trigger onBackButtonPress callback
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
