@@ -46,7 +46,7 @@ function IOURequestStepParticipants({
         if (iouType === CONST.IOU.TYPE.SEND) {
             return translate('common.send');
         }
-        translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     };
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
