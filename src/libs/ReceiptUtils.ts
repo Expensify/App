@@ -42,7 +42,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     }
 
     // For local files, we won't have a thumbnail yet
-    if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
+    if (isReceiptImage && typeof path === 'string' && (path.startsWith('blob:') || path.startsWith('file:'))) {
         return {image: path, isLocalFile: true, filename};
     }
 
