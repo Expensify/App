@@ -68,7 +68,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, PendingChatMember, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2308,13 +2308,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
-    const pendingAccountIDs = inviteeAccountIDs.map((accountID) => {
-        return {
-            accountID: accountID.toString(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        };
-    });
-    const pendingVisibleChatMembers = [...(report?.pendingVisibleChatMembers || []), ...pendingAccountIDs];
+    const pendingAccountIDs = inviteeAccountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}));
+    const pendingVisibleChatMembers = [...(report?.pendingVisibleChatMembers ?? []), ...pendingAccountIDs];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2366,13 +2361,8 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
-    const pendingAccountIDs = targetAccountIDs.map((accountID) => {
-        return {
-            accountID: accountID.toString(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        };
-    });
-    const pendingVisibleChatMembers = [...(report?.pendingVisibleChatMembers || []), ...pendingAccountIDs];
+    const pendingAccountIDs = targetAccountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}));
+    const pendingVisibleChatMembers = [...(report?.pendingVisibleChatMembers ?? []), ...pendingAccountIDs];
 
     const optimisticData: OnyxUpdate[] = [
         {
