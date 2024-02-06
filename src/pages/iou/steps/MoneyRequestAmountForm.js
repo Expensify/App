@@ -83,8 +83,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmountAsString(amount) : '';
-
+    const selectedAmountAsString = CurrencyUtils.convertToFrontendAmountAsString(amount);
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -119,7 +118,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
     };
 
     const initializeAmount = useCallback((newAmount) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount) : '';
+        const frontendAmount = CurrencyUtils.convertToFrontendAmountAsString(newAmount);
         setCurrentAmount(frontendAmount);
         setSelection({
             start: frontendAmount.length,
