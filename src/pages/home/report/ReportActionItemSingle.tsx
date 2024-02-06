@@ -205,7 +205,8 @@ function ReportActionItemSingle({
         );
     };
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
+    const statusClearAfter = DateUtils.formatUTCToLocal(status?.clearAfter ?? '');
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfter);
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 

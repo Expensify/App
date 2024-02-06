@@ -106,7 +106,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const emojiCode = optionItem.status?.emojiCode ?? '';
     const statusText = optionItem.status?.text ?? '';
-    const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
+    const statusClearAfterDate = DateUtils.formatUTCToLocal(optionItem.status?.clearAfter ?? '');
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const report = ReportUtils.getReport(optionItem.reportID ?? '');

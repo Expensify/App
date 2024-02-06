@@ -724,6 +724,30 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
 }
 
 /**
+ * Format the date from UTC to local timezone
+ * @param dateString
+ * @param dateFormat
+ * @returns
+ */
+
+function formatUTCToLocal(dateString: string, dateFormat = 'yyyy-MM-dd HH:mm:ss') {
+    if (dateString === '' || !dateString) {
+        return dateString;
+    }
+
+    const date = parse(dateString, dateFormat, new Date());
+    // Check if the date is valid
+    if (!isValid(date)) {
+        return '';
+    }
+
+    const utcDate = zonedTimeToUtc(date, 'UTC');
+    const localDate = zonedTimeToUtc(utcDate, timezone.selected);
+    // the timezone.selected is the timezone that the user selected at profile/timezone
+    return tzFormat(localDate, dateFormat, {timeZone: timezone.selected});
+}
+
+/**
  *
  * @param timezone
  * function format unsupported timezone to supported timezone
@@ -807,6 +831,7 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    formatUTCToLocal,
     getWeekStartsOn,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,

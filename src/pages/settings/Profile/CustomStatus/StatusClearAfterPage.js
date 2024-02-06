@@ -88,7 +88,7 @@ const useValidateCustomDate = (data) => {
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
+    const clearAfter = DateUtils.formatUTCToLocal(lodashGet(currentUserPersonalDetails, 'status.clearAfter', ''));
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
     const statusType = useMemo(

@@ -20,6 +20,7 @@ import type {
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -788,13 +789,20 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
  * Sets a custom status
  */
 function updateCustomStatus(status: Status) {
+    const clearAfterInUtc = DateUtils.formatWithUTCTimeZone(status.clearAfter, 'yyyy-MM-dd HH:mm:ss');
+    const newStatus = {
+        text: status.text,
+        emojiCode: status.emojiCode,
+        clearAfter: clearAfterInUtc,
+    };
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    status,
+                    status: newStatus,
                 },
             },
         },
