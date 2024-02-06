@@ -391,9 +391,9 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
     isNewChatReport: boolean,
     shouldCreateNewMoneyRequestReport: boolean,
-    policy: OnyxTypes.Policy | EmptyObject = {},
-    policyTags: OnyxTypes.PolicyTagList = {},
-    policyCategories: OnyxTypes.PolicyCategories | EmptyObject = {},
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTags?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     needsToBeManuallySubmitted = true,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
@@ -699,9 +699,9 @@ function getMoneyRequestInformation(
     category: string | undefined,
     tag: string | undefined,
     billable: boolean | undefined,
-    policy: OnyxTypes.Policy | EmptyObject | undefined,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories | EmptyObject,
+    policy: OnyxEntry<OnyxTypes.Policy> | undefined,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
@@ -913,9 +913,9 @@ function createDistanceRequest(
     merchant: string,
     billable: boolean | undefined,
     validWaypoints: WaypointCollection,
-    policy: OnyxTypes.Policy | EmptyObject | undefined,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1347,9 +1347,9 @@ function requestMoney(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    policy: OnyxTypes.Policy | EmptyObject = {},
-    policyTags: OnyxTypes.PolicyTagList = {},
-    policyCategories: OnyxTypes.PolicyCategories | EmptyObject = {},
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTags?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
