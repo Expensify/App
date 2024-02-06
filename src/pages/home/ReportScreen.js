@@ -345,7 +345,7 @@ function ReportScreen({
 
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
-        if (!reportIDFromPath) {
+        if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
             return;
         }
 
@@ -487,6 +487,7 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const reportIDParams = lodashGet(route.params, 'reportID');
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         () =>
@@ -497,8 +498,9 @@ function ReportScreen({
                 !reportMetadata.isLoadingInitialReportActions &&
                 !isLoading &&
                 !userLeavingStatus) ||
-            shouldHideReport,
-        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
+            shouldHideReport ||
+            (reportIDParams && !ReportUtils.isValidReportIDFromPath(reportIDParams)),
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportIDParams],
     );
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
