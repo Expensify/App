@@ -1,3 +1,3 @@
-type ShouldShowSubscriptionsMenu = () => boolean;
+type ShouldShowSubscriptionsMenu = boolean;
 
 export default ShouldShowSubscriptionsMenu;
