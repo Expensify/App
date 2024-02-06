@@ -50,7 +50,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                 focused: !isSmallScreenWidth,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
-            ...(shouldShowSubscriptionsMenu() ? [{
+            ...(shouldShowSubscriptionsMenu ? [{
                 translationKey: 'allSettingsScreen.subscriptions',
                 icon: Expensicons.MoneyBag,
                 action: () => {
