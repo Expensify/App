@@ -489,7 +489,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
             send: 'send money',
             split: 'split a bill',
@@ -818,6 +818,7 @@ export default {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
+        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account Settings',
         account: 'Account',
@@ -1054,10 +1055,10 @@ export default {
             },
         },
     },
-    welcomeMessagePage: {
-        welcomeMessage: 'Welcome message',
-        welcomeMessageOptional: 'Welcome message (optional)',
-        explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
+    reportDescriptionPage: {
+        roomDescription: 'Room description',
+        roomDescriptionOptional: 'Room description (optional)',
+        explainerText: 'Set a custom decription for the room.',
     },
     languagePage: {
         language: 'Language',
@@ -1970,7 +1971,7 @@ export default {
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
-        in: 'In',
+        in: 'in',
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {

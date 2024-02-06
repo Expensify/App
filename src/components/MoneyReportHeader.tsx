@@ -128,7 +128,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
                     <View style={styles.pv2}>
                         <SettlementButton
-                            // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport?.reportID}
@@ -161,7 +160,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
-                            // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={moneyRequestReport.chatReportID}

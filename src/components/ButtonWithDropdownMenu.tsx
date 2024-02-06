@@ -9,15 +9,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import type {AnchorAlignment} from './Popover/types';
 import PopoverMenu from './PopoverMenu';
 
+type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+
 type DropdownOption = {
-    value: string;
+    value: PaymentType;
     text: string;
     icon: IconAsset;
     iconWidth?: number;
@@ -30,7 +33,7 @@ type ButtonWithDropdownMenuProps = {
     menuHeaderText?: string;
 
     /** Callback to execute when the main button is pressed */
-    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: string) => void;
+    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: PaymentType) => void;
 
     /** Callback to execute when a dropdown option is selected */
     onOptionSelected?: (option: DropdownOption) => void;
