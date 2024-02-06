@@ -1180,7 +1180,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
+function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
     const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -4209,7 +4209,7 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
 /**
  * Return true if the Money Request report is marked for deletion.
  */
-function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report>): boolean {
+function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyObject): boolean {
     if (!isMoneyRequestReport(report)) {
         return false;
     }

@@ -331,7 +331,7 @@ export default memo(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-            selector: (policy: OnyxEntry<OnyxTypes.Policy> | undefined): PickedPolicyValues | EmptyObject => {
+            selector: (policy: OnyxEntry<OnyxTypes.Policy>): PickedPolicyValues | EmptyObject => {
                 if (!policy) {
                     return {};
                 }

@@ -867,8 +867,8 @@ function getMoneyRequestInformation(
         chatReport,
         transaction: optimisticTransaction,
         iouAction,
-        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
-        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOU.reportActionID : 0,
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '',
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOU.reportActionID : '',
         reportPreviewAction,
         onyxData: {
             optimisticData,

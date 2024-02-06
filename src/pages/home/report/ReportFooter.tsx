@@ -33,7 +33,7 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     report?: OnyxTypes.Report;
 
     /** The last report action */
-    lastReportAction?: OnyxTypes.ReportAction;
+    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Whether the chat is empty */
     isEmptyChat?: boolean;
