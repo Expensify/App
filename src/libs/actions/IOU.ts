@@ -3520,7 +3520,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
         {
             iouReportID: expenseReport.reportID,
             chatReportID: chatReport.reportID,
-            managerAccountID: expenseReport.managerID,
+            managerAccountID: expenseReport.managerID ?? 0,
             reportActionID: optimisticReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
