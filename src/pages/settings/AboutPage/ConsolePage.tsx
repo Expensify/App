@@ -41,11 +41,11 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [capturedLogs]);
 
-    const handleExecute = () => {
+    const executeArbitraryCode = () => {
         const sanitizedInput = sanitizeConsoleInput(input);
 
-        const customLogs = createLog(sanitizedInput);
-        customLogs.forEach((log) => addLog(log));
+        const output = createLog(sanitizedInput);
+        output.forEach((log) => addLog(log));
         setInput('');
     };
 
@@ -113,7 +113,7 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 <Button
                     success
                     text={translate('initialSettingsPage.debugConsole.execute')}
-                    onPress={handleExecute}
+                    onPress={executeArbitraryCode}
                     style={[styles.mt5]}
                 />
             </View>

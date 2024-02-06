@@ -2,22 +2,26 @@
 import addLog from '@libs/actions/Console';
 import type {Log} from '@src/types/onyx';
 
-type UpdateLogsFunction = (newLog: Log) => void;
-
-let updateLogs: UpdateLogsFunction | null = null;
+/* store the original console.log function so we can call it */
 // eslint-disable-next-line no-console
 const originalConsoleLog = console.log;
 
+/* List of patterns to ignore in logs. "logs" key always needs to be ignored because otherwise it will cause infinite loop */
 const logPatternsToIgnore = [`merge() called for key: logs`];
 
+/**
+ * Check if the log should be attached to the console
+ * @param message the message to check
+ * @returns true if the log should be attached to the console
+ */
 function shouldAttachLog(message: string) {
     return !logPatternsToIgnore.some((pattern) => message.includes(pattern));
 }
 
-function setUpdateLogsFunction(func: UpdateLogsFunction | null) {
-    updateLogs = func;
-}
-
+/**
+ * Goes through all the arguments passed the console, parses them to a string and adds them to the logs
+ * @param args the arguments to log
+ */
 function logMessage(args: unknown[]) {
     const message = args
         .map((arg) => {
@@ -34,11 +38,12 @@ function logMessage(args: unknown[]) {
         .join(' ');
     const newLog = {time: new Date(), level: 'LOG', message};
     addLog(newLog);
-    if (updateLogs) {
-        updateLogs(newLog);
-    }
 }
 
+/**
+ * Override the console.log function to add logs to the store
+ * @param args arguments passed to the console.log function
+ */
 // eslint-disable-next-line no-console
 console.log = (...args) => {
     logMessage(args);
@@ -56,11 +61,21 @@ const charMap: Record<string, string> = {
     '\u2026': '...',
 };
 
+/**
+ * Sanitize the input to the console
+ * @param text the text to sanitize
+ * @returns the sanitized text
+ */
 function sanitizeConsoleInput(text: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return text.replace(charsToSanitize, (match) => charMap[match]);
 }
 
+/**
+ * Run an arbitrary JS code and create a log from the output
+ * @param text the JS code to run
+ * @returns an array of logs created by eval call
+ */
 function createLog(text: string) {
     const time = new Date();
     try {
@@ -83,5 +98,5 @@ function createLog(text: string) {
     }
 }
 
-export {sanitizeConsoleInput, createLog, setUpdateLogsFunction, shouldAttachLog};
+export {sanitizeConsoleInput, createLog, shouldAttachLog};
 export type {Log};
