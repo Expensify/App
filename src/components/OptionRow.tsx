@@ -1,6 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useEffect, useRef, useState} from 'react';
-import {InteractionManager, StyleProp, StyleSheet, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {InteractionManager, StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -194,7 +195,7 @@ function OptionRow({
                             shouldHaveOptionSeparator && styles.borderTop,
                             !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
                         ]}
-                        accessibilityLabel={option.text}
+                        accessibilityLabel={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
@@ -208,14 +209,14 @@ function OptionRow({
                                         <SubscriptAvatar
                                             mainAvatar={option.icons[0]}
                                             secondaryAvatar={option.icons[1]}
-                                            backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
+                                            backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={option.icons}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? hoveredBackgroundColor : subscriptColor)]}
+                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                             shouldShowTooltip={showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(option)}
                                         />
                                     ))}
@@ -245,11 +246,19 @@ function OptionRow({
                                         <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={theme.danger}
+                                        />
+                                    </View>
+                                )}
+                                {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={theme.iconSuccessFill}
                                         />
                                     </View>
                                 )}
@@ -267,10 +276,14 @@ function OptionRow({
                                             <PressableWithFeedback
                                                 onPress={() => onSelectedStatePressed(option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ROLE.CHECKBOX}
-                                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                                role={CONST.ROLE.BUTTON}
+                                                accessibilityLabel={CONST.ROLE.BUTTON}
+                                                style={[styles.ml2, styles.optionSelectCircle]}
                                             >
-                                                <SelectCircle isChecked={isSelected} />
+                                                <SelectCircle
+                                                    isChecked={isSelected}
+                                                    selectCircleStyles={styles.ml0}
+                                                />
                                             </PressableWithFeedback>
                                         )}
                                     </>

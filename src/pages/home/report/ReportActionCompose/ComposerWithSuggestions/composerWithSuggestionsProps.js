@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -18,19 +17,8 @@ const propTypes = {
     /** Whether the keyboard is open or not */
     isKeyboardShown: PropTypes.bool.isRequired,
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
     /** The ID of the report */
     reportID: PropTypes.string.isRequired,
-
-    /** The report currently being looked at */
-    report: PropTypes.shape({
-        parentReportID: PropTypes.string,
-    }).isRequired,
 
     /** Callback when the input is focused */
     onFocus: PropTypes.func.isRequired,
@@ -60,7 +48,7 @@ const propTypes = {
     isBlockedFromConcierge: PropTypes.bool.isRequired,
 
     /** Whether the input is disabled or not */
-    disabled: PropTypes.bool.isRequired,
+    disabled: PropTypes.bool,
 
     /** Whether the full composer is available or not */
     isFullComposerAvailable: PropTypes.bool.isRequired,
@@ -105,6 +93,12 @@ const propTypes = {
 
     /** Ref for the isNextModalWillOpen */
     isNextModalWillOpenRef: PropTypes.shape({current: PropTypes.bool.isRequired}).isRequired,
+
+    /** A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not */
+    isScrollLikelyLayoutTriggered: PropTypes.shape({current: PropTypes.bool.isRequired}).isRequired,
+
+    /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
+    raiseIsScrollLikelyLayoutTriggered: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -115,6 +109,7 @@ const defaultProps = {
     reportActions: [],
     forwardedRef: null,
     measureParentContainer: () => {},
+    disabled: false,
 };
 
 export {propTypes, defaultProps};

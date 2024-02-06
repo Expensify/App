@@ -1,4 +1,4 @@
-import {TextInput} from 'react-native';
+import type {TextInput} from 'react-native';
 import isSelectorSupported from './isSelectorSupported';
 
 /**

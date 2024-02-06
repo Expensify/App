@@ -1,7 +1,9 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevices} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -11,6 +13,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,17 +40,22 @@ const propTypes = {
     /* Onyx Props */
     /** The report that the transaction belongs to */
     report: reportPropTypes,
+
+    /** The transaction (or draft transaction) being changed */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    transaction: {},
 };
 
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
+    transaction: {isFromGlobalCreate},
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -58,6 +67,41 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
 
     const {translate} = useLocalize();
+
+    const focusIndicatorOpacity = useSharedValue(0);
+    const focusIndicatorScale = useSharedValue(2);
+    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
+
+    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: focusIndicatorOpacity.value,
+        transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
+    }));
+
+    const focusCamera = (point) => {
+        if (!camera.current) {
+            return;
+        }
+
+        camera.current.focus(point).catch((ex) => {
+            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+                return;
+            }
+            Log.warn('Error focusing camera', ex);
+        });
+    };
+
+    const tapGesture = Gesture.Tap()
+        .enabled(device && device.supportsFocus)
+        .onStart((ev) => {
+            const point = {x: ev.x, y: ev.y};
+
+            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
+            focusIndicatorScale.value = 2;
+            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
+            focusIndicatorPosition.value = point;
+
+            runOnJS(focusCamera)(point);
+        });
 
     useEffect(() => {
         const refreshCameraPermissionStatus = () => {
@@ -118,7 +162,57 @@ function IOURequestStepScan({
             });
     };
 
-    const takePhoto = useCallback(() => {
+    const navigateBack = () => {
+        Navigation.goBack();
+    };
+
+    const navigateToConfirmationStep = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        // If the transaction was created from the global create, the person needs to select participants, so take them there.
+        if (isFromGlobalCreate) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            return;
+        }
+
+        // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
+        // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+
+    const updateScanAndNavigate = useCallback(
+        (file, source) => {
+            Navigation.dismissModal();
+            IOU.replaceReceipt(transactionID, file, source);
+        },
+        [transactionID],
+    );
+
+    /**
+     * Sets the Receipt objects and navigates the user to the next page
+     * @param {Object} file
+     */
+    const setReceiptAndNavigate = (file) => {
+        if (!validateReceipt(file)) {
+            return;
+        }
+
+        // Store the receipt on the transaction object in Onyx
+        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT);
+
+        if (action === CONST.IOU.ACTION.EDIT) {
+            updateScanAndNavigate(file, file.uri);
+            return;
+        }
+
+        navigateToConfirmationStep();
+    };
+
+    const capturePhoto = useCallback(() => {
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         };
@@ -134,53 +228,33 @@ function IOURequestStepScan({
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                const filePath = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, photo.path);
+                // Store the receipt on the transaction object in Onyx
+                const source = `file://${photo.path}`;
+                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
-                if (backTo) {
-                    Navigation.goBack(backTo);
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    FileUtils.readFileAsync(source, photo.path, (file) => {
+                        updateScanAndNavigate(file, source);
+                    });
                     return;
                 }
 
-                const onSuccess = (receipt) => {
-                    IOU.replaceReceipt(transactionID, receipt, filePath);
-                };
-
-                // When an existing transaction is being edited (eg. not the create transaction flow)
-                if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                    FileUtils.readFileAsync(filePath, photo.path, onSuccess);
-                    Navigation.dismissModal();
-                    return;
-                }
-
-                // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-                // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-                // to the confirm step.
-                if (report.reportID) {
-                    IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+                navigateToConfirmationStep();
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, report, translate, transactionID, reportID, backTo]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
     }
 
-    const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
-    };
-
     return (
         <StepScreenWrapper
+            includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={Boolean(backTo)}
@@ -219,16 +293,20 @@ function IOURequestStepScan({
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                 <View style={[styles.cameraView]}>
-                    <View style={styles.flex1}>
-                        <NavigationAwareCamera
-                            ref={camera}
-                            device={device}
-                            style={[styles.flex1]}
-                            zoom={device.neutralZoom}
-                            photo
-                            cameraTabIndex={1}
-                        />
-                    </View>
+                    <GestureDetector gesture={tapGesture}>
+                        <View style={styles.flex1}>
+                            <NavigationAwareCamera
+                                ref={camera}
+                                device={device}
+                                style={[styles.flex1]}
+                                zoom={device.neutralZoom}
+                                photo
+                                cameraTabIndex={1}
+                                orientation="portrait"
+                            />
+                            <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                        </View>
+                    </GestureDetector>
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
@@ -240,36 +318,7 @@ function IOURequestStepScan({
                             style={[styles.alignItemsStart]}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: (file) => {
-                                        if (!validateReceipt(file)) {
-                                            return;
-                                        }
-                                        const filePath = file.uri;
-                                        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, file.name);
-
-                                        if (backTo) {
-                                            Navigation.goBack(backTo);
-                                            return;
-                                        }
-
-                                        // When a transaction is being edited (eg. not in the creation flow)
-                                        if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                                            IOU.replaceReceipt(transactionID, file, filePath);
-                                            Navigation.dismissModal();
-                                            return;
-                                        }
-
-                                        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-                                        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-                                        // to the confirm step.
-                                        if (report.reportID) {
-                                            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-                                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-                                            return;
-                                        }
-
-                                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-                                    },
+                                    onPicked: setReceiptAndNavigate,
                                 });
                             }}
                         >
@@ -286,7 +335,7 @@ function IOURequestStepScan({
                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
-                    onPress={takePhoto}
+                    onPress={capturePhoto}
                 >
                     <ImageSVG
                         contentFit="contain"

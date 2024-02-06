@@ -2,7 +2,7 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-import DeepValueOf from './types/utils/DeepValueOf';
+import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
@@ -12,11 +12,16 @@ const PROTECTED_SCREENS = {
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
+    ALL_SETTINGS: 'AllSettings',
     REPORT: 'Report',
+    PROFILE_AVATAR: 'ProfileAvatar',
+    WORKSPACE_AVATAR: 'WorkspaceAvatar',
+    REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
+    SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -81,15 +86,21 @@ const SCREENS = {
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
+    LEFT_MODAL: {
+        SEARCH: 'Search',
+        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
+    },
+    WORKSPACE_SWITCHER: {
+        ROOT: 'WorkspaceSwitcher_Root',
+    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         NEW_CHAT: 'NewChat',
-        SEARCH: 'Search',
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
         REPORT_SETTINGS: 'Report_Settings',
-        REPORT_WELCOME_MESSAGE: 'Report_WelcomeMessage',
+        REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
@@ -106,6 +117,7 @@ const SCREENS = {
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
+        PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -130,6 +142,8 @@ const SCREENS = {
         STEP_SCAN: 'Money_Request_Step_Scan',
         STEP_TAG: 'Money_Request_Step_Tag',
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
+        STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
+        STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
@@ -138,7 +152,6 @@ const SCREENS = {
         DATE: 'Money_Request_Date',
         DESCRIPTION: 'Money_Request_Description',
         CATEGORY: 'Money_Request_Category',
-        TAG: 'Money_Request_Tag',
         MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -170,12 +183,10 @@ const SCREENS = {
 
     TASK: {
         TITLE: 'Task_Title',
-        DESCRIPTION: 'Task_Description',
         ASSIGNEE: 'Task_Assignee',
     },
 
     PRIVATE_NOTES: {
-        VIEW: 'PrivateNotes_View',
         LIST: 'PrivateNotes_List',
         EDIT: 'PrivateNotes_Edit',
     },
@@ -187,7 +198,7 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        SETTINGS: 'Workspace_Settings',
+        OVERVIEW: 'Workspace_Overview',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
@@ -197,12 +208,14 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Settings_Currency',
+        CURRENCY: 'Workspace_Overview_Currency',
+        NAME: 'Workspace_Overview_Name',
     },
 
     EDIT_REQUEST: {
         ROOT: 'EditRequest_Root',
         CURRENCY: 'EditRequest_Currency',
+        REPORT_FIELD: 'EditRequest_ReportField',
     },
 
     NEW_CHAT: {
@@ -227,7 +240,8 @@ const SCREENS = {
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
-    REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
+    PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',

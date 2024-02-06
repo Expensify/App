@@ -1,12 +1,13 @@
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
+import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -97,12 +98,15 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
-type MaybePhraseKey = string | [string, Record<string, unknown> & {isTranslated?: true}] | [];
+type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: true}] | [];
 
 /**
  * Return translated string for given error.
  */
-function translateIfPhraseKey(message: MaybePhraseKey): string {
+function translateIfPhraseKey(message: MaybePhraseKey): string;
+function translateIfPhraseKey(message: ReceiptError): ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError;
+function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError {
     if (!message || (Array.isArray(message) && message.length === 0)) {
         return '';
     }

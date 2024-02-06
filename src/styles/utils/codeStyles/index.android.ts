@@ -1,4 +1,4 @@
-import {CodeTextStyles, CodeWordStyles, CodeWordWrapperStyles} from './types';
+import type {CodeTextStyles, CodeWordStyles, CodeWordWrapperStyles} from './types';
 
 const codeWordWrapper: CodeWordWrapperStyles = {
     height: 20,

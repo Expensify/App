@@ -1,9 +1,10 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {FlatListProps} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef} from 'react';
+import type {FlatListProps} from 'react-native';
 import FlatList from '@components/FlatList';
 
-const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 const WINDOW_SIZE = 15;
+const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
 function BaseInvertedFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
     return (

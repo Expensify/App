@@ -1,5 +1,5 @@
 import LinearGradientWeb from 'react-native-web-linear-gradient';
-import LinearGradient from './types';
+import type LinearGradient from './types';
 
 const LinearGradientImplementation: LinearGradient = LinearGradientWeb;
 

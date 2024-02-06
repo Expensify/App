@@ -1,5 +1,6 @@
-import React, {ForwardedRef} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type React from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 
 type FormSubmitProps = {
     children: React.ReactNode;

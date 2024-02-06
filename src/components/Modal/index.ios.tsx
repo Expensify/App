@@ -1,7 +1,6 @@
 import React from 'react';
-import withWindowDimensions from '@components/withWindowDimensions';
 import BaseModal from './BaseModal';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function Modal({children, ...rest}: BaseModalProps) {
     return (
@@ -15,4 +14,4 @@ function Modal({children, ...rest}: BaseModalProps) {
 }
 
 Modal.displayName = 'Modal';
-export default withWindowDimensions(Modal);
+export default Modal;

@@ -36,10 +36,12 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
+import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
@@ -164,6 +166,10 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
+
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 };
@@ -200,6 +206,7 @@ const defaultProps = {
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
     iou: iouDefaultProps,
+    policyTaxRates: {},
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -241,6 +248,9 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing the tags field
     const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
+    // A flag for showing tax fields - tax rate and tax amount
+    const shouldShowTax = props.isPolicyExpenseChat && props.policy.isTaxTrackingEnabled;
+
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
@@ -252,6 +262,11 @@ function MoneyRequestConfirmationList(props) {
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
+
+    const defaultTaxKey = props.policyTaxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${props.policyTaxRates.taxes[defaultTaxKey].name} (${props.policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -525,6 +540,7 @@ function MoneyRequestConfirmationList(props) {
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 shouldShowPersonalBankAccountOption
+                enterKeyEventListenerPriority={1}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -533,6 +549,7 @@ function MoneyRequestConfirmationList(props) {
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                enterKeyEventListenerPriority={1}
             />
         );
 
@@ -590,7 +607,7 @@ function MoneyRequestConfirmationList(props) {
                     <ConfirmedRoute transaction={props.transaction} />
                 </View>
             )}
-            {(receiptImage || receiptThumbnail) && (
+            {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptThumbnail || receiptImage}}
@@ -599,6 +616,25 @@ function MoneyRequestConfirmationList(props) {
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
+            ) : (
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(props.policy) &&
+                !props.isDistanceRequest &&
+                props.iouType === CONST.IOU.TYPE.REQUEST && (
+                    <ReceiptEmptyState
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    CONST.IOU.ACTION.CREATE,
+                                    props.iouType,
+                                    transaction.transactionID,
+                                    props.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
+                    />
+                )
             )}
             {props.shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
@@ -643,7 +679,7 @@ function MoneyRequestConfirmationList(props) {
             />
             {!shouldShowAllFields && (
                 <ShowMoreButton
-                    containerStyle={styles.mt1}
+                    containerStyle={[styles.mt1, styles.mb2]}
                     onPress={toggleShouldExpandFields}
                 />
             )}
@@ -697,8 +733,14 @@ function MoneyRequestConfirmationList(props) {
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={
+                                props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
+                            }
+                            error={
+                                shouldDisplayMerchantError || (props.isPolicyExpenseChat && shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))
+                                    ? translate('common.error.enterMerchant')
+                                    : ''
+                            }
                         />
                     )}
                     {shouldShowCategories && (
@@ -724,12 +766,20 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={props.iouTag}
+                            title={PolicyUtils.getCleanedTagName(props.iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.TAG));
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT,
+                                            props.transaction.transactionID,
+                                            props.reportID,
+                                            Navigation.getActiveRouteWithoutParams(),
+                                        ),
+                                    );
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
@@ -738,6 +788,40 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                             rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
+                        />
+                    )}
+
+                    {shouldShowTax && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={taxRateTitle}
+                            description={props.policyTaxRates.name}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(props.iouType, props.transaction.transactionID, props.reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
+                            }
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
+                        />
+                    )}
+
+                    {shouldShowTax && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={formattedTaxAmount}
+                            description={props.policyTaxRates.name}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(props.iouType, props.transaction.transactionID, props.reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
+                            }
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
                         />
                     )}
 
@@ -777,11 +861,14 @@ export default compose(
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
-        draftTransaction: {
+        splitTransactionDraft: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        policyTaxRates: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
         iou: {
             key: ONYXKEYS.IOU,
