@@ -176,7 +176,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         );
     };
 
-    const getError = () => {
+    const getError = useCallback(() => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return ErrorUtils.getLatestErrorField(transaction, 'route');
@@ -185,7 +185,11 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         if (_.size(validatedWaypoints) < 2) {
             return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
         }
-    };
+
+        if (_.size(validatedWaypoints) < _.keys(waypoints).length) {
+            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
+        }
+    }, [translate, transaction, hasRouteError, validatedWaypoints, waypoints]);
 
     const updateWaypoints = useCallback(
         ({data}) => {
@@ -209,7 +213,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || (isLoading && !isOffline)) {
+        if (!_.isEmpty(getError()) || isLoadingRoute || (isLoading && !isOffline)) {
             setHasError(true);
             return;
         }
@@ -219,7 +223,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         }
 
         onSubmit(waypoints);
-    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditingNewRequest, isEditingRequest, isOffline]);
+    }, [onSubmit, setHasError, getError, isLoadingRoute, isLoading, waypoints, isEditingNewRequest, isEditingRequest, isOffline]);
 
     const content = (
         <>
@@ -254,7 +258,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             </View>
             <View style={[styles.w100, styles.pt2]}>
                 {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                {((hasError && _.size(validatedWaypoints) < 2) || hasRouteError) && (
+                {((hasError && !_.isEmpty(getError())) || hasRouteError) && (
                     <DotIndicatorMessage
                         style={[styles.mh4, styles.mv3]}
                         messages={getError()}
