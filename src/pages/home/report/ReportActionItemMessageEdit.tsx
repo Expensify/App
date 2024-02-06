@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
@@ -39,7 +40,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
-import { PortalHost } from '@gorhom/portal';
 
 const {RNTextInputReset} = NativeModules;
 

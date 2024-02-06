@@ -1,7 +1,6 @@
 import type {Dispatch, ForwardedRef, RefObject, SetStateAction} from 'react';
 import React, {useState} from 'react';
-import type {TextInputProps} from 'react-native';
-import type {AnimatedProps} from 'react-native-reanimated';
+import type {TextInput} from 'react-native';
 import Composer from '@components/Composer';
 import type {ComposerProps} from '@components/Composer/types';
 import type {SuggestionsRef} from '@libs/actions/SuggestionsAction';
@@ -45,7 +44,7 @@ function ComposerWithSuggestionsEdit(
         measureParentContainer,
         id = undefined,
     }: ComposerWithSuggestionsEditProps & ComposerProps,
-    ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>,
+    ref: ForwardedRef<TextInput>,
 ) {
     const [composerHeight, setComposerHeight] = useState(0);
 
