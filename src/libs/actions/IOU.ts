@@ -9,6 +9,7 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
+    CancelPaymentParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
     DeleteMoneyRequestParams,
