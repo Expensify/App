@@ -11,6 +11,7 @@ function BackgroundImage(props) {
             source={AndroidBackgroundImage}
             pointerEvents={props.pointerEvents}
             style={[styles.signInBackground, {width: props.width}]}
+            transition={props.transitionDuration}
         />
     );
 }

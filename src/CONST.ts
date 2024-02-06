@@ -46,6 +46,7 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -97,6 +98,10 @@ const CONST = {
 
     LEGAL_NAME: {
         MAX_LENGTH: 40,
+    },
+
+    REPORT_DESCRIPTION: {
+        MAX_LENGTH: 1024,
     },
 
     PULL_REQUEST_NUMBER,
@@ -1587,7 +1592,6 @@ const CONST = {
         INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
-        WELCOME_MESSAGE: 'welcomeMessage',
         PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {

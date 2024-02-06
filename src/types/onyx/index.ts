@@ -11,6 +11,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {
     AddDebitCardForm,
+    CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
     IKnowATeacherForm,
@@ -18,6 +19,7 @@ import type {
     NewRoomForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    RoomNameForm,
     WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
@@ -92,6 +94,7 @@ export type {
     Credentials,
     Currency,
     CustomStatusDraft,
+    CloseAccountForm,
     DateOfBirthForm,
     Download,
     Form,
@@ -163,4 +166,5 @@ export type {
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    RoomNameForm,
 };
