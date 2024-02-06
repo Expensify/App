@@ -61,7 +61,7 @@ function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherB
                         }}
                         showTooltip={false}
                         noMargin
-                        backgroundColor={hovered ? theme.buttonHoveredBG : theme.buttonDefaultBG}
+                        subscriptionContainerAdditionalStyles={hovered && {backgroundColor: theme.buttonHoveredBG}}
                     />
                 )}
             </PressableWithFeedback>
