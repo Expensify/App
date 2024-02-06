@@ -888,7 +888,7 @@ function getMoneyRequestInformation(
         false,
         currentTime,
     );
-    const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+    const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction as OnyxEntry<ReportAction>, iouReport.reportID);
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -1739,7 +1739,7 @@ function createSplitsAndOnyxData(
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // Create optimistic transactionThread
-        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction as OnyxEntry<ReportAction>, oneOnOneIOUReport.reportID);
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
         // STEP 5: Build Onyx Data
@@ -2332,7 +2332,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
 
-        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction as OnyxEntry<ReportAction>, oneOnOneIOUReport.reportID);
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -2347,9 +2347,9 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             [],
             {},
             isNewOneOnOneChatReport,
-            shouldCreateNewOneOnOneIOUReport,
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
+            shouldCreateNewOneOnOneIOUReport,
         );
 
         splits.push({
@@ -3014,7 +3014,7 @@ function getSendMoneyParams(
 
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
-    const optimisticTransactionThread = ReportUtils.buildTransactionThread(optimisticIOUReportAction, optimisticIOUReport.reportID);
+    const optimisticTransactionThread = ReportUtils.buildTransactionThread(optimisticIOUReportAction as OnyxEntry<ReportAction>, optimisticIOUReport.reportID);
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -3071,7 +3071,7 @@ function getSendMoneyParams(
             [reportPreviewAction.reportActionID]: reportPreviewAction,
         },
     };
-    const optimisticTransactionThreadReportActionsData = {
+    const optimisticTransactionThreadReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
         value: {

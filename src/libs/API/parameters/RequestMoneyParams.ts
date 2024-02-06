@@ -24,6 +24,8 @@ type RequestMoneyParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    transactionThreadReportID: string;
+    createdReportActionIDForThread: string;
 };
 
 export default RequestMoneyParams;
