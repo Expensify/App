@@ -59,7 +59,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
+type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -298,18 +298,10 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID: string, mer
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {merchant: merchant.trim()});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} category
- */
 function setMoneyRequestCategory(transactionID: string, category: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
 }
 
-/*
- * @param {String} transactionID
- * @param {String} tag
- */
 function setMoneyRequestTag(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
@@ -3562,10 +3554,6 @@ function setMoneyRequestMerchant(merchant: string) {
     Onyx.merge(ONYXKEYS.IOU, {merchant: merchant.trim()});
 }
 
-/**
- * @param {String} transactionID
- * @param {Object} taxRate
- */
 function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
