@@ -143,6 +143,9 @@ type ReportActionBase = {
     /** Type of child report  */
     childType?: string;
 
+    /** The user's ID */
+    accountID?: number;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
@@ -178,7 +181,7 @@ type ReportActionBase = {
     delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
     /** Error associated with the report action */
     error?: string;

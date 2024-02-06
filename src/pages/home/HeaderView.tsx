@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -39,6 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ROUTES from '@src/ROUTES';
 
 type PickedPolicyValues = Pick<OnyxTypes.Policy, 'name' | 'avatar' | 'pendingAction'>;
 
@@ -94,10 +96,12 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
-    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
-    const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
+    const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const reportDescription = ReportUtils.getReportDescriptionText(props.report);
+    const policyName = ReportUtils.getPolicyName(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -155,7 +159,19 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
         />
     );
 
-    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(report));
+    const renderAdditionalText = () => {
+        if (_.isEmpty(policyName) || _.isEmpty(reportDescription) || !_.isEmpty(parentNavigationSubtitleData)) {
+            return null;
+        }
+        return (
+            <>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.fontWeightNormal]}> {translate('threads.in')} </Text>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
+            </>
+        );
+    };
+
+    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
 
     if (isConcierge && guideCalendarLink) {
         threeDotMenuItems.push({
@@ -253,6 +269,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                                             numberOfLines={1}
                                             textStyles={[styles.headerText, styles.pre]}
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                            renderAdditionalText={renderAdditionalText}
                                         />
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
@@ -261,13 +278,33 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {!!subtitle && (
+                                        {!_.isEmpty(subtitle) && _.isEmpty(reportDescription) && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
                                             >
                                                 {subtitle}
                                             </Text>
+                                        )}
+                                        {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    if (ReportUtils.canEditReportDescription(props.report, props.policy)) {
+                                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.reportID));
+                                                        return;
+                                                    }
+                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));
+                                                }}
+                                                style={[styles.alignSelfStart, styles.mw100]}
+                                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                                            >
+                                                <Text
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {reportDescription}
+                                                </Text>
+                                            </PressableWithoutFeedback>
                                         )}
                                     </View>
                                     {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
