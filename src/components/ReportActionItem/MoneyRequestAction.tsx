@@ -92,6 +92,7 @@ function MoneyRequestAction({
         }
 
         // If the childReportID is not present, we need to create a new thread
+        // comment
         const childReportID = action?.childReportID ?? '0';
         if (!childReportID) {
             const thread = ReportUtils.buildTransactionThread(action, requestReportID);
