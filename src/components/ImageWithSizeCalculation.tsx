@@ -73,7 +73,7 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
         <View style={[styles.w100, styles.h100, style]}>
             <Image
                 style={[styles.w100, styles.h100]}
-                source={{uri: url}}
+                source={typeof url === 'string' ? {uri: url} : url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 resizeMode={RESIZE_MODES.cover}
                 onLoadStart={() => {

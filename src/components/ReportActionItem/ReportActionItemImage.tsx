@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -49,11 +49,19 @@ type ReportActionItemImageProps = {
 function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false, filename}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const imageSource = tryResolveUrlFromApiRoot(image ?? '');
+    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
 
     let receiptImageComponent: ReactElement;
+
+    const imageSource = useMemo(() => {
+        if (thumbnail) {
+            return typeof thumbnail === 'string' ? {uri: thumbnail} : thumbnail;
+        }
+
+        return typeof image === 'string' ? {uri: image} : image;
+    }, [image, thumbnail]);
 
     if (isEReceipt) {
         receiptImageComponent = (
@@ -61,7 +69,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                 <EReceiptThumbnail transactionID={transaction.transactionID} />
             </View>
         );
-    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
+    } else if (thumbnail && !isLocalFile && !Str.isPDF(attachmentModalSource as string)) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
@@ -73,7 +81,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
     } else {
         receiptImageComponent = (
             <Image
-                source={{uri: thumbnail ?? image}}
+                source={imageSource}
                 style={[styles.w100, styles.h100]}
             />
         );
@@ -84,7 +92,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
                     <AttachmentModal
-                        source={imageSource}
+                        source={attachmentModalSource}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment

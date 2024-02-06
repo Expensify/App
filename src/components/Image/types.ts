@@ -22,7 +22,7 @@ type ImageOwnProps = {
     style?: StyleProp<ImageStyle>;
 
     /** The static asset or URI source of the image */
-    source: ExpoImageSource | Omit<ImageURISource, 'cache'> | ImageRequireSource;
+    source: ExpoImageSource | Omit<ImageURISource, 'cache'> | ImageRequireSource | undefined;
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired?: boolean;
