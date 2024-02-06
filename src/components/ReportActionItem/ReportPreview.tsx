@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -131,9 +131,11 @@ function ReportPreview({
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
+
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
@@ -160,8 +162,8 @@ function ReportPreview({
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy?.isHarvestingEnabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy?.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !(policy?.harvesting?.enabled ?? policy?.isHarvestingEnabled),
+        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled, policy?.isHarvestingEnabled],
     );
 
     const getDisplayAmount = (): string => {
@@ -230,7 +232,10 @@ function ReportPreview({
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
-        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.preview}>
+        <OfflineWithFeedback
+            pendingAction={iouReport?.pendingFields?.preview}
+            shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
+        >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
@@ -305,6 +310,7 @@ function ReportPreview({
                                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                     }}
+                                    isDisabled={!canAllowSettlement}
                                 />
                             )}
                             {shouldShowSubmitButton && (

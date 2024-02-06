@@ -46,6 +46,9 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    // Multiplier for gyroscope animation in order to make it a bit more subtle
+    ANIMATION_GYROSCOPE_VALUE: 0.4,
+    BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -92,11 +95,15 @@ const CONST = {
 
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
-        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+        RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
     LEGAL_NAME: {
         MAX_LENGTH: 40,
+    },
+
+    REPORT_DESCRIPTION: {
+        MAX_LENGTH: 1024,
     },
 
     PULL_REQUEST_NUMBER,
@@ -145,7 +152,7 @@ const CONST = {
             CONTAINER_MINHEIGHT: 500,
             VIEW_HEIGHT: 275,
         },
-        MONEY_REPORT: {
+        MONEY_OR_TASK_REPORT: {
             SMALL_SCREEN: {
                 IMAGE_HEIGHT: 300,
                 CONTAINER_MINHEIGHT: 280,
@@ -490,6 +497,8 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
+        ADMIN_POLICIES_URL: 'admin_policies',
+        ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
     },
 
@@ -566,6 +575,7 @@ const CONST = {
                     INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
                     INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
+                    LEAVE_ROOM: 'POLICYCHANGELOG_LEAVEROOM',
                     REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
@@ -608,6 +618,7 @@ const CONST = {
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
+                    LEAVE_ROOM: 'LEAVEROOM',
                 },
             },
             THREAD_DISABLED: ['CREATED'],
@@ -1011,6 +1022,7 @@ const CONST = {
             3: 100,
         },
     },
+    CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
@@ -1299,6 +1311,7 @@ const CONST = {
             USER: 'user',
         },
         AUTO_REPORTING_FREQUENCIES: {
+            INSTANT: 'instant',
             IMMEDIATE: 'immediate',
             WEEKLY: 'weekly',
             SEMI_MONTHLY: 'semimonthly',
@@ -1328,6 +1341,7 @@ const CONST = {
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
         ID_FAKE: '_FAKE_',
+        EMPTY: 'EMPTY',
     },
 
     CUSTOM_UNITS: {
@@ -1478,6 +1492,10 @@ const CONST = {
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
 
         REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
+
+        PATH_WITHOUT_POLICY_ID: /\/w\/[a-zA-Z0-9]+(\/|$)/,
+
+        POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
     },
 
     PRONOUNS: {
@@ -1487,7 +1505,7 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_SETTINGS: 'WorkspaceGeneralSettings',
+        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
         WORKSPACE_CARD: 'WorkspaceCorporateCards',
         WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
         WORKSPACE_BILLS: 'WorkspacePayBills',
@@ -1576,7 +1594,6 @@ const CONST = {
         INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
-        WELCOME_MESSAGE: 'welcomeMessage',
         PRIVATE_NOTES: 'privateNotes',
     },
     EDIT_REQUEST_FIELD: {
@@ -3099,11 +3116,6 @@ const CONST = {
         CAROUSEL: 3,
     },
 
-    BRICK_ROAD: {
-        GBR: 'GBR',
-        RBR: 'RBR',
-    },
-
     /**
      * Constants for types of violations.
      * Defined here because they need to be referenced by the type system to generate the
@@ -3161,6 +3173,12 @@ const CONST = {
     },
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
+
+    WORKSPACE_SWITCHER: {
+        NAME: 'Expensify',
+        SUBSCRIPT_ICON_SIZE: 8,
+        MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
+    },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 } as const;
