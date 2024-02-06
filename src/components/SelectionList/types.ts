@@ -55,7 +55,7 @@ type User = {
     login?: string;
 
     /** Element to show on the right side of the item */
-    rightElement?: ReactElement | null;
+    rightElement?: ReactNode;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: Icon[];
