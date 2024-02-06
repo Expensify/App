@@ -530,7 +530,6 @@ function MoneyRequestConfirmationList({
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
-                // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
@@ -549,6 +548,7 @@ function MoneyRequestConfirmationList({
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 shouldShowPersonalBankAccountOption
+                enterKeyEventListenerPriority={1}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -558,6 +558,7 @@ function MoneyRequestConfirmationList({
                 onPress={(_, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                enterKeyEventListenerPriority={1}
             />
         );
 
@@ -784,7 +785,15 @@ function MoneyRequestConfirmationList({
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.TAG));
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT,
+                                            transaction?.transactionID ?? '',
+                                            reportID ?? '',
+                                            Navigation.getActiveRouteWithoutParams(),
+                                        ),
+                                    );
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(iouType, reportID));
