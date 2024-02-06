@@ -1,27 +1,47 @@
 // eslint-disable-next-line no-restricted-imports
 import * as ReactNative from 'react-native';
-import _ from 'underscore';
+import type StartupTimer from '@libs/StartupTimer/types';
+
+const {BootSplash} = ReactNative.NativeModules;
 
 jest.doMock('react-native', () => {
     let url = 'https://new.expensify.com/';
     const getInitialURL = () => Promise.resolve(url);
 
-    let appState = 'active';
+    let appState: ReactNative.AppStateStatus = 'active';
     let count = 0;
-    const changeListeners = {};
+    const changeListeners: Record<number, (state: ReactNative.AppStateStatus) => void> = {};
 
     // Tests will run with the app in a typical small screen size by default. We do this since the react-native test renderer
     // runs against index.native.js source and so anything that is testing a component reliant on withWindowDimensions()
     // would be most commonly assumed to be on a mobile phone vs. a tablet or desktop style view. This behavior can be
     // overridden by explicitly setting the dimensions inside a test via Dimensions.set()
-    let dimensions = {
+    let dimensions: Record<string, number> = {
         width: 300,
         height: 700,
         scale: 1,
         fontScale: 1,
     };
 
-    return Object.setPrototypeOf(
+    type ReactNativeMock = typeof ReactNative & {
+        NativeModules: typeof ReactNative.NativeModules & {
+            BootSplash: {
+                getVisibilityStatus: typeof BootSplash.getVisibilityStatus;
+                hide: typeof BootSplash.hide;
+                logoSizeRatio: number;
+                navigationBarHeight: number;
+            };
+            StartupTimer: StartupTimer;
+        };
+        Linking: typeof ReactNative.Linking & {
+            setInitialURL: (newUrl: string) => void;
+        };
+        AppState: typeof ReactNative.AppState & {
+            emitCurrentTestState: (state: ReactNative.AppStateStatus) => void;
+        };
+    };
+
+    const reactNativeMock: ReactNativeMock = Object.setPrototypeOf(
         {
             NativeModules: {
                 ...ReactNative.NativeModules,
@@ -36,7 +56,7 @@ jest.doMock('react-native', () => {
             Linking: {
                 ...ReactNative.Linking,
                 getInitialURL,
-                setInitialURL(newUrl) {
+                setInitialURL(newUrl: string) {
                     url = newUrl;
                 },
             },
@@ -45,11 +65,11 @@ jest.doMock('react-native', () => {
                 get currentState() {
                     return appState;
                 },
-                emitCurrentTestState(state) {
+                emitCurrentTestState(state: ReactNative.AppStateStatus) {
                     appState = state;
-                    _.each(changeListeners, (listener) => listener(appState));
+                    Object.entries(changeListeners).forEach(([, listener]) => listener(appState));
                 },
-                addEventListener(type, listener) {
+                addEventListener(type: ReactNative.AppStateEvent, listener: (state: ReactNative.AppStateStatus) => void) {
                     if (type === 'change') {
                         const originalCount = count;
                         changeListeners[originalCount] = listener;
@@ -68,7 +88,7 @@ jest.doMock('react-native', () => {
                 ...ReactNative.Dimensions,
                 addEventListener: jest.fn(),
                 get: () => dimensions,
-                set: (newDimensions) => {
+                set: (newDimensions: Record<string, number>) => {
                     dimensions = newDimensions;
                 },
             },
@@ -78,9 +98,11 @@ jest.doMock('react-native', () => {
             // so it seems easier to just run the callback immediately in tests.
             InteractionManager: {
                 ...ReactNative.InteractionManager,
-                runAfterInteractions: (callback) => callback(),
+                runAfterInteractions: (callback: () => void) => callback(),
             },
         },
         ReactNative,
     );
+
+    return reactNativeMock;
 });
