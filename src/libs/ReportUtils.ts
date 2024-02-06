@@ -1238,7 +1238,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         }
 
         if (isActionOwner) {
-            if (isPaidGroupPolicyExpenseReport(!isEmptyObject(report) ? report : null)) {
+            if (!isEmptyObject(report) && isPaidGroupPolicyExpenseReport(report)) {
                 // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
                 return isDraftExpenseReport(report) || PolicyUtils.isPolicyAdmin(policy);
             }
