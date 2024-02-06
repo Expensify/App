@@ -1,29 +1,29 @@
 import React, {useRef} from 'react';
 import {ScrollView} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import type {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
-import type { View } from 'react-native';
-import type { TranslationPaths } from '@src/languages/types';
-import type { MenuItemProps } from '@components/MenuItem';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 function AppDownloadLinksPage() {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
 
     type DownloadMenuItem = MenuItemProps & {
-        translationKey: TranslationPaths,
-        openAppDownloadLink: () => void,
-        downloadLink: string,
+        translationKey: TranslationPaths;
+        openAppDownloadLink: () => void;
+        downloadLink: string;
     };
 
     const menuItems: DownloadMenuItem[] = [
@@ -71,10 +71,10 @@ function AppDownloadLinksPage() {
                         ref={popoverAnchor}
                         title={translate(item.translationKey)}
                         icon={item.icon}
-                        iconRight={item.iconRight} 
+                        iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
-                    />      
+                    />
                 ))}
             </ScrollView>
         </ScreenWrapper>
@@ -84,4 +84,3 @@ function AppDownloadLinksPage() {
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
 export default AppDownloadLinksPage;
-
