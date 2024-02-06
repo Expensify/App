@@ -234,8 +234,15 @@ function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) 
     API.read(READ_COMMANDS.GET_ROUTE_FOR_DRAFT, parameters, getOnyxDataForRouteRequest(transactionID, true));
 }
 
-function getUpdatedWaypointsTransaction(waypoints: WaypointCollection) {
-    return {
+/**
+ * Updates all waypoints stored in the transaction specified by the provided transactionID.
+ *
+ * @param transactionID - The ID of the transaction to be updated
+ * @param waypoints - An object containing all the waypoints
+ *                             which will replace the existing ones.
+ */
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
+    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
         },
@@ -244,7 +251,6 @@ function getUpdatedWaypointsTransaction(waypoints: WaypointCollection) {
         errorFields: {
             route: null,
         },
-
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
@@ -255,22 +261,11 @@ function getUpdatedWaypointsTransaction(waypoints: WaypointCollection) {
                 },
             },
         },
-    };
-}
-
-/**
- * Updates all waypoints stored in the transaction specified by the provided transactionID.
- *
- * @param transactionID - The ID of the transaction to be updated
- * @param waypoints - An object containing all the waypoints
- *                             which will replace the existing ones.
- */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
-    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, getUpdatedWaypointsTransaction(waypoints));
+    });
 }
 
 function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, getUpdatedWaypointsTransaction, updateWaypoints, clearError};
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, updateWaypoints, clearError};

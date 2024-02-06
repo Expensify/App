@@ -204,20 +204,8 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             });
 
             setOptimisticWaypoints(newWaypoints);
-            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Transaction.updateWaypoints(transactionID, newWaypoints, true).then(() => {
-                if (emptyWaypointIndex === -1) {
-                    setOptimisticWaypoints(null);
-                    return;
-                }
-                // This is a workaround because at this point, transaction data has not been updated yet
-                const updatedTransaction = {
-                    ...transaction,
-                    ...Transaction.getUpdatedWaypointsTransaction(newWaypoints),
-                };
-                Transaction.removeWaypoint(updatedTransaction, emptyWaypointIndex, true).then(() => {
-                    setOptimisticWaypoints(null);
-                });
+            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex, true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
+                setOptimisticWaypoints(null);
             });
         },
         [transactionID, transaction, waypoints, waypointsList],
