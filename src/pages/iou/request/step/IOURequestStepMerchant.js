@@ -1,5 +1,8 @@
+import lodashGet from 'lodash/get';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,24 +30,40 @@ const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: transactionPropTypes,
+
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    splitDraftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
+    splitDraftTransaction: {},
 };
 
 function IOURequestStepMerchant({
     route: {
         params: {transactionID, reportID, backTo, action, iouType},
     },
-    transaction: {merchant, participants},
+    transaction,
+    splitDraftTransaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const {merchant} = ReportUtils.getTransactionDetails(transaction);
 
-    const isMerchantRequired = _.some(participants, (participant) => Boolean(participant.isPolicyExpenseChat));
+    // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
+    let currentMerchant = merchant;
+
+    if (isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction)) {
+        const {merchant: splitBillMerchant} = ReportUtils.getTransactionDetails(splitDraftTransaction);
+
+        currentMerchant = splitBillMerchant;
+    }
+    const isEmptyMerchant = currentMerchant === '' || currentMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+
+    const isMerchantRequired = _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -75,7 +95,7 @@ function IOURequestStepMerchant({
     const updateMerchant = (value) => {
         const newMerchant = value.moneyRequestMerchant.trim();
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-        if (iouType === CONST.IOU.TYPE.SPLIT && isEditing) {
+        if (isEditingSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {merchant: newMerchant});
             navigateBack();
             return;
@@ -83,7 +103,7 @@ function IOURequestStepMerchant({
 
         // In case the merchant hasn't been changed, do not make the API request.
         // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
-        if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+        if (newMerchant === currentMerchant || (newMerchant === '' && currentMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
             navigateBack();
             return;
         }
@@ -116,7 +136,7 @@ function IOURequestStepMerchant({
                         InputComponent={TextInput}
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
-                        defaultValue={isEmptyMerchant ? '' : merchant}
+                        defaultValue={isEmptyMerchant ? '' : currentMerchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
@@ -133,4 +153,15 @@ IOURequestStepMerchant.propTypes = propTypes;
 IOURequestStepMerchant.defaultProps = defaultProps;
 IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepMerchant);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        splitDraftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+            },
+        },
+    }),
+)(IOURequestStepMerchant);
