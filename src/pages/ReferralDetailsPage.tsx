@@ -59,6 +59,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
+            testID={ReferralDetailsPage.displayName}
         >
             <Text style={[styles.textHeadline, styles.mb2, styles.ph5]}>{contentHeader}</Text>
             <Text style={[styles.webViewStyles.baseFontStyle, styles.ml0, styles.mb5, styles.ph5]}>{contentBody}</Text>

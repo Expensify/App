@@ -7,6 +7,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,7 +66,7 @@ function NewChatSelectorPage(props) {
 
 NewChatSelectorPage.propTypes = propTypes;
 NewChatSelectorPage.defaultProps = defaultProps;
-NewChatSelectorPage.displayName = 'NewChatPage';
+NewChatSelectorPage.displayName = 'NewChatSelectorPage';
 
 export default compose(
     withLocalize,
