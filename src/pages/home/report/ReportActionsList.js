@@ -15,7 +15,6 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -426,7 +425,7 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     useEffect(() => {
-        if (report.reportID !== Navigation.getTopmostReportId()) {
+        if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
 
