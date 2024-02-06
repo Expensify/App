@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import lodashFind from 'lodash/find';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsList from '@components/OptionsList';
@@ -48,10 +49,10 @@ const getAllParticipants = (
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail?.login ?? '') ?? translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
-            const pendingVisibleChatMember = _.find(report.pendingVisibleChatMemberAccountIDs, (member) => member.accountID === accountID);
+            const pendingVisibleChatMember = lodashFind(report?.pendingVisibleChatMembers, (member) => member.accountID === accountID.toString());
             return {
                 alternateText: userLogin,
-                pendingAction: pendingVisibleChatMember.pendingAction || null,
+                pendingAction: pendingVisibleChatMember?.pendingAction || undefined,
                 displayName,
                 accountID: userPersonalDetail?.accountID ?? accountID,
                 icons: [

@@ -205,7 +205,7 @@ function RoomMembersPage(props) {
                     return;
                 }
             }
-            const pendingVisibleChatMember = _.find(props.report.pendingVisibleChatMemberAccountIDs, (member) => member.accountID === accountID);
+            const pendingVisibleChatMember = _.find(props.report.pendingVisibleChatMembers, (member) => member.accountID === accountID);
 
             result.push({
                 keyForList: String(accountID),
@@ -221,7 +221,7 @@ function RoomMembersPage(props) {
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                pendingAction: pendingVisibleChatMember.pendingAction || null,
+                pendingAction: pendingVisibleChatMember.pendingAction || undefined,
             });
         });
 
