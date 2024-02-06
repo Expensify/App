@@ -80,7 +80,6 @@ function ManageTeamsExpensesModal() {
                 <HeaderWithBackButton
                     shouldShowBackButton
                     onBackButtonPress={navigateBack}
-                    iconFill={theme.iconColorfulBackground}
                 />
 
                 <ScrollView contentContainerStyle={[styles.flex1, styles.ph5]}>
