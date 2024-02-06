@@ -26,7 +26,11 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
+
+    /** Border radius to be applied on the parent view. */
     borderRadius?: number;
+
+    /** The file extension of the receipt that the preview thumbnail is being displayed for. */
     fileExtension?: string;
 
     /** Whether it is a receipt thumbnail we are displaying. */
@@ -89,7 +93,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                 primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {},
                 styles.overflowHidden,
                 styles.alignItemsCenter,
-                isReceiptThumbnail || (containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint) ? styles.justifyContentCenter : {},
+                isReceiptThumbnail || (containerHeight && containerHeight < variables.eReceiptThumbnailCenterReceiptBreakpoint) ? styles.justifyContentCenter : {},
                 borderRadius ? {borderRadius} : {},
             ]}
             onLayout={isReceiptThumbnail ? undefined : onContainerLayout}
