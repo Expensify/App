@@ -1,10 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import type {ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeErrorsWithNullMessage} from '@libs/ErrorUtils';
 import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import CONST from '@src/CONST';
