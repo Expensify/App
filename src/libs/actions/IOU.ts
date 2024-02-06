@@ -985,9 +985,9 @@ function getUpdateMoneyRequestParams(
     transactionID: string,
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
-    policy: OnyxTypes.Policy | EmptyObject,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     onlyIncludeChangedFields: boolean,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
@@ -1186,7 +1186,7 @@ function getUpdateMoneyRequestParams(
     if (policy?.id && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, !!policy.requiresTag, policyTags, !!policy.requiresCategory, policyCategories),
+            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, !!policy.requiresTag, policyTags ?? {}, !!policy.requiresCategory, policyCategories ?? {}),
         );
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1206,9 +1206,9 @@ function updateMoneyRequestDate(
     transactionID: string,
     transactionThreadReportID: string,
     value: string,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         created: value,
@@ -1222,9 +1222,9 @@ function updateMoneyRequestBillable(
     transactionID: string,
     transactionThreadReportID: string,
     value: boolean,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         billable: value,
@@ -1238,9 +1238,9 @@ function updateMoneyRequestMerchant(
     transactionID: string,
     transactionThreadReportID: string,
     value: string,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -1254,9 +1254,9 @@ function updateMoneyRequestTag(
     transactionID: string,
     transactionThreadReportID: string,
     tag: string,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         tag,
@@ -1270,9 +1270,9 @@ function updateMoneyRequestDistance(
     transactionID: string,
     transactionThreadReportID: string,
     waypoints: WaypointCollection,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         waypoints,
@@ -1286,9 +1286,9 @@ function updateMoneyRequestCategory(
     transactionID: string,
     transactionThreadReportID: string,
     category: string,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -1302,9 +1302,9 @@ function updateMoneyRequestDescription(
     transactionID: string,
     transactionThreadReportID: string,
     comment: string,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         comment,
@@ -2377,9 +2377,9 @@ function updateMoneyRequestAmountAndCurrency(
     transactionThreadReportID: string,
     currency: string,
     amount: number,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges = {
         amount,
