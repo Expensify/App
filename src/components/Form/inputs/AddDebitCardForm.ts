@@ -1,0 +1,26 @@
+import type {Form} from '@src/types/onyx';
+
+const INPUT_IDS = {
+    NAME_ON_CARD: 'nameOnCard',
+    CARD_NUMBER: 'cardNumber',
+    EXPIRATION_DATE: 'expirationDate',
+    SECURITY_CODE: 'securityCode',
+    ADDRESS_STREET: 'addressStreet',
+    ADDRESS_ZIP_CODE: 'addressZipCode',
+    ADDRESS_STATE: 'addressState',
+    ACCEPT_TERMS: 'acceptTerms',
+} as const;
+
+type AddDebitCardForm = Form<{
+    [INPUT_IDS.NAME_ON_CARD]: string;
+    [INPUT_IDS.CARD_NUMBER]: string;
+    [INPUT_IDS.EXPIRATION_DATE]: string;
+    [INPUT_IDS.SECURITY_CODE]: string;
+    [INPUT_IDS.ADDRESS_STREET]: string;
+    [INPUT_IDS.ADDRESS_ZIP_CODE]: string;
+    [INPUT_IDS.ADDRESS_STATE]: string;
+    [INPUT_IDS.ACCEPT_TERMS]: string;
+}>;
+
+export default AddDebitCardForm;
+export {INPUT_IDS};
