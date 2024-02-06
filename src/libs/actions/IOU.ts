@@ -302,7 +302,7 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID: string, mer
  * @param {String} transactionID
  * @param {String} category
  */
-function setMoneyRequestCategory(transactionID, category) {
+function setMoneyRequestCategory(transactionID: string, category: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
 }
 
@@ -310,7 +310,7 @@ function setMoneyRequestCategory(transactionID, category) {
  * @param {String} transactionID
  * @param {String} tag
  */
-function setMoneyRequestTag(transactionID, tag) {
+function setMoneyRequestTag(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
 
@@ -3566,7 +3566,7 @@ function setMoneyRequestMerchant(merchant: string) {
  * @param {String} transactionID
  * @param {Object} taxRate
  */
-function setMoneyRequestTaxRate(transactionID, taxRate) {
+function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 
