@@ -98,7 +98,7 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 <Button
                     text={translate('initialSettingsPage.debugConsole.shareLog')}
                     onPress={() => {}}
-                    icon={Expensicons.Upload}
+                    icon={Expensicons.UploadAlt}
                     style={[styles.flex1, styles.ml1]}
                 />
             </View>
