@@ -545,7 +545,7 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
  * Get the policy type from a given report
  * @param policies must have Onyxkey prefix (i.e 'policy_') for keys
  */
-function getPolicyType(report: OnyxEntry<Report> | EmptyObject, policies: OnyxCollection<Policy>): string {
+function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): string {
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
 }
 
@@ -793,7 +793,7 @@ function isGroupPolicy(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy
  */
-function isPaidGroupPolicy(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
     return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
 }
@@ -815,7 +815,7 @@ function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy and is an expense report
  */
-function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && isPaidGroupPolicy(report);
 }
 
@@ -1238,7 +1238,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         }
 
         if (isActionOwner) {
-            if (isPaidGroupPolicyExpenseReport(report)) {
+            if (isPaidGroupPolicyExpenseReport(!isEmptyObject(report) ? report : null)) {
                 // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
                 return isDraftExpenseReport(report) || PolicyUtils.isPolicyAdmin(policy);
             }
