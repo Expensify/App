@@ -16,7 +16,6 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
@@ -195,7 +194,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
-                            referralRoute={ROUTES.REFERRAL_DETAILS_MODAL_REFER_FRIEND.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND)}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onLayout={searchRendered}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}

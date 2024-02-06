@@ -24,7 +24,6 @@ import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 

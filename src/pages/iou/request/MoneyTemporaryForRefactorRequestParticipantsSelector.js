@@ -22,7 +22,6 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */

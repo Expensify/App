@@ -18,7 +18,6 @@ import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
@@ -37,7 +36,6 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
-    const {transactionID, reportID} = route.params;
 
     if (!Object.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES).includes(contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
@@ -48,18 +46,6 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
     const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}${account?.primaryLogin ? `/?thanks=${account.primaryLogin}` : ''}`;
-
-    function getFallbackRoute() {
-        const fallbackRoutes = {
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID),
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SEND),
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: ROUTES.NEW_CHAT,
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: ROUTES.SEARCH,
-            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: ROUTES.SETTINGS_SHARE_CODE,
-        };
-
-        return fallbackRoutes[contentType];
-    }
 
     return (
         <HeaderPageLayout

@@ -47,9 +47,6 @@ const propTypes = {
     /** Referral content type */
     referralContentType: PropTypes.string,
 
-    /** Referral route */
-    referralRoute: PropTypes.string,
-
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
