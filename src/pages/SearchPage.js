@@ -174,6 +174,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
             testID={SearchPage.displayName}
             onEntryTransitionEnd={updateOptions}
             navigation={navigation}
+            shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>

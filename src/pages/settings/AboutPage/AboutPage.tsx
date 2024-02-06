@@ -132,6 +132,7 @@ function AboutPage() {
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
             overlayContent={overlayContent}
             shouldShowOfflineIndicatorInWideScreen
+            testID={AboutPage.displayName}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
                 <Text style={[styles.textHeadline, styles.mb1]}>{translate('footer.aboutExpensify')}</Text>
