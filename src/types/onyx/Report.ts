@@ -13,6 +13,11 @@ type Note = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type PendingChatMember = {
+    accountID: string;
+    pendingAction: OnyxCommon.PendingAction;
+};
+
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -161,8 +166,11 @@ type Report = {
 
     /** If the report contains reportFields, save the field id and its value */
     reportFields?: Record<string, string>;
+
+    /** Pending member of the report */
+    pendingVisibleChatMembers: PendingChatMember[];
 };
 
 export default Report;
 
-export type {NotificationPreference, WriteCapability, Note};
+export type {NotificationPreference, WriteCapability, Note, PendingChatMember};

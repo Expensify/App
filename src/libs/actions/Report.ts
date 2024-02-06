@@ -34,7 +34,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, PendingChatMember, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2202,6 +2202,13 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
+    const pendingAccountIDs = inviteeAccountIDs.map((accountID) => {
+        return {
+            accountID: accountID.toString(),
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+    });
+    const pendingVisibleChatMembers = [...(report?.pendingVisibleChatMembers || []), ...pendingAccountIDs];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2210,13 +2217,22 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
                 visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
+                pendingVisibleChatMembers,
             },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
-    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.finallyData;
-
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
+            },
+        },
+        ...newPersonalDetailsOnyxData.finallyData,
+    ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2224,6 +2240,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: report.participantAccountIDs,
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2248,6 +2265,13 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const pendingAccountIDs = targetAccountIDs.map((accountID) => {
+        return {
+            accountID: accountID.toString(),
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        };
+    });
+    const pendingVisibleChatMembers = [...(report?.pendingVisibleChatMembers || []), ...pendingAccountIDs];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2256,6 +2280,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+                pendingVisibleChatMembers,
             },
         },
     ];
@@ -2267,6 +2292,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: report?.participantAccountIDs,
                 visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
             },
         },
     ];
@@ -2280,6 +2306,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
             },
         },
     ];

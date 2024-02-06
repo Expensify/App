@@ -26,6 +26,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
+    onyxSuccessData: OnyxUpdate[];
     onyxFailureData: OnyxUpdate[];
 };
 
@@ -305,6 +306,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
+        onyxSuccessData: [],
     };
 
     if (!announceReport) {
@@ -314,6 +316,13 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     if (announceReport?.participantAccountIDs) {
         // Everyone in special policy rooms is visible
         const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
+        const pendingAccountIDs = accountIDs.map((accountID) => {
+            return {
+                accountID: accountID.toString(),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+        });
+        const pendingVisibleChatMembers = [...(announceReport?.pendingVisibleChatMembers || []), ...pendingAccountIDs];
 
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -321,6 +330,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
             value: {
                 participantAccountIDs,
                 visibleChatMemberAccountIDs: participantAccountIDs,
+                pendingVisibleChatMembers,
             },
         });
     }
@@ -331,6 +341,14 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         value: {
             participantAccountIDs: announceReport?.participantAccountIDs,
             visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
+            pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
+        },
+    });
+    announceRoomMembers.onyxSuccessData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
+        value: {
+            pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
         },
     });
     return announceRoomMembers;
@@ -344,6 +362,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
+        onyxSuccessData: [],
     };
 
     if (!announceReport) {
@@ -352,12 +371,21 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
 
     if (announceReport?.participantAccountIDs) {
         const remainUsers = announceReport.participantAccountIDs.filter((e) => !accountIDs.includes(e));
+        const pendingAccountIDs = accountIDs.map((accountID) => {
+            return {
+                accountID: accountID.toString(),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+        });
+        const pendingVisibleChatMembers = [...(announceReport?.pendingVisibleChatMembers || []), ...pendingAccountIDs];
+
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
                 participantAccountIDs: [...remainUsers],
                 visibleChatMemberAccountIDs: [...remainUsers],
+                pendingVisibleChatMembers,
             },
         });
 
@@ -367,6 +395,14 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
             value: {
                 participantAccountIDs: announceReport.participantAccountIDs,
                 visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
+                pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
+            },
+        });
+        announceRoomMembers.onyxSuccessData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+            value: {
+                pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
             },
         });
     }

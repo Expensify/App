@@ -62,8 +62,10 @@ const getAllParticipants = (report, personalDetails, translate) =>
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
+            const pendingVisibleChatMember = _.find(report.pendingVisibleChatMemberAccountIDs, (member) => member.accountID === accountID);
             return {
                 alternateText: userLogin,
+                pendingAction: pendingVisibleChatMember.pendingAction || null,
                 displayName,
                 accountID: userPersonalDetail.accountID,
                 icons: [
