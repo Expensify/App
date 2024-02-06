@@ -2,4 +2,5 @@ import type {Form} from '@src/types/onyx';
 
 type RoomSettingsForm = Form;
 
-export default RoomSettingsForm;
+// eslint-disable-next-line import/prefer-default-export
+export type {RoomSettingsForm};

@@ -22,5 +22,5 @@ type AddDebitCardForm = Form<{
     [INPUT_IDS.ACCEPT_TERMS]: string;
 }>;
 
-export default AddDebitCardForm;
-export {INPUT_IDS};
+export type {AddDebitCardForm};
+export default INPUT_IDS;

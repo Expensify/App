@@ -8,5 +8,5 @@ type WorkspaceInviteMessageForm = Form<{
     [INPUT_IDS.WELCOME_MESSAGE]: string;
 }>;
 
-export default WorkspaceInviteMessageForm;
-export {INPUT_IDS};
+export type {WorkspaceInviteMessageForm};
+export default INPUT_IDS;

@@ -8,5 +8,5 @@ type DateOfBirthForm = Form<{
     [INPUT_IDS.DOB]: string;
 }>;
 
-export default DateOfBirthForm;
-export {INPUT_IDS};
+export type {DateOfBirthForm};
+export default INPUT_IDS;

@@ -18,5 +18,5 @@ type HomeAddressForm = Form<{
     [INPUT_IDS.ZIP_POST_CODE]: string;
 }>;
 
-export default HomeAddressForm;
-export {INPUT_IDS};
+export type {HomeAddressForm};
+export default INPUT_IDS;

@@ -8,5 +8,5 @@ type NewContactMethodForm = Form<{
     [INPUT_IDS.PHONE_OR_EMAIL]: string;
 }>;
 
-export default NewContactMethodForm;
-export {INPUT_IDS};
+export type {NewContactMethodForm};
+export default INPUT_IDS;

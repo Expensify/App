@@ -10,5 +10,5 @@ type MoneyRequestDescriptionForm = Form<{
     [INPUT_IDS.MONEY_REQUEST_COMMENT]: string;
 }>;
 
-export default MoneyRequestDescriptionForm;
-export {INPUT_IDS};
+export type {MoneyRequestDescriptionForm};
+export default INPUT_IDS;

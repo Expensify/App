@@ -1,5 +1,5 @@
 import type {Form} from '@src/types/onyx';
-import {INPUT_IDS as ADDRESS_INPUTS_IDS} from './HomeAddressForm';
+import ADDRESS_INPUTS_IDS from './HomeAddressForm';
 
 const INPUT_IDS = {
     ...ADDRESS_INPUTS_IDS,
@@ -20,5 +20,5 @@ type GetPhysicalCardForm = Form<{
     [INPUT_IDS.PHONE_NUMBER]: string;
 }>;
 
-export default GetPhysicalCardForm;
-export {INPUT_IDS};
+export type {GetPhysicalCardForm};
+export default INPUT_IDS;

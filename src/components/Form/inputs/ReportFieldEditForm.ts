@@ -2,4 +2,5 @@ import type {Form} from '@src/types/onyx';
 
 type ReportFieldEditForm = Form;
 
-export default ReportFieldEditForm;
+// eslint-disable-next-line import/prefer-default-export
+export type {ReportFieldEditForm};

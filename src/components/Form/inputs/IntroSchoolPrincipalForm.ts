@@ -12,5 +12,5 @@ type IntroSchoolPrincipalForm = Form<{
     [INPUT_IDS.PARTNER_USER_ID]: string;
 }>;
 
-export default IntroSchoolPrincipalForm;
-export {INPUT_IDS};
+export type {IntroSchoolPrincipalForm};
+export default INPUT_IDS;

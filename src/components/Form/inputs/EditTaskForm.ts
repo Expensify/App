@@ -10,5 +10,5 @@ type EditTaskForm = Form<{
     [INPUT_IDS.DESCRIPTION]: string;
 }>;
 
-export default EditTaskForm;
-export {INPUT_IDS};
+export type {EditTaskForm};
+export default INPUT_IDS;

@@ -8,5 +8,5 @@ type ReportDescriptionForm = Form<{
     [INPUT_IDS.REPORT_DESCRIPTION]: string;
 }>;
 
-export default ReportDescriptionForm;
-export {INPUT_IDS};
+export type {ReportDescriptionForm};
+export default INPUT_IDS;

@@ -10,5 +10,5 @@ type WorkspaceRateAndUnitForm = Form<{
     [INPUT_IDS.UNIT]: string;
 }>;
 
-export default WorkspaceRateAndUnitForm;
-export {INPUT_IDS};
+export type {WorkspaceRateAndUnitForm};
+export default INPUT_IDS;

@@ -44,5 +44,5 @@ type ReimbursementAccount = Form<{
     [INPUT_IDS.AMOUNT3]: string;
 }>;
 
-export default ReimbursementAccount;
-export {INPUT_IDS};
+export type {ReimbursementAccount};
+export default INPUT_IDS;

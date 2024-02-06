@@ -12,5 +12,5 @@ type IKnowTeacherForm = Form<{
     [INPUT_IDS.PARTNER_USER_ID]: string;
 }>;
 
-export default IKnowTeacherForm;
-export {INPUT_IDS};
+export type {IKnowTeacherForm};
+export default INPUT_IDS;

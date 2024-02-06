@@ -8,5 +8,5 @@ type SettingsStatusClearDateForm = Form<{
     [INPUT_IDS.DATE_TIME]: string;
 }>;
 
-export default SettingsStatusClearDateForm;
-export {INPUT_IDS};
+export type {SettingsStatusClearDateForm};
+export default INPUT_IDS;

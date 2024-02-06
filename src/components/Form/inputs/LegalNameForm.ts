@@ -10,5 +10,5 @@ type LegalNameForm = Form<{
     [INPUT_IDS.LEGAL_LAST_NAME]: string;
 }>;
 
-export default LegalNameForm;
-export {INPUT_IDS};
+export type {LegalNameForm};
+export default INPUT_IDS;

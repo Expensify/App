@@ -10,5 +10,5 @@ type CloseAccountForm = Form<{
     [INPUT_IDS.PHONE_OR_EMAIL]: string;
 }>;
 
-export default CloseAccountForm;
-export {INPUT_IDS};
+export type {CloseAccountForm};
+export default INPUT_IDS;

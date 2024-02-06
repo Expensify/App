@@ -2,4 +2,5 @@ import type {Form} from '@src/types/onyx';
 
 type WaypointForm = Form;
 
-export default WaypointForm;
+// eslint-disable-next-line import/prefer-default-export
+export type {WaypointForm};

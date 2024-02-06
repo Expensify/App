@@ -10,5 +10,5 @@ type DisplayNameForm = Form<{
     [INPUT_IDS.LAST_NAME]: string;
 }>;
 
-export default DisplayNameForm;
-export {INPUT_IDS};
+export type {DisplayNameForm};
+export default INPUT_IDS;

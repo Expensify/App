@@ -2,4 +2,5 @@ import type {Form} from '@src/types/onyx';
 
 type SettingsStatusSetForm = Form;
 
-export default SettingsStatusSetForm;
+// eslint-disable-next-line import/prefer-default-export
+export type {SettingsStatusSetForm};

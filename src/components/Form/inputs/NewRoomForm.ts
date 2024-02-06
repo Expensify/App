@@ -16,5 +16,5 @@ type NewRoomForm = Form<{
     [INPUT_IDS.VISIBILITY]: string;
 }>;
 
-export default NewRoomForm;
-export {INPUT_IDS};
+export type {NewRoomForm};
+export default INPUT_IDS;

@@ -8,5 +8,5 @@ type RoomNameForm = Form<{
     [INPUT_IDS.ROOM_NAME]: string;
 }>;
 
-export default RoomNameForm;
-export {INPUT_IDS};
+export type {RoomNameForm};
+export default INPUT_IDS;

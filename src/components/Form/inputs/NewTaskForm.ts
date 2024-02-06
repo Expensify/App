@@ -10,5 +10,5 @@ type NewTaskForm = Form<{
     [INPUT_IDS.TASK_DESCRIPTION]: string;
 }>;
 
-export default NewTaskForm;
-export {INPUT_IDS};
+export type {NewTaskForm};
+export default INPUT_IDS;

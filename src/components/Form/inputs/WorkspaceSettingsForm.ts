@@ -8,5 +8,5 @@ type WorkspaceSettingsForm = Form<{
     [INPUT_IDS.NAME]: string;
 }>;
 
-export default WorkspaceSettingsForm;
-export {INPUT_IDS};
+export type {WorkspaceSettingsForm};
+export default INPUT_IDS;

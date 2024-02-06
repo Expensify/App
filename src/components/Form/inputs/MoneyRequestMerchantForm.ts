@@ -10,5 +10,5 @@ type MoneyRequestMerchantForm = Form<{
     [INPUT_IDS.MONEY_REQUEST_MERCHANT]: string;
 }>;
 
-export default MoneyRequestMerchantForm;
-export {INPUT_IDS};
+export type {MoneyRequestMerchantForm};
+export default INPUT_IDS;
