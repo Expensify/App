@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
-import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
@@ -47,7 +47,7 @@ function getMicroSecondOnyxError(error: string): Errors {
  * Method used to get an error object with microsecond as the key and an object as the value.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<number, Record<string, string>> {
+function getMicroSecondOnyxErrorObject(error: Errors): ErrorFields {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -67,11 +67,23 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     return errors[key];
 }
 
+function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Errors {
+    const errors = onyxData.errors ?? {};
+
+    if (Object.keys(errors).length === 0) {
+        return {};
+    }
+
+    const key = Object.keys(errors).sort().reverse()[0];
+
+    return {key: errors[key]};
+}
+
 type OnyxDataWithErrorFields = {
     errorFields?: ErrorFields;
 };
 
-function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
+function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -83,7 +95,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     return {[key]: errorsForField[key]};
 }
 
-function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
+function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -102,7 +114,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
  * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey | Localize.MaybePhraseKey) {
     if (!message || !inputID) {
         return;
     }
@@ -120,15 +132,6 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
     }
 }
 
-function removeErrorsWithNullMessage(errors: Errors | ReceiptErrors | null | undefined) {
-    if (!errors) {
-        return errors;
-    }
-    const nonNullEntries = Object.entries(errors).filter(([, message]) => message !== null);
-
-    return Object.fromEntries(nonNullEntries);
-}
-
 /** Check if the error includes a receipt. */
 function isReceiptError(message: unknown): message is ReceiptError {
     if (typeof message === 'string') {
@@ -144,13 +147,13 @@ function isReceiptError(message: unknown): message is ReceiptError {
 }
 
 export {
+    addErrorMessage,
     getAuthenticateErrorMessage,
+    getEarliestErrorField,
+    getLatestErrorField,
+    getLatestErrorMessage,
+    getLatestErrorMessageField,
     getMicroSecondOnyxError,
     getMicroSecondOnyxErrorObject,
-    getLatestErrorMessage,
-    getLatestErrorField,
-    getEarliestErrorField,
-    addErrorMessage,
-    removeErrorsWithNullMessage,
     isReceiptError,
 };

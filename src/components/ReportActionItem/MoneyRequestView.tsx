@@ -238,7 +238,7 @@ function MoneyRequestView({
                         errors={errors}
                         errorRowStyles={[styles.ml4]}
                         onClose={() => {
-                            if (!transaction) {
+                            if (!transaction?.transactionID) {
                                 return;
                             }
                             Transaction.clearError(transaction.transactionID);
@@ -249,6 +249,7 @@ function MoneyRequestView({
                                 thumbnail={receiptURIs?.thumbnail}
                                 image={receiptURIs?.image}
                                 isLocalFile={receiptURIs?.isLocalFile}
+                                filename={receiptURIs?.filename}
                                 transaction={transaction}
                                 enablePreviewModal
                                 canEditReceipt={canEditReceipt}
@@ -323,8 +324,12 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant && isPolicyExpenseChat) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={
+                                hasViolations('merchant') || (!isSettled && !isCancelled && hasErrors && isEmptyMerchant && isPolicyExpenseChat)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined
+                            }
+                            error={!isSettled && !isCancelled && hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
@@ -364,7 +369,9 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                            }
                             brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}

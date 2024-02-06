@@ -2,8 +2,8 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
@@ -89,7 +89,7 @@ function MoneyRequestPreviewContent({
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
+    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -108,7 +108,7 @@ function MoneyRequestPreviewContent({
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(transaction)] : [];
 
     const getSettledMessage = (): string => {
-        if (isExpensifyCardTransaction) {
+        if (isCardTransaction) {
             return translate('common.done');
         }
         return translate('iou.settledExpensify');
@@ -131,7 +131,7 @@ function MoneyRequestPreviewContent({
             return translate('iou.split');
         }
 
-        if (isExpensifyCardTransaction) {
+        if (isCardTransaction) {
             let message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` • ${translate('iou.pending')}`;

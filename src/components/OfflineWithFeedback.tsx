@@ -9,7 +9,7 @@ import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MessagesRow from './MessagesRow';
@@ -80,8 +80,11 @@ function OfflineWithFeedback({
     const {isOffline} = useNetwork();
 
     const hasErrors = !isEmptyObject(errors ?? {});
+
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorMessages = useMemo(() => removeErrorsWithNullMessage(errors), [errors]);
+    const errorEntries = Object.entries(errors ?? {});
+    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError] => errorEntry[1] !== null);
+    const errorMessages = Object.fromEntries(filteredErrorEntries);
 
     const hasErrorMessages = !isEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;

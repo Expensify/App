@@ -129,6 +129,7 @@ export default {
         magicCode: 'Código mágico',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
+        chats: 'Chats',
         profile: 'Perfil',
         referral: 'Remisión',
         payments: 'Pagos',
@@ -480,7 +481,7 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
             send: 'enviar dinero',
             split: 'dividir una factura',
@@ -527,6 +528,10 @@ export default {
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
+    },
+    allSettingsScreen: {
+        subscriptions: 'Suscripciones',
+        cardsAndDomains: 'Tarjetas y Dominios',
     },
     tabSelector: {
         chat: 'Chat',
@@ -668,6 +673,7 @@ export default {
             always: 'Inmediatamente',
             daily: 'Cada día',
             mute: 'Nunca',
+            hidden: 'Oculto',
         },
     },
     loginField: {
@@ -806,7 +812,11 @@ export default {
             phrase3: 'y',
             phrase4: 'Privacidad',
         },
+        returnToClassic: 'Volver a Expensify Clásico',
         help: 'Ayuda',
+        accountSettings: 'Configuración de la cuenta',
+        account: 'Cuenta',
+        general: 'General',
     },
     closeAccountPage: {
         closeAccount: 'Cerrar cuenta',
@@ -1043,10 +1053,10 @@ export default {
             },
         },
     },
-    welcomeMessagePage: {
-        welcomeMessage: 'Mensaje de bienvenida',
-        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
-        explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
+    reportDescriptionPage: {
+        roomDescription: 'Descripción de la sala de chat',
+        roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
+        explainerText: 'Establece una descripción personalizada para la sala de chat.',
     },
     languagePage: {
         language: 'Idioma',
@@ -1542,6 +1552,7 @@ export default {
             travel: 'Viajes',
             members: 'Miembros',
             plan: 'Plan',
+            overview: 'Descripción',
             bankAccount: 'Cuenta bancaria',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
@@ -1553,6 +1564,9 @@ export default {
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
+            workspaceName: 'Nombre del espacio de trabajo',
+            workspaceOwner: 'Dueño',
+            workspaceType: 'Tipo de espacio de trabajo',
             workspaceAvatar: 'Espacio de trabajo avatar',
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
         },
@@ -1563,7 +1577,7 @@ export default {
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
-            subtitle: 'Administra gastos de empresa, emite tarjetas, envía facturas y mucho más.',
+            subtitle: 'En los espacios de trabajo podrás chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas, y mucho más - todo en un mismo lugar.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
@@ -1572,6 +1586,11 @@ export default {
             },
             notFound: 'No se encontró ningún espacio de trabajo',
             description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
+        },
+        switcher: {
+            headerTitle: 'Elige un espacio de trabajo',
+            everythingSection: 'Todo',
+            placeholder: 'Encuentra un espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -1915,6 +1934,8 @@ export default {
     report: {
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde',
         genericAddCommentFailureMessage: 'Error inesperado al añadir el comentario. Por favor, inténtalo más tarde',
+        genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde',
+        genericUpdateReporNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Vuelva a intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
     },
     chronos: {
