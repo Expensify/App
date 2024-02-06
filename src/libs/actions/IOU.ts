@@ -2806,6 +2806,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             value: {
                 [reportPreviewAction?.reportActionID ?? '']: {
                     ...reportPreviewAction,
+                    pendingAction: null,
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
                 },
             },
