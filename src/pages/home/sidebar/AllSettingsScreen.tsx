@@ -1,7 +1,7 @@
-import React, {useMemo} from 'react';
-import {ScrollView} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import React, { useMemo } from 'react';
+import { ScrollView } from 'react-native';
+import type { OnyxCollection } from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
@@ -11,14 +11,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
+import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
+import { hasGlobalWorkspaceSettingsRBR } from '@libs/WorkspacesSettingsUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyMembers} from '@src/types/onyx';
-import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
+import type { Policy, PolicyMembers } from '@src/types/onyx';
 
 type AllSettingsScreenOnyxProps = {
     policies: OnyxCollection<Policy>;
@@ -27,11 +27,11 @@ type AllSettingsScreenOnyxProps = {
 
 type AllSettingsScreenProps = AllSettingsScreenOnyxProps;
 
-function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
+function AllSettingsScreen({ policies, policyMembers }: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
-    const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const { translate } = useLocalize();
+    const { isSmallScreenWidth } = useWindowDimensions();
 
     /**
      * Retuns a list of menu items data for All workspaces settings
@@ -50,16 +50,20 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                 focused: !isSmallScreenWidth,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
-            ...(shouldShowSubscriptionsMenu ? [{
-                translationKey: 'allSettingsScreen.subscriptions',
-                icon: Expensicons.MoneyBag,
-                action: () => {
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
-                },
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                link: CONST.OLDDOT_URLS.ADMIN_POLICIES_URL,
-            }] : []),
+            ...(shouldShowSubscriptionsMenu
+                ? [
+                    {
+                        translationKey: 'allSettingsScreen.subscriptions',
+                        icon: Expensicons.MoneyBag,
+                        action: () => {
+                            Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
+                        },
+                        shouldShowRightIcon: true,
+                        iconRight: Expensicons.NewWindow,
+                        link: CONST.OLDDOT_URLS.ADMIN_POLICIES_URL,
+                    },
+                ]
+                : []),
             {
                 translationKey: 'allSettingsScreen.cardsAndDomains',
                 icon: Expensicons.CardsAndDomains,
