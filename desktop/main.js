@@ -411,9 +411,27 @@ const mainWindow = () => {
                                 },
                             },
                             {
+                                id: 'back_left',
+                                role: 'back',
+                                visible: false,
+                                accelerator: process.platform === 'darwin' ? 'Cmd+Left' : 'Shift+Left',
+                                click: () => {
+                                    browserWindow.webContents.goBack();
+                                },
+                            },
+                            {
                                 id: 'forward',
                                 role: 'forward',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                                click: () => {
+                                    browserWindow.webContents.goForward();
+                                },
+                            },
+                            {
+                                id: 'forward_right',
+                                role: 'forward',
+                                visible: false,
+                                accelerator: process.platform === 'darwin' ? 'Cmd+Right' : 'Shift+Right',
                                 click: () => {
                                     browserWindow.webContents.goForward();
                                 },
