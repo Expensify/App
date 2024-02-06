@@ -291,12 +291,7 @@ function setMoneyRequestDescription_temporaryForRefactor(transactionID: string, 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} merchant
- * @param {Boolean} isDraft
- */
-function setMoneyRequestMerchant(transactionID, merchant, isDraft) {
+function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
 }
 
