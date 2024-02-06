@@ -140,7 +140,6 @@ function ReportPreview({
     const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
-    const hasOnlyPendingDistanceRequests = hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend;
 
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
@@ -170,7 +169,7 @@ function ReportPreview({
         if (isScanning) {
             return translate('iou.receiptScanning');
         }
-        if (hasOnlyPendingDistanceRequests) {
+        if (hasOnlyTransactionsWithPendingRoutes) {
             return translate('iou.routePending');
         }
 
@@ -234,7 +233,7 @@ function ReportPreview({
      * There is an edge case when there is only one distance request with a pending route and amount = 0.
        In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !hasOnlyPendingDistanceRequests;
+    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || numberOfRequests > 1);
 
     return (

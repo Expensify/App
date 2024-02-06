@@ -35,7 +35,6 @@ function DistanceEReceipt({transaction}) {
     const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const sortedWaypoints = useMemo(
@@ -63,7 +62,7 @@ function DistanceEReceipt({transaction}) {
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isFetchingWaypointsFromServer || !thumbnailSource ? (
+                        {TransactionUtils.isFetchingWaypointsFromServer(transaction) || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ThumbnailImage
