@@ -82,8 +82,8 @@ function ManageTeamsExpensesModal() {
                     onBackButtonPress={navigateBack}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flex1, styles.ph5]}>
-                    <View style={styles.w100}>
+                <ScrollView contentContainerStyle={styles.flex1}>
+                    <View style={[styles.w100, styles.ph5]}>
                         <Text
                             style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                             numberOfLines={2}
