@@ -98,7 +98,7 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
-type MaybePhraseKey = string | [string, Record<string, unknown> & {isTranslated?: true}] | [];
+type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: true}] | [];
 
 /**
  * Return translated string for given error.
