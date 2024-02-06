@@ -32,10 +32,14 @@ function webUpdate() {
         });
 }
 
+type WebUpdater = () => {
+    init: () => void;
+    update: () => void;
+};
 /**
  * Create an object whose shape reflects the callbacks used in checkForUpdates.
  */
-const webUpdater = () => ({
+const webUpdater: WebUpdater = () => ({
     init: () => {
         // We want to check for updates and refresh the page if necessary when the app is backgrounded.
         // That way, it will auto-update silently when they minimize the page,
