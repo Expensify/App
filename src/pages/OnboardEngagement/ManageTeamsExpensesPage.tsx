@@ -8,7 +8,6 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -41,7 +40,6 @@ function ManageTeamsExpensesModal() {
     const {translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-    const theme = useTheme();
 
     const menuItems: MenuItemProps[] = useMemo(
         () =>
