@@ -3561,7 +3561,7 @@ function setMoneyRequestDescription(comment: string) {
 /**
  * @param {String} category
  */
-function setMoneyRequestCategory(category) {
+function setMoneyRequestCategory(category: string) {
     Onyx.merge(ONYXKEYS.IOU, {category});
 }
 
