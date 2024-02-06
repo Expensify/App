@@ -50,6 +50,7 @@ import type {
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
@@ -1173,7 +1174,6 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
                 makeMeAdmin,
             },
@@ -1235,7 +1235,6 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
             },
         },
@@ -1532,7 +1531,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
-function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category: string) {
+function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
     if (!policyID || !category) {
         return [];
     }
@@ -1542,7 +1541,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category:
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): RecentlyUsedTags {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, tag?: string): RecentlyUsedTags {
     if (!policyID || !tag) {
         return {};
     }
@@ -1565,9 +1564,9 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): R
  *
  * @returns policyID of the workspace we have created
  */
-function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
+function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string | undefined {
     // This flow only works for IOU reports
-    if (!ReportUtils.isIOUReport(iouReport)) {
+    if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
     }
 
@@ -1615,7 +1614,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        areChatRoomsEnabled: true,
         customUnits,
     };
 
