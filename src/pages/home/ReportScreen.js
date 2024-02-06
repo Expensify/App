@@ -418,7 +418,7 @@ function ReportScreen({
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
                 (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
-            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && _.isEmpty(report))
+            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport)) && _.isEmpty(report))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -643,7 +643,7 @@ export default compose(
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
                 selector: (parentReportActions, props) => {
                     const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
-                    if (!parentReportActionID) {
+                    if (!parentReportActionID || !parentReportActions) {
                         return {};
                     }
                     return lodashGet(parentReportActions, parentReportActionID);
