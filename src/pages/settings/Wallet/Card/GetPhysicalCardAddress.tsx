@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
