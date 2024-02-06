@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -31,12 +32,12 @@ const propTypes = {
     transaction: transactionPropTypes,
 
     /** The draft transaction that holds data to be persisted on the current transaction */
-    draftTransaction: transactionPropTypes,
+    splitDraftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
-    draftTransaction: undefined,
+    splitDraftTransaction: {},
 };
 
 function IOURequestStepDescription({
@@ -44,7 +45,7 @@ function IOURequestStepDescription({
         params: {action, iouType, reportID, backTo},
     },
     transaction,
-    draftTransaction,
+    splitDraftTransaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -66,7 +67,11 @@ function IOURequestStepDescription({
         }, []),
     );
 
-    const currentDescription = lodashGet(draftTransaction, 'comment.comment', undefined) || lodashGet(transaction, 'comment.comment', '');
+    let currentDescription = lodashGet(transaction, 'comment.comment', '');
+
+    if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT && !lodashIsEmpty(splitDraftTransaction)) {
+        currentDescription = lodashGet(splitDraftTransaction, 'comment.comment', '') 
+    } 
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -79,15 +84,15 @@ function IOURequestStepDescription({
     const updateComment = (value) => {
         const newComment = value.moneyRequestComment.trim();
 
-        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-        if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT) {
-            IOU.setDraftSplitTransaction(transaction.transactionID, {comment: newComment});
+        // Only update comment if it has changed
+        if (newComment === currentDescription) {
             navigateBack();
             return;
         }
 
-        // Only update comment if it has changed
-        if (newComment === currentDescription) {
+        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+        if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT) {
+            IOU.setDraftSplitTransaction(transaction.transactionID, {comment: newComment});
             navigateBack();
             return;
         }
@@ -149,8 +154,8 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        draftTransaction: {
-            key: ({transaction}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`,
+        splitDraftTransaction: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.transactionID}`,
         },
     }),
 )(IOURequestStepDescription);
