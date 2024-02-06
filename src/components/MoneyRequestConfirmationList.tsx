@@ -25,11 +25,12 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {MileageRate} from '@src/types/onyx/Policy';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
@@ -43,6 +44,11 @@ import Switch from './Switch';
 import Text from './Text';
 import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
+
+type DropdownOption = {
+    text: string;
+    value: DeepValueOf<typeof CONST.IOU.TYPE>;
+};
 
 type Option = Partial<ReportUtils.OptionData>;
 
@@ -79,7 +85,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         onConfirm?: (selectedParticipants: Participant[]) => void;
 
         /** Callback to parent modal to send money */
-        onSendMoney?: (paymentMethod: PaymentMethodType) => void;
+        onSendMoney?: (paymentMethod: IOU.PaymentMethodType) => void;
 
         /** Callback to inform a participant is selected */
         onSelectParticipant?: (option: Participant) => void;
@@ -130,7 +136,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         isReadOnly?: boolean;
 
         /** Depending on expense report or personal IOU report, respective bank account route */
-        bankAccountRoute?: string;
+        bankAccountRoute?: Route;
 
         /** The policyID of the request */
         policyID?: string;
@@ -233,7 +239,7 @@ function MoneyRequestConfirmationList({
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(policyCategories ?? {}));
+    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -250,7 +256,7 @@ function MoneyRequestConfirmationList({
     const policyTagList = policyTag?.tags ?? {};
     const policyTagListName = policyTag?.name ?? translate('common.tag');
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledOptions(policyTagList));
+    const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledOptions(Object.values(policyTagList ?? {})));
 
     // A flag for showing tax fields - tax rate and tax amount
     const shouldShowTax = isPolicyExpenseChat && policy?.isTaxTrackingEnabled;
@@ -333,7 +339,7 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
-    const splitOrRequestOptions = useMemo(() => {
+    const splitOrRequestOptions: DropdownOption[] = useMemo(() => {
         let text;
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
@@ -368,7 +374,7 @@ function MoneyRequestConfirmationList({
             if (!canModifyParticipantsValue) {
                 formattedParticipantsList = formattedParticipantsList.map((participant) => ({
                     ...participant,
-                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
                 }));
             }
 
@@ -396,7 +402,7 @@ function MoneyRequestConfirmationList({
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
-                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
             }));
             sections.push({
                 title: translate('common.to'),
@@ -470,7 +476,7 @@ function MoneyRequestConfirmationList({
     };
 
     const confirm = useCallback(
-        (paymentMethod: PaymentMethodType) => {
+        (paymentMethod: IOU.PaymentMethodType | undefined) => {
             if (selectedParticipantsMemo.length === 0) {
                 return;
             }
@@ -555,7 +561,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                onPress={(_, value) => confirm(value as PaymentMethodType)}
+                onPress={(_, value) => confirm(value as IOU.PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
@@ -796,6 +802,7 @@ function MoneyRequestConfirmationList({
                                     );
                                     return;
                                 }
+
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(iouType, reportID));
                             }}
                             style={styles.moneyRequestMenuItem}

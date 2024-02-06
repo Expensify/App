@@ -63,7 +63,7 @@ type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE> | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
@@ -3255,14 +3255,14 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report> | EmptyObject) {
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`] ?? null;
 
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport?.total ?? 0, expenseReport?.currency ?? '', expenseReport?.reportID ?? '');
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
         value: {
             [optimisticApprovedReportAction.reportActionID]: {
                 ...(optimisticApprovedReportAction as OnyxTypes.ReportAction),
@@ -3272,7 +3272,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
     };
     const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
         value: {
             ...expenseReport,
             lastMessageText: optimisticApprovedReportAction.message?.[0].text,
@@ -3286,7 +3286,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
             value: {
                 [optimisticApprovedReportAction.reportActionID]: {
                     pendingAction: null,
@@ -3298,9 +3298,9 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
             value: {
-                [expenseReport.reportActionID ?? '']: {
+                [expenseReport?.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
@@ -3310,18 +3310,18 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
     if (currentNextStep) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
             value: null,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
             value: currentNextStep,
         });
     }
 
     const parameters: ApproveMoneyRequestParams = {
-        reportID: expenseReport.reportID,
+        reportID: expenseReport?.reportID ?? '',
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
     };
 
@@ -3730,3 +3730,5 @@ export {
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,
 };
+
+export type {PaymentMethodType};
