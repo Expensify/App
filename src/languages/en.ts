@@ -1047,11 +1047,11 @@ export default {
     preferencesPage: {
         appSection: {
             title: 'App preferences',
-            subtitle: 'That is when you can experience true joy, when you have no fear.',
+            subtitle: 'Customize your Expensify account.',
         },
         testSection: {
             title: 'Test preferences',
-            subtitle: 'That is when you can experience true joy, when you have no fear.',
+            subtitle: 'Settings to help debug and test the app on staging.',
         },
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
     },
