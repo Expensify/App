@@ -60,7 +60,7 @@ function IOURequestStepScan({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices('wide-angle-camera');
+    const devices = useCameraDevices('dual-wide-camera');
     const device = devices.back;
 
     const camera = useRef(null);
