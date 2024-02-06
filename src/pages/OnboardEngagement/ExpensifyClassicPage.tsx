@@ -46,6 +46,7 @@ function ExpensifyClassicModal() {
             footer={
                 <Button
                     success
+                    pressOnEnter
                     medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mtAuto]}
                     text={translate('expensifyClassic.buttonText')}
