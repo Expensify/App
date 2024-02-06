@@ -2113,7 +2113,7 @@ export default {
     manageTeams: {
         [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
         [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company Card Tracking',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
         [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
         [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
         title: 'Do you require any of the following features?',
