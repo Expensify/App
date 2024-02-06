@@ -474,9 +474,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return;
         }
 
-        if (isDistanceRequestWithPendingRoute) {
-            IOU.setMoneyRequestPendingFields(transaction.transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-        }
+        /*
+         Set pending waypoints based on the route status. We should handle this dynamically to cover cases such as:
+         When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
+         In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
+        */
+        IOU.setMoneyRequestPendingFields(transaction.transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant_temporaryForRefactor(transaction.transactionID, distanceMerchant);
