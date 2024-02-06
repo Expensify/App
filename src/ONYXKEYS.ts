@@ -538,12 +538,10 @@ type OnyxValueKey = keyof OnyxValuesMapping;
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
 type OnyxValue<TOnyxKey extends OnyxKey> = OnyxEntry<OnyxValues[TOnyxKey]>;
 
+type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
 /** If this type errors, it means that the `OnyxKey` type is missing some keys. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey>;
-/** Type `MissingKeys` represents the keys that are missing from the `OnyxKey` type. */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type MissingKeys = Exclude<AllOnyxKeys, OnyxKey>;
+type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
 export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormValuesMapping, OnyxFormDraftKey};
