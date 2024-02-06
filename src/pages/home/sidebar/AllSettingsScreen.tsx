@@ -18,6 +18,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyMembers} from '@src/types/onyx';
+import ShouldShowSubscriptionsMenu from '@libs/ShouldShowSubscriptionsMenu';
 
 type AllSettingsScreenOnyxProps = {
     policies: OnyxCollection<Policy>;
@@ -49,7 +50,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                 focused: !isSmallScreenWidth,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
-            {
+            ...(ShouldShowSubscriptionsMenu() ? [{
                 translationKey: 'allSettingsScreen.subscriptions',
                 icon: Expensicons.MoneyBag,
                 action: () => {
@@ -58,7 +59,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 link: CONST.OLDDOT_URLS.ADMIN_POLICIES_URL,
-            },
+            }] : []),
             {
                 translationKey: 'allSettingsScreen.cardsAndDomains',
                 icon: Expensicons.CardsAndDomains,
