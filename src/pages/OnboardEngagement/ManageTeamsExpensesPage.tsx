@@ -70,7 +70,7 @@ function ManageTeamsExpensesModal() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={ManageTeamsExpensesModal.displayName}
         >
             <View style={[styles.flex1]}>
