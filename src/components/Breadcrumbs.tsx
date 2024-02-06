@@ -38,7 +38,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     const [primaryBreadcrumb, secondaryBreadcrumb] = breadcrumbs;
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, style]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, styles.breadcrumsContainer, style]}>
             {primaryBreadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
                 <View style={styles.breadcrumbLogo}>
                     <Header

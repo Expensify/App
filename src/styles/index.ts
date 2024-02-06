@@ -1437,6 +1437,10 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        breadcrumsContainer: {
+            height: 24,
+        },
+
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
