@@ -1,5 +1,6 @@
 import getNumberOfLines from '@libs/ComposerUtils/getNumberOfLines';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import * as ReportUtils from '@libs/ReportUtils';
 import type UpdateNumberOfLines from './types';
 
 /**
@@ -14,6 +15,9 @@ const updateNumberOfLines: UpdateNumberOfLines = (props, event, styles) => {
         return;
     }
     const numberOfLines = getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
+    if (numberOfLines === 1 && ReportUtils.getCommentLength(props.value ?? '') === 0) {
+        props.resetFullComposerSize && props.resetFullComposerSize();
+    }
     updateIsFullComposerAvailable(props, numberOfLines);
 };
 
