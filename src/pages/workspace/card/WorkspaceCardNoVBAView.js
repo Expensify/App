@@ -22,6 +22,7 @@ function WorkspaceCardNoVBAView(props) {
         <Section
             title={props.translate('workspace.card.header')}
             icon={Illustrations.CreditCardsNew}
+            isCentralPane
         >
             <View style={[styles.mv4]}>
                 <Text>{props.translate('workspace.card.noVBACopy')}</Text>
