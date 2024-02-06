@@ -18,7 +18,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyMembers} from '@src/types/onyx';
-import shouldShowSubscriptionsMenu from '@libs/ShouldShowSubscriptionsMenu';
+import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 
 type AllSettingsScreenOnyxProps = {
     policies: OnyxCollection<Policy>;
