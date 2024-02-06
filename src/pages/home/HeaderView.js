@@ -27,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -38,6 +39,7 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -58,12 +60,6 @@ const propTypes = {
     /** Current user session */
     session: PropTypes.shape({
         accountID: PropTypes.number,
-    }),
-
-    /** The policy of root parent report */
-    rootParentReportPolicy: PropTypes.shape({
-        /** The role of current user */
-        role: PropTypes.string,
     }),
 
     /** The current policy of the report */
@@ -88,7 +84,6 @@ const defaultProps = {
         accountID: 0,
     },
     policy: {},
-    rootParentReportPolicy: {},
 };
 
 function HeaderView(props) {
@@ -119,12 +114,14 @@ function HeaderView(props) {
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const reportDescription = ReportUtils.getReportDescriptionText(props.report);
+    const policyName = ReportUtils.getPolicyName(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const threeDotMenuItems = [];
     if (isTaskReport && !isCanceledTaskReport) {
-        const canModifyTask = Task.canModifyTask(props.report, props.session.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
+        const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
 
         // Task is marked as completed
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
@@ -182,6 +179,18 @@ function HeaderView(props) {
             onPress={join}
         />
     );
+
+    const renderAdditionalText = () => {
+        if (_.isEmpty(policyName) || _.isEmpty(reportDescription) || !_.isEmpty(parentNavigationSubtitleData)) {
+            return null;
+        }
+        return (
+            <>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.fontWeightNormal]}> {translate('threads.in')} </Text>
+                <Text style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
+            </>
+        );
+    };
 
     threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
 
@@ -281,6 +290,7 @@ function HeaderView(props) {
                                             numberOfLines={1}
                                             textStyles={[styles.headerText, styles.pre]}
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                            renderAdditionalText={renderAdditionalText}
                                         />
                                         {!_.isEmpty(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
@@ -289,13 +299,33 @@ function HeaderView(props) {
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {!_.isEmpty(subtitle) && (
+                                        {!_.isEmpty(subtitle) && _.isEmpty(reportDescription) && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
                                             >
                                                 {subtitle}
                                             </Text>
+                                        )}
+                                        {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    if (ReportUtils.canEditReportDescription(props.report, props.policy)) {
+                                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.reportID));
+                                                        return;
+                                                    }
+                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));
+                                                }}
+                                                style={[styles.alignSelfStart, styles.mw100]}
+                                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                                            >
+                                                <Text
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {reportDescription}
+                                                </Text>
+                                            </PressableWithoutFeedback>
                                         )}
                                     </View>
                                     {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
@@ -361,13 +391,6 @@ export default memo(
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
             selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction']),
-        },
-        rootParentReportPolicy: {
-            key: ({report}) => {
-                const rootParentReport = ReportUtils.getRootParentReport(report);
-                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-            },
-            selector: (policy) => _.pick(policy, ['role']),
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
