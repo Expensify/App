@@ -96,9 +96,6 @@ type Transaction = {
     /** The original currency of the transaction */
     currency: string;
 
-    /** Whether the transaction is loading */
-    isLoading?: boolean;
-
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors | ReceiptErrors;
 
