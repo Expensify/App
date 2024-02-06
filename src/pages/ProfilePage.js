@@ -130,7 +130,7 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+    const navigateBackTo = lodashGet(props.route, 'params.backTo');
 
     const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
@@ -160,10 +160,10 @@ function ProfilePage(props) {
                             >
                                 <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                     <Avatar
-                                        containerStyles={[styles.avatarLarge, styles.mb3]}
-                                        imageStyles={[styles.avatarLarge]}
+                                        containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                        imageStyles={[styles.avatarXLarge]}
                                         source={UserUtils.getAvatar(avatar, accountID)}
-                                        size={CONST.AVATAR_SIZE.LARGE}
+                                        size={CONST.AVATAR_SIZE.XLARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>
