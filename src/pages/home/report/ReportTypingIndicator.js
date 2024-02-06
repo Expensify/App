@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Text from '@components/Text';
@@ -68,4 +68,4 @@ export default withOnyx({
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
         initialValue: {},
     },
-})(ReportTypingIndicator);
+})(memo(ReportTypingIndicator));
