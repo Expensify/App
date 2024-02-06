@@ -186,9 +186,21 @@ function getOrderedReportIDs(
         // eslint-disable-next-line no-param-reassign
         report.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(report, allReports).totalDisplaySpend;
 
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? null;
+        const reportActionsMap: OnyxEntry<ReportActions> =
+            reportActions?.reduce((map, value) => {
+                // eslint-disable-next-line no-param-reassign
+                map[value.reportActionID] = value;
+                return map;
+            }, {} as ReportActions) ?? null;
+
+        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActionsMap);
+
+        const hasRBR = Object.keys(allReportErrors).length > 0;
+
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
+        if (isPinned || hasRBR || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
@@ -253,7 +265,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
+        allReportErrors: undefined,
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -295,6 +307,7 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;

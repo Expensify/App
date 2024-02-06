@@ -252,6 +252,9 @@ const chatReportSelector = (report) =>
         reportName: report.reportName,
         policyName: report.policyName,
         oldPolicyName: report.oldPolicyName,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
+        isOwnPolicyExpenseChat: report.isOwnPolicyExpenseChat,
+        isCancelledIOU: report.isCancelledIOU,
         // Other less obvious properites considered for sorting:
         ownerAccountID: report.ownerAccountID,
         currency: report.currency,
@@ -270,7 +273,7 @@ const chatReportSelector = (report) =>
 const reportActionsSelector = (reportActions) =>
     reportActions &&
     lodashMap(reportActions, (reportAction) => {
-        const {reportActionID, parentReportActionID, actionName, errors = []} = reportAction;
+        const {reportActionID, parentReportActionID, actionName, originalMessage, errors = []} = reportAction;
         const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
         return {
@@ -278,6 +281,7 @@ const reportActionsSelector = (reportActions) =>
             parentReportActionID,
             actionName,
             errors,
+            originalMessage,
             message: [
                 {
                     moderationDecision: {decision},
