@@ -227,7 +227,7 @@ function ScreenWrapper(
                             {...keyboardDissmissPanResponder.panHandlers}
                         >
                             <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}, isAwareViewportScroll && [styles.overflowAuto, styles.overscrollBehaviorContain]]}
+                                style={[styles.w100, styles.h100, {maxHeight}, isAwareViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                                 behavior={keyboardAvoidingViewBehavior}
                                 enabled={shouldEnableKeyboardAvoidingView}
                             >
