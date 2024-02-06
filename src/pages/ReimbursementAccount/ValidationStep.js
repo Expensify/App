@@ -201,7 +201,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         <Text>{translate('validationStep.letsChatText')}</Text>
                         <Button
                             text={translate('validationStep.letsChatCTA')}
-                            onPress={Report.navigateToConciergeChat}
+                            onPress={() => Report.navigateToConciergeChat(false, true)}
                             icon={Expensicons.ChatBubble}
                             style={[styles.mt4]}
                             iconStyles={[styles.buttonCTAIcon]}

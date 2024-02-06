@@ -29,18 +29,25 @@ function EmojiPickerButtonDropdown(props) {
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
-
     const onPress = () => {
         if (EmojiPickerAction.isEmojiPickerVisible()) {
             EmojiPickerAction.hideEmojiPicker();
             return;
         }
 
-        EmojiPickerAction.showEmojiPicker(props.onModalHide, (emoji) => props.onInputChange(emoji), emojiPopoverAnchor, {
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-            shiftVertical: 4,
-        });
+        EmojiPickerAction.showEmojiPicker(
+            props.onModalHide,
+            (emoji) => props.onInputChange(emoji),
+            emojiPopoverAnchor,
+            {
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                shiftVertical: 4,
+            },
+            () => {},
+            undefined,
+            props.value,
+        );
     };
 
     return (
@@ -60,7 +67,12 @@ function EmojiPickerButtonDropdown(props) {
                             style={styles.emojiPickerButtonDropdownIcon}
                             numberOfLines={1}
                         >
-                            {props.value}
+                            {props.value || (
+                                <Icon
+                                    src={Expensicons.Emoji}
+                                    fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
+                                />
+                            )}
                         </Text>
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
