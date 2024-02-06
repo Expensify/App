@@ -2,7 +2,7 @@ import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 
 /**
- * This hook to detech input or text area focus on browser
+ * This hook to detech input or text area focus on browser, to avoid scroll on vitual viewport
  */
 export default function useTackInputFocus(enable = false): boolean {
     const [, isInputFocusDebounced, setIsInputFocus] = useDebouncedState(false);
@@ -27,17 +27,23 @@ export default function useTackInputFocus(enable = false): boolean {
         [setIsInputFocus],
     );
 
+    const resetScrollPositionOnVisualViewport = useCallback(() => {
+        window.scrollTo({top: 0});
+    }, []);
+
     useEffect(() => {
         if (!enable) {
             return;
         }
         window.addEventListener('focusin', handleFocusIn);
         window.addEventListener('focusout', handleFocusOut);
+        window.visualViewport?.addEventListener('scroll', resetScrollPositionOnVisualViewport);
         return () => {
             window.removeEventListener('focusin', handleFocusIn);
             window.removeEventListener('focusout', handleFocusOut);
+            window.visualViewport?.removeEventListener('scroll', resetScrollPositionOnVisualViewport);
         };
-    }, [enable, handleFocusIn, handleFocusOut]);
+    }, [enable, handleFocusIn, handleFocusOut, resetScrollPositionOnVisualViewport]);
 
     return isInputFocusDebounced;
 }
