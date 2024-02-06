@@ -51,6 +51,10 @@ function IOURequestStepDescription({
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
+    // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
+    const currentDescription =
+        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? lodashGet(splitDraftTransaction, 'comment.comment', '') : lodashGet(transaction, 'comment.comment', '');
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
@@ -66,12 +70,6 @@ function IOURequestStepDescription({
             }, CONST.ANIMATED_TRANSITION);
         }, []),
     );
-
-    let currentDescription = lodashGet(transaction, 'comment.comment', '');
-
-    if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT && !lodashIsEmpty(splitDraftTransaction)) {
-        currentDescription = lodashGet(splitDraftTransaction, 'comment.comment', '') 
-    } 
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -155,7 +153,10 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         splitDraftTransaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.transactionID}`,
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+            },
         },
     }),
 )(IOURequestStepDescription);

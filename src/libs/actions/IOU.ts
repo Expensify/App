@@ -286,7 +286,6 @@ function setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID: str
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {originalCurrency});
 }
 
-
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
 }
