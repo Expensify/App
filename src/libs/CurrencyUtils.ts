@@ -98,7 +98,8 @@ function convertToFrontendAmountAsInteger(amountAsInt: number): number {
  * @note we do not support any currencies with more than two decimal places.
  */
 function convertToFrontendAmountAsString(amountAsInt: number): string {
-    return convertToFrontendAmountAsInteger(amountAsInt).toFixed(2);
+    const shouldShowDecimal = amountAsInt % 100 === 0;
+    return amountAsInt ? convertToFrontendAmountAsInteger(amountAsInt).toFixed(shouldShowDecimal ? 0 : 2) : '';
 }
 
 /**
