@@ -7,7 +7,7 @@ import FormAlertWrapper from './FormAlertWrapper';
 
 type FormAlertWithSubmitButtonProps = {
     /** Error message to display above button */
-    message?: string;
+    message?: string | null;
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
