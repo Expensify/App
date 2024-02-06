@@ -73,6 +73,14 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
+    },
+});
+
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
@@ -115,6 +123,13 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
 
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+}
+
+function isInvisibleWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (!reportAction?.whisperedToAccountIDs || !currentUserAccountID) {
+        return false;
+    }
+    return (reportAction?.whisperedToAccountIDs).includes(currentUserAccountID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -864,6 +879,7 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isInvisibleWhisperAction,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldHideNewMarker,
