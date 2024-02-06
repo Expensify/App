@@ -100,6 +100,7 @@ function ComposerWithSuggestions({
     listHeight,
     isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
+    resetFullComposerSize,
     // Refs
     suggestionsRef,
     animatedRef,
@@ -624,6 +625,7 @@ function ComposerWithSuggestions({
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
+                    resetFullComposerSize={resetFullComposerSize}
                 />
             </View>
 

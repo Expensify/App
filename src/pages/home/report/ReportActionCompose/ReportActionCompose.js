@@ -444,6 +444,7 @@ function ReportActionCompose({
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
                                         onValueChange={validateCommentMaxLength}
+                                        resetFullComposerSize={resetFullComposerSize}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {
