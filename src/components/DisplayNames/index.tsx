@@ -26,6 +26,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 fullTitle={title}
                 textStyles={textStyles}
                 numberOfLines={numberOfLines}
+                renderAdditionalText={renderAdditionalText}
             />
         );
     }

@@ -1275,7 +1275,6 @@ function updateDistanceRequest(transactionID: string, transactionThreadReportID:
 
 /**
  * Request money from another user
- * @param amount - always in the smallest unit of the currency
  */
 function requestMoney(
     report: OnyxTypes.Report,
@@ -1296,6 +1295,7 @@ function requestMoney(
     policy = undefined,
     policyTags = undefined,
     policyCategories = undefined,
+    gpsPoints = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1347,6 +1347,9 @@ function requestMoney(
         taxCode,
         taxAmount,
         billable,
+
+        // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+        gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
@@ -2830,6 +2833,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             value: {
                 [reportPreviewAction?.reportActionID ?? '']: {
                     ...reportPreviewAction,
+                    pendingAction: null,
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
                 },
             },
