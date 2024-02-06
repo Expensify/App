@@ -3501,19 +3501,18 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             },
         },
-        ...(chatReport.reportID
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                      value: {
-                          hasOutstandingChildRequest: false,
-                          iouReportID: 0,
-                      },
-                  },
-              ]
-            : []),
     ];
+
+    if (chatReport?.reportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReport.reportID,
+            },
+        });
+    }
 
     API.write(
         WRITE_COMMANDS.CANCEL_PAYMENT,
