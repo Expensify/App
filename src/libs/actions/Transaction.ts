@@ -251,6 +251,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
         errorFields: {
             route: null,
         },
+
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
