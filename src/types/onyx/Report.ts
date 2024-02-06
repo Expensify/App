@@ -181,7 +181,7 @@ type Report = {
     reportFields?: Record<string, PolicyReportField>;
 
     /** Pending member of the report */
-    pendingVisibleChatMembers: PendingChatMember[];
+    pendingVisibleChatMembers?: PendingChatMember[];
 };
 
 export default Report;
