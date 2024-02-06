@@ -80,6 +80,33 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val),
 });
 
+function isSupportalToken(): boolean {
+    return sessionAuthTokenType === 'supportal';
+}
+
+/**
+ * Sets the SupportToken
+ */
+function setSupportAuthToken(supportAuthToken: string, email?: string, accountID?: number) {
+    if (supportAuthToken) {
+        Onyx.merge(ONYXKEYS.SESSION, {
+            authTokenType: 'supportal',
+            authToken: 'dummy-token-supportal-will-be-used',
+            supportAuthToken,
+            email,
+            accountID,
+        }).then(() => {
+            Log.info("[Supportal] Authtoken set");
+        });
+    } else {
+        Onyx.set(ONYXKEYS.SESSION, {}).then(()=> {
+            Log.info("[Supportal] Authtoken removed");
+        });
+    }
+    Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
+    NetworkStore.setSupportAuthToken(supportAuthToken);
+}
+
 /**
  * Clears the Onyx store and redirects user to the sign in page
  */
@@ -108,10 +135,6 @@ function signOut() {
     });
     Timing.clearData();
 
-}
-
-function isSupportalToken(): boolean {
-    return sessionAuthTokenType === 'supportal';
 }
 
 /**
@@ -544,29 +567,6 @@ function invalidateCredentials() {
 function invalidateAuthToken() {
     NetworkStore.setAuthToken('pizza');
     Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza'});
-}
-
-/**
- * Sets the SupportToken
- */
-function setSupportAuthToken(supportAuthToken: string, email?: string, accountID?: number) {
-    if (supportAuthToken) {
-        Onyx.merge(ONYXKEYS.SESSION, {
-            authTokenType: 'supportal',
-            authToken: 'dummy-token-supportal-will-be-used',
-            supportAuthToken,
-            email,
-            accountID,
-        }).then(() => {
-            Log.info("[Supportal] Authtoken set");
-        });
-    } else {
-        Onyx.set(ONYXKEYS.SESSION, {}).then(()=> {
-            Log.info("[Supportal] Authtoken removed");
-        });
-    }
-    Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
-    NetworkStore.setSupportAuthToken(supportAuthToken);
 }
 
 /**
