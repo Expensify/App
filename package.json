@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.36-0",
+  "version": "1.4.37-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "git+ssh://git@github.com/Expensify/react-native-live-markdown.git#f0b63f41fa4c09bfa68439da0550b47bafd92fa2",
+    "@expensify/react-native-live-markdown": "git+ssh://git@github.com/Expensify/react-native-live-markdown.git#2ed4240336e50abb4a7fa9ff6a3c180f8bc9ce5b",
     "@expo/metro-runtime": "~3.1.1",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
@@ -69,7 +69,7 @@
     "@formatjs/intl-pluralrules": "^5.2.2",
     "@gorhom/portal": "^1.0.14",
     "@invertase/react-native-apple-authentication": "^2.2.2",
-    "@kie/act-js": "^2.0.1",
+    "@kie/act-js": "^2.6.0",
     "@kie/mock-github": "^1.0.0",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#5cdae3d4455b03a04c57f50be3863e2fe6c92c52",
     "@onfido/react-native-sdk": "8.3.0",
