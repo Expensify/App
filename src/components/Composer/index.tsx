@@ -170,7 +170,7 @@ function Composer(
 
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
-                const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
+                const isTargetInput = ['INPUT', 'TEXTAREA', 'SPAN'].includes(eventTarget?.nodeName ?? '') || eventTarget?.contentEditable === 'true';
                 if (isTargetInput) {
                     return true;
                 }
