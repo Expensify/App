@@ -73,14 +73,6 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
-let currentUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID;
-    },
-});
-
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
