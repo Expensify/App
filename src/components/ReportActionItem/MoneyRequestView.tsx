@@ -219,7 +219,7 @@ function MoneyRequestView({
                 },
             };
 
-            const {isError, translationPath} = fieldChecks[field] || {};
+            const {isError, translationPath} = fieldChecks[field] ?? {};
 
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
@@ -234,7 +234,7 @@ function MoneyRequestView({
 
             return '';
         },
-        [transactionAmount, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
     return (
