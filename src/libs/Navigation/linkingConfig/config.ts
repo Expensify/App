@@ -49,6 +49,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.REIMBURSE]: {
                     path: ROUTES.WORKSPACE_REIMBURSE.route,
                 },
+                [SCREENS.WORKSPACE.ACCOUNTING]: {
+                    path: ROUTES.WORKSPACE_ACCOUNTING.route,
+                },
                 [SCREENS.WORKSPACE.BILLS]: {
                     path: ROUTES.WORKSPACE_BILLS.route,
                 },
