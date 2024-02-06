@@ -49,10 +49,10 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
@@ -61,8 +61,6 @@ import * as Report from './Report';
 type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
-
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
@@ -1315,7 +1313,6 @@ function updateMoneyRequestDescription(
 
 /**
  * Request money from another user
- * @param amount - always in the smallest unit of the currency
  */
 function requestMoney(
     report: OnyxTypes.Report,
@@ -1336,6 +1333,7 @@ function requestMoney(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTags?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    gpsPoints = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1387,6 +1385,9 @@ function requestMoney(
         taxCode,
         taxAmount,
         billable,
+
+        // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+        gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
@@ -2638,6 +2639,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             value: {
                 [reportPreviewAction?.reportActionID ?? '']: {
                     ...reportPreviewAction,
+                    pendingAction: null,
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
                 },
             },
@@ -3085,7 +3087,7 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
+function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
 
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
