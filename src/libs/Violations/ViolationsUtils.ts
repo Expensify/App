@@ -24,10 +24,11 @@ const ViolationsUtils = {
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const isCategoryInPolicy = !!policyCategories[updatedTransaction.category ?? '']?.enabled;
+            const categoryKey = updatedTransaction.category;
+            const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : undefined;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryOutOfPolicyViolation && updatedTransaction.category && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
@@ -42,7 +43,7 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !updatedTransaction.category) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
                 newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
@@ -52,7 +53,7 @@ const ViolationsUtils = {
             const policyTags = policyTagList[policyTagListName]?.tags;
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = !!policyTags[updatedTransaction.tag ?? '']?.enabled;
+            const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : undefined;
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
             if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {

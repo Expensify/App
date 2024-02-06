@@ -392,8 +392,8 @@ function buildOnyxDataForMoneyRequest(
     isNewChatReport: boolean,
     shouldCreateNewMoneyRequestReport: boolean,
     policy: OnyxTypes.Policy | EmptyObject = {},
-    policyTags?: OnyxTypes.PolicyTags,
-    policyCategories?: OnyxTypes.PolicyCategories,
+    policyTags: OnyxTypes.PolicyTagList = {},
+    policyCategories: OnyxTypes.PolicyCategories | EmptyObject = {},
     needsToBeManuallySubmitted = true,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
@@ -700,8 +700,8 @@ function getMoneyRequestInformation(
     tag: string | undefined,
     billable: boolean | undefined,
     policy: OnyxTypes.Policy | EmptyObject | undefined,
-    policyTags: OnyxTypes.PolicyTags | undefined,
-    policyCategories: OnyxTypes.PolicyCategories | undefined,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories | EmptyObject,
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
@@ -914,7 +914,7 @@ function createDistanceRequest(
     billable: boolean | undefined,
     validWaypoints: WaypointCollection,
     policy: OnyxTypes.Policy | EmptyObject | undefined,
-    policyTags: OnyxTypes.PolicyTags,
+    policyTags: OnyxTypes.PolicyTagList,
     policyCategories: OnyxTypes.PolicyCategories,
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -986,9 +986,9 @@ function getUpdateMoneyRequestParams(
     transactionID: string,
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
-    policy: any = {},
-    policyTags: any,
-    policyCategories: any,
+    policy: OnyxTypes.Policy | EmptyObject,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
     onlyIncludeChangedFields: boolean,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
@@ -1144,14 +1144,6 @@ function getUpdateMoneyRequestParams(
         }
     }
 
-    // Add optimistic transaction violations if there is a policy
-    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] || [];
-    if (policy && policy.id) {
-        optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
-        );
-    }
-
     // Clear out the error fields and loading states on success
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1192,8 +1184,11 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    // If there is a policy, restore transaction violations to their original state
-    if (policy && policy.id) {
+    if (policy?.id && updatedTransaction) {
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        optimisticData.push(
+            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, !!policy.requiresTag, policyTags, !!policy.requiresCategory, policyCategories),
+        );
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -1208,7 +1203,14 @@ function getUpdateMoneyRequestParams(
 }
 
 /** Updates the created date of a money request */
-function updateMoneyRequestDate(transactionID: string, transactionThreadReportID: string, value: string, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestDate(
+    transactionID: string,
+    transactionThreadReportID: string,
+    value: string,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges: TransactionChanges = {
         created: value,
     };
@@ -1217,7 +1219,14 @@ function updateMoneyRequestDate(transactionID: string, transactionThreadReportID
 }
 
 /** Updates the billable field of a money request */
-function updateMoneyRequestBillable(transactionID: string, transactionThreadReportID: string, value: boolean, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestBillable(
+    transactionID: string,
+    transactionThreadReportID: string,
+    value: boolean,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
@@ -1226,7 +1235,14 @@ function updateMoneyRequestBillable(transactionID: string, transactionThreadRepo
 }
 
 /** Updates the merchant field of a money request */
-function updateMoneyRequestMerchant(transactionID: string, transactionThreadReportID: string, value: string, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestMerchant(
+    transactionID: string,
+    transactionThreadReportID: string,
+    value: string,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
     };
@@ -1235,7 +1251,14 @@ function updateMoneyRequestMerchant(transactionID: string, transactionThreadRepo
 }
 
 /** Updates the tag of a money request */
-function updateMoneyRequestTag(transactionID: string, transactionThreadReportID: string, tag: string, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestTag(
+    transactionID: string,
+    transactionThreadReportID: string,
+    tag: string,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges: TransactionChanges = {
         tag,
     };
@@ -1244,7 +1267,14 @@ function updateMoneyRequestTag(transactionID: string, transactionThreadReportID:
 }
 
 /** Updates the waypoints of a distance money request */
-function updateMoneyRequestDistance(transactionID: string, transactionThreadReportID: string, waypoints: WaypointCollection, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestDistance(
+    transactionID: string,
+    transactionThreadReportID: string,
+    waypoints: WaypointCollection,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges: TransactionChanges = {
         waypoints,
     };
@@ -1253,7 +1283,14 @@ function updateMoneyRequestDistance(transactionID: string, transactionThreadRepo
 }
 
 /** Updates the category of a money request */
-function updateMoneyRequestCategory(transactionID: string, transactionThreadReportID: string, category: string, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestCategory(
+    transactionID: string,
+    transactionThreadReportID: string,
+    category: string,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges: TransactionChanges = {
         category,
     };
@@ -1262,7 +1299,14 @@ function updateMoneyRequestCategory(transactionID: string, transactionThreadRepo
 }
 
 /** Updates the description of a money request */
-function updateMoneyRequestDescription(transactionID: string, transactionThreadReportID: string, comment: string, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestDescription(
+    transactionID: string,
+    transactionThreadReportID: string,
+    comment: string,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges: TransactionChanges = {
         comment,
     };
@@ -1271,7 +1315,14 @@ function updateMoneyRequestDescription(transactionID: string, transactionThreadR
 }
 
 /** Edits an existing distance request */
-function updateDistanceRequest(transactionID: string, transactionThreadReportID: string, transactionChanges: TransactionChanges, policy: any, policyTags: any, policyCategories: any) {
+function updateDistanceRequest(
+    transactionID: string,
+    transactionThreadReportID: string,
+    transactionChanges: TransactionChanges,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, false);
     API.write(WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST, params, onyxData);
 }
@@ -1296,9 +1347,9 @@ function requestMoney(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    policy = undefined,
-    policyTags = undefined,
-    policyCategories = undefined,
+    policy: OnyxTypes.Policy | EmptyObject = {},
+    policyTags: OnyxTypes.PolicyTagList = {},
+    policyCategories: OnyxTypes.PolicyCategories | EmptyObject = {},
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -2334,7 +2385,14 @@ function setDraftSplitTransaction(transactionID: string, transactionChanges: Tra
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
 }
 
-function editRegularMoneyRequest(transactionID: string, transactionThreadReportID: string, transactionChanges: TransactionChanges, policy: any = {}, policyTags: any, policyCategories: any) {
+function editRegularMoneyRequest(
+    transactionID: string,
+    transactionThreadReportID: string,
+    transactionChanges: TransactionChanges,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -2547,15 +2605,15 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
         },
     ];
 
-    // Add transaction violations if there is a policy
-    if (policy && policy.id) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] || [];
+    // Add transaction violations if there is a policy and updated transaaction
+    if (policy?.id && updatedTransaction) {
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             currentTransactionViolations,
-            policy.requiresTag,
+            !!policy.requiresTag,
             policyTags,
-            policy.requiresCategory,
+            !!policy.requiresCategory,
             policyCategories,
         );
         optimisticData.push(updatedViolationsOnyxData);
@@ -2585,7 +2643,14 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
     API.write(WRITE_COMMANDS.EDIT_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function editMoneyRequest(transaction: OnyxTypes.Transaction, transactionThreadReportID: string, transactionChanges: TransactionChanges, policy: any, policyTags: any, policyCategories: any) {
+function editMoneyRequest(
+    transaction: OnyxTypes.Transaction,
+    transactionThreadReportID: string,
+    transactionChanges: TransactionChanges,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     if (TransactionUtils.isDistanceRequest(transaction)) {
         updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
     } else {
@@ -2594,7 +2659,15 @@ function editMoneyRequest(transaction: OnyxTypes.Transaction, transactionThreadR
 }
 
 /** Updates the amount and currency fields of a money request */
-function updateMoneyRequestAmountAndCurrency(transactionID: string, transactionThreadReportID: string, currency: string, amount: number, policy: any, policyTags: any, policyCategories: any) {
+function updateMoneyRequestAmountAndCurrency(
+    transactionID: string,
+    transactionThreadReportID: string,
+    currency: string,
+    amount: number,
+    policy: OnyxTypes.Policy,
+    policyTags: OnyxTypes.PolicyTagList,
+    policyCategories: OnyxTypes.PolicyCategories,
+) {
     const transactionChanges = {
         amount,
         currency,
