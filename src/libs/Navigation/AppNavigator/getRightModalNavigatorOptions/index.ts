@@ -1,9 +1,8 @@
-import {StackNavigationOptions} from '@react-navigation/stack';
-import getNavigationModalCardStyle from '../../../../styles/getNavigationModalCardStyles';
-import modalCardStyleInterpolator from '../modalCardStyleInterpolator';
+import type {StackNavigationOptions} from '@react-navigation/stack';
+// eslint-disable-next-line no-restricted-imports
+import getNavigationModalCardStyle from '@styles/utils/getNavigationModalCardStyles';
 
 const rightModalNavigatorOptions = (isSmallScreenWidth: boolean): StackNavigationOptions => ({
-    cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
     presentation: 'transparentModal',
 
     // We want pop in RHP since there are some flows that would work weird otherwise

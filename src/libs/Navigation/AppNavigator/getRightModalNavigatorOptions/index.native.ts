@@ -1,4 +1,4 @@
-import {NativeStackNavigationOptions} from '@react-navigation/native-stack';
+import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 
 const rightModalNavigatorOptions = (): NativeStackNavigationOptions => ({
     presentation: 'card',
