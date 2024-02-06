@@ -355,10 +355,9 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return;
         }
         // Remove the focus if the search input is empty else focus on the first non disabled item
-        const newSelectedIndex = textInputValue !== '' ? flattenedSections.disabledOptionsIndexes.length : -1;
+        const newSelectedIndex = textInputValue !== '' ? 0 : -1;
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
 
     /** Selects row when pressing Enter */
