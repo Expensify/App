@@ -96,11 +96,11 @@ function setSupportAuthToken(supportAuthToken: string, email?: string, accountID
             email,
             accountID,
         }).then(() => {
-            Log.info("[Supportal] Authtoken set");
+            Log.info('[Supportal] Authtoken set');
         });
     } else {
-        Onyx.set(ONYXKEYS.SESSION, {}).then(()=> {
-            Log.info("[Supportal] Authtoken removed");
+        Onyx.set(ONYXKEYS.SESSION, {}).then(() => {
+            Log.info('[Supportal] Authtoken removed');
         });
     }
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
@@ -112,11 +112,11 @@ function setSupportAuthToken(supportAuthToken: string, email?: string, accountID
  */
 function signOut() {
     Log.info('Flushing logs before signing out', true, {}, true);
-    
+
     // In case this is a supportal token, we won't have infinite sessions setup since the token will be
     // short lived. So we can just remove the token and we can just skip calling logout.
     if (isSupportalToken()) {
-        setSupportAuthToken("");
+        setSupportAuthToken('');
     } else {
         const params: LogOutParams = {
             // Send current authToken because we will immediately clear it once triggering this command
@@ -126,7 +126,7 @@ function signOut() {
             partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
             shouldRetry: false,
         };
-    
+
         API.write(WRITE_COMMANDS.LOG_OUT, params);
     }
 
@@ -134,7 +134,6 @@ function signOut() {
         Log.info('Cleared all cache data', true, {}, true);
     });
     Timing.clearData();
-
 }
 
 /**

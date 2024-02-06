@@ -31,7 +31,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {email = '', accountID  = 0, supportAuthToken = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
+    const {email = '', accountID = 0, supportAuthToken = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
