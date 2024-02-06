@@ -308,7 +308,13 @@ function IOURequestStepConfirmation({
     const sendMoney = useCallback(
         (paymentMethodType) => {
             const currency = transaction.currency;
-            const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
+
+            let trimmedComment = '';
+
+            if (transaction.comment && transaction.comment.comment) {
+                trimmedComment = transaction.comment.comment.trim();
+            }
+
             const participant = participants[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -320,7 +326,7 @@ function IOURequestStepConfirmation({
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
-        [transaction, participants, currentUserPersonalDetails.accountID, report],
+        [transaction.amount, transaction.comment, transaction.currency, participants, currentUserPersonalDetails.accountID, report],
     );
 
     const addNewParticipant = (option) => {
