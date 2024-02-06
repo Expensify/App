@@ -39,6 +39,9 @@ type DisplayNamesProps = {
 
     /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
+
+    /** Additional Text component to render after the displayNames */
+    renderAdditionalText?: () => React.ReactNode;
 };
 
 export default DisplayNamesProps;
