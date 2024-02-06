@@ -1,6 +1,8 @@
+import type ShouldShowSubscriptionsMenu from './types';
+
 /**
  * Indicates whether the subscription menu should show in the all settings screen
  */
-const ShouldShowSubscriptionsMenu = (): boolean => true;
+const shouldShowSubscriptionsMenu: ShouldShowSubscriptionsMenu = () => true;
 
-export default ShouldShowSubscriptionsMenu;
+export default shouldShowSubscriptionsMenu;
