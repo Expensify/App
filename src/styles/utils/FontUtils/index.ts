@@ -11,7 +11,7 @@ const FontUtils = {
     },
     fontWeight: {
         bold: fontWeightBold,
-        normal: '400',
+        normal: '400' as const,
     },
 };
 

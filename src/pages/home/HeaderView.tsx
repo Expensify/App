@@ -37,10 +37,10 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ROUTES from '@src/ROUTES';
 
 type PickedPolicyValues = Pick<OnyxTypes.Policy, 'name' | 'avatar' | 'pendingAction'>;
 
@@ -96,12 +96,12 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
-    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
-    const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
-    const reportDescription = ReportUtils.getReportDescriptionText(props.report);
-    const policyName = ReportUtils.getPolicyName(props.report);
+    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
+    const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const reportDescription = ReportUtils.getReportDescriptionText(report);
+    const policyName = ReportUtils.getPolicyName(report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -160,7 +160,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     );
 
     const renderAdditionalText = () => {
-        if (_.isEmpty(policyName) || _.isEmpty(reportDescription) || !_.isEmpty(parentNavigationSubtitleData)) {
+        if (!policyName || !reportDescription || !isEmptyObject(parentNavigationSubtitleData)) {
             return null;
         }
         return (
@@ -171,7 +171,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
         );
     };
 
-    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
+    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(report));
 
     if (isConcierge && guideCalendarLink) {
         threeDotMenuItems.push({
@@ -278,7 +278,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {!_.isEmpty(subtitle) && _.isEmpty(reportDescription) && (
+                                        {!!subtitle && !reportDescription && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
@@ -286,14 +286,14 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                                                 {subtitle}
                                             </Text>
                                         )}
-                                        {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                        {!!reportDescription && isEmptyObject(parentNavigationSubtitleData) && (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
-                                                    if (ReportUtils.canEditReportDescription(props.report, props.policy)) {
-                                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.reportID));
+                                                    if (ReportUtils.canEditReportDescription(report, policy)) {
+                                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(reportID));
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));
+                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
                                                 }}
                                                 style={[styles.alignSelfStart, styles.mw100]}
                                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
