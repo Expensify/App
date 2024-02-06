@@ -471,72 +471,99 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
     });
 }
 
+const isChannelMuted = (reportId: string) =>
+    new Promise((resolve) => {
+        const connectionId = Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            callback: (report) => {
+                Onyx.disconnect(connectionId);
+
+                resolve(
+                    report?.notificationPreference === undefined ||
+                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ||
+                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                );
+            },
+        });
+    });
+
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
-    try {
-        const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
-        const flatten = reportActionsOnly.flatMap((update) => {
-            const value = update.value as OnyxCollection<ReportAction>;
+    const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
+    // "reportActions_5134363522480668" -> "5134363522480668"
+    const reportIDs = reportActionsOnly.map((value) => value.key.split('_')[1]);
 
-            if (!value) {
-                return [];
+    Promise.all(reportIDs.map((reportID) => isChannelMuted(reportID)))
+        .then((muted) => muted.every((isMuted) => isMuted))
+        .then((isSoundMuted) => {
+            if (isSoundMuted) {
+                return;
             }
 
-            return Object.values(value);
-        }) as ReportAction[];
+            try {
+                const flatten = reportActionsOnly.flatMap((update) => {
+                    const value = update.value as OnyxCollection<ReportAction>;
 
-        for (const data of flatten) {
-            // Someone completes a task
-            if (data.actionName === 'TASKCOMPLETED') {
-                return playSound('success');
+                    if (!value) {
+                        return [];
+                    }
+
+                    return Object.values(value);
+                }) as ReportAction[];
+
+                for (const data of flatten) {
+                    // Someone completes a task
+                    if (data.actionName === 'TASKCOMPLETED') {
+                        return playSound('success');
+                    }
+                }
+
+                const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
+
+                for (const message of types) {
+                    // someone sent money
+                    if ('IOUDetails' in message) {
+                        return playSound('success');
+                    }
+
+                    // mention user
+                    if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-user>')) {
+                        return playSound('attention');
+                    }
+
+                    // mention @here
+                    if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
+                        return playSound('attention');
+                    }
+
+                    // assign a task
+                    if ('taskReportID' in message) {
+                        return playSound('attention');
+                    }
+
+                    // request money
+                    if ('IOUTransactionID' in message) {
+                        return playSound('attention');
+                    }
+
+                    // Someone completes a money request
+                    if ('IOUReportID' in message) {
+                        return playSound('success');
+                    }
+
+                    // plain message
+                    if ('html' in message) {
+                        return playSound('receive');
+                    }
+                }
+            } catch (e) {
+                let errorMessage = String(e);
+                if (e instanceof Error) {
+                    errorMessage = e.message;
+                }
+
+                Log.client(`Unexpected error occurred while parsing the data to play a sound: ${errorMessage}`);
             }
-        }
-
-        const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
-
-        for (const message of types) {
-            // someone sent money
-            if ('IOUDetails' in message) {
-                return playSound('success');
-            }
-
-            // mention user
-            if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-user>')) {
-                return playSound('attention');
-            }
-
-            // mention @here
-            if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
-                return playSound('attention');
-            }
-
-            // assign a task
-            if ('taskReportID' in message) {
-                return playSound('attention');
-            }
-
-            // request money
-            if ('IOUTransactionID' in message) {
-                return playSound('attention');
-            }
-
-            // Someone completes a money request
-            if ('IOUReportID' in message) {
-                return playSound('success');
-            }
-
-            // plain message
-            if ('html' in message) {
-                return playSound('receive');
-            }
-        }
-    } catch (e) {
-        let errorMessage = String(e);
-        if (e instanceof Error) {
-            errorMessage = e.message;
-        }
-
-        Log.client(`Unexpected error occurred while parsing the data to play a sound: ${errorMessage}`);
-    }
+        });
 }
 
 /**
