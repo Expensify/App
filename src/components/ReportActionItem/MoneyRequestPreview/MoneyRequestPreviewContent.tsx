@@ -262,7 +262,7 @@ function MoneyRequestPreviewContent({
                                     {shouldShowDescription && <RenderHTML html={parser.replace(merchantOrDescription)} />}
                                     {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
-                                {isBillSplit && participantAccountIDs.length > 0 && requestAmount && requestAmount > 0 && (
+                                {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
                                         {translate('iou.amountEach', {
                                             amount: CurrencyUtils.convertToDisplayString(
