@@ -355,6 +355,7 @@ function InitialSettingsPage(props) {
             onBackButtonPress={() => Navigation.closeFullScreen()}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
             childrenContainerStyles={[styles.m0, styles.p0]}
+            testID={InitialSettingsPage.displayName}
         >
             <View style={styles.w100}>
                 {accountMenuItems}
