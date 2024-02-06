@@ -10,6 +10,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
@@ -17,7 +18,7 @@ import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const propTypes = emojiPickerMenuPropTypes;
 
-function EmojiPickerMenu({onEmojiSelected}) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -94,15 +95,17 @@ function EmojiPickerMenu({onEmojiSelected}) {
             }
 
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
+            const shouldEmojiBeHighlighted = Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (
                 <EmojiPickerMenuItem
                     onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                     emoji={emojiCode}
+                    isHighlighted={shouldEmojiBeHighlighted}
                 />
             );
         },
-        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate],
+        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate, activeEmoji],
     );
 
     return (
