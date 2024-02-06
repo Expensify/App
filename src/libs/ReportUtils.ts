@@ -2257,13 +2257,15 @@ function getReportPreviewMessage(
         });
     }
 
+    let linkedTransaction;
     if (!isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
-
-        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-            return Localize.translateLocal('iou.receiptScanning');
-        }
+        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
     }
+
+    if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+        return Localize.translateLocal('iou.receiptScanning');
+    }
+
     const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
@@ -2290,20 +2292,25 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-
     const lastActorID = reportAction?.actorAccountID;
+    let amount = originalMessage?.amount;
+    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
+
+    if (!isEmptyObject(linkedTransaction)) {
+        amount = TransactionUtils.getAmount(linkedTransaction, isExpenseReport(report));
+        currency = TransactionUtils.getCurrency(linkedTransaction);
+    }
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
-    if (originalMessage?.amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amount = originalMessage?.amount;
-        const currency = originalMessage?.currency ?? report.currency ?? '';
+    if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
         const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
         return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
     }
+
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
 
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
@@ -4582,6 +4589,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         (getVisibleMemberIDs(report).includes(currentUserAccountID ?? 0) || getParticipantsIDs(report).includes(currentUserAccountID ?? 0))
     );
 }
+
 /**
  * Checks if report action has error when smart scanning
  */
