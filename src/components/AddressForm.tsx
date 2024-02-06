@@ -4,13 +4,11 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
@@ -89,8 +87,8 @@ function AddressForm({
      * @returns - An object containing the errors for each inputID
      */
 
-    const validator = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): Errors => {
-        const errors: Errors = {};
+    const validator = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): ErrorUtils.ErrorsList => {
+        const errors: ErrorUtils.ErrorsList = {};
         const requiredFields = ['addressLine1', 'city', 'country', 'state'] as const;
 
         // Check "State" dropdown is a valid state if selected Country is USA

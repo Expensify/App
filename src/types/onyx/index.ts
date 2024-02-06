@@ -10,8 +10,8 @@ import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {
-    AddressForm,
     AddDebitCardForm,
+    AddressForm,
     CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,

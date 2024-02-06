@@ -106,7 +106,7 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
     return {[key]: errorsForField[key]};
 }
 
-type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
+type ErrorsList = Record<string, Localize.MaybePhraseKey>;
 
 /**
  * Method used to generate error message for given inputID
@@ -141,3 +141,5 @@ export {
     addErrorMessage,
     getLatestErrorMessageField,
 };
+
+export type {ErrorsList};
