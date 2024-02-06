@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -25,9 +24,11 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -90,6 +91,8 @@ const defaultProps = {
     innerRef: () => {},
     isInModal: false,
 };
+
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function LoginForm(props) {
     const styles = useThemeStyles();
@@ -245,6 +248,15 @@ function LoginForm(props) {
         isInputFocused() {
             return input.current && input.current.isFocused();
         },
+        clearDataAndFocus(clearLogin = true) {
+            if (!input.current) {
+                return;
+            }
+            if (clearLogin) {
+                Session.clearSignInData();
+            }
+            input.current.focus();
+        },
     }));
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
@@ -267,13 +279,24 @@ function LoginForm(props) {
                     textContentType="username"
                     id="username"
                     name="username"
-                    onBlur={() => {
-                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                            return;
-                        }
-                        firstBlurred.current = true;
-                        validate(login);
-                    }}
+                    testID="username"
+                    onBlur={
+                        // As we have only two signin buttons (Apple/Google) other than the text input,
+                        // for natives onBlur is called only when the buttons are pressed and we don't need
+                        // to validate in those case as the user has opted for other signin flow.
+                        willBlurTextInputOnTapOutside
+                            ? () =>
+                                  // This delay is to avoid the validate being called before google iframe is rendered to
+                                  // avoid error message appearing after pressing google signin button.
+                                  setTimeout(() => {
+                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                          return;
+                                      }
+                                      firstBlurred.current = true;
+                                      validate(login);
+                                  }, 500)
+                            : undefined
+                    }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
@@ -323,10 +346,10 @@ function LoginForm(props) {
                                     </Text>
 
                                     <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <AppleSignIn />
                                         </View>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <GoogleSignIn />
                                         </View>
                                     </View>

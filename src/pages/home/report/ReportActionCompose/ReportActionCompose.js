@@ -1,10 +1,10 @@
 import {PortalHost} from '@gorhom/portal';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -24,10 +24,8 @@ import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
-import updatePropsPaperWorklet from '@libs/updatePropsPaperWorklet';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -46,9 +44,6 @@ const propTypes = {
 
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
-
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -107,7 +102,8 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    reportActions,
+    isEmptyChat,
+    lastReportAction,
     listHeight,
     shouldShowComposeInput,
     isReportReadyForDisplay,
@@ -118,6 +114,7 @@ function ReportActionCompose({
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -181,7 +178,9 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const isBlockedFromConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge), [report, blockedFromConcierge]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report.participantAccountIDs}), [report.participantAccountIDs]);
+    const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
+    const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
@@ -192,8 +191,8 @@ function ReportActionCompose({
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (ReportUtils.chatIncludesConcierge(report)) {
-            if (User.isBlockedFromConcierge(blockedFromConcierge)) {
+        if (includesConcierge) {
+            if (userBlockedFromConcierge) {
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
@@ -201,7 +200,7 @@ function ReportActionCompose({
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
 
     const focus = () => {
         if (composerRef === null || composerRef.current === null) {
@@ -348,15 +347,19 @@ function ReportActionCompose({
             return;
         }
 
-        const viewTag = animatedRef();
-        const viewName = 'RCTMultilineTextInputView';
-        const updates = {text: ''};
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
         runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+
+    const emojiShiftVertical = useMemo(() => {
+        const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
+        const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
+        const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
+        return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
+    }, [styles]);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -418,8 +421,11 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        report={report}
-                                        reportActions={reportActions}
+                                        parentReportID={report.parentReportID}
+                                        parentReportActionID={report.parentReportActionID}
+                                        includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
                                         inputPlaceholder={inputPlaceholder}
                                         isComposerFullSize={isComposerFullSize}
@@ -457,6 +463,7 @@ function ReportActionCompose({
                                 onModalHide={focus}
                                 onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                                 emojiPickerID={report.reportID}
+                                shiftVertical={emojiShiftVertical}
                             />
                         )}
                         <SendButton
@@ -497,4 +504,4 @@ export default compose(
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
-)(ReportActionCompose);
+)(memo(ReportActionCompose));

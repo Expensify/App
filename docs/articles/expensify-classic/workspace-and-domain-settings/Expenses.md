@@ -87,7 +87,7 @@ Concierge Receipt Audit is a real-time audit and compliance of receipts submitte
 
 - To make sure you don't miss any risky expenses that need human oversight.
 - To avoid needing to manually review all your company receipts.
-- It's included for free with the [Control Plan](https://www.expensify.com/pricing).
+- It's included at no extra cost with the [Control Plan](https://www.expensify.com/pricing).
 - Instead of paying someone to audit your company expenses or being concerned that your expenses might be audited by a government agency.
 - It's easy to use! Concierge will alert you to the risky expense and present it to you in an easy-to-follow review tutorial.
 - In addition to the risky expense alerts, Expensify will include a Note with audit details on every report.  
@@ -106,7 +106,7 @@ If you enable tax but don’t select a tax rate or enter a tax reclaimable amoun
 
 Note: _Expensify won’t automatically track cumulative mileage. If you need to track cumulative mileage per employee, we recommend building a mileage report using our custom export formulas._ 
 
-# FAQs
+{% include faq-begin.md %}
 
 ## Why do I see eReceipts for expenses greater than $75?
 
@@ -116,3 +116,4 @@ An eReceipt is generated for Expensify card purchases of any amount in the follo
 
 Expensify does not update mileage rates to match the rate provided by the IRS. An admin of the workspace will need to update the rate or create a new rate in the workspace. This is because Expensify has customers worldwide, not just in the United States, and most companies want to communicate the change with employees and control the timing.
 
+{% include faq-end.md %}

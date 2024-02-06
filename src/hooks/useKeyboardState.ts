@@ -6,6 +6,6 @@ import {KeyboardStateContext} from '@components/withKeyboardState';
  * Hook for getting current state of keyboard
  * whether the keyboard is open
  */
-export default function useKeyboardState(): KeyboardStateContextValue | null {
+export default function useKeyboardState(): KeyboardStateContextValue {
     return useContext(KeyboardStateContext);
 }

@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -126,6 +127,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const lastPressedKey = useRef('');
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
+
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const focusMinuteInputOnFirstCharacter = useCallback(() => setCursorPosition(0, minuteInputRef, setSelectionMinute), []);
     const focusHourInputOnLastCharacter = useCallback(() => setCursorPosition(2, hourInputRef, setSelectionHour), []);
@@ -469,7 +472,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                             setSelectionHour(e.nativeEvent.selection);
                         }}
                         style={styles.timePickerInput}
-                        containerStyles={[styles.timePickerHeight100]}
+                        touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionHour}
                         showSoftInputOnFocus={false}
                     />
@@ -492,12 +495,13 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                                 minuteInputRef.current = {hourRef: hourInputRef.current, minuteInputRef: ref};
                             }
                             minuteInputRef.current = ref;
+                            inputCallbackRef(ref);
                         }}
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
                         }}
                         style={styles.timePickerInput}
-                        containerStyles={[styles.timePickerHeight100]}
+                        touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionMinute}
                         showSoftInputOnFocus={false}
                     />
