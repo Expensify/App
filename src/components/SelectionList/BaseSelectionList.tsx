@@ -359,7 +359,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canSelectMultiple, flattenedSections.allOptions.length, flattenedSections.disabledOptionsIndexes.length, textInputValue, updateAndScrollToFocusedIndex]);
+    }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
