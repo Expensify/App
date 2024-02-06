@@ -54,13 +54,13 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  *
  * @param isDeleting - whether the user is deleting the request
  */
-function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(iouReport: TReport, actorAccountID: number, amount: number, currency: string, isDeleting = false): TReport {
     if (currency !== iouReport?.currency) {
         return iouReport;
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate: Report = {...iouReport};
+    const iouReportUpdate = {...iouReport};
 
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
