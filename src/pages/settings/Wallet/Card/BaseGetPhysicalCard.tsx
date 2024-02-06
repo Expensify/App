@@ -148,8 +148,8 @@ function BaseGetPhysicalCard({
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
-            const virtualCard = domainCards.find((card) => card?.isVirtual);
-            const cardID = virtualCard?.cardID ?? 0;
+            const physicalCard = domainCards.find((card) => !card?.isVirtual);
+            const cardID = physicalCard?.cardID ?? 0;
 
             Wallet.requestPhysicalExpensifyCard(cardID, session?.authToken ?? '', updatedPrivatePersonalDetails);
             // Form draft data needs to be erased when the flow is complete,
