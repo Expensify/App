@@ -4,9 +4,8 @@ import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxEntry} from 'react-native-onyx/lib/types';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -39,6 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
@@ -1158,10 +1158,10 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
                 makeMeAdmin,
             },
@@ -1219,10 +1219,10 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
             },
         },
@@ -1519,7 +1519,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
-function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category: string) {
+function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
     if (!policyID || !category) {
         return [];
     }
@@ -1529,7 +1529,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category:
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): RecentlyUsedTags {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, tag?: string): RecentlyUsedTags {
     if (!policyID || !tag) {
         return {};
     }
@@ -1552,9 +1552,9 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): R
  *
  * @returns policyID of the workspace we have created
  */
-function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
+function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string | undefined {
     // This flow only works for IOU reports
-    if (!ReportUtils.isIOUReport(iouReport)) {
+    if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
     }
 
@@ -1596,23 +1596,23 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
         owner: sessionEmail,
+        ownerAccountID: sessionAccountID,
         isPolicyExpenseChatEnabled: true,
 
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        areChatRoomsEnabled: true,
         customUnits,
     };
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: newWorkspace,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
                 [sessionAccountID]: {
@@ -1626,7 +1626,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1636,12 +1636,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: announceReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: {
                 pendingFields: {
@@ -1651,12 +1651,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: adminsReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1666,7 +1666,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: workspaceChatReportActionData,
         },
