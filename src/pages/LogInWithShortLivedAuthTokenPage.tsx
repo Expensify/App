@@ -15,7 +15,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as Session from '@userActions/Session';
+import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
@@ -31,7 +33,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {email = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
+    const {email = '', authToken = '', encryptedAuthToken = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -42,6 +44,11 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             Session.signInWithShortLivedAuthToken(email, token);
             return;
+        }
+
+        if (authToken) {
+            updateSessionAuthTokens(authToken, encryptedAuthToken);
+            NetworkStore.setAuthToken(authToken ?? null);
         }
 
         // If an error is returned as part of the route, ensure we set it in the onyxData for the account
