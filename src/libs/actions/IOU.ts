@@ -49,7 +49,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -298,11 +298,7 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID: string, mer
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {merchant: merchant.trim()});
 }
 
-/**
- * @param {String} transactionID
- * @param {Object} pendingFields
- */
-function setMoneyRequestPendingFields(transactionID, pendingFields) {
+function setMoneyRequestPendingFields(transactionID: string, pendingFields: PendingFields) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
@@ -1025,13 +1021,32 @@ function getUpdateMoneyRequestParams(
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (hasPendingWaypoints) {
+    if (transaction && updatedTransaction && hasPendingWaypoints) {
         updatedTransaction = {
             ...updatedTransaction,
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedMerchant: Localize.translateLocal('iou.routePending'),
         };
+
+        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
+            value: null,
+        });
+
+        // Revert the transaction's amount to the original value on failure.
+        // The IOU Report will be fully reverted in the failureData further below.
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: transaction.amount,
+                modifiedAmount: transaction.modifiedAmount,
+                modifiedMerchant: transaction.modifiedMerchant,
+            },
+        });
     }
 
     // Step 3: Build the modified expense report actions
@@ -1068,21 +1083,21 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-        // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-        // Should only update if the transaction matches the currency of the report, else we wait for the update
-        // from the server with the currency conversion
-        let updatedMoneyRequestReport = {...iouReport};
-        if (updatedTransaction?.currency === iouReport?.currency && (hasPendingWaypoints || updatedTransaction?.modifiedAmount)) {
-            const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
-            if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-                updatedMoneyRequestReport.total += diff;
-            } else {
-                updatedMoneyRequestReport = iouReport
-                    ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
-                    : {};
-            }
+    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+    // Should only update if the transaction matches the currency of the report, else we wait for the update
+    // from the server with the currency conversion
+    let updatedMoneyRequestReport = {...iouReport};
+    if ((hasPendingWaypoints || updatedTransaction?.modifiedAmount) && updatedTransaction?.currency === iouReport?.currency) {
+        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+        if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
+            updatedMoneyRequestReport.total += diff;
+        } else {
+            updatedMoneyRequestReport = iouReport
+                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
+                : {};
+        }
 
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
+        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.currency);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -1164,27 +1179,6 @@ function getUpdateMoneyRequestParams(
             errorFields: null,
         },
     });
-
-    if (hasPendingWaypoints) {
-        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
-        successData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
-            value: null,
-        });
-
-        // Revert the transaction's amount to the original value on failure.
-        // The IOU Report will be fully reverted in the failureData further below.
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                amount: transaction.amount,
-                modifiedAmount: transaction.modifiedAmount,
-                modifiedMerchant: transaction.modifiedMerchant,
-            },
-        });
-    }
 
     // Clear out loading states, pending fields, and add the error fields
     failureData.push({
