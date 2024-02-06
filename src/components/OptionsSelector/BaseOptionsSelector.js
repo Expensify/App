@@ -1,8 +1,8 @@
-import {useIsFocused} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
@@ -19,7 +19,8 @@ import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
-import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
+import { defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes } from './optionsSelectorPropTypes';
+
 
 const propTypes = {
     /** padding bottom style of safe area */
@@ -448,7 +449,7 @@ function BaseOptionsSelector(props) {
         }
 
         // Otherwise, scroll to the focused index (as long as it's in range)
-        if (allOptions.length <= focusedIndex) {
+        if (allOptions.length <= focusedIndex || !props.sections.length) {
             return;
         }
         scrollToIndex(focusedIndex);
