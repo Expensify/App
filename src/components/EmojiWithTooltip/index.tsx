@@ -1,15 +1,10 @@
 import React, {useCallback} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
-
-type EmojiWithTooltipProps = {
-    emojiCode: string;
-    style?: StyleProp<TextStyle>;
-};
+import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = undefined}: EmojiWithTooltipProps) {
     const styles = useThemeStyles();
