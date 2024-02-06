@@ -3253,8 +3253,49 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
+function shouldShowSettlementButton(iouReportID: string, isPaidGroupPolicy: boolean, isPolicyExpenseChat: boolean, iouCanceled: boolean) {
+    const iouReport = ReportUtils.getReport(iouReportID) as OnyxTypes.Report;
+    const isApproved = ReportUtils.isReportApproved(iouReport);
+    const policy = ReportUtils.getPolicy(iouReport.policyID);
+    const policyType = policy?.type;
+    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const managerID = iouReport?.managerID ?? 0;
+    const isCurrentUserManager = managerID === userAccountID;
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
+
+    const isPayer = isPaidGroupPolicy
+        ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
+          isPolicyAdmin && (isApproved || isCurrentUserManager)
+        : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
+
+    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
+    const iouSettled = ReportUtils.isSettled(iouReport.reportID);
+    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
+    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy as OnyxEntry<OnyxTypes.Policy>);
+
+    const shouldShowPayButton = isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable;
+
+    const shouldShowApproveButton = isPaidGroupPolicy && isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
+
+    return shouldShowPayButton || shouldShowApproveButton;
+}
+
+function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): boolean {
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
+    const chatReportActions = ReportActionsUtils.getAllReportActions(chatReport?.reportID ?? '');
+    return !!Object.values(chatReportActions).find(
+        (action) =>
+            action.childReportID?.toString() !== excludedIOUReportID &&
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
+            shouldShowSettlementButton(action.childReportID ?? '', isPaidGroupPolicy, isPolicyExpenseChat, iouCanceled),
+    );
+}
+
 function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
+    const chatReport = ReportUtils.getReport(expenseReport.chatReportID) as OnyxEntry<OnyxTypes.Report>;
 
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
 
@@ -3279,7 +3320,16 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         },
     };
-    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData];
+
+    const optimisticChatReportData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
+        value: {
+            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, expenseReport.reportID),
+        },
+    };
+
+    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticChatReportData];
 
     const successData: OnyxUpdate[] = [
         {
@@ -3301,6 +3351,13 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
                 [expenseReport.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
+            value: {
+                hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
             },
         },
     ];
@@ -3727,4 +3784,5 @@ export {
     editMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,
+    shouldShowSettlementButton,
 };
