@@ -477,6 +477,22 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestMerchant_temporaryForRefactor(transaction.transactionID, distanceMerchant);
     }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
+    useEffect(() => {
+        const enabledCategories = _.filter(policyCategories, (category) => category.enabled);
+        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1) {
+            return;
+        }
+        IOU.setMoneyRequestCategory_temporaryForRefactor(transaction.transactionID, enabledCategories[0].name);
+    }, [iouCategory, shouldShowCategories, policyCategories, transaction]);
+
+    useEffect(() => {
+        const enabledTags = _.filter(policyTagList, (tag) => tag.enabled);
+        if (iouTag || !shouldShowTags || enabledTags.length !== 1) {
+            return;
+        }
+        IOU.setMoneyRequestTag(transaction.transactionID, enabledTags[0].name);
+    }, [shouldShowTags, policyTagList, iouTag, transaction]);
+
     /**
      * @param {Object} option
      */
@@ -885,10 +901,10 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         policyCategories: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${'76EBA6DE3ECECC33'}`,
         },
         policyTags: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${'76EBA6DE3ECECC33'}`,
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
