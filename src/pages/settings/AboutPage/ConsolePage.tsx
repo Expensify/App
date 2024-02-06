@@ -16,7 +16,6 @@ import {createLog, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -73,7 +72,7 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TROUBLESHOOT)}
             />
-            <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, {height: CONST.DEBUG_CONSOLE.CONSOLE_HEIGHT}]}>
+            <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
                 {logs !== undefined && (
                     <FlashList
                         data={Object.values(logs).reverse()}
@@ -88,7 +87,7 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                     />
                 )}
             </View>
-            <View style={[styles.flex1, styles.flexRow, styles.flexShrink1, styles.m5]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.m5]}>
                 <Button
                     text={translate('initialSettingsPage.debugConsole.saveLog')}
                     onPress={saveLogs}
