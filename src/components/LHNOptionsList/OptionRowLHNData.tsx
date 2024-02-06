@@ -27,6 +27,7 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     transaction,
+    lastReportActionTransaction,
     transactionViolations,
     canUseViolations,
     ...propsToForward
@@ -34,12 +35,6 @@ function OptionRowLHNData({
     const reportID = propsToForward.reportID;
 
     const optionItemRef = useRef<OptionData>();
-    const linkedTransaction = useMemo(() => {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-        const lastReportAction = sortedReportActions[0];
-        return TransactionUtils.getLinkedTransaction(lastReportAction);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport?.reportID, receiptTransactions, reportActions]);
 
     const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
 
@@ -64,7 +59,19 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, transactionViolations, canUseViolations]);
+    }, [
+        fullReport,
+        lastReportActionTransaction,
+        reportActions,
+        personalDetails,
+        preferredLocale,
+        policy,
+        parentReportAction,
+        transaction,
+        transactionViolations,
+        canUseViolations,
+        receiptTransactions,
+    ]);
 
     useEffect(() => {
         if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {

@@ -7,7 +7,9 @@ import withCurrentReportID from '@components/withCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,6 +66,9 @@ function LHNOptionsList({
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
             const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport?.ownerAccountID, itemParentReportAction?.actorAccountID].filter(Boolean) as number[];
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
+            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
+            const lastReportAction = sortedReportActions[0];
+            const lastReportActionTransaction = TransactionUtils.getLinkedTransaction(lastReportAction);
 
             return (
                 <OptionRowLHNData
@@ -74,6 +79,7 @@ function LHNOptionsList({
                     policy={itemPolicy}
                     personalDetails={participantsPersonalDetails}
                     transaction={itemTransaction}
+                    lastReportActionTransaction={lastReportActionTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}

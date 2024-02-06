@@ -83,6 +83,9 @@ type OptionRowLHNDataProps = {
     /** The transaction from the parent report action */
     transaction: OnyxEntry<Transaction>;
 
+    /** The transaction linked to the report's last action */
+    lastReportActionTransaction: OnyxEntry<Transaction>;
+
     /** Comment added to report */
     comment: string;
 
