@@ -1,5 +1,4 @@
-import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
+import type {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
 import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
@@ -7,15 +6,14 @@ import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
 import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
 
-type ScreenOptions = Record<string, NativeStackNavigationOptions>;
+type ScreenOptions = Record<string, StackNavigationOptions>;
 
-const commonScreenOptions: NativeStackNavigationOptions = {
+const commonScreenOptions: StackNavigationOptions = {
     headerShown: false,
     gestureDirection: 'horizontal',
     animationEnabled: true,
     cardOverlayEnabled: true,
     animationTypeForReplace: 'push',
-    animation: 'slide_from_right',
 };
 
 const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
