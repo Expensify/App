@@ -20,6 +20,8 @@ function WorkspaceCardVBAWithECardView() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const unorderedListItems = [translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]
+
     const menuItems: MenuItemWithLink[] = [
         {
             title: translate('workspace.common.issueAndManageCards'),
@@ -63,7 +65,7 @@ function WorkspaceCardVBAWithECardView() {
 
             <View style={[styles.mv3]}>
                 <UnorderedList
-                    items={[translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]}
+                    items={unorderedListItems}
                 />
             </View>
         </Section>

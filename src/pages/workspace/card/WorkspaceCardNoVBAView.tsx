@@ -22,6 +22,7 @@ function WorkspaceCardNoVBAView({policyID}: WorkspaceCardNoVBAViewProps) {
         <Section
             title={translate('workspace.card.header')}
             icon={Illustrations.CreditCardsNew}
+            isCentralPane
         >
             <View style={[styles.mv4]}>
                 <Text>{translate('workspace.card.noVBACopy')}</Text>
