@@ -1,5 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -18,6 +19,7 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -102,7 +104,7 @@ function IOURequestStepDate({
                     InputComponent={DatePicker}
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
-                    defaultValue={transaction.created}
+                    defaultValue={currentCreated}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
@@ -115,4 +117,15 @@ IOURequestStepDate.propTypes = propTypes;
 IOURequestStepDate.defaultProps = defaultProps;
 IOURequestStepDate.displayName = 'IOURequestStepDate';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepDate);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        splitDraftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+            },
+        },
+    }),
+)(IOURequestStepDate);
