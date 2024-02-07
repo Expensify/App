@@ -15,7 +15,7 @@ const updateNumberOfLines: UpdateNumberOfLines = (props, event, styles) => {
         return;
     }
     const numberOfLines = getNumberOfLines(lineHeight, paddingTopAndBottom, inputHeight);
-    if (numberOfLines === 1 && ReportUtils.getCommentLength(props.value ?? '') === 0) {
+    if (numberOfLines === 1) {
         props.resetFullComposerSize?.();
     }
     updateIsFullComposerAvailable(props, numberOfLines);
