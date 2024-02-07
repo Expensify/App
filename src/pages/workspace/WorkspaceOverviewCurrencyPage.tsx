@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -69,7 +69,7 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
         Policy.updateGeneralSettings(policy?.id ?? '', policy?.name ?? '', item.keyForList);
         Navigation.goBack();
     };
-    
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
