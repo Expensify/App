@@ -128,6 +128,18 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    const defaultCategory = lodashGet(
+        _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
+        'defaultCategory',
+        '',
+    );
+    useEffect(() => {
+        if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
+            return;
+        }
+        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+    }, [transactionID, transaction.category, requestType, defaultCategory]);
+
     const navigateBack = useCallback(() => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
@@ -419,7 +431,7 @@ function IOURequestStepConfirmation({
                             iouMerchant={transaction.merchant}
                             iouCreated={transaction.created}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                            shouldShowSmartScanFields={_.isEmpty(lodashGet(transaction, 'receipt.source', ''))}
+                            shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
                     )}
                 </View>
