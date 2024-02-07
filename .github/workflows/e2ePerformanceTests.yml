@@ -46,7 +46,7 @@ jobs:
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
           git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - uses: ./.github/actions/composite/buildAndroidE2EAPK
+      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
           PACKAGE_SCRIPT_NAME: android-build-e2e
@@ -114,7 +114,7 @@ jobs:
       - name: Checkout "delta ref"
         run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
-      - uses: ./.github/actions/composite/buildAndroidE2EAPK
+      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
           PACKAGE_SCRIPT_NAME: android-build-e2edelta
