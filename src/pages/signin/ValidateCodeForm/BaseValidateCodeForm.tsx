@@ -146,7 +146,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             setRecoveryCode(text);
         }
 
-        setFormError((prevError) => ({...prevError, [key]: ''}));
+        setFormError((prevError) => ({...prevError, [key]: undefined}));
 
         if (account?.errors) {
             SessionActions.clearAccountMessages();
