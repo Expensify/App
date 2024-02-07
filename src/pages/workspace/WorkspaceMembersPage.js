@@ -176,6 +176,11 @@ function WorkspaceMembersPage(props) {
         getWorkspaceMembers();
     }, [props.network.isOffline, prevIsOffline, getWorkspaceMembers]);
 
+    const notFoundGoBack = () => {
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+    }
+
     /**
      * Open the modal to invite a user
      */
@@ -425,7 +430,8 @@ function WorkspaceMembersPage(props) {
             <FullPageNotFoundView
                 shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={notFoundGoBack}
+                onLinkPress={notFoundGoBack}
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
