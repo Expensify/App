@@ -1167,6 +1167,38 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
 }
 
 /**
+ * Checks if a report has only one transaction associated with it
+ */
+function isOneTransactionReport(reportOrID: OnyxEntry<Report> | string): boolean {
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+
+    // Check the parent report (which would be the IOU or expense report if the passed report is an IOU or expense request)
+    // to see how many IOU report actions it contains
+    const iouReportActions = ReportActionsUtils.getIOUReportActions(report?.reportID ?? '');
+    return (iouReportActions?.length ?? 0) === 1;
+}
+
+/**
+ * Returns the reportID of the first transaction thread associated with a report
+ */
+function getOneTransactionThreadReportID(reportOrID: OnyxEntry<Report> | string): string | undefined {
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+
+    // Get all IOU report actions for the report.
+    const iouReportAction = ReportActionsUtils.getIOUReportActions(report?.reportID ?? '')?.find(reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.childReportID);
+    return String(iouReportAction?.childReportID) ?? '0';
+}
+
+/**
+ * Checks if a report is a transaction thread associated with a report that has only one transaction
+ */
+function isOneTransactionThread(reportOrID: OnyxEntry<Report> | string): boolean {
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+    const parentReport = getParentReport(report);
+    return isOneTransactionReport(parentReport?.reportID ?? '');
+}
+
+/**
  * Should return true only for personal 1:1 report
  *
  */
@@ -4907,6 +4939,9 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    isOneTransactionReport,
+    getOneTransactionThreadReportID,
+    isOneTransactionThread,
     goBackToDetailsPage,
     getTransactionReportName,
     getTransactionDetails,
