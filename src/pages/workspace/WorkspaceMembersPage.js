@@ -176,7 +176,7 @@ function WorkspaceMembersPage(props) {
         getWorkspaceMembers();
     }, [props.network.isOffline, prevIsOffline, getWorkspaceMembers]);
 
-    const notFoundGoBack = () => {
+    const goBackFromNotFoundPage = () => {
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
     }
