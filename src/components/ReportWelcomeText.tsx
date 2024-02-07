@@ -61,13 +61,31 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             </View>
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
-                    <Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
-                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
-                        <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
-                    </Text>
+                    <>
+                        {policy?.description ? (
+                            <PressableWithoutFeedback
+                                onPress={() => {
+                                    if (ReportUtils.canEditPolicyDescription(policy)) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id));
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
+                                }}
+                                style={styles.renderHTML}
+                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                            >
+                                <RenderHTML html={policy.description} />
+                            </PressableWithoutFeedback>
+                        ): (
+                            <Text>
+                                <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
+                                <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                                <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
+                                <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
+                                <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
+                            </Text>
+                        )}
+                    </>
                 )}
                 {isChatRoom && (
                     <>

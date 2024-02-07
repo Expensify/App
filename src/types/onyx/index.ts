@@ -21,6 +21,7 @@ import type {
     ReportFieldEditForm,
     RoomNameForm,
     WorkspaceSettingsForm,
+    WorkspaceDescriptionForm,
 } from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -158,6 +159,7 @@ export type {
     WalletTerms,
     WalletTransfer,
     WorkspaceSettingsForm,
+    WorkspaceDescriptionForm,
     ReportUserIsTyping,
     PolicyReportField,
     PolicyReportFields,

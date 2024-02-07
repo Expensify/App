@@ -117,6 +117,17 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                             shouldUseDefaultCursorWhenDisabled
                         />
 
+                        <MenuItemWithTopDescription
+                            title={policy.description}
+                            description={translate('workspace.editor.descriptionInputLabel')}
+                            shouldShowRightIcon={!readOnly}
+                            disabled={readOnly}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id))}
+                            shouldGreyOutWhenDisabled={false}
+                            shouldUseDefaultCursorWhenDisabled
+                            shouldRenderAsHTML
+                        />
+
                         <View>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}

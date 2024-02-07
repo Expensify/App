@@ -61,6 +61,10 @@ type WorkspaceSettingsForm = Form<{
     name: string;
 }>;
 
+type WorkspaceDescriptionForm = Form<{
+    description: string;
+}>;
+
 type ReportFieldEditForm = Form<Record<string, string>>;
 
 type CloseAccountForm = Form<{
@@ -89,4 +93,5 @@ export type {
     ReportFieldEditForm,
     CloseAccountForm,
     RoomNameForm,
+    WorkspaceDescriptionForm,
 };

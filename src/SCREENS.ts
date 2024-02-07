@@ -209,6 +209,7 @@ const SCREENS = {
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CURRENCY: 'Workspace_Overview_Currency',
         NAME: 'Workspace_Overview_Name',
+        DESCRIPTION: 'Workspace_Description',
     },
 
     EDIT_REQUEST: {

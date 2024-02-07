@@ -40,6 +40,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import { is } from 'date-fns/locale';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -116,6 +117,8 @@ function HeaderView(props) {
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const reportDescription = ReportUtils.getReportDescriptionText(props.report);
     const policyName = ReportUtils.getPolicyName(props.report);
+    const policyDescription = ReportUtils.getPolicyDescriptionText(props.policy);
+    const shouldShowSubtitle = !_.isEmpty(subtitle) && (isChatRoom ? _.isEmpty(reportDescription) : isPolicyExpenseChat ? _.isEmpty(policyDescription) : true);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -181,7 +184,7 @@ function HeaderView(props) {
     );
 
     const renderAdditionalText = () => {
-        if (_.isEmpty(policyName) || _.isEmpty(reportDescription) || !_.isEmpty(parentNavigationSubtitleData)) {
+        if (shouldShowSubtitle || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
             return null;
         }
         return (
@@ -299,7 +302,7 @@ function HeaderView(props) {
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {!_.isEmpty(subtitle) && _.isEmpty(reportDescription) && (
+                                        {shouldShowSubtitle && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
@@ -307,7 +310,7 @@ function HeaderView(props) {
                                                 {subtitle}
                                             </Text>
                                         )}
-                                        {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                        {isChatRoom && !_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     if (ReportUtils.canEditReportDescription(props.report, props.policy)) {
@@ -324,6 +327,26 @@ function HeaderView(props) {
                                                     numberOfLines={1}
                                                 >
                                                     {reportDescription}
+                                                </Text>
+                                            </PressableWithoutFeedback>
+                                        )}
+                                        {isPolicyExpenseChat && !_.isEmpty(policyDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    if (ReportUtils.canEditPolicyDescription(props.policy)) {
+                                                        Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(props.report.policyID));
+                                                        return;
+                                                    }
+                                                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.policy.id));
+                                                }}
+                                                style={[styles.alignSelfStart, styles.mw100]}
+                                                accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                                            >
+                                                <Text
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {policyDescription}
                                                 </Text>
                                             </PressableWithoutFeedback>
                                         )}
@@ -390,7 +413,7 @@ export default memo(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-            selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction']),
+            // selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction, description']),
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

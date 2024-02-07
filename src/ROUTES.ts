@@ -445,6 +445,10 @@ const ROUTES = {
         route: 'workspace/:policyID/overview/name',
         getRoute: (policyID: string) => `workspace/${policyID}/overview/name` as const,
     },
+    WORKSPACE_DESCRIPTION: {
+        route: 'workspace/:policyID/description',
+        getRoute: (policyID: string) => `workspace/${policyID}/description` as const,
+    },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
         getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,

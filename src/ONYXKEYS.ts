@@ -303,6 +303,8 @@ const ONYXKEYS = {
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
+        WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
+        WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
@@ -491,6 +493,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM_DRAFT]: OnyxTypes.AddDebitCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: OnyxTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM_DRAFT]: OnyxTypes.WorkspaceSettingsForm;
+    [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: OnyxTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM_DRAFT]: OnyxTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: OnyxTypes.CloseAccountForm;

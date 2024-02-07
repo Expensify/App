@@ -141,6 +141,7 @@ const WRITE_COMMANDS = {
     DETACH_RECEIPT: 'DetachReceipt',
     PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
     PAY_MONEY_REQUEST: 'PayMoneyRequest',
+    UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -279,6 +280,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DETACH_RECEIPT]: Parameters.DetachReceiptParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]: Parameters.PayMoneyRequestParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST]: Parameters.PayMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
 };
 
 const READ_COMMANDS = {

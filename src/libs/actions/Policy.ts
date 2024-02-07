@@ -22,6 +22,7 @@ import type {
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceGeneralSettingsParams,
+    UpdateWorkspaceDescriptionParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -885,6 +886,64 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
+        optimisticData,
+        finallyData,
+        failureData,
+    });
+}
+
+function updateDescription(policyID: string, description: string, currentDescription: string) {
+    if (description === currentDescription) {
+        return;
+    }
+    const parsedDescription = ReportUtils.getParsedComment(description);
+
+    console.log(parsedDescription);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                description: parsedDescription,
+                pendingFields: {
+                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    description: null,
+                },
+            },
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    description: null,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: {
+                    description: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: UpdateWorkspaceDescriptionParams = {
+        policyID,
+        description: parsedDescription,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, params, {
         optimisticData,
         finallyData,
         failureData,
@@ -2018,4 +2077,5 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
+    updateDescription,
 };

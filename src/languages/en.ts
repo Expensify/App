@@ -1667,6 +1667,8 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
+            descriptionInputLabel: 'Workspace description',
+            descriptionInputHelpText: 'This is a brief description of your workspace.',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
