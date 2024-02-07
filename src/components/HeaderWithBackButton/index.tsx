@@ -30,7 +30,6 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
-    personalDetails = null,
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
@@ -39,6 +38,7 @@ function HeaderWithBackButton({
     shouldShowGetAssistanceButton = false,
     shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
+    shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
     stepCounter,
@@ -103,7 +103,6 @@ function HeaderWithBackButton({
                     <AvatarWithDisplayName
                         report={report}
                         policy={policy}
-                        personalDetails={personalDetails}
                         shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />
                 ) : (
@@ -165,6 +164,7 @@ function HeaderWithBackButton({
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
                             shouldOverlay={shouldOverlayDots}
+                            shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}
                     {shouldShowCloseButton && (

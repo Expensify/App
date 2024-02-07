@@ -6,7 +6,7 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
-import {withPersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
@@ -78,6 +78,7 @@ const defaultProps = {
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
+    policy: {},
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -130,13 +131,13 @@ function ReportActionsList({
     onScroll,
     mostRecentIOUReportActionID,
     isSmallScreenWidth,
-    personalDetailsList,
     currentUserPersonalDetails,
     loadNewerChats,
     loadOlderChats,
     onLayout,
     isComposerFullSize,
 }) {
+    const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -514,4 +515,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withWindowDimensions, withPersonalDetails(), withCurrentUserPersonalDetails)(ReportActionsList);
+export default compose(withWindowDimensions, withCurrentUserPersonalDetails)(ReportActionsList);
