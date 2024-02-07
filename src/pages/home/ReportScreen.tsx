@@ -95,10 +95,7 @@ type ReportScreenProps = OnyxHOCProps & ViewportOffsetTopProps & CurrentReportID
 function getReportID(route: ReportScreenNavigationProps['route']): string {
     // The report ID is used in an onyx key. If it's an empty string, onyx will return
     // a collection instead of an individual report.
-    // We can't use the default value functionality of `lodash.get()` because it only
-    // provides a default value on `undefined`, and will return an empty string.
-    // Placing the default value outside of `lodash.get()` is intentional.
-    return String(route.params?.reportID ?? 0);
+    return String(route.params?.reportID || 0);
 }
 
 function ReportScreen({
