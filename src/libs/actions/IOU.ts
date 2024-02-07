@@ -983,10 +983,12 @@ function computeDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTransa
     if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
         // add the diff with the total if we change the currency from different currency to the currency of the iou report
         return TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
-    } if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
+    }
+    if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
         // subtract the diff with the total if we change the currency from the currency of iou report to different currency
         return -TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
-    } if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
+    }
+    if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
         // get the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
         return TransactionUtils.getAmount(updatedTransaction, isExpenseReport) - TransactionUtils.getAmount(transaction, isExpenseReport);
     }
@@ -1083,8 +1085,8 @@ function getUpdateMoneyRequestParams(
             updatedMoneyRequestReport.total -= diff;
         } else {
             updatedMoneyRequestReport = iouReport
-                    ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
-                    : {};
+                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
+                : {};
         }
         updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency);
 
