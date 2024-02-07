@@ -1082,7 +1082,9 @@ function getUpdateMoneyRequestParams(
             // For expense report, the amount is negative so we should subtract total from diff
             updatedMoneyRequestReport.total -= diff;
         } else {
-            updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction?.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(updatedTransaction), false);
+            updatedMoneyRequestReport = iouReport
+                    ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
+                    : {};
         }
         updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency);
 
