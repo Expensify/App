@@ -29,7 +29,7 @@ function ConciergePage({session}: ConciergePageProps) {
         if (session && 'authToken' in session) {
             // Pop the concierge loading page before opening the concierge report.
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack();
                 Report.navigateToConciergeChat();
             });
         } else {

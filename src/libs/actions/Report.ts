@@ -1813,7 +1813,7 @@ function deleteReport(reportID: string) {
  */
 function navigateToConciergeChatAndDeleteReport(reportID: string) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack();
     navigateToConciergeChat();
     deleteReport(reportID);
 }
@@ -2269,14 +2269,14 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     if (lastAccessedReportID) {
         // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
             // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.goBack();
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
         }
     }

@@ -32,7 +32,7 @@ function OnfidoStep({walletOnfidoData}) {
     const shouldShowOnfido = walletOnfidoData.hasAcceptedPrivacyPolicy && !walletOnfidoData.isLoading && !walletOnfidoData.error && walletOnfidoData.sdkToken;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack();
     }, []);
 
     const goToPreviousStep = useCallback(() => {

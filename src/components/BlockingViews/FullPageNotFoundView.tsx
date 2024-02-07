@@ -50,7 +50,7 @@ function FullPageNotFoundView({
     titleKey = 'notFound.notHere',
     subtitleKey = 'notFound.pageNotFound',
     linkKey = 'notFound.goBackHome',
-    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
+    onBackButtonPress = () => Navigation.goBack(),
     shouldShowLink = true,
     shouldShowBackButton = true,
     onLinkPress = () => Navigation.dismissModal(),
