@@ -71,7 +71,7 @@ function IOURequestStepTag({
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const updatedTag = IOUUtils.insertTagIntoReportTagsSting(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagIndex);
-        if (isSplitBill) {
+        if (isSplitBill && isEditing) {
             IOU.setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;
