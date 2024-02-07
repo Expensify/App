@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {OnyxFormValuesFields} from '@components/Form/types';
@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type IntroSchoolPrincipalPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -48,16 +47,12 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
      */
     const validate = useCallback(
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
-            const errors: Errors = {};
+            const errors: Partial<Record<keyof OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>, string>> = {};
 
-            if (!ValidationUtils.isValidLegalName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.firstName) {
+            if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
             }
-            if (!ValidationUtils.isValidLegalName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.lastName) {
+            if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
             }
             if (!values.partnerUserID) {

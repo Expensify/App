@@ -12,6 +12,7 @@ const PROTECTED_SCREENS = {
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
+    ALL_SETTINGS: 'AllSettings',
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
@@ -20,6 +21,7 @@ const SCREENS = {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
+    SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -86,6 +88,10 @@ const SCREENS = {
     },
     LEFT_MODAL: {
         SEARCH: 'Search',
+        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
+    },
+    WORKSPACE_SWITCHER: {
+        ROOT: 'WorkspaceSwitcher_Root',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -94,7 +100,7 @@ const SCREENS = {
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
         REPORT_SETTINGS: 'Report_Settings',
-        REPORT_WELCOME_MESSAGE: 'Report_WelcomeMessage',
+        REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
@@ -144,9 +150,7 @@ const SCREENS = {
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
         DATE: 'Money_Request_Date',
-        DESCRIPTION: 'Money_Request_Description',
         CATEGORY: 'Money_Request_Category',
-        TAG: 'Money_Request_Tag',
         MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -178,7 +182,6 @@ const SCREENS = {
 
     TASK: {
         TITLE: 'Task_Title',
-        DESCRIPTION: 'Task_Description',
         ASSIGNEE: 'Task_Assignee',
     },
 
@@ -194,7 +197,7 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        SETTINGS: 'Workspace_Settings',
+        OVERVIEW: 'Workspace_Overview',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
@@ -204,7 +207,8 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Settings_Currency',
+        CURRENCY: 'Workspace_Overview_Currency',
+        NAME: 'Workspace_Overview_Name',
     },
 
     EDIT_REQUEST: {
@@ -236,7 +240,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
-    REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
+    REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',

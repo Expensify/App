@@ -32,8 +32,7 @@ const personalDetails = createCollection<PersonalDetails>(
     (index) => createPersonalDetails(index),
 );
 
-const mockedResponseMap = getMockedReports(5000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
+const mockedResponseMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 
 describe('SidebarUtils', () => {
     beforeAll(() => {
@@ -51,7 +50,7 @@ describe('SidebarUtils', () => {
         Onyx.clear();
     });
 
-    test('[SidebarUtils] getOptionData on 5k reports', async () => {
+    test('[SidebarUtils] getOptionData on 1k reports', async () => {
         const report = createRandomReport(1);
         const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
@@ -59,22 +58,20 @@ describe('SidebarUtils', () => {
 
         await waitForBatchedUpdates();
 
-        await measureFunction(
-            () =>
-                SidebarUtils.getOptionData({
-                    report,
-                    reportActions,
-                    personalDetails,
-                    preferredLocale,
-                    policy,
-                    parentReportAction,
-                    hasViolations: false,
-                }),
-            {runs},
+        await measureFunction(() =>
+            SidebarUtils.getOptionData({
+                report,
+                reportActions,
+                personalDetails,
+                preferredLocale,
+                policy,
+                parentReportAction,
+                hasViolations: false,
+            }),
         );
     });
 
-    test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
+    test('[SidebarUtils] getOrderedReportIDs on 1k reports', async () => {
         const currentReportId = '1';
         const allReports = getMockedReports();
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -104,8 +101,6 @@ describe('SidebarUtils', () => {
         ) as unknown as OnyxCollection<ReportAction[]>;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations), {
-            runs,
-        });
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations));
     });
 });

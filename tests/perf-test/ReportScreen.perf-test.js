@@ -152,8 +152,6 @@ function ReportScreenWrapper(args) {
     );
 }
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
 test.skip('[ReportScreen] should render ReportScreen with composer interactions', () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
@@ -222,7 +220,7 @@ test.skip('[ReportScreen] should render ReportScreen with composer interactions'
                     navigation={navigation}
                     route={mockRoute}
                 />,
-                {scenario, runs},
+                {scenario},
             ),
         );
 });
@@ -287,7 +285,7 @@ test.skip('[ReportScreen] should press of the report item', () => {
                     navigation={navigation}
                     route={mockRoute}
                 />,
-                {scenario, runs},
+                {scenario},
             ),
         );
 });
