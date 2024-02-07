@@ -55,6 +55,10 @@ export default {
         marginHorizontal: -20,
     },
 
+    mhn8: {
+        marginHorizontal: -32,
+    },
+
     mv0: {
         marginVertical: 0,
     },
@@ -223,6 +227,10 @@ export default {
         marginTop: 'auto',
     },
 
+    mtn2: {
+        marginTop: -8,
+    },
+
     mtn6: {
         marginTop: -24,
     },
@@ -307,6 +315,10 @@ export default {
 
     p5: {
         padding: 20,
+    },
+
+    p8: {
+        padding: 32,
     },
 
     p9: {
@@ -529,6 +541,10 @@ export default {
         paddingBottom: 80,
     },
 
+    pb40: {
+        paddingBottom: 160,
+    },
+
     pb10Percentage: {
         paddingBottom: '10%',
     },
@@ -555,5 +571,9 @@ export default {
 
     gap7: {
         gap: 28,
+    },
+
+    rowGap4: {
+        rowGap: 16,
     },
 } satisfies Record<string, ViewStyle>;

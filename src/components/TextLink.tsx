@@ -1,5 +1,6 @@
 import type {ForwardedRef, KeyboardEventHandler, MouseEventHandler} from 'react';
 import React, {forwardRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
