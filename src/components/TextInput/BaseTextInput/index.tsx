@@ -36,6 +36,7 @@ function BaseTextInput(
         placeholder = '',
         errorText = '',
         icon = null,
+        iconLeft = null,
         textInputContainerStyles,
         touchableInputWrapperStyle,
         containerStyles,
@@ -243,6 +244,8 @@ function BaseTextInput(
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
@@ -317,6 +320,16 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                            {iconLeft && (
+                                <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                    <Icon
+                                        src={iconLeft}
+                                        fill={theme.icon}
+                                        height={variables.iconSizeNormal}
+                                        width={variables.iconSizeNormal}
+                                    />
+                                </View>
+                            )}
                             {Boolean(prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text

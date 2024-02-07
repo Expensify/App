@@ -175,11 +175,7 @@ function BaseOptionsList(
     const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
         const isItemDisabled = isDisabled || !!section.isDisabled || !!item.isDisabled;
         const isSelected = selectedOptions?.some((option) => {
-            if (option.accountID && option.accountID === item.accountID) {
-                return true;
-            }
-
-            if (option.reportID && option.reportID === item.reportID) {
+            if (option.keyForList && option.keyForList === item.keyForList) {
                 return true;
             }
 
@@ -204,7 +200,7 @@ function BaseOptionsList(
                 selectedStateButtonText={multipleOptionSelectorButtonText}
                 onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
-                boldStyle={boldStyle}
+                boldStyle={item.boldStyle ?? boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}

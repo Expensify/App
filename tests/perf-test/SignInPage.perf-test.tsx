@@ -18,17 +18,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.mock('../../src/libs/Navigation/Navigation', () => {
-    const actualNav = jest.requireActual('../../src/libs/Navigation/Navigation');
-    return {
-        ...actualNav,
-        navigationRef: {
-            addListener: () => jest.fn(),
-            removeListener: () => jest.fn(),
-        },
-    } as typeof Navigation;
-});
-
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
@@ -43,7 +32,10 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
-        createNavigationContainerRef: jest.fn(),
+        createNavigationContainerRef: () => ({
+            addListener: () => jest.fn(),
+            removeListener: () => jest.fn(),
+        }),
     } as typeof NativeNavigation;
 });
 
