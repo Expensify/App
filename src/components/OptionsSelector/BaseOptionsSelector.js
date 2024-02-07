@@ -53,7 +53,6 @@ const propTypes = {
 const defaultProps = {
     shouldDelayFocus: false,
     shouldShowReferralCTA: false,
-    onCallToActionClosed: () => {},
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
@@ -69,7 +68,6 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.closeReferralModal = this.closeReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
