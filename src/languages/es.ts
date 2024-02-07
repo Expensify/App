@@ -1043,6 +1043,14 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
+        appSection: {
+            title: 'Preferencias de la aplicación',
+            subtitle: 'Personaliza tu cuenta de Expensify.',
+        },
+        testSection: {
+            title: 'Preferencias para tests',
+            subtitle: 'Ajustes para ayudar a depurar y probar la aplicación en “staging”.',
+        },
     },
     priorityModePage: {
         priorityMode: 'Modo prioridad',
