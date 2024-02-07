@@ -387,7 +387,7 @@ function MoneyRequestView({
                 )}
 
                 {shouldShowTax && (
-                    <OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
                         <MenuItemWithTopDescription
                             title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
                             description={translate('iou.taxAmount')}
