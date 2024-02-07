@@ -5,9 +5,12 @@ import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Hoverable from '@components/Hoverable';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -74,6 +77,13 @@ function AddressSearch(
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef<View>(null);
+    const maxIndexRef = useRef(0);
+    const resultRef = useRef();
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        maxIndex: maxIndexRef.current - 1,
+        isActive: true,
+    });
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -93,9 +103,9 @@ function AddressSearch(
             if (details) {
                 onPress?.({
                     address: autocompleteData.description ?? '',
-                    lat: details.geometry.location.lat ?? 0,
-                    lng: details.geometry.location.lng ?? 0,
-                    name: details.name,
+                    lat: details.geometry?.location.lat ?? 0,
+                    lng: details.geometry?.location.lng ?? 0,
+                    name: details?.name,
                 });
             }
             return;
@@ -224,6 +234,30 @@ function AddressSearch(
 
         onPress?.(values);
     };
+    const selectFocusedOption = () => {
+        if (!resultRef.current) {
+            return;
+        }
+        const data = resultRef?.current[focusedIndex];
+        if (!data) {
+            return;
+        }
+        saveLocationDetails(data, data);
+        setIsTyping(false);
+
+        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+        setDisplayListViewBorder(false);
+        setIsFocused(false);
+
+        // Clear location error code after address is selected
+        setLocationErrorCode(null);
+    };
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+        captureOnInputs: true,
+        shouldBubble: true,
+        shouldStopPropagation: false,
+        isActive: true,
+    });
 
     /** Gets the user's current location and registers success/error callbacks */
     const getCurrentLocation = () => {
@@ -343,14 +377,21 @@ function AddressSearch(
                         listEmptyComponent={listEmptyComponent}
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
-                        renderRow={(data) => {
+                        renderRow={(data, index) => {
                             const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
+                            if (focusedIndex === index) {
+                                setFocusedIndex(index);
+                            }
                             return (
-                                <View>
-                                    {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
-                                    <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
-                                </View>
+                                <Hoverable>
+                                    {(hovered) => (
+                                        <View style={[styles.pv4, styles.ph3, StyleUtils.getBackgroundAndBorderStyle(hovered || focusedIndex === index ? theme.border : theme.appBG)]}>
+                                            {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                            <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                                        </View>
+                                    )}
+                                </Hoverable>
                             );
                         }}
                         onPress={(data, details) => {
@@ -412,7 +453,7 @@ function AddressSearch(
                         styles={{
                             textInputContainer: [styles.flexColumn],
                             listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
-                            row: [styles.pv4, styles.ph3, styles.overflowAuto],
+                            row: [styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
                         }}
@@ -424,6 +465,8 @@ function AddressSearch(
                             // We use the height of the element to determine if we should hide the border of the listView dropdown
                             // to prevent a lingering border when there are no address suggestions.
                             setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
+                            resultRef.current = event.nativeEvent?.target.getScrollResponder().props.data;
+                            maxIndexRef.current = event.nativeEvent?.target.getScrollResponder().props.data.length;
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
