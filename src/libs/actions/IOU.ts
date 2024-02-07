@@ -3653,7 +3653,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [createdReportAction.reportActionID]: createdReportAction,
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
             },
         },
         {
@@ -3710,7 +3710,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [createdReportAction.reportActionID]: createdReportAction,
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
             },
         },
         {
