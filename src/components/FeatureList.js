@@ -25,7 +25,7 @@ const propTypes = {
     ctaAccessibilityLabel: PropTypes.string,
 
     /** Action to call on cta button press */
-    onCTAPress: PropTypes.func,
+    onCtaPress: PropTypes.func,
 
     /** A list of menuItems representing the feature list. */
     menuItems: PropTypes.arrayOf(PropTypes.shape({...menuItemPropTypes, translationKey: PropTypes.string})).isRequired,
@@ -48,13 +48,13 @@ const defaultProps = {
     ctaText: '',
     ctaAccessibilityLabel: '',
     subtitle: '',
-    onCTAPress: () => {},
+    onCtaPress: () => {},
     illustration: null,
     illustrationBackgroundColor: '',
     illustrationStyle: [],
 };
 
-function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCTAPress, menuItems, illustration, illustrationStyle, illustrationBackgroundColor}) {
+function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCtaPress, menuItems, illustration, illustrationStyle, illustrationBackgroundColor}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -91,7 +91,7 @@ function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCTAPres
                 </View>
                 <Button
                     text={ctaText}
-                    onPress={onCTAPress}
+                    onPress={onCtaPress}
                     accessibilityLabel={ctaAccessibilityLabel}
                     style={[styles.w100]}
                     success

@@ -547,6 +547,11 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
     };
 };
 
+/**
+ * Given an emoji code, returns an base emoji code without skin tone
+ */
+const getRemovedSkinToneEmoji = (emoji: string) => emoji.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+
 function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     const spacersIndexes: number[] = [];
     allEmojis.forEach((emoji, index) => {
@@ -581,5 +586,6 @@ export {
     getAddedEmojis,
     isFirstLetterEmoji,
     hasAccountIDEmojiReacted,
+    getRemovedSkinToneEmoji,
     getSpacersIndexes,
 };

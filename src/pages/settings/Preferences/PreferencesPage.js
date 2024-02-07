@@ -55,6 +55,7 @@ function PreferencesPage(props) {
             illustration={LottieAnimations.PreferencesDJ}
             shouldShowBackButton={isSmallScreenWidth}
             shouldShowOfflineIndicatorInWideScreen
+            testID={PreferencesPage.displayName}
         >
             <View style={styles.mb6}>
                 <Text

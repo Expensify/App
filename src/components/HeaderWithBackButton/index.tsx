@@ -70,7 +70,7 @@ function HeaderWithBackButton({
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton ? styles.pl0 : styles.pl5, shouldOverlay && StyleSheet.absoluteFillObject]}
+            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2, shouldOverlay && StyleSheet.absoluteFillObject]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
@@ -87,7 +87,7 @@ function HeaderWithBackButton({
                                     onBackButtonPress();
                                 }
                             }}
-                            style={[styles.LHNToggle]}
+                            style={[styles.touchableButtonImage]}
                             role="button"
                             accessibilityLabel={translate('common.back')}
                             nativeID={CONST.BACK_BUTTON_NATIVE_ID}
