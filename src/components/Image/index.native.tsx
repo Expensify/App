@@ -9,7 +9,7 @@ const dimensionsCache = new Map();
 
 function Image(props: ImageProps) {
     // eslint-disable-next-line react/destructuring-assignment
-    const {source, isAuthTokenRequired, session, ...rest} = props;
+    const {source, isAuthTokenRequired = false, session, ...rest} = props;
 
     let imageSource = source;
     if (typeof source === 'object' && 'uri' in source && typeof source.uri === 'number') {

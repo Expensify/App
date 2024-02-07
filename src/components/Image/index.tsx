@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
 function Image(props: ImageProps) {
-    const {source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps} = props;
+    const {source: propsSource, isAuthTokenRequired = false, onLoad, session, ...forwardedProps} = props;
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
