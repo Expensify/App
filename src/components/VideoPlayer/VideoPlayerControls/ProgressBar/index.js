@@ -20,10 +20,10 @@ function ProgressBar({duration, position, seekPosition}) {
     const {pauseVideo, playVideo, checkVideoPlaying} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const progressWidth = useSharedValue(0);
-    const wasVideoPlayingOnCheck = useRef(false);
+    const wasVideoPlayingOnCheck = useSharedValue(false);
 
     const onCheckVideoPlaying = (isPlaying) => {
-        wasVideoPlayingOnCheck.current = isPlaying;
+        wasVideoPlayingOnCheck.value = isPlaying;
     };
 
     const progressBarInteraction = (event) => {
@@ -39,13 +39,13 @@ function ProgressBar({duration, position, seekPosition}) {
         .onBegin((event) => {
             runOnJS(checkVideoPlaying)(onCheckVideoPlaying);
             runOnJS(pauseVideo)();
-            progressBarInteraction(event);
+            runOnJS(progressBarInteraction)(event);
         })
         .onChange((event) => {
-            progressBarInteraction(event);
+            runOnJS(progressBarInteraction)(event);
         })
         .onFinalize(() => {
-            if (!wasVideoPlayingOnCheck.current) {
+            if (!wasVideoPlayingOnCheck.value) {
                 return;
             }
             runOnJS(playVideo)();
