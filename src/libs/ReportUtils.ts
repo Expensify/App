@@ -1946,7 +1946,8 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
-    const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
+    const payerOrApproverName =
+        isExpenseReport(report) && !hasNonReimbursableTransactions(report?.reportID ?? '') ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
@@ -2244,9 +2245,10 @@ function getReportPreviewMessage(
         }
     }
 
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
-    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+    const payerName = isExpenseReport(report) && !containsNonReimbursable ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
@@ -2257,13 +2259,15 @@ function getReportPreviewMessage(
         });
     }
 
+    let linkedTransaction;
     if (!isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
-
-        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-            return Localize.translateLocal('iou.receiptScanning');
-        }
+        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
     }
+
+    if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+        return Localize.translateLocal('iou.receiptScanning');
+    }
+
     const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
@@ -2290,14 +2294,17 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-
     const lastActorID = reportAction?.actorAccountID;
+    let amount = originalMessage?.amount;
+    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
+
+    if (!isEmptyObject(linkedTransaction)) {
+        amount = TransactionUtils.getAmount(linkedTransaction, isExpenseReport(report));
+        currency = TransactionUtils.getCurrency(linkedTransaction);
+    }
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
-    if (originalMessage?.amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amount = originalMessage?.amount;
-        const currency = originalMessage?.currency ?? report.currency ?? '';
+    if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
         const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
@@ -4582,6 +4589,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         (getVisibleMemberIDs(report).includes(currentUserAccountID ?? 0) || getParticipantsIDs(report).includes(currentUserAccountID ?? 0))
     );
 }
+
 /**
  * Checks if report action has error when smart scanning
  */
