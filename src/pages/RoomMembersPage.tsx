@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -23,11 +25,12 @@ import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
+type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
 
 function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();
@@ -74,20 +77,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         setRemoveMembersConfirmModalVisible(false);
     };
 
-    /**
-     * Add user from the selectedMembers list
-     *
-     * @param {String} login
-     */
     const addUser = useCallback((accountID: number) => {
         setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
     }, []);
 
-    /**
-     * Remove user from the selectedEmployees list
-     *
-     * @param {String} login
-     */
     const removeUser = useCallback((accountID: number) => {
         setSelectedMembers((prevSelected) => prevSelected.filter((selected) => selected !== accountID));
     }, []);
@@ -134,7 +127,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         setRemoveMembersConfirmModalVisible(true);
     };
 
-    const getMemberOptions = () => {
+    const getMemberOptions = (): User[] => {
         let result: User[] = [];
 
         report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
