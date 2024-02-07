@@ -22,7 +22,6 @@ type OriginalMessageActionName =
     | 'TASKEDITED'
     | 'TASKREOPENED'
     | 'ACTIONABLEMENTIONWHISPER'
-    | 'MARKEDREIMBURSED'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -146,6 +145,11 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
+    originalMessage?: unknown;
+};
+
+type OriginalMessageMarkedReimbursed = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
     originalMessage?: unknown;
 };
 
@@ -279,7 +283,8 @@ type OriginalMessage =
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
-    | OriginalMessageMoved;
+    | OriginalMessageMoved
+    | OriginalMessageMarkedReimbursed;
 
 export default OriginalMessage;
 export type {
