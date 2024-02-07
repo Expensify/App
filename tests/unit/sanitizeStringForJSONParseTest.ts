@@ -4,7 +4,7 @@ import sanitizeStringForJSONParse from '../../.github/libs/sanitizeStringForJSON
 const badInputs = [null, undefined, 42, true];
 
 // Invalid JSON Data should be able to get parsed and the parsed result should match the input text.
-const invalidJSONData = [
+const invalidJSONData: string[][] = [
     ['Hello \t world!', 'Hello \t world!'],
     ['Hello \n world!', 'Hello \n world!'],
     ['Hello \n\tworld!', 'Hello \n\tworld!'],
@@ -21,7 +21,7 @@ const invalidJSONData = [
 ];
 
 // Valid JSON Data should be able to get parsed and the input text should be unmodified.
-const validJSONData = [
+const validJSONData: string[][] = [
     ['', ''],
     ['Hello world!', 'Hello world!'],
     ['Hello\\\\world!', 'Hello\\\\world!'],
@@ -30,6 +30,7 @@ const validJSONData = [
 describe('santizeStringForJSONParse', () => {
     describe.each(badInputs)('willDetectBadInputs', (input) => {
         test('sanitizeStringForJSONParse', () => {
+            // @ts-expect-error TODO: Remove this once sanitizeStringForJSONParse (https://github.com/Expensify/App/issues/25360) is migrated to TypeScript.
             expect(() => sanitizeStringForJSONParse(input)).toThrow();
         });
     });
@@ -37,6 +38,7 @@ describe('santizeStringForJSONParse', () => {
     describe.each(invalidJSONData)('canHandleInvalidJSON', (input, expectedOutput) => {
         test('sanitizeStringForJSONParse', () => {
             const badJSON = `{"key": "${input}"}`;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- it's supposed to throw an error
             expect(() => JSON.parse(badJSON)).toThrow();
             const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
             expect(goodJSON.key).toStrictEqual(expectedOutput);
