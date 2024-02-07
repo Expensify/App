@@ -21,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
@@ -124,19 +123,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         [transaction, report],
     );
 
-    const saveCreated = useCallback(
-        ({created: newCreated}) => {
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newCreated === TransactionUtils.getCreated(transaction)) {
-                Navigation.dismissModal();
-                return;
-            }
-            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated);
-            Navigation.dismissModal();
-        },
-        [transaction, report],
-    );
-
     const saveMerchant = useCallback(
         ({merchant: newMerchant}) => {
             const newTrimmedMerchant = newMerchant.trim();
@@ -177,15 +163,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         },
         [transactionCategory, transaction.transactionID, report.reportID],
     );
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
-        return (
-            <EditRequestCreatedPage
-                defaultCreated={TransactionUtils.getCreated(transaction)}
-                onSubmit={saveCreated}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
         return (

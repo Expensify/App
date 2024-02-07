@@ -1,3 +1,4 @@
+import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,20 +26,29 @@ const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: transactionPropTypes,
+
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    splitDraftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
+    splitDraftTransaction: {},
 };
 
 function IOURequestStepDate({
     route: {
-        params: {iouType, backTo, transactionID},
+        params: {action, iouType, reportID, backTo},
     },
     transaction,
+    splitDraftTransaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
+    const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getCreated(splitDraftTransaction) : TransactionUtils.getCreated(transaction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -48,7 +59,27 @@ function IOURequestStepDate({
      * @param {String} value.moneyRequestCreated
      */
     const updateDate = (value) => {
-        IOU.setMoneyRequestCreated_temporaryForRefactor(transactionID, value.moneyRequestCreated);
+        const newCreated = value.moneyRequestCreated.trim();
+
+        // Only update created if it has changed
+        if (newCreated === currentCreated) {
+            navigateBack();
+            return;
+        }
+
+        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+        if (isEditingSplitBill) {
+            IOU.setDraftSplitTransaction(transaction.transactionID, {created: newCreated});
+            navigateBack();
+            return;
+        }
+
+        IOU.setMoneyRequestCreated(transaction.transactionID, newCreated, action === CONST.IOU.ACTION.CREATE);
+
+        if (action === CONST.IOU.ACTION.EDIT) {
+            IOU.updateMoneyRequestDate(transaction.transactionID, reportID, newCreated);
+        }
+
         navigateBack();
     };
 
