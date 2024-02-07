@@ -142,7 +142,7 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                         shouldParseTitle
                         description={translate('task.description')}
                         title={report.description ?? ''}
-                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
