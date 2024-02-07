@@ -351,7 +351,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                         key="validateCode"
                         testID="validateCode"
                     />
-                    {hasError && !isEmptyObject(account) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
+                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
                             <Text style={[styles.mt2]}>
