@@ -91,7 +91,7 @@ const policyDefaultProps: WithPolicyOnyxProps = {
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
-export default function <TRef, TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
+export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
     function WithPolicy(props: TProps, ref: ForwardedRef<TRef>) {
         const routes = useNavigationState((state: NavigationState<Record<string, {policyID?: string}>>) => state.routes);
         const currentRoute = routes.at(-1);
