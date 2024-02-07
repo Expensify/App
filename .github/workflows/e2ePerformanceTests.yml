@@ -205,6 +205,13 @@ jobs:
           cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log || true
           cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/Test spec output.txt" || true
 
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          CHANNEL: "#expensify-margelo"
+
       - name: Unzip AWS Device Farm results
         if: ${{ always() }}
         run: unzip "Customer Artifacts.zip"
@@ -214,13 +221,26 @@ jobs:
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
+        id: checkIfRegressionDetected
         run: |
           if grep -q '🔴' ./output.md; then
+            # Create an output to the GH action that the test failed:
+            echo "::set-output name=performanceRegressionDetected::true"
+
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
             gh pr comment ${{ inputs.PR_NUMBER }} -F ./output.md
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
+            echo "::set-output name=performanceRegressionDetected::false"
             echo '✅ no performance regression detected'
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: If regression announce it in Slack
+        if: ${{ steps.checkIfRegressionDetected.outputs.performanceRegressionDetected == 'true' }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          CHANNEL: "#newdot-performance"
+          CUSTOM_TEXT: "🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow."
