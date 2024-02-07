@@ -619,8 +619,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         );
     }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, translate]);
 
+    // All fields that a request can have
     const classifiedFields = [
-        shouldShowSmartScanFields && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
@@ -645,7 +646,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             ),
-            isRelevant: true,
+            shouldShow: shouldShowSmartScanFields,
+            isSupplementary: false,
         },
         {
             item: (
@@ -669,9 +671,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     numberOfLinesTitle={2}
                 />
             ),
-            isRelevant: true,
+            shouldShow: true,
+            isSupplementary: false,
         },
-        isDistanceRequest && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
@@ -685,9 +688,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                 />
             ),
-            isRelevant: false,
+            shouldShow: isDistanceRequest,
+            isSupplementary: true,
         },
-        shouldShowMerchant && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.merchant')}
@@ -709,9 +713,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     error={merchantError ? translate('common.error.fieldRequired') : ''}
                 />
             ),
-            isRelevant: isMerchantRequired,
+            shouldShow: shouldShowMerchant,
+            isSupplementary: !isMerchantRequired,
         },
-        shouldShowDate && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.date')}
@@ -733,9 +738,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                 />
             ),
-            isRelevant: false,
+            shouldShow: shouldShowDate,
+            isSupplementary: true,
         },
-        shouldShowCategories && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.category')}
@@ -751,9 +757,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
-            isRelevant: isCategoryRequired,
+            shouldShow: shouldShowCategories,
+            isSupplementary: !isCategoryRequired,
         },
-        shouldShowTags && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.tag')}
@@ -772,9 +779,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     rightLabel={isTagRequired ? translate('common.required') : ''}
                 />
             ),
-            isRelevant: isTagRequired,
+            shouldShow: shouldShowTags,
+            isSupplementary: !isTagRequired,
         },
-        shouldShowTax && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={`${policyTaxRates.name}${taxRateTitle}`}
@@ -788,9 +796,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                 />
             ),
-            isRelevant: false,
+            shouldShow: shouldShowTax,
+            isSupplementary: true,
         },
-        shouldShowTax && {
+        {
             item: (
                 <MenuItemWithTopDescription
                     key={`${policyTaxRates.name}${formattedTaxAmount}`}
@@ -804,9 +813,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                 />
             ),
-            isRelevant: false,
+            shouldShow: shouldShowTax,
+            isSupplementary: true,
         },
-        shouldShowBillable && {
+        {
             item: (
                 <View
                     style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
@@ -820,17 +830,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     />
                 </View>
             ),
-            isRelevant: false,
+            shouldShow: shouldShowBillable,
+            isSupplementary: true,
         },
     ];
 
-    const relevantFields = _.map(
-        _.filter(classifiedFields, (classifiedField) => !classifiedField || classifiedField.isRelevant),
-        (relevantField) => relevantField.item,
+    const primaryFields = _.map(
+        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary),
+        (primaryField) => primaryField.item,
     );
 
     const supplementaryFields = _.map(
-        _.filter(classifiedFields, (classifiedField) => !classifiedField || !classifiedField.isRelevant),
+        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary),
         (supplementaryField) => supplementaryField.item,
     );
 
@@ -882,7 +893,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     />
                 )
             )}
-            {relevantFields}
+            {primaryFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
