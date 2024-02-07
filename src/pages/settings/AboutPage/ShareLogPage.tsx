@@ -14,7 +14,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Report} from '@src/types/onyx';
+import type {Beta, Log, Report} from '@src/types/onyx';
 
 type ShareLogOnyxProps = {
     /** Beta features list */
@@ -22,11 +22,14 @@ type ShareLogOnyxProps = {
 
     /** All reports shared with the user */
     reports: OnyxCollection<Report>;
+
+    /** Logs */
+    logs: OnyxEntry<Record<number, Log>>;
 };
 
 type ShareLogProps = ShareLogOnyxProps;
 
-function ShareLogPage({betas, reports}: ShareLogProps) {
+function ShareLogPage({betas, reports, logs}: ShareLogProps) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.GetOptions, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
         recentReports: [],
@@ -152,5 +155,8 @@ export default withOnyx<ShareLogProps, ShareLogOnyxProps>({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    logs: {
+        key: ONYXKEYS.LOGS,
     },
 })(ShareLogPage);
