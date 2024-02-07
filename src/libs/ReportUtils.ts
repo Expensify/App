@@ -2312,8 +2312,6 @@ function getReportPreviewMessage(
         return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
     }
 
-    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
 
