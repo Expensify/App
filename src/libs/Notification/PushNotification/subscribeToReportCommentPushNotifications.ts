@@ -1,15 +1,18 @@
 import Onyx from 'react-native-onyx';
+import * as OnyxUpdates from '@libs/actions/OnyxUpdates';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import * as Modal from '@userActions/Modal';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import backgroundRefresh from './backgroundRefresh';
 import PushNotification from './index';
 
 let lastVisitedPath: string | undefined;
@@ -27,10 +30,31 @@ Onyx.connect({
  * Setup reportComment push notification callbacks.
  */
 export default function subscribeToReportCommentPushNotifications() {
-    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData}) => {
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) => {
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
-        Onyx.update(onyxData ?? []);
-        backgroundRefresh();
+
+        if (onyxData && lastUpdateID && previousUpdateID) {
+            const updates: OnyxUpdatesFromServer = {
+                type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+                lastUpdateID,
+                previousUpdateID,
+                updates: [
+                    {
+                        eventType: 'eventType',
+                        data: onyxData,
+                    },
+                ],
+            };
+
+            if (!OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateID)) {
+                OnyxUpdates.apply(updates);
+                return;
+            }
+
+            // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
+            SequentialQueue.pause();
+            OnyxUpdates.saveUpdateInformation(updates);
+        }
     });
 
     // Open correct report when push notification is clicked
