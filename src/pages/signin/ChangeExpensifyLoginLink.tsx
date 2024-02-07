@@ -26,7 +26,7 @@ function ChangeExpensifyLoginLink({credentials, onPress}: ChangeExpensifyLoginLi
 
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-            {!isEmptyObject(credentials?.login) && <Text style={styles.mr1}>{translate('loginForm.notYou', {user: formatPhoneNumber(credentials?.login)})}</Text>}
+            {!isEmptyObject(credentials?.login) && <Text style={styles.mr1}>{translate('loginForm.notYou', {user: credentials?.login ? formatPhoneNumber(credentials.login) : ''})}</Text>}
             <PressableWithFeedback
                 style={[styles.link]}
                 onPress={onPress}

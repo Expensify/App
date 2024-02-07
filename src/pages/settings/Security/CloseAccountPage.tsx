@@ -68,16 +68,16 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
 
     const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): Errors => {
         const requiredFields = ['phoneOrEmail'];
-        const userEmailOrPhone = formatPhoneNumber(session?.email);
+        const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (values.phoneOrEmail && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
+        if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
             errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
         }
         return errors;
     };
 
-    const userEmailOrPhone = formatPhoneNumber(session?.email);
+    const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
     return (
         <ScreenWrapper
@@ -119,7 +119,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
-                        inputMode={Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                        inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
                     />
                     <ConfirmModal
                         danger
