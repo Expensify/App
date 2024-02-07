@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -64,6 +65,9 @@ type ConfirmModalProps = {
 
     /** Whether to stack the buttons */
     shouldStackButtons?: boolean;
+
+    /** Image to display with content */
+    image?: IconAsset;
 };
 
 function ConfirmModal({
@@ -86,8 +90,10 @@ function ConfirmModal({
     shouldStackButtons = true,
     isVisible,
     onConfirm,
+    image,
 }: ConfirmModalProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const styles = useThemeStyles();
 
     return (
         <Modal
@@ -97,6 +103,7 @@ function ConfirmModal({
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            innerContainerStyle={image ? styles.pt0 : {}}
         >
             <ConfirmContent
                 title={title}
@@ -117,6 +124,7 @@ function ConfirmModal({
                 titleStyles={titleStyles}
                 promptStyles={promptStyles}
                 shouldStackButtons={shouldStackButtons}
+                image={image}
             />
         </Modal>
     );
