@@ -69,7 +69,7 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
         Policy.updateGeneralSettings(policy?.id ?? '', policy?.name ?? '', item.keyForList);
         Navigation.goBack();
     };
-
+    
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
