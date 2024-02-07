@@ -970,6 +970,48 @@ function createDistanceRequest(
 }
 
 /**
+ * We will update the total of money request report when we update a transaction if
+ *
+ * - change the currency from different currency to the currency of the iou report
+ * - change the currency from the currency of iou report to different currency
+ * - change the amount and the currency of the transaction is the currency of the report
+ */
+function getUpdatedMoneyRequestReport(
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    updatedTransaction: OnyxTypes.Transaction | null,
+    transaction: OnyxTypes.Transaction | null,
+    updatedReportAction: OnyxEntry<OnyxTypes.ReportAction>,
+): OnyxEntry<OnyxTypes.Report> {
+    if (!iouReport) {
+        return null;
+    }
+    let updatedMoneyRequestReport = {...iouReport};
+    let diff = 0;
+    const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+    const updatedCurrency = TransactionUtils.getCurrency(updatedTransaction);
+    const currentCurrency = TransactionUtils.getCurrency(transaction);
+
+    if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
+        // add the diff with the total if we change the currency from different currency to the currency of the iou report
+        diff = TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
+    } else if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
+        // subtract the diff with the total if we change the currency from the currency of iou report to different currency
+        diff = -TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
+    } else if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
+        // get the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
+        diff = TransactionUtils.getAmount(updatedTransaction, isExpenseReport) - TransactionUtils.getAmount(transaction, isExpenseReport);
+    }
+    if (isExpenseReport && typeof updatedMoneyRequestReport.total === 'number') {
+        // For expense report, the amount is negative so we should subtract total from diff
+        updatedMoneyRequestReport.total -= diff;
+    } else {
+        updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction?.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(updatedTransaction), false);
+    }
+    updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency);
+    return updatedMoneyRequestReport;
+}
+
+/**
  * @param transactionChanges
  * @param [transactionChanges.created] Present when updated the date field
  * @param onlyIncludeChangedFields
@@ -1050,28 +1092,7 @@ function getUpdateMoneyRequestParams(
         });
 
         // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-        // Should only update if the transaction matches the currency of the report, else we wait for the update
-        // from the server with the currency conversion
-        let updatedMoneyRequestReport = {...iouReport};
-        let diff = 0;
-        const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
-        const updatedCurrency = TransactionUtils.getCurrency(updatedTransaction);
-        const currentCurrency = TransactionUtils.getCurrency(transaction);
-        if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
-            diff = TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
-        } else if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
-            diff = -TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
-        } else if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
-            diff = TransactionUtils.getAmount(updatedTransaction, isExpenseReport) - TransactionUtils.getAmount(transaction, isExpenseReport);
-        }
-        if (isExpenseReport && typeof updatedMoneyRequestReport.total === 'number') {
-            updatedMoneyRequestReport.total += diff;
-        } else {
-            updatedMoneyRequestReport = iouReport
-                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(updatedTransaction), false)
-                : {};
-        }
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency);
+        const updatedMoneyRequestReport = getUpdatedMoneyRequestReport(iouReport, updatedTransaction, transaction, updatedReportAction as OnyxTypes.ReportAction);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
