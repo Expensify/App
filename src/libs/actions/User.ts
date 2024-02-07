@@ -24,6 +24,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -39,8 +40,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
-import {applyOnyxUpdatesReliably} from './OnyxUpdates';
-import * as PersonalDetails from './PersonalDetails';
+import * as OnyxUpdates from './OnyxUpdates';
 import * as Report from './Report';
 import * as Session from './Session';
 
@@ -503,7 +503,7 @@ function subscribeToUserEvents() {
             updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
-        applyOnyxUpdatesReliably(updates);
+        OnyxUpdates.applyOnyxUpdatesReliably(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
@@ -698,7 +698,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetails.createDisplayName(newDefaultContactMethod, myPersonalDetails),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
             },
         },
@@ -836,9 +836,31 @@ function clearDraftCustomStatus() {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
+function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                dismissedReferralBanners: {
+                    [type]: true,
+                },
+            },
+        },
+    ];
+    API.write(
+        WRITE_COMMANDS.DISMISS_REFERRAL_BANNER,
+        {type},
+        {
+            optimisticData,
+        },
+    );
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
+    dismissReferralBanner,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

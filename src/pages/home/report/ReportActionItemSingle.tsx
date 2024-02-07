@@ -243,6 +243,7 @@ function ReportActionItemSingle({
                                     delegateAccountID={action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
+                                    moderationDecision={action.message?.[0].moderationDecision?.decision}
                                 />
                             ))}
                         </PressableWithoutFeedback>
