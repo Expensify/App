@@ -4,7 +4,10 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
@@ -45,6 +48,7 @@ type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
 function EditReportFieldPage({route, policy, report, policyReportFields}: EditReportFieldPageProps) {
     const reportField = report?.reportFields?.[route.params.fieldID] ?? policyReportFields?.[route.params.fieldID];
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
+    const {translate} = useLocalize();
 
     if (!reportField || !report || isDisabled) {
         return (
@@ -75,7 +79,20 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
         Navigation.dismissModal(report?.reportID);
     };
 
+    const handleReportFieldDelete = () => {
+        ReportActions.deleteReportField(report.reportID, reportField);
+        Navigation.dismissModal(report?.reportID);
+    };
+
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
+
+    const menuItems: ThreeDotsMenuItem[] = [];
+
+    const isReportFieldDeletable = report.reportFields?.deletable;
+
+    if (isReportFieldDeletable) {
+        menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => handleReportFieldDelete()});
+    }
 
     if (reportField.type === 'text' || isReportFieldTitle) {
         return (
@@ -84,6 +101,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
                 fieldID={reportField.fieldID}
                 fieldValue={fieldValue}
                 isRequired={!reportField.deletable}
+                menuItems={menuItems}
                 onSubmit={handleReportFieldChange}
             />
         );
@@ -96,6 +114,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
                 fieldID={reportField.fieldID}
                 fieldValue={fieldValue}
                 isRequired={!reportField.deletable}
+                menuItems={menuItems}
                 onSubmit={handleReportFieldChange}
             />
         );
@@ -109,6 +128,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
                 fieldName={Str.UCFirst(reportField.name)}
                 fieldValue={fieldValue}
                 fieldOptions={reportField.values}
+                menuItems={menuItems}
                 onSubmit={handleReportFieldChange}
             />
         );

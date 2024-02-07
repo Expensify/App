@@ -4,6 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -26,11 +27,14 @@ type EditReportFieldTextPageProps = {
     /** Flag to indicate if the field can be left blank */
     isRequired: boolean;
 
+    /** Three dot menu item options */
+    menuItems?: ThreeDotsMenuItem[];
+
     /** Callback to fire when the Save button is pressed  */
     onSubmit: (form: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => void;
 };
 
-function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldID}: EditReportFieldTextPageProps) {
+function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldID, menuItems}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<AnimatedTextInputRef>(null);
@@ -55,7 +59,10 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             }}
             testID={EditReportFieldTextPage.displayName}
         >
-            <HeaderWithBackButton title={fieldName} />
+            <HeaderWithBackButton
+                title={fieldName}
+                threeDotsMenuItems={menuItems}
+            />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}

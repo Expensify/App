@@ -2,6 +2,7 @@ import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -27,6 +28,9 @@ type EditReportFieldDropdownPageComponentProps = {
     /** Options of the policy report field */
     fieldOptions: string[];
 
+    /** Three dot menu item options */
+    menuItems?: ThreeDotsMenuItem[];
+
     /** Callback to fire when the Save button is pressed  */
     onSubmit: (form: Record<string, string>) => void;
 };
@@ -37,7 +41,7 @@ type EditReportFieldDropdownPageOnyxProps = {
 
 type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
 
-function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
+function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions, recentlyUsedReportFields, menuItems}: EditReportFieldDropdownPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
     const {getSafeAreaMargins} = useStyleUtils();
@@ -80,7 +84,10 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
         >
             {({insets}) => (
                 <>
-                    <HeaderWithBackButton title={fieldName} />
+                    <HeaderWithBackButton
+                        title={fieldName}
+                        threeDotsMenuItems={menuItems}
+                    />
                     <OptionsSelector
                         // @ts-expect-error TODO: TS migration
                         contentContainerStyles={[{paddingBottom: getSafeAreaMargins(insets).marginBottom}]}

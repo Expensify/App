@@ -125,3 +125,4 @@ export type {default as CompleteEngagementModalParams} from './CompleteEngagemen
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
+export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
