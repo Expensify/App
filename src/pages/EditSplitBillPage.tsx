@@ -139,11 +139,10 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         return (
             <EditRequestTagPage
                 defaultTag={transactionTag}
-                policyID={report?.policyID ? report.policyID : ''}
+                policyID={report?.policyID ?? ''}
                 onSubmit={(transactionChanges) => {
                     setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
                 }}
-                tagName=""
             />
         );
     }
@@ -165,6 +164,7 @@ export default withOnyx<EditSplitBillProps, EditSplitBillOnyxProps>({
         key: ({route, reportActions}: Partial<EditSplitBillProps>) => {
             const reportAction = reportActions?.[`${route?.params.reportActionID.toString()}`];
             const transactionID = (reportAction as OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (reportAction as OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
+            console.log('editsplitbillpage render: ', reportAction, transactionID, route.params.reportID);
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
