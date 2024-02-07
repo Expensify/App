@@ -8,7 +8,9 @@ import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import participantPropTypes from '@components/participantPropTypes';
@@ -69,6 +71,8 @@ function ReportDetailsPage(props) {
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(props.report), [props.report]);
+    const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(props.report, policy), [props.report, policy]);
+    const shouldShowReportDescription = isChatRoom && (canEditReportDescription || !_.isEmpty(props.report.description));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
@@ -238,6 +242,19 @@ function ReportDetailsPage(props) {
                             )}
                         </View>
                     </View>
+                    {shouldShowReportDescription && (
+                        <OfflineWithFeedback pendingAction={props.report.pendingFields.description}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canEditReportDescription}
+                                interactive={canEditReportDescription}
+                                title={props.report.description}
+                                shouldRenderAsHTML
+                                shouldCheckActionAllowedOnPress={false}
+                                description={props.translate('reportDescriptionPage.roomDescription')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     {_.map(menuItems, (item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
