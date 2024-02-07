@@ -28,7 +28,6 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
 
     return (
         <AttachmentModal
-            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
             headerTitle={policyName}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
@@ -36,9 +35,10 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
             }}
             isWorkspaceAvatar
+            maybeIcon
             originalFileName={policy?.originalFileName ?? policyName}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
-            isLoading={(!report?.reportID || !policy?.id) && isLoadingApp}
+            isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
     );
 }

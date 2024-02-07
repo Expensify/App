@@ -1,6 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalBankAccount from './PersonalBankAccount';
 
-type FormValueType = string | boolean | Date;
+type FormValueType = string | boolean | Date | OnyxCommon.Errors;
 
 type BaseForm = {
     /** Controls the loading state of the form */
@@ -32,7 +33,7 @@ type DisplayNameForm = Form<{
 
 type NewRoomForm = Form<{
     roomName?: string;
-    welcomeMessage?: string;
+    reportDescription?: string;
     policyID?: string;
     writeCapability?: string;
     visibility?: string;
@@ -54,6 +55,38 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type PersonalBankAccountForm = Form<PersonalBankAccount>;
+
+type WorkspaceSettingsForm = Form<{
+    name: string;
+}>;
+
+type ReportFieldEditForm = Form<Record<string, string>>;
+
+type CloseAccountForm = Form<{
+    reasonForLeaving: string;
+    phoneOrEmail: string;
+}>;
+
+type RoomNameForm = Form<{
+    roomName: string;
+}>;
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
+export type {
+    AddDebitCardForm,
+    DateOfBirthForm,
+    PrivateNotesForm,
+    DisplayNameForm,
+    FormValueType,
+    NewRoomForm,
+    BaseForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    PersonalBankAccountForm,
+    WorkspaceSettingsForm,
+    ReportFieldEditForm,
+    CloseAccountForm,
+    RoomNameForm,
+};

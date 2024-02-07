@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
+import type {PolicyReportField} from './PolicyReportField';
 
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
 
@@ -87,6 +88,9 @@ type Report = {
     /** ID of the report */
     reportID: string;
 
+    /** ID of the report action */
+    reportActionID?: string;
+
     /** ID of the chat report */
     chatReportID?: string;
 
@@ -120,7 +124,6 @@ type Report = {
     lastVisibleActionLastModified?: string;
     displayName?: string;
     lastMessageHtml?: string;
-    welcomeMessage?: string;
     lastActorAccountID?: number;
     ownerAccountID?: number;
     ownerEmail?: string;
@@ -170,7 +173,7 @@ type Report = {
     selected?: boolean;
 
     /** If the report contains reportFields, save the field id and its value */
-    reportFields?: Record<string, string>;
+    reportFields?: Record<string, PolicyReportField>;
 };
 
 export default Report;

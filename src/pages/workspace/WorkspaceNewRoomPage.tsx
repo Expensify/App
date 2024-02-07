@@ -69,11 +69,13 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
     const workspaceOptions = useMemo(
         () =>
-            PolicyUtils.getActivePolicies(policies)?.map((policy) => ({
-                label: policy.name,
-                key: policy.id,
-                value: policy.id,
-            })) ?? [],
+            PolicyUtils.getActivePolicies(policies)
+                ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
+                .map((policy) => ({
+                    label: policy.name,
+                    key: policy.id,
+                    value: policy.id,
+                })) ?? [],
         [policies],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
@@ -96,7 +98,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      */
     const submit = (values: OnyxFormValuesFields<'newRoomForm'>) => {
         const participants = [session?.accountID ?? 0];
-        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage ?? '');
+        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '');
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
@@ -110,7 +112,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             '',
             '',
-            parsedWelcomeMessage,
+            parsedDescription,
         );
         setNewRoomReportID(policyReport.reportID);
         Report.addPolicyReport(policyReport);
@@ -156,7 +158,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      */
     const validate = useCallback(
         (values: OnyxFormValuesFields<'newRoomForm'>): OnyxCommon.Errors => {
-            const errors: OnyxCommon.Errors = {};
+            const errors: {policyID?: string; roomName?: string} = {};
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
@@ -251,6 +253,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline
+                            disablePressOnEnter={false}
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
@@ -266,12 +269,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             <View style={styles.mb5}>
                                 <InputWrapper
                                     InputComponent={TextInput}
-                                    inputID="welcomeMessage"
-                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    inputID="reportDescription"
+                                    label={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                    accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ROLE.PRESENTATION}
                                     autoGrowHeight
-                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />

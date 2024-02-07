@@ -38,6 +38,9 @@ type ContextMenuItemProps = {
 
     /** Whether the menu item is focused or not */
     isFocused?: boolean;
+
+    /** Whether the width should be limited */
+    shouldLimitWidth?: boolean;
 };
 
 type ContextMenuItemHandle = {
@@ -45,7 +48,7 @@ type ContextMenuItemHandle = {
 };
 
 function ContextMenuItem(
-    {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false}: ContextMenuItemProps,
+    {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false, shouldLimitWidth = true}: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
     const styles = useThemeStyles();
@@ -94,7 +97,7 @@ function ContextMenuItem(
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakWord}
-            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
+            style={shouldLimitWidth && StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}

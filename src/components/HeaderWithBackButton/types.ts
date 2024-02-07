@@ -61,6 +61,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should disable threedots button */
     shouldDisableThreeDotsButton?: boolean;
 
+    /** Whether we should set modal visibility when three dot menu opens */
+    shouldSetModalVisibility?: boolean;
+
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: ThreeDotsMenuItem[];
 
