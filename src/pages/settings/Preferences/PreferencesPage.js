@@ -57,11 +57,11 @@ function PreferencesPage(props) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            icon={Illustrations.Gears}
             testID={PreferencesPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('common.workspaces')}
+                title={translate('common.preferences')}
+                icon={Illustrations.Gears}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack()}
             />
