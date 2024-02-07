@@ -29,9 +29,6 @@ function appendCountryCode(phone: string): string {
  * Check email is public domain or not
  */
 function isEmailPublicDomain(email: string): boolean {
-    if (!email) {
-        return false;
-    }
     const emailDomain = Str.extractEmailDomain(email).toLowerCase();
     return (PUBLIC_DOMAINS as readonly string[]).includes(emailDomain);
 }
@@ -67,9 +64,6 @@ function getPhoneLogin(partnerUserID: string): string {
  */
 function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean {
     if (isEmailPublicDomain(email1) || isEmailPublicDomain(email2)) {
-        return false;
-    }
-    if (!email1 || !email2) {
         return false;
     }
     return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
