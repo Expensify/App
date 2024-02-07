@@ -2,11 +2,12 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
+import * as ReportUtils from '@libs/ReportUtils';
 import {getReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import type {HybridAppRoute, Route} from '@src/ROUTES';
+import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -85,6 +86,18 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
     }
 
     return index;
+}
+
+/**
+ * Function that generates dynamic urls from paths passed from OldDot
+ */
+function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
+    switch (url) {
+        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+        default:
+            return url;
+    }
 }
 
 /**
@@ -350,6 +363,7 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
+    parseHybridAppUrl,
     closeFullScreen,
     navigateWithSwitchPolicyID,
 };
