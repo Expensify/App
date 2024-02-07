@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,5 +142,17 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0): boolean {
     return lastUpdateIDAppliedToClient < previousUpdateID;
 }
 
+function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer) {
+    const previousUpdateID = Number(updates.previousUpdateID) || 0;
+    if (!doesClientNeedToBeUpdated(previousUpdateID)) {
+        apply(updates);
+        return;
+    }
+
+    // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
+    SequentialQueue.pause();
+    saveUpdateInformation(updates);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateInformation, doesClientNeedToBeUpdated, apply};
+export {saveUpdateInformation, doesClientNeedToBeUpdated, apply, applyOnyxUpdatesReliably};

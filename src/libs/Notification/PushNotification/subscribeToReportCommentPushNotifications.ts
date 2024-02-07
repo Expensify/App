@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import * as OnyxUpdates from '@libs/actions/OnyxUpdates';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
@@ -47,15 +46,7 @@ export default function subscribeToReportCommentPushNotifications() {
                     },
                 ],
             };
-
-            if (!OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateID)) {
-                OnyxUpdates.apply(updates);
-                return;
-            }
-
-            // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
-            SequentialQueue.pause();
-            OnyxUpdates.saveUpdateInformation(updates);
+            OnyxUpdates.applyOnyxUpdatesReliably(updates);
         } else {
             Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         }

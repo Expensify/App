@@ -39,7 +39,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
-import * as OnyxUpdates from './OnyxUpdates';
+import {applyOnyxUpdatesReliably} from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as Session from './Session';
@@ -503,14 +503,7 @@ function subscribeToUserEvents() {
             updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
-        if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
-            OnyxUpdates.apply(updates);
-            return;
-        }
-
-        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
-        SequentialQueue.pause();
-        OnyxUpdates.saveUpdateInformation(updates);
+        applyOnyxUpdatesReliably(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
