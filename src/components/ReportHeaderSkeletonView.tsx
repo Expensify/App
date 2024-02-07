@@ -24,12 +24,12 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
-        <View style={[styles.appContentHeader]}>
-            <View style={[styles.appContentHeaderTitle]}>
+        <View style={[styles.appContentHeader, isSmallScreenWidth && styles.pl2]}>
+            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
                 {isSmallScreenWidth && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
-                        style={[styles.LHNToggle]}
+                        style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
                     >
