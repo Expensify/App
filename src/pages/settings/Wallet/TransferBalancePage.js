@@ -219,6 +219,7 @@ function TransferBalancePage(props) {
                             title={selectedAccount.title}
                             description={selectedAccount.description}
                             shouldShowRightIcon
+                            iconStyles={selectedAccount.iconStyles}
                             iconWidth={selectedAccount.iconSize}
                             iconHeight={selectedAccount.iconSize}
                             icon={selectedAccount.icon}
