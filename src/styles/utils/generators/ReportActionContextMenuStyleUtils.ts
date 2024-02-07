@@ -12,6 +12,10 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
     styles.flexRow,
     getDefaultWrapperStyle(theme),
     {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 4,
+        height: 36,
         borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,
         borderColor: theme.border,

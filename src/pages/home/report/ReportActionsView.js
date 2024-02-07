@@ -88,8 +88,7 @@ function ReportActionsView(props) {
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
-    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
-
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions), [props.reportActions]);
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
 
@@ -348,14 +347,7 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    return (
-        oldProps.report.lastReadTime === newProps.report.lastReadTime &&
-        oldProps.report.reportID === newProps.report.reportID &&
-        oldProps.report.policyID === newProps.report.policyID &&
-        oldProps.report.lastVisibleActionCreated === newProps.report.lastVisibleActionCreated &&
-        oldProps.report.isOptimisticReport === newProps.report.isOptimisticReport &&
-        _.isEqual(oldProps.report.pendingFields, newProps.report.pendingFields)
-    );
+    return _.isEqual(oldProps.report, newProps.report);
 }
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);

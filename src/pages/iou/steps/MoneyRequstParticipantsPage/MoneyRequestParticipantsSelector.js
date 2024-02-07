@@ -8,16 +8,17 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import MoneyRequestReferralProgramCTA from '@pages/iou/MoneyRequestReferralProgramCTA';
 import reportPropTypes from '@pages/reportPropTypes';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -33,6 +34,9 @@ const propTypes = {
 
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
+
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
@@ -62,6 +66,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
     reports: {},
@@ -72,6 +77,7 @@ const defaultProps = {
 
 function MoneyRequestParticipantsSelector({
     betas,
+    dismissedReferralBanners,
     participants,
     reports,
     navigateToRequest,
@@ -85,8 +91,13 @@ function MoneyRequestParticipantsSelector({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
+    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
+    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(!dismissedReferralBanners[referralContentType]);
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+
+    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -123,8 +134,6 @@ function MoneyRequestParticipantsSelector({
         };
     }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
 
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -139,9 +148,10 @@ function MoneyRequestParticipantsSelector({
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
+            maxParticipantsReached,
+            indexOffset,
             personalDetails,
             true,
-            indexOffset,
         );
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
@@ -249,20 +259,14 @@ function MoneyRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
-
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
-        setSearchTerm(text);
-    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -279,14 +283,22 @@ function MoneyRequestParticipantsSelector({
         navigateToSplit();
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
-    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
+    const closeCallToActionBanner = useCallback(() => {
+        setShouldShowReferralCTA(false);
+        User.dismissReferralBanner(referralContentType);
+    }, [referralContentType]);
 
     const footerContent = useMemo(
         () => (
             <View>
-                <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                    <MoneyRequestReferralProgramCTA referralContentType={referralContentType} />
-                </View>
+                {shouldShowReferralCTA && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA
+                            referralContentType={referralContentType}
+                            onCloseButtonPress={closeCallToActionBanner}
+                        />
+                    </View>
+                )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
@@ -307,7 +319,7 @@ function MoneyRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate, closeCallToActionBanner],
     );
 
     const itemRightSideComponent = useCallback(
@@ -366,6 +378,10 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data.dismissedReferralBanners || {},
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

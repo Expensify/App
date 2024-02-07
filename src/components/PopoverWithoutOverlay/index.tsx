@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Modal from '@userActions/Modal';
+import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
 
 function PopoverWithoutOverlay(
@@ -52,7 +53,7 @@ function PopoverWithoutOverlay(
                 close: onClose,
                 anchorRef,
             });
-            removeOnClose = Modal.setCloseModal(() => onClose(anchorRef));
+            removeOnClose = Modal.setCloseModal(onClose);
         } else {
             onModalHide();
             close(anchorRef);
@@ -119,7 +120,7 @@ function PopoverWithoutOverlay(
     return (
         <View
             style={[modalStyle, {zIndex: 1}]}
-            ref={withoutOverlayRef}
+            ref={viewRef(withoutOverlayRef)}
         >
             <View
                 style={{

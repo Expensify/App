@@ -7,8 +7,8 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
 type DefaultMileageRate = {
-    rate: number;
-    currency: string;
+    rate?: number;
+    currency?: string;
     unit: Unit;
 };
 

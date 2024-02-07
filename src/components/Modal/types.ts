@@ -1,7 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import type CONST from '@src/CONST';
 
 type PopoverAnchorPosition = {
@@ -11,57 +10,59 @@ type PopoverAnchorPosition = {
     left?: number;
 };
 
-type BaseModalProps = WindowDimensionsProps &
-    Partial<ModalProps> & {
-        /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
-        fullscreen?: boolean;
+type BaseModalProps = Partial<ModalProps> & {
+    /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
+    fullscreen?: boolean;
 
-        /** Should we close modal on outside click */
-        shouldCloseOnOutsideClick?: boolean;
+    /** Should we close modal on outside click */
+    shouldCloseOnOutsideClick?: boolean;
 
-        /** Should we announce the Modal visibility changes? */
-        shouldSetModalVisibility?: boolean;
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility?: boolean;
 
-        /** Callback method fired when the user requests to close the modal */
-        onClose: (ref?: React.RefObject<HTMLElement>) => void;
+    /** Callback method fired when the user requests to close the modal */
+    onClose: () => void;
 
-        /** State that determines whether to display the modal or not */
-        isVisible: boolean;
+    /** State that determines whether to display the modal or not */
+    isVisible: boolean;
 
-        /** Callback method fired when the user requests to submit the modal content. */
-        onSubmit?: () => void;
+    /** Callback method fired when the user requests to submit the modal content. */
+    onSubmit?: () => void;
 
-        /** Callback method fired when the modal is hidden */
-        onModalHide?: () => void;
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 
-        /** Callback method fired when the modal is shown */
-        onModalShow?: () => void;
+    /** Callback method fired when the modal is shown */
+    onModalShow?: () => void;
 
-        /** Style of modal to display */
-        type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+    /** Style of modal to display */
+    type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 
-        /** The anchor position of a popover modal. Has no effect on other modal types. */
-        popoverAnchorPosition?: PopoverAnchorPosition;
+    /** The anchor position of a popover modal. Has no effect on other modal types. */
+    popoverAnchorPosition?: PopoverAnchorPosition;
 
-        outerStyle?: ViewStyle;
+    outerStyle?: ViewStyle;
 
-        /** Whether the modal should go under the system statusbar */
-        statusBarTranslucent?: boolean;
+    /** Whether the modal should go under the system statusbar */
+    statusBarTranslucent?: boolean;
 
-        /** Whether the modal should avoid the keyboard */
-        avoidKeyboard?: boolean;
+    /** Whether the modal should avoid the keyboard */
+    avoidKeyboard?: boolean;
 
-        /** Modal container styles  */
-        innerContainerStyle?: ViewStyle;
+    /** Modal container styles  */
+    innerContainerStyle?: ViewStyle;
 
-        /**
-         * Whether the modal should hide its content while animating. On iOS, set to true
-         * if `useNativeDriver` is also true, to avoid flashes in the UI.
-         *
-         * See: https://github.com/react-native-modal/react-native-modal/pull/116
-         * */
-        hideModalContentWhileAnimating?: boolean;
-    };
+    /**
+     * Whether the modal should hide its content while animating. On iOS, set to true
+     * if `useNativeDriver` is also true, to avoid flashes in the UI.
+     *
+     * See: https://github.com/react-native-modal/react-native-modal/pull/116
+     * */
+    hideModalContentWhileAnimating?: boolean;
+
+    /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+    shouldUseCustomBackdrop?: boolean;
+};
 
 export default BaseModalProps;
 export type {PopoverAnchorPosition};

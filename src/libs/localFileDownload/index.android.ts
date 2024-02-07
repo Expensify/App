@@ -7,7 +7,7 @@ import type LocalFileDownload from './types';
  * and textContent, so we're able to copy it to the Android public download dir.
  * After the file is copied, it is removed from the internal dir.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, successMessage) => {
     const newFileName = FileUtils.appendTimeToFileName(fileName);
     const dir = RNFetchBlob.fs.dirs.DocumentDir;
     const path = `${dir}/${newFileName}.txt`;
@@ -23,7 +23,7 @@ const localFileDownload: LocalFileDownload = (fileName, textContent) => {
             path,
         )
             .then(() => {
-                FileUtils.showSuccessAlert();
+                FileUtils.showSuccessAlert(successMessage);
             })
             .catch(() => {
                 FileUtils.showGeneralErrorAlert();

@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
@@ -95,7 +96,7 @@ function getAuthToken(): string | null {
 }
 
 function isSupportRequest(command: string): boolean {
-    return ['OpenApp', 'ReconnectApp', 'OpenReport'].includes(command);
+    return [READ_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT].some((cmd) => cmd === command);
 }
 
 function getSupportAuthToken(): string | null {

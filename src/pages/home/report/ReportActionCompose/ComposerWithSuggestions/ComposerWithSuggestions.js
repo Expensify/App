@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -68,7 +68,7 @@ function ComposerWithSuggestions({
     // Onyx
     modal,
     preferredSkinTone,
-    parentReportAction,
+    parentReportActions,
     numberOfLines,
     // HOCs
     isKeyboardShown,
@@ -77,6 +77,7 @@ function ComposerWithSuggestions({
     includeChronos,
     isEmptyChat,
     lastReportAction,
+    parentReportActionID,
     // Focus
     onFocus,
     onBlur,
@@ -115,18 +116,21 @@ function ComposerWithSuggestions({
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
+
+    const draftComment = getDraftComment(reportID) || '';
     const [value, setValue] = useState(() => {
-        const draft = getDraftComment(reportID) || '';
-        if (draft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(draft);
+        if (draftComment) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
-        return draft;
+        return draftComment;
     });
     const commentRef = useRef(value);
+    const lastTextRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
+    const parentReportAction = lodashGet(parentReportActions, [parentReportActionID]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
@@ -189,6 +193,47 @@ function ComposerWithSuggestions({
     );
 
     /**
+     * Find the newly added characters between the previous text and the new text based on the selection.
+     *
+     * @param {string} prevText - The previous text.
+     * @param {string} newText - The new text.
+     * @returns {object} An object containing information about the newly added characters.
+     * @property {number} startIndex - The start index of the newly added characters in the new text.
+     * @property {number} endIndex - The end index of the newly added characters in the new text.
+     * @property {string} diff - The newly added characters.
+     */
+    const findNewlyAddedChars = useCallback(
+        (prevText, newText) => {
+            let startIndex = -1;
+            let endIndex = -1;
+            let currentIndex = 0;
+
+            // Find the first character mismatch with newText
+            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
+                currentIndex++;
+            }
+
+            if (currentIndex < newText.length) {
+                startIndex = currentIndex;
+                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection.end);
+                // if text is getting pasted over find length of common suffix and subtract it from new text length
+                if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
+                    endIndex = newText.length - commonSuffixLength;
+                } else {
+                    endIndex = currentIndex + newText.length;
+                }
+            }
+
+            return {
+                startIndex,
+                endIndex,
+                diff: newText.substring(startIndex, endIndex),
+            };
+        },
+        [selection.start, selection.end],
+    );
+
+    /**
      * Update the value of the comment in Onyx
      *
      * @param {String} comment
@@ -197,7 +242,13 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
+            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
+            const {
+                text: newComment,
+                emojis,
+                cursorPosition,
+            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -262,6 +313,7 @@ function ComposerWithSuggestions({
         },
         [
             debouncedUpdateFrequentlyUsedEmojis,
+            findNewlyAddedChars,
             preferredLocale,
             preferredSkinTone,
             reportID,
@@ -316,17 +368,10 @@ function ComposerWithSuggestions({
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
      * @param {String} text
-     * @param {Boolean} shouldAddTrailSpace
      */
     const replaceSelectionWithText = useCallback(
-        (text, shouldAddTrailSpace = true) => {
-            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
-            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + text.length + selectionSpaceLength,
-                end: prevSelection.start + text.length + selectionSpaceLength,
-            }));
+        (text) => {
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
         },
         [selection, updateComment],
     );
@@ -351,7 +396,6 @@ function ComposerWithSuggestions({
             const valueLength = valueRef.current.length;
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !includeChronos) {
                 e.preventDefault();
-
                 if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
@@ -452,9 +496,8 @@ function ComposerWithSuggestions({
             }
 
             focus();
-            replaceSelectionWithText(e.key, false);
         },
-        [checkComposerVisibility, focus, replaceSelectionWithText],
+        [checkComposerVisibility, focus],
     );
 
     const blur = useCallback(() => {
@@ -521,6 +564,10 @@ function ComposerWithSuggestions({
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
+
+    useEffect(() => {
+        lastTextRef.current = value;
+    }, [value]);
 
     useEffect(() => {
         onValueChange(value);
@@ -643,5 +690,10 @@ export default compose(
         editFocused: {
             key: ONYXKEYS.INPUT_FOCUSED,
         },
+        parentReportActions: {
+            key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            canEvict: false,
+            initWithStoredValues: false,
+        },
     }),
-)(ComposerWithSuggestionsWithRef);
+)(memo(ComposerWithSuggestionsWithRef));

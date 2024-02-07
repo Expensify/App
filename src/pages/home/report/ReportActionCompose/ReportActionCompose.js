@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
@@ -23,7 +23,6 @@ import compose from '@libs/compose';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
@@ -115,6 +114,7 @@ function ReportActionCompose({
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -339,7 +339,6 @@ function ReportActionCompose({
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     const handleSendMessage = useCallback(() => {
         'worklet';
@@ -354,6 +353,13 @@ function ReportActionCompose({
         setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+
+    const emojiShiftVertical = useMemo(() => {
+        const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
+        const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
+        const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
+        return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
+    }, [styles]);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -415,10 +421,9 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        report={report}
                                         parentReportID={report.parentReportID}
+                                        parentReportActionID={report.parentReportActionID}
                                         includesChronos={ReportUtils.chatIncludesChronos(report)}
-                                        parentReportAction={parentReportAction}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
@@ -458,6 +463,7 @@ function ReportActionCompose({
                                 onModalHide={focus}
                                 onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                                 emojiPickerID={report.reportID}
+                                shiftVertical={emojiShiftVertical}
                             />
                         )}
                         <SendButton
@@ -498,4 +504,4 @@ export default compose(
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
-)(ReportActionCompose);
+)(memo(ReportActionCompose));

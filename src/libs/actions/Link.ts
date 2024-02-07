@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,7 +56,7 @@ function openOldDotLink(url: string) {
     // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
             .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
@@ -65,7 +66,7 @@ function openOldDotLink(url: string) {
 function getInternalNewExpensifyPath(href: string) {
     const attrPath = Url.getPathFromURL(href);
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => path === attrPath)
+        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
         ? attrPath
         : '';
 }

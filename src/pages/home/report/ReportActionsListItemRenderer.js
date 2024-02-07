@@ -75,6 +75,19 @@ function ReportActionsListItemRenderer({
             error: reportAction.error,
             created: reportAction.created,
             actorAccountID: reportAction.actorAccountID,
+            childVisibleActionCount: reportAction.childVisibleActionCount,
+            childOldestFourAccountIDs: reportAction.childOldestFourAccountIDs,
+            childType: reportAction.childType,
+            person: reportAction.person,
+            isOptimisticAction: reportAction.isOptimisticAction,
+            delegateAccountID: reportAction.delegateAccountID,
+            previousMessage: reportAction.previousMessage,
+            attachmentInfo: reportAction.attachmentInfo,
+            childStateNum: reportAction.childStateNum,
+            childStatusNum: reportAction.childStatusNum,
+            childReportName: reportAction.childReportName,
+            childManagerAccountID: reportAction.childManagerAccountID,
+            childMoneyRequestCount: reportAction.childMoneyRequestCount,
         }),
         [
             reportAction.actionName,
@@ -91,6 +104,19 @@ function ReportActionsListItemRenderer({
             reportAction.reportActionID,
             reportAction.whisperedToAccountIDs,
             reportAction.actorAccountID,
+            reportAction.childVisibleActionCount,
+            reportAction.childOldestFourAccountIDs,
+            reportAction.person,
+            reportAction.isOptimisticAction,
+            reportAction.childType,
+            reportAction.delegateAccountID,
+            reportAction.previousMessage,
+            reportAction.attachmentInfo,
+            reportAction.childStateNum,
+            reportAction.childStatusNum,
+            reportAction.childReportName,
+            reportAction.childManagerAccountID,
+            reportAction.childMoneyRequestCount,
         ],
     );
 
@@ -98,8 +124,6 @@ function ReportActionsListItemRenderer({
         <ReportActionItemParentAction
             shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
             reportID={report.reportID}
-            parentReportID={`${report.parentReportID}`}
-            shouldDisplayNewMarker={shouldDisplayNewMarker}
             index={index}
         />
     ) : (
