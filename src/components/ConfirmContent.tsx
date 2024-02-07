@@ -103,16 +103,18 @@ function ConfirmContent({
 
     return (
         <>
-            {typeof image === 'function' && (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
+            {!!image && (
+                <View style={[StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
                     <ImageSVG
                         contentFit="contain"
                         src={image}
                         height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
                         width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        style={styles.alignSelfCenter}
                     />
                 </View>
             )}
+
             <View style={[styles.m5, contentStyles]}>
                 <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
                     {typeof iconSource === 'function' && (
