@@ -1217,18 +1217,18 @@ function updateMoneyRequestTag(transactionID: string, transactionThreadReportID:
 }
 
 /** Updates the created tax amount of a money request */
-function updateMoneyRequestTaxAmount(transactionID: string, optimisticReportActionID: string, val: number) {
+function updateMoneyRequestTaxAmount(transactionID: string, optimisticReportActionID: string, taxAmount: number) {
     const transactionChanges = {
-        taxAmount: val,
+        taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, true);
     API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
 }
 
 /** Updates the created tax rate of a money request */
-function updateMoneyRequestTaxRate(transactionID: string, optimisticReportActionID: string, val: string) {
+function updateMoneyRequestTaxRate(transactionID: string, optimisticReportActionID: string, taxCode: string) {
     const transactionChanges = {
-        taxCode: val,
+        taxCode,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, true);
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
