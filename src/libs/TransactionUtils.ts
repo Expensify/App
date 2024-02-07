@@ -6,15 +6,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TransactionChanges, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-
-type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
-
-type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -266,7 +262,7 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport?: boolean): number {
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         const amount = transaction?.modifiedAmount ?? 0;
@@ -393,8 +389,8 @@ function getHeaderTitleTranslationKey(transaction: Transaction): string {
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: Transaction): boolean {
-    if (!transaction.cardID) {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.cardID) {
         return false;
     }
     return isExpensifyCard(transaction.cardID);
@@ -403,7 +399,7 @@ function isExpensifyCardTransaction(transaction: Transaction): boolean {
 /**
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
-function isCardTransaction(transaction: Transaction): boolean {
+function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     const cardID = transaction?.cardID ?? 0;
     return isCorporateCard(cardID);
 }
@@ -411,8 +407,8 @@ function isCardTransaction(transaction: Transaction): boolean {
 /**
  * Check if the transaction status is set to Pending.
  */
-function isPending(transaction: Transaction): boolean {
-    if (!transaction.status) {
+function isPending(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.status) {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
