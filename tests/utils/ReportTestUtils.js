@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import createRandomReportAction from './collections/reportActions';
 
 const actionNames = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
 
@@ -52,13 +51,7 @@ const getMockedReportActionsMap = (length = 100) => {
     const mockReports = Array.from({length}, (__, i) => {
         const reportID = i + 1;
         const actionName = i === 0 ? 'CREATED' : actionNames[i % actionNames.length];
-        const reportAction = {
-            ...createRandomReportAction(reportID),
-            actionName,
-            originalMessage: {
-                linkedReportID: reportID.toString(),
-            },
-        };
+        const reportAction = getFakeReportAction(reportID, actionName);
 
         return {[reportID]: reportAction};
     });

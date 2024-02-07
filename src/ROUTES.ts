@@ -12,7 +12,13 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 }
 
 const ROUTES = {
-    HOME: '',
+    // If the user opens this route, we'll redirect them to the path saved in the last visited path or to the home page if the last visited path is empty.
+    ROOT: '',
+
+    // This route renders the list of reports.
+    HOME: 'home',
+
+    ALL_SETTINGS: 'all-settings',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -59,7 +65,7 @@ const ROUTES = {
         route: 'bank-account/:stepToOpen?',
         getRoute: (stepToOpen = '', policyID = '', backTo?: string) => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
-
+    WORKSPACE_SWITCHER: 'workspace-switcher',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -208,10 +214,6 @@ const ROUTES = {
         route: 'r/:reportID/settings/who-can-post',
         getRoute: (reportID: string) => `r/${reportID}/settings/who-can-post` as const,
     },
-    REPORT_WELCOME_MESSAGE: {
-        route: 'r/:reportID/welcomeMessage',
-        getRoute: (reportID: string) => `r/${reportID}/welcomeMessage` as const,
-    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
@@ -229,7 +231,7 @@ const ROUTES = {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title` as const,
     },
-    TASK_DESCRIPTION: {
+    REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
         getRoute: (reportID: string) => `r/${reportID}/description` as const,
     },
@@ -286,10 +288,6 @@ const ROUTES = {
     MONEY_REQUEST_CATEGORY: {
         route: ':iouType/new/category/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
-    },
-    MONEY_REQUEST_TAG: {
-        route: ':iouType/new/tag/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}` as const,
     },
     MONEY_REQUEST_MERCHANT: {
         route: ':iouType/new/merchant/:reportID?',
@@ -374,9 +372,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: 'create/:iouType/tag/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/tag/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/tag/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -439,9 +437,17 @@ const ROUTES = {
         route: 'workspace/:policyID/invite-message',
         getRoute: (policyID: string) => `workspace/${policyID}/invite-message` as const,
     },
-    WORKSPACE_SETTINGS: {
-        route: 'workspace/:policyID/settings',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings` as const,
+    WORKSPACE_OVERVIEW: {
+        route: 'workspace/:policyID/overview',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview` as const,
+    },
+    WORKSPACE_OVERVIEW_CURRENCY: {
+        route: 'workspace/:policyID/overview/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview/currency` as const,
+    },
+    WORKSPACE_OVERVIEW_NAME: {
+        route: 'workspace/:policyID/overview/name',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview/name` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
@@ -487,7 +493,16 @@ const ROUTES = {
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
 } as const;
 
-export {getUrlWithBackToParam};
+/**
+ * Proxy routes can be used to generate a correct url with dynamic values
+ *
+ * It will be used by HybridApp, that has no access to methods generating dynamic routes in NewDot
+ */
+const HYBRID_APP_ROUTES = {
+    MONEY_REQUEST_CREATE: '/request/new/scan',
+} as const;
+
+export {getUrlWithBackToParam, HYBRID_APP_ROUTES};
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -507,4 +522,6 @@ type RouteIsPlainString = IsEqual<AllRoutes, string>;
  */
 type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
-export type {Route};
+type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
+
+export type {Route, HybridAppRoute};
