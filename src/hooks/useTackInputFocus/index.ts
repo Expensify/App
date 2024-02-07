@@ -2,7 +2,7 @@ import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 
 /**
- * This hook to detect input or text area focus on browser, to avoid scroll on virtual viewport
+ * Detects input or text area focus on browsers, to avoid scrolling on virtual viewports
  */
 export default function useTackInputFocus(enable = false): boolean {
     const [, isInputFocusDebounced, setIsInputFocus] = useDebouncedState(false);

@@ -1,5 +1,5 @@
 /**
- * This hook to detect input or text area focus on browser, on native doesn't support DOM so default return false
+ * Detects input or text area focus on browser. Native doesn't support DOM so default to false
  */
 export default function useTackInputFocus(): boolean {
     return false;
