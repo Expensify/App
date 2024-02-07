@@ -1,7 +1,6 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, ScrollView, View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -461,12 +460,14 @@ function AddressSearch(
                         isRowScrollable={false}
                         listHoverColor={theme.border}
                         listUnderlayColor={theme.buttonPressedBG}
-                        onLayout={(event: LayoutChangeEvent) => {
+                        onLayout={(event) => {
                             // We use the height of the element to determine if we should hide the border of the listView dropdown
                             // to prevent a lingering border when there are no address suggestions.
                             setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
-                            resultRef.current = event.nativeEvent?.target.getScrollResponder().props.data;
-                            maxIndexRef.current = event.nativeEvent?.target.getScrollResponder().props.data.length;
+                            const {target} = event.nativeEvent as unknown as BaseSyntheticEvent;
+                            const data = target.getScrollResponder().props.data;
+                            resultRef.current = data;
+                            maxIndexRef.current = data.length;
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
