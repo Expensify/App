@@ -176,7 +176,7 @@ function WorkspaceMembersPage(props) {
         getWorkspaceMembers();
     }, [props.network.isOffline, prevIsOffline, getWorkspaceMembers]);
 
-    const goBackFromNotFoundPage = () => {
+    const goBack = () => {
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
     }
@@ -430,8 +430,8 @@ function WorkspaceMembersPage(props) {
             <FullPageNotFoundView
                 shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={notFoundGoBack}
-                onLinkPress={notFoundGoBack}
+                onBackButtonPress={goBack}
+                onLinkPress={goBack}
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
