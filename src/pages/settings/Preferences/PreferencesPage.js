@@ -4,6 +4,7 @@ import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -56,6 +57,8 @@ function PreferencesPage(props) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
+            icon={Illustrations.Gears}
+            testID={PreferencesPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('common.workspaces')}

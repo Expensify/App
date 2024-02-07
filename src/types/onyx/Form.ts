@@ -33,7 +33,7 @@ type DisplayNameForm = Form<{
 
 type NewRoomForm = Form<{
     roomName?: string;
-    welcomeMessage?: string;
+    reportDescription?: string;
     policyID?: string;
     writeCapability?: string;
     visibility?: string;
@@ -68,6 +68,10 @@ type CloseAccountForm = Form<{
     phoneOrEmail: string;
 }>;
 
+type RoomNameForm = Form<{
+    roomName: string;
+}>;
+
 export default Form;
 
 export type {
@@ -84,4 +88,5 @@ export type {
     WorkspaceSettingsForm,
     ReportFieldEditForm,
     CloseAccountForm,
+    RoomNameForm,
 };

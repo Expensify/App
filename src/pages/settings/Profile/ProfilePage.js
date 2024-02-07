@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
@@ -159,6 +160,7 @@ function ProfilePage(props) {
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 shouldShowBackButton={props.isSmallScreenWidth}
+                icon={Illustrations.Profile}
             />
             <ScrollView>
                 <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>

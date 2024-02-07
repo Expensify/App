@@ -540,6 +540,7 @@ function MoneyRequestConfirmationList(props) {
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
                 shouldShowPersonalBankAccountOption
+                enterKeyEventListenerPriority={1}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -548,6 +549,7 @@ function MoneyRequestConfirmationList(props) {
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                enterKeyEventListenerPriority={1}
             />
         );
 
@@ -663,11 +665,15 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    if (props.isEditingSplitBill) {
-                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(props.iouType, props.reportID));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            props.iouType,
+                            transaction.transactionID,
+                            props.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    );
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
