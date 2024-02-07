@@ -646,7 +646,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -662,7 +662,7 @@ function ReportActionItem({
                 );
             }
             return (
-                <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+                <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
@@ -760,7 +760,7 @@ function ReportActionItem({
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, report.reportID)}
-                                errors={ErrorUtils.getLatestErrorMessageField(action)}
+                                errors={ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough

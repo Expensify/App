@@ -141,3 +141,5 @@ export {
     addErrorMessage,
     getLatestErrorMessageField,
 };
+
+export type {OnyxDataWithErrors};
