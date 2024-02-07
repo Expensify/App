@@ -19,7 +19,7 @@ function checkCloudflareResult {
 
     if ! [[ "$RESULT_MESSAGE" == "true" ]]; then
         ERROR_MESSAGE=$(echo "$RESULTS" | jq .errors)
-        error "Error calling Cloudfalre API: $ERROR_MESSAGE"
+        error "Error calling Cloudflare API: $ERROR_MESSAGE"
         exit 1
     fi
 }
