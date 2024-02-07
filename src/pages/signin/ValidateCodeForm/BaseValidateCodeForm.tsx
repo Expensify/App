@@ -28,7 +28,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, Session} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ValidateCodeFormProps from './types';
 
@@ -65,7 +64,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [timeRemaining, setTimeRemaining] = useState(30);
     const [recoveryCode, setRecoveryCode] = useState('');
-    const [needToClearError, setNeedToClearError] = useState<Errors | boolean | null | undefined>(account?.errors);
+    const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
 
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
