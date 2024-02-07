@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ChangeExpensifyLoginLinkOnyxProps = {
     /** The credentials of the person logging in */
@@ -26,7 +25,7 @@ function ChangeExpensifyLoginLink({credentials, onPress}: ChangeExpensifyLoginLi
 
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-            {!isEmptyObject(credentials?.login) && <Text style={styles.mr1}>{translate('loginForm.notYou', {user: credentials?.login ? formatPhoneNumber(credentials.login) : ''})}</Text>}
+            {!!credentials?.login && <Text style={styles.mr1}>{translate('loginForm.notYou', {user: credentials?.login ? formatPhoneNumber(credentials.login) : ''})}</Text>}
             <PressableWithFeedback
                 style={[styles.link]}
                 onPress={onPress}
