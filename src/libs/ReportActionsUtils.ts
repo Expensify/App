@@ -493,6 +493,22 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null, s
 }
 
 /**
+ * This method returns a combined array of report actions from a parent report and child transaction thread report that
+ * are ready for display in the ReportActionView.
+ */
+function getCombinedReportActionsForDisplay(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
+
+    // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action
+    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter(action => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // Sort the combined list of parent report actions and transaction thread report actions
+    const sortedReportActions = getSortedReportActions([...reportActions, ...filteredTransactionThreadReportActions], true);
+
+    // Filter out IOU report actions because we don't want to show any preview actions for one transaction reports
+    return sortedReportActions.filter(action => action.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU);
+}
+
+/**
  * In some cases, there can be multiple closed report actions in a chat report.
  * This method returns the last closed report action so we can always show the correct archived report reason.
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
@@ -658,6 +674,24 @@ function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportAc
 
 function getAllReportActions(reportID: string): ReportActions {
     return allReportActions?.[reportID] ?? {};
+}
+
+/**
+ * Gets an array of IOU report actions
+ */
+function getIOUReportActions(reportID: string): ReportAction[] | null {
+    const reportActions = Object.values(getAllReportActions(reportID));
+    if (!reportActions.length) {
+        return null;
+    }
+
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
+
+    if (!iouRequestActions.length) {
+        return null;
+    }
+    return iouRequestActions;
 }
 
 /**
@@ -829,6 +863,7 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
+    getIOUReportActions,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,
@@ -843,6 +878,7 @@ export {
     getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getCombinedReportActionsForDisplay,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
     isCreatedTaskReportAction,
