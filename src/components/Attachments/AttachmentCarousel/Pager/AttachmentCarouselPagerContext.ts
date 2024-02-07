@@ -7,13 +7,10 @@ import type {SharedValue} from 'react-native-reanimated';
  * The pager items array is used within the pager to render and navigate between the images
  */
 type AttachmentCarouselPagerItems = {
-    /**
-     * The source of the image is used to identify each attachment/page in the pager
-     */
+    /** The source of the image is used to identify each attachment/page in the pager */
     source: string;
-    /**
-     * The index of the pager item determines the order of the images in the pager
-     */
+
+    /** The index of the pager item determines the order of the images in the pager */
     index: number;
     /**
      * The active state of the pager item determines whether the image is currently transformable with pinch, pan and tap gestures
