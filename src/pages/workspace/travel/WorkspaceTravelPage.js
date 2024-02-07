@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
@@ -20,18 +23,22 @@ const propTypes = {
 };
 
 function WorkspaceTravelPage(props) {
+    const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
             headerText={props.translate('workspace.common.travel')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
+            shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID) => (
-                <>
+                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
-                </>
+                </View>
             )}
         </WorkspacePageWithSections>
     );
