@@ -1,11 +1,8 @@
-import type {Freeze} from 'react-freeze';
+import type {Freeze as FreezeComponent} from 'react-freeze';
 
-type ReactFreezeMock = {
-    Freeze: typeof Freeze;
+const Freeze: typeof FreezeComponent = (props) => props.children as JSX.Element;
+
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    Freeze,
 };
-
-const reactFreezeMock: ReactFreezeMock = {
-    Freeze: (props) => props.children as JSX.Element,
-};
-
-export default reactFreezeMock;
