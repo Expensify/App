@@ -112,7 +112,7 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack();
 }
 
 /**
@@ -133,7 +133,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack();
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
@@ -170,7 +170,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack();
 }
 
 /**
