@@ -13,7 +13,7 @@ function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
-    const IMAGE_OFFSET_X = windowWidth / 2;
+    const IMAGE_OFFSET_X = 0;
 
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
