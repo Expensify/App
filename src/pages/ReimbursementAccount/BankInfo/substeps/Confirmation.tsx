@@ -40,9 +40,6 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     const handleModifyAccountNumbers = () => {
-        if (bankAccountID) {
-            return;
-        }
         onMove(BANK_INFO_STEP_INDEXES.ACCOUNT_NUMBERS);
     };
 
