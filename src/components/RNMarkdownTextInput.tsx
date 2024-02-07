@@ -11,7 +11,7 @@ const AnimatedTextInput = Animated.createAnimatedComponent(MarkdownTextInput);
 
 type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
 
-function RNTextInputWithRef(props: MarkdownTextInputProps, ref: ForwardedRef<AnimatedTextInputRef>) {
+function RNMarkdownTextInput(props: MarkdownTextInputProps, ref: ForwardedRef<AnimatedTextInputRef>) {
     const theme = useTheme();
 
     return (
@@ -31,7 +31,7 @@ function RNTextInputWithRef(props: MarkdownTextInputProps, ref: ForwardedRef<Ani
     );
 }
 
-RNTextInputWithRef.displayName = 'RNTextInputWithRef';
+RNMarkdownTextInput.displayName = 'RNTextInputWithRef';
 
-export default React.forwardRef(RNTextInputWithRef);
+export default React.forwardRef(RNMarkdownTextInput);
 export type {AnimatedTextInputRef};
