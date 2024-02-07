@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
