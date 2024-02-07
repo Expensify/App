@@ -29,6 +29,9 @@ function appendCountryCode(phone: string): string {
  * Check email is public domain or not
  */
 function isEmailPublicDomain(email: string): boolean {
+    if (!email) {
+        return false;
+    }
     const emailDomain = Str.extractEmailDomain(email).toLowerCase();
     return (PUBLIC_DOMAINS as readonly string[]).includes(emailDomain);
 }
