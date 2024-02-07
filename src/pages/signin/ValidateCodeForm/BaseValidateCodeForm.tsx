@@ -69,8 +69,8 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle | null>();
-    const input2FARef = useRef<MagicCodeInputHandle | null>();
+    const inputValidateCodeRef = useRef<MagicCodeInputHandle>();
+    const input2FARef = useRef<MagicCodeInputHandle>();
     const timerRef = useRef<NodeJS.Timeout>();
 
     const hasError = Boolean(account) && !isEmptyObject(account?.errors) && !needToClearError;
@@ -302,6 +302,9 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             shouldDelayFocus
                             autoComplete={autoComplete}
                             ref={(magicCodeInput) => {
+                                if (!magicCodeInput) {
+                                    return;
+                                }
                                 input2FARef.current = magicCodeInput;
                             }}
                             name="twoFactorAuthCode"
@@ -333,6 +336,9 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                     <MagicCodeInput
                         autoComplete={autoComplete}
                         ref={(magicCodeInput) => {
+                            if (!magicCodeInput) {
+                                return;
+                            }
                             inputValidateCodeRef.current = magicCodeInput;
                         }}
                         name="validateCode"
