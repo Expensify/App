@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -19,7 +20,6 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
