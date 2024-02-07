@@ -80,7 +80,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
             // temporary solution - better to hide a keyboard than see keyboard flickering
             // see https://github.com/software-mansion/react-native-screens/issues/2021 for more details
-            hideKeyboardOnSwipe: true,
+            keyboardHandlingEnabled: true,
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
