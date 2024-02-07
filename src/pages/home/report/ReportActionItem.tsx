@@ -646,7 +646,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -658,11 +658,11 @@ function ReportActionItem({
                             </ReportActionItemSingle>
                             <View style={styles.reportHorizontalRule} />
                         </View>
-                    </>
+                    </View>
                 );
             }
             return (
-                <>
+                <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
@@ -670,7 +670,7 @@ function ReportActionItem({
                             shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                         />
                     </View>
-                </>
+                </View>
             );
         }
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {

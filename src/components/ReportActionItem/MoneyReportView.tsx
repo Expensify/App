@@ -45,6 +45,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     const {isSmallScreenWidth} = useWindowDimensions();
     const {canUseReportFields} = usePermissions();
     const isSettled = ReportUtils.isSettled(report.reportID);
+    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
@@ -120,7 +121,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
                         )}
                         <Text
                             numberOfLines={1}
-                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter]}
+                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
                         >
                             {formattedTotalAmount}
                         </Text>

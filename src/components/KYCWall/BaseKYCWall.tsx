@@ -17,7 +17,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
-import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod, TransferMethod} from './types';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import viewRef from '@src/types/utils/viewRef';
+import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
@@ -145,7 +147,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: TransferMethod) => {
+        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -259,7 +261,7 @@ function KYCWall({
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />
-            {children(continueAction as (event?: GestureResponderEvent | KeyboardEvent, method?: TransferMethod) => void, anchorRef)}
+            {children(continueAction, viewRef(anchorRef))}
         </>
     );
 }
