@@ -7,9 +7,11 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {PrivateNotesNavigatorParamList, ReportDescriptionNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -27,7 +29,12 @@ type WithReportOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {route: RouteProp<Record<string, {reportID?: string} | undefined>, string>};
+type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
+    route: RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> | RouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>;
+
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
+};
 
 export default function (
     shouldRequireReportID = true,
@@ -36,9 +43,9 @@ export default function (
 ) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>> {
     return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-            const contentShown = React.useRef<boolean>(false);
+            const contentShown = React.useRef(false);
 
-            const isReportIdInRoute = !!props.route.params?.reportID?.length;
+            const isReportIdInRoute = props.route.params.reportID?.length;
 
             // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
             // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
@@ -48,9 +55,9 @@ export default function (
                     return;
                 }
 
-                Report.openReport(props.route.params?.reportID ?? '');
+                Report.openReport(props.route.params.reportID);
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [isReportIdInRoute, props.route.params?.reportID]);
+            }, [isReportIdInRoute, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
@@ -90,7 +97,7 @@ export default function (
 
         return withOnyx<TProps & RefAttributes<TRef>, WithReportOrNotFoundOnyxProps>({
             report: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`,
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
             },
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,

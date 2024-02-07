@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageOnyxProps = {
@@ -37,9 +37,12 @@ type PrivateNotesEditPageOnyxProps = {
     personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
-type PrivateNotesEditPageProps = PrivateNotesEditPageOnyxProps &
-    WithReportAndPrivateNotesOrNotFoundProps &
-    StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT>;
+type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
+    PrivateNotesEditPageOnyxProps &
+    StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
+        /** The report currently being looked at */
+        report: Report;
+    };
 
 function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotesEditPageProps) {
     const styles = useThemeStyles();
@@ -48,7 +51,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
-        () => ReportActions.getDraftPrivateNote(report?.reportID ?? '').trim() || parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params?.accountID ?? 0)]?.note ?? '').trim(),
+        () => ReportActions.getDraftPrivateNote(report.reportID).trim() || parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim(),
     );
 
     /**
@@ -58,9 +61,9 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
     const debouncedSavePrivateNote = useMemo(
         () =>
             lodashDebounce((text: string) => {
-                ReportActions.savePrivateNotesDraft(report?.reportID ?? '', text);
+                ReportActions.savePrivateNotesDraft(report.reportID, text);
             }, 1000),
-        [report?.reportID],
+        [report.reportID],
     );
 
     // To focus on the input field when the page loads
@@ -86,21 +89,21 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
     );
 
     const savePrivateNote = () => {
-        const originalNote = report?.privateNotes?.[Number(route.params?.accountID ?? 0)]?.note ?? '';
+        const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
             editedNote = ReportActions.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
-            ReportActions.updatePrivateNotes(report?.reportID ?? '', Number(route.params?.accountID ?? 0), editedNote);
+            ReportActions.updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 
         // We want to delete saved private note draft after saving the note
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-        if (!Object.values<Note>({...report?.privateNotes, [route.params?.accountID ?? 0]: {note: editedNote}}).some((item) => item.note)) {
+        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
             ReportUtils.navigateToDetailsPage(report);
         } else {
-            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report?.reportID ?? ''));
+            Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
         }
     };
 
@@ -112,7 +115,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report?.reportID ?? ''))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID))}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
@@ -125,16 +128,16 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
             >
                 <Text style={[styles.mb5]}>
                     {translate(
-                        Str.extractEmailDomain(personalDetailsList?.[route.params.accountID ?? 0]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN
+                        Str.extractEmailDomain(personalDetailsList?.[route.params.accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN
                             ? 'privateNotes.sharedNoteMessage'
                             : 'privateNotes.personalNoteMessage',
                     )}
                 </Text>
                 <OfflineWithFeedback
                     errors={{
-                        ...(report?.privateNotes?.[Number(route.params?.accountID ?? 0)]?.errors ?? ''),
+                        ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
                     }}
-                    onClose={() => ReportActions.clearPrivateNotesError(report?.reportID ?? '', Number(route.params?.accountID ?? 0))}
+                    onClose={() => ReportActions.clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
                     style={[styles.mb3]}
                 >
                     <InputWrapper

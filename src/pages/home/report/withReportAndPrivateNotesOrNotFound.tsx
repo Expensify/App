@@ -1,8 +1,7 @@
-import type {RouteProp} from '@react-navigation/native';
+import React, {useEffect, useMemo} from 'react';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef, useEffect, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -15,7 +14,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
+import type {WithReportOrNotFoundOnyxProps, WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
 type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
@@ -23,34 +22,35 @@ type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 };
 
-type WithReportAndPrivateNotesOrNotFoundProps = WithReportAndPrivateNotesOrNotFoundOnyxProps &
-    WithReportOrNotFoundProps & {route: RouteProp<Record<string, {accountID?: string} | undefined>, string>};
+type WithReportAndPrivateNotesOrNotFoundProps = WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundProps;
 
-export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(pageTitle: TranslationPaths) {
+export default function (pageTitle: TranslationPaths) {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    return (WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) => {
+    return <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(
+        WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+    ): React.ComponentType<Omit<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps> & RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>> => {
         // eslint-disable-next-line rulesdir/no-negated-variables
         function WithReportAndPrivateNotesOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const {translate} = useLocalize();
-            const network = useNetwork();
+            const {isOffline} = useNetwork();
             const {route, report, session} = props;
-            const accountID = route.params?.accountID;
-            const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
-            const prevIsOffline = usePrevious(network.isOffline);
-            const isReconnecting = prevIsOffline && !network.isOffline;
+            const accountID = 'accountID' in route.params && route.params.accountID;
+            const isPrivateNotesFetchTriggered = report.isLoadingPrivateNotes !== undefined;
+            const prevIsOffline = usePrevious(isOffline);
+            const isReconnecting = prevIsOffline && !isOffline;
             const isOtherUserNote = accountID && Number(session?.accountID) !== Number(accountID);
             const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !report.isLoadingPrivateNotes;
             const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)].note : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {
                 // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
-                if ((isPrivateNotesFetchTriggered && !isReconnecting) || network.isOffline) {
+                if ((isPrivateNotesFetchTriggered && !isReconnecting) || isOffline) {
                     return;
                 }
 
-                Report.getReportPrivateNote(report?.reportID);
+                Report.getReportPrivateNote(report.reportID);
                 // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
-            }, [report?.reportID, network.isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
+            }, [report.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
             const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished || (isPrivateNotesEmpty && (!!report.isLoadingPrivateNotes || !isOtherUserNote));
 
@@ -67,8 +67,8 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
                 }
 
                 // As notes being empty and not loading is a valid case, show not found view only in offline mode.
-                return network.isOffline;
-            }, [report, network.isOffline, accountID, session?.accountID, isPrivateNotesEmpty, shouldShowFullScreenLoadingIndicator, isReconnecting]);
+                return isOffline;
+            }, [report, isOffline, accountID, session?.accountID, isPrivateNotesEmpty, shouldShowFullScreenLoadingIndicator, isReconnecting]);
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <LoadingPage title={translate(pageTitle)} />;
@@ -89,21 +89,12 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
 
         WithReportAndPrivateNotesOrNotFound.displayName = `withReportAndPrivateNotesOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        // eslint-disable-next-line rulesdir/no-negated-variables
-        const WithReportAndPrivateNotesOrNotFoundWithRef = React.forwardRef((props: TProps, ref: ForwardedRef<TRef>) => (
-            <WithReportAndPrivateNotesOrNotFound
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                forwardedRef={ref}
-            />
-        ));
-
         return withReportOrNotFound()(
             withOnyx<TProps & RefAttributes<TRef>, WithReportAndPrivateNotesOrNotFoundOnyxProps>({
                 session: {
                     key: ONYXKEYS.SESSION,
                 },
-            })(forwardRef(WithReportAndPrivateNotesOrNotFoundWithRef)),
+            })(WithReportAndPrivateNotesOrNotFound),
         );
     };
 }

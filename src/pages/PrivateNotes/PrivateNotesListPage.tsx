@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,23 +10,23 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 
 type PrivateNotesListPageOnyxProps = {
     /** All of the personal details for everyone */
     personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
-type PrivateNotesListPageProps = PrivateNotesListPageOnyxProps &
-    WithReportAndPrivateNotesOrNotFoundProps &
-    StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>;
+type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps &
+    PrivateNotesListPageOnyxProps & {
+        /** The report currently being looked at */
+        report: Report;
+    };
 
 type NoteListItem = {
     title: string;
@@ -65,12 +64,12 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
      * Returns a list of private notes on the given chat report
      */
     const privateNotes = useMemo(() => {
-        const privateNoteBrickRoadIndicator = (accountID: number) => (report?.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
-        return Object.keys(report?.privateNotes ?? {}).map((accountID: string) => {
-            const privateNote = report?.privateNotes?.[Number(accountID)];
+        const privateNoteBrickRoadIndicator = (accountID: number) => (report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
+        return Object.keys(report.privateNotes ?? {}).map((accountID: string) => {
+            const privateNote = report.privateNotes?.[Number(accountID)];
             return {
                 title: Number(session?.accountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report?.reportID ?? '', accountID)),
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),
                 note: privateNote?.note ?? '',
                 disabled: Number(session?.accountID) !== Number(accountID),
