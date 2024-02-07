@@ -69,6 +69,9 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
     if (isEmailPublicDomain(email1) || isEmailPublicDomain(email2)) {
         return false;
     }
+    if (!email1 || !email2) {
+        return false;
+    }
     return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
 }
 
