@@ -1,7 +1,6 @@
 import {isBefore} from 'date-fns';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
@@ -25,6 +24,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -41,7 +41,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
-import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as Session from './Session';
 
@@ -598,7 +597,7 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     API.write(WRITE_COMMANDS.UPDATE_CHAT_PRIORITY_MODE, parameters, {optimisticData});
 
     if (!autoSwitchedToFocusMode) {
-        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+        Navigation.goBack();
     }
 }
 
@@ -706,7 +705,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetails.createDisplayName(newDefaultContactMethod, myPersonalDetails),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
             },
         },
@@ -782,7 +781,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 
     API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData});
 
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack();
 }
 
 /**
@@ -844,9 +843,31 @@ function clearDraftCustomStatus() {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
+function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                dismissedReferralBanners: {
+                    [type]: true,
+                },
+            },
+        },
+    ];
+    API.write(
+        WRITE_COMMANDS.DISMISS_REFERRAL_BANNER,
+        {type},
+        {
+            optimisticData,
+        },
+    );
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
+    dismissReferralBanner,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

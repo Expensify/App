@@ -1,12 +1,9 @@
 import type {StyleProp, ViewStyle} from 'react-native';
-import type ZoomRange from '@components/MultiGestureCanvas/types';
+import type {ZoomRange} from '@components/MultiGestureCanvas/types';
 
 type ImageViewProps = {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
-
-    /** Handles scale changed event in image zoom component. Used on native only */
-    onScaleChanged: (scale: number) => void;
 
     /** URL to full-sized image */
     url: string;
@@ -28,9 +25,6 @@ type ImageViewProps = {
 
     /** The index of the currently active carousel item */
     carouselActiveItemIndex?: number;
-
-    /** Function for handle on press */
-    onPress?: () => void;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;

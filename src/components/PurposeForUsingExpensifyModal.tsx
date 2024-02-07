@@ -1,6 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,6 +13,7 @@ import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
@@ -78,8 +81,12 @@ const menuIcons = {
     [CONST.INTRO_CHOICES.MANAGE_TEAM]: Expensicons.MoneyBag,
     [CONST.INTRO_CHOICES.CHAT_SPLIT]: Expensicons.Briefcase,
 };
+type PurposeForUsingExpensifyModalOnyxProps = {
+    isLoadingApp: OnyxEntry<boolean>;
+};
+type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
 
-function PurposeForUsingExpensifyModal() {
+function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -92,13 +99,13 @@ function PurposeForUsingExpensifyModal() {
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
         const currentRoute = routes[navigationState.index];
-        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRoute.name && currentRoute.name !== SCREENS.HOME) {
+        if (currentRoute && NAVIGATORS.BOTTOM_TAB_NAVIGATOR !== currentRoute.name) {
             return;
         }
 
         Welcome.show(routes, () => setIsModalOpen(true));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isLoadingApp]);
 
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
@@ -174,5 +181,8 @@ function PurposeForUsingExpensifyModal() {
 }
 
 PurposeForUsingExpensifyModal.displayName = 'PurposeForUsingExpensifyModal';
-
-export default PurposeForUsingExpensifyModal;
+export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+})(PurposeForUsingExpensifyModal);
