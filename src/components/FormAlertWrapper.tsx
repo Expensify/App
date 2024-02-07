@@ -28,7 +28,7 @@ type FormAlertWrapperProps = {
     isMessageHtml?: boolean;
 
     /** Error message to display above button */
-    message?: string;
+    message?: string | null;
 
     /** Props to detect online status */
     network: Network;

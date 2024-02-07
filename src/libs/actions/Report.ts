@@ -38,7 +38,7 @@ import type {
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
     UpdateReportWriteCapabilityParams,
-    UpdateWelcomeMessageParams,
+    UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
@@ -1614,34 +1614,41 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateWelcomeMessage(reportID: string, previousValue: string, newValue: string) {
+function updateDescription(reportID: string, previousValue: string, newValue: string) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
         return;
     }
 
-    const parsedWelcomeMessage = ReportUtils.getParsedComment(newValue);
+    const parsedDescription = ReportUtils.getParsedComment(newValue);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {welcomeMessage: parsedWelcomeMessage},
+            value: {description: parsedDescription, pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {welcomeMessage: previousValue},
+            value: {description: previousValue, pendingFields: {description: null}},
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {pendingFields: {description: null}},
         },
     ];
 
-    const parameters: UpdateWelcomeMessageParams = {reportID, welcomeMessage: parsedWelcomeMessage};
+    const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription};
 
-    API.write(WRITE_COMMANDS.UPDATE_WELCOME_MESSAGE, parameters, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+    API.write(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, parameters, {optimisticData, failureData, successData});
+    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 }
 
 function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapability) {
@@ -1774,7 +1781,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
         reportID: policyReport.reportID,
         createdReportActionID: createdReportAction.reportActionID,
         writeCapability: policyReport.writeCapability,
-        welcomeMessage: policyReport.welcomeMessage,
+        description: policyReport.description,
     };
 
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
@@ -2145,7 +2152,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                     navigateToConciergeChat(true);
                     return;
                 }
-                if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
                 }
@@ -2821,7 +2828,7 @@ export {
     addComment,
     addAttachment,
     reconnect,
-    updateWelcomeMessage,
+    updateDescription,
     updateWriteCapabilityAndNavigate,
     updateNotificationPreference,
     subscribeToReportTypingEvents,

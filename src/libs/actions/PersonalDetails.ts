@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -16,7 +15,6 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -26,11 +24,6 @@ import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
-
-type FirstAndLastName = {
-    firstName: string;
-    lastName: string;
-};
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -53,69 +46,6 @@ Onyx.connect({
     key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     callback: (val) => (privatePersonalDetails = val),
 });
-
-/**
- * Creates a new displayName for a user based on passed personal details or login.
- */
-function createDisplayName(login: string, personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
-    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
-    // so that the option looks cleaner in our UI.
-    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-
-    if (!personalDetails) {
-        return userLogin;
-    }
-
-    const firstName = personalDetails.firstName ?? '';
-    const lastName = personalDetails.lastName ?? '';
-    const fullName = `${firstName} ${lastName}`.trim();
-
-    // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
-    return fullName || userLogin;
-}
-
-/**
- * Gets the first and last name from the user's personal details.
- * If the login is the same as the displayName, then they don't exist,
- * so we return empty strings instead.
- */
-function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
-    // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (firstName || lastName) {
-        return {firstName: firstName ?? '', lastName: lastName ?? ''};
-    }
-    if (login && Str.removeSMSDomain(login) === displayName) {
-        return {firstName: '', lastName: ''};
-    }
-
-    if (displayName) {
-        const firstSpaceIndex = displayName.indexOf(' ');
-        const lastSpaceIndex = displayName.lastIndexOf(' ');
-        if (firstSpaceIndex === -1) {
-            return {firstName: displayName, lastName: ''};
-        }
-
-        return {
-            firstName: displayName.substring(0, firstSpaceIndex).trim(),
-            lastName: displayName.substring(lastSpaceIndex).trim(),
-        };
-    }
-
-    return {firstName: '', lastName: ''};
-}
-
-/**
- * Convert country names obtained from the backend to their respective ISO codes
- * This is for backward compatibility of stored data before E/App#15507
- */
-function getCountryISO(countryName: string): string {
-    if (!countryName || countryName.length === 2) {
-        return countryName;
-    }
-
-    return Object.entries(CONST.ALL_COUNTRIES).find(([, value]) => value === countryName)?.[0] ?? '';
-}
 
 function updatePronouns(pronouns: string) {
     if (currentUserAccountID) {
@@ -152,7 +82,7 @@ function updateDisplayName(firstName: string, lastName: string) {
                         [currentUserAccountID]: {
                             firstName,
                             lastName,
-                            displayName: createDisplayName(currentUserEmail ?? '', {
+                            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
                                 firstName,
                                 lastName,
                             }),
@@ -524,9 +454,6 @@ function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
 export {
     clearAvatarErrors,
     deleteAvatar,
-    extractFirstAndLastNameFromAvailableDetails,
-    getCountryISO,
-    createDisplayName,
     getPrivatePersonalDetails,
     openPersonalDetailsPage,
     openPublicProfilePage,
