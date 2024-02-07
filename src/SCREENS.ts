@@ -100,7 +100,7 @@ const SCREENS = {
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
         REPORT_SETTINGS: 'Report_Settings',
-        REPORT_WELCOME_MESSAGE: 'Report_WelcomeMessage',
+        REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
@@ -183,7 +183,6 @@ const SCREENS = {
 
     TASK: {
         TITLE: 'Task_Title',
-        DESCRIPTION: 'Task_Description',
         ASSIGNEE: 'Task_Assignee',
     },
 
@@ -242,7 +241,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
-    REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
+    REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
