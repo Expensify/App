@@ -810,7 +810,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={formattedTaxAmount}
-                            description={props.policyTaxRates.name}
+                            description={translate('iou.taxAmount')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>

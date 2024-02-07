@@ -865,7 +865,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={formattedTaxAmount}
-                            description={policyTaxRates.name}
+                            description={translate('iou.taxAmount')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
