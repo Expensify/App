@@ -74,7 +74,7 @@ function ReportActionItemImage({
     } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource)) {
         propsObj = {shouldUseThumbnailImage: true, source: thumbnailSource};
     } else {
-        propsObj = {isThumbnail, fileExtension, transactionID: transaction?.transactionID, source: thumbnail ?? image};
+        propsObj = {isThumbnail, fileExtension, transactionID: transaction?.transactionID, source: thumbnail ?? image ?? ''};
     }
 
     if (enablePreviewModal) {
