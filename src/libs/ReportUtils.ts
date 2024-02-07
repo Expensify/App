@@ -3738,6 +3738,11 @@ function shouldReportBeInOptionList({
         return false;
     }
 
+    // If this is a transaction thread associated with a report that only has one transaction, omit it
+    if (isOneTransactionThread(report)) {
+        return false;
+    }
+
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
