@@ -76,22 +76,24 @@ type Policy = {
     /** The custom units data for this policy */
     customUnits?: Record<string, CustomUnit>;
 
-    /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    areChatRoomsEnabled: boolean;
-
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
 
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
 
-    /** The scheduled submit frequency set up on the this policy */
+    /** The scheduled submit frequency set up on this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-    /** Whether the scheduled submit is enabled */
+    /** @deprecated Whether the scheduled submit is enabled */
     isHarvestingEnabled?: boolean;
 
     /** Whether the scheduled submit is enabled */
+    harvesting?: {
+        enabled: boolean;
+    };
+
+    /** Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
@@ -124,6 +126,9 @@ type Policy = {
     /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
     primaryLoginsInvited?: Record<string, string>;
 
+    /** Whether policy is updating */
+    isPolicyUpdating?: boolean;
+
     /** The approval mode set up on this policy */
     approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
@@ -147,6 +152,12 @@ type Policy = {
 
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
+
+    /** ReportID of the admins room for this workspace */
+    chatReportIDAdmins?: number;
+
+    /** ReportID of the announce room for this workspace */
+    chatReportIDAnnounce?: number;
 };
 
 export default Policy;

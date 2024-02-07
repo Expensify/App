@@ -4,7 +4,6 @@ import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -19,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import userPropTypes from '@pages/settings/userPropTypes';
 import * as App from '@userActions/App';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -66,8 +64,6 @@ function ProfilePage(props) {
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
-    const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
-    const accountID = lodashGet(currentUserDetails, 'accountID', '');
     const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
 
     const profileSettingsOptions = [
@@ -109,31 +105,14 @@ function ProfilePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={ProfilePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                shouldShowBackButton={props.isSmallScreenWidth}
             />
             <ScrollView>
-                <AvatarWithImagePicker
-                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                    source={UserUtils.getAvatar(avatarURL, accountID)}
-                    onImageSelected={PersonalDetails.updateAvatar}
-                    onImageRemoved={PersonalDetails.deleteAvatar}
-                    anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
-                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                    size={CONST.AVATAR_SIZE.LARGE}
-                    pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                    errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
-                    errorRowStyles={[styles.mt6]}
-                    onErrorClose={PersonalDetails.clearAvatarErrors}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                    originalFileName={currentUserDetails.originalFileName}
-                    headerTitle={props.translate('profilePage.profileAvatar')}
-                    style={[styles.mh5]}
-                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
-                />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (
                         <MenuItemWithTopDescription
