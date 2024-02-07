@@ -24,7 +24,7 @@ import type HeaderWithBackButtonProps from './types';
 function HeaderWithBackButton({
     iconFill,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
+    onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
