@@ -85,28 +85,28 @@ const ROUTES = {
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
     SETTINGS_WALLET_DOMAINCARD: {
-        route: '/settings/wallet/card/:domain',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}` as const,
+        route: 'settings/wallet/card/:domain',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}` as const,
     },
     SETTINGS_REPORT_FRAUD: {
-        route: '/settings/wallet/card/:domain/report-virtual-fraud',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-virtual-fraud` as const,
+        route: 'settings/wallet/card/:domain/report-virtual-fraud',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/report-virtual-fraud` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
-        route: '/settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/name` as const,
+        route: 'settings/wallet/card/:domain/get-physical/name',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/name` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
-        route: '/settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/phone` as const,
+        route: 'settings/wallet/card/:domain/get-physical/phone',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/phone` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
-        route: '/settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/address` as const,
+        route: 'settings/wallet/card/:domain/get-physical/address',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/address` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
-        route: '/settings/wallet/card/:domain/get-physical/confirm',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/get-physical/confirm` as const,
+        route: 'settings/wallet/card/:domain/get-physical/confirm',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/confirm` as const,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
@@ -118,8 +118,8 @@ const ROUTES = {
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
-        route: '/settings/wallet/card/:domain/report-card-lost-or-damaged',
-        getRoute: (domain: string) => `/settings/wallet/card/${domain}/report-card-lost-or-damaged` as const,
+        route: 'settings/wallet/card/:domain/report-card-lost-or-damaged',
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/report-card-lost-or-damaged` as const,
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:domain/activate',
