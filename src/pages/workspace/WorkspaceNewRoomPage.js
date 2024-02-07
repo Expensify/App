@@ -136,7 +136,7 @@ function WorkspaceNewRoomPage(props) {
      */
     const submit = (values) => {
         const participants = [props.session.accountID];
-        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription);
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
@@ -150,7 +150,7 @@ function WorkspaceNewRoomPage(props) {
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             '',
             '',
-            parsedWelcomeMessage,
+            parsedDescription,
         );
         setNewRoomReportID(policyReport.reportID);
         Report.addPolicyReport(policyReport);
@@ -292,6 +292,7 @@ function WorkspaceNewRoomPage(props) {
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline
+                            disablePressOnEnter={false}
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
@@ -306,12 +307,12 @@ function WorkspaceNewRoomPage(props) {
                             <View style={styles.mb5}>
                                 <InputWrapper
                                     InputComponent={TextInput}
-                                    inputID="welcomeMessage"
-                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    inputID="reportDescription"
+                                    label={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                    accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
-                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />
