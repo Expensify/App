@@ -169,6 +169,9 @@ const propTypes = {
 
     /** Icon should be displayed in its own color */
     displayInDefaultIconColor: PropTypes.bool,
+
+    /** Is this menu item in the settings pane */
+    isPaneMenu: PropTypes.bool,
 };
 
 export default propTypes;

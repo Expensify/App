@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -27,7 +28,7 @@ type ContextMenuItemProps = {
     isMini?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onPress: () => void;
+    onPress: (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => void;
 
     /** A description text to show under the title */
     description?: string;
@@ -37,6 +38,9 @@ type ContextMenuItemProps = {
 
     /** Whether the menu item is focused or not */
     isFocused?: boolean;
+
+    /** Whether the width should be limited */
+    shouldLimitWidth?: boolean;
 };
 
 type ContextMenuItemHandle = {
@@ -44,7 +48,7 @@ type ContextMenuItemHandle = {
 };
 
 function ContextMenuItem(
-    {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false}: ContextMenuItemProps,
+    {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false, shouldLimitWidth = true}: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
     const styles = useThemeStyles();
@@ -52,11 +56,11 @@ function ContextMenuItem(
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const triggerPressAndUpdateSuccess = () => {
+    const triggerPressAndUpdateSuccess = (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
         if (!isThrottledButtonActive) {
             return;
         }
-        onPress();
+        onPress(event);
 
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
@@ -93,7 +97,7 @@ function ContextMenuItem(
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakWord}
-            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
+            style={shouldLimitWidth && StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}
@@ -104,3 +108,4 @@ function ContextMenuItem(
 ContextMenuItem.displayName = 'ContextMenuItem';
 
 export default forwardRef(ContextMenuItem);
+export type {ContextMenuItemHandle};
