@@ -22,6 +22,7 @@ type OriginalMessageActionName =
     | 'TASKEDITED'
     | 'TASKREOPENED'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'MARKEDREIMBURSED'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
