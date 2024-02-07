@@ -28,6 +28,7 @@ type ConfirmationOnyxProps = {
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.PERSONAL_INFO;
 
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
@@ -49,7 +50,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     title={`${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(0);
+                        onMove(PERSONAL_INFO_STEP_INDEXES.LEGAL_NAME);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -57,7 +58,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     title={values[PERSONAL_INFO_STEP_KEYS.DOB]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(1);
+                        onMove(PERSONAL_INFO_STEP_INDEXES.DATE_OF_BIRTH);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -65,7 +66,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     title={values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(2);
+                        onMove(PERSONAL_INFO_STEP_INDEXES.SSN);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -75,7 +76,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     }`}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(3);
+                        onMove(PERSONAL_INFO_STEP_INDEXES.ADDRESS);
                     }}
                 />
 

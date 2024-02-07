@@ -32,7 +32,7 @@ const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
     const styles = useThemeStyles();
-    const containerWidthStyle: ViewStyle = {minWidth: stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? '60%' : '100%'};
+    const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
         throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);

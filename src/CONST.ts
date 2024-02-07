@@ -3261,6 +3261,34 @@ const CONST = {
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX: {
+        BANK_ACCOUNT: {
+            ACCOUNT_NUMBERS: 0,
+        },
+        PERSONAL_INFO: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            SSN: 2,
+            ADDRESS: 3,
+        },
+        BUSINESS_INFO: {
+            BUSINESS_NAME: 0,
+            TAX_ID_NUMBER: 1,
+            COMPANY_WEBSITE: 2,
+            PHONE_NUMBER: 3,
+            COMPANY_ADDRESS: 4,
+            COMPANY_TYPE: 5,
+            INCORPORATION_DATE: 6,
+            INCORPORATION_STATE: 7,
+        },
+        UBO: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            SSN: 2,
+            ADDRESS: 3,
+        },
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

@@ -26,6 +26,8 @@ type ConfirmationUBOOnyxProps = {
 };
 type ConfirmationUBOProps = SubStepProps & ConfirmationUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
 
+const UBO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.UBO;
+
 function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}: ConfirmationUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -45,7 +47,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                     title={`${values.firstName} ${values.lastName}`}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(0);
+                        onMove(UBO_STEP_INDEXES.LEGAL_NAME);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -53,7 +55,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                     title={values.dob}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(1);
+                        onMove(UBO_STEP_INDEXES.DATE_OF_BIRTH);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -61,7 +63,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                     title={values.ssnLast4}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(2);
+                        onMove(UBO_STEP_INDEXES.SSN);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -69,7 +71,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                     title={`${values.street}, ${values.city}, ${values.state} ${values.zipCode}`}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(3);
+                        onMove(UBO_STEP_INDEXES.ADDRESS);
                     }}
                 />
 

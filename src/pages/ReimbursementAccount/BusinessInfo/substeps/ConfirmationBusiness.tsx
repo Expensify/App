@@ -35,6 +35,7 @@ type ConfirmationBusinessProps = ConfirmationBusinessOnyxProps & SubStepProps;
 type States = keyof typeof COMMON_CONST.STATES;
 
 const BUSINESS_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
+const BUSINESS_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.BUSINESS_INFO;
 
 const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
@@ -66,7 +67,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(0);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.BUSINESS_NAME);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -74,7 +75,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(1);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.TAX_ID_NUMBER);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -84,7 +85,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     }`}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(4);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_ADDRESS);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -92,7 +93,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(3);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.PHONE_NUMBER);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -100,7 +101,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(2);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_WEBSITE);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -108,7 +109,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(5);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -116,7 +117,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE]}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(6);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_DATE);
                     }}
                 />
                 <MenuItemWithTopDescription
@@ -124,7 +125,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                     title={translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}
                     shouldShowRightIcon
                     onPress={() => {
-                        onMove(7);
+                        onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
                     }}
                 />
                 <FormProvider
