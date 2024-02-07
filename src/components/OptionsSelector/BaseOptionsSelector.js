@@ -41,9 +41,6 @@ const propTypes = {
     /** Whether referral CTA should be displayed */
     shouldShowReferralCTA: PropTypes.bool,
 
-    /** A method triggered when the user closes the call to action banner */
-    onCallToActionClosed: PropTypes.func,
-
     /** Referral content type */
     referralContentType: PropTypes.string,
 
@@ -95,7 +92,6 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
             disableEnterShortCut: false,
@@ -264,11 +260,6 @@ class BaseOptionsSelector extends Component {
         });
 
         this.props.onChangeText(value);
-    }
-
-    closeReferralModal() {
-        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
-        this.props.onCallToActionClosed(this.props.referralContentType);
     }
 
     handleFocusIn() {
@@ -653,11 +644,10 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
+                {this.props.shouldShowReferralCTA && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
                         <ReferralProgramCTA
                             referralContentType={this.props.referralContentType}
-                            onCloseButtonPress={this.closeReferralModal}
                         />
                     </View>
                 )}
