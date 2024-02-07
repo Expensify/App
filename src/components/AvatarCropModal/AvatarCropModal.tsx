@@ -20,7 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ImageCropView from './ImageCropView';
@@ -291,7 +291,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         const isSvg = imageType.includes('image/svg');
         const name = isSvg ? 'fileName.png' : imageName;
         const type = isSvg ? 'image/png' : imageType;
-
         cropOrRotateImage(imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
                 onClose?.();
