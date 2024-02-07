@@ -179,7 +179,7 @@ function WorkspaceMembersPage(props) {
     const goBack = () => {
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
-    }
+    };
 
     /**
      * Open the modal to invite a user
