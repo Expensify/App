@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
+import type {Attachment} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
@@ -7,19 +8,6 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-
-type File = {
-    name: string;
-};
-
-type Attachment = {
-    file: File;
-    hasBeenFlagged: boolean;
-    isAuthTokenRequired: boolean;
-    isReceipt: boolean;
-    reportActionID: string;
-    source: string;
-};
 
 type ReportAttachmentsProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_ATTACHMENTS>;
 
@@ -33,7 +21,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
+            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, String(attachment.source));
             Navigation.navigate(routeToNavigate);
         },
         [reportID],
@@ -41,7 +29,6 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
 
     return (
         <AttachmentModal
-            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
             allowDownload
             defaultOpen
             report={report}

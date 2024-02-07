@@ -101,7 +101,7 @@ function BankAccountPlaidStep(props) {
                 onBackButtonPress={onBackButtonPress}
             />
             <FormProvider
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled

@@ -132,9 +132,9 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
             return;
         }
         initializeAmount(amount);
-        // we want to re-initialize the state only when the selected tab changes
+        // we want to re-initialize the state only when the selected tab or amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab]);
+    }, [selectedTab, amount]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input

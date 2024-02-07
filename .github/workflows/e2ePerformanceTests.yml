@@ -46,12 +46,18 @@ jobs:
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
           git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - uses: ./.github/actions/composite/buildAndroidE2EAPK
+      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
           PACKAGE_SCRIPT_NAME: android-build-e2e
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
           MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+          EXPENSIFY_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
+          EXPENSIFY_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
+          EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
+          EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
+          EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+          PATH_ENV_FILE: tests/e2e/.env.e2e
 
   buildDelta:
     runs-on: ubuntu-latest-xl
@@ -108,12 +114,18 @@ jobs:
       - name: Checkout "delta ref"
         run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
-      - uses: ./.github/actions/composite/buildAndroidE2EAPK
+      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
           PACKAGE_SCRIPT_NAME: android-build-e2edelta
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
           MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+          EXPENSIFY_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
+          EXPENSIFY_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
+          EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
+          EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
+          EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+          PATH_ENV_FILE: tests/e2e/.env.e2edelta
 
   runTestsInAWS:
     runs-on: ubuntu-latest

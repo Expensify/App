@@ -1,7 +1,9 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevices} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -65,6 +67,41 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
 
     const {translate} = useLocalize();
+
+    const focusIndicatorOpacity = useSharedValue(0);
+    const focusIndicatorScale = useSharedValue(2);
+    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
+
+    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: focusIndicatorOpacity.value,
+        transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
+    }));
+
+    const focusCamera = (point) => {
+        if (!camera.current) {
+            return;
+        }
+
+        camera.current.focus(point).catch((ex) => {
+            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+                return;
+            }
+            Log.warn('Error focusing camera', ex);
+        });
+    };
+
+    const tapGesture = Gesture.Tap()
+        .enabled(device && device.supportsFocus)
+        .onStart((ev) => {
+            const point = {x: ev.x, y: ev.y};
+
+            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
+            focusIndicatorScale.value = 2;
+            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
+            focusIndicatorPosition.value = point;
+
+            runOnJS(focusCamera)(point);
+        });
 
     useEffect(() => {
         const refreshCameraPermissionStatus = () => {
@@ -217,6 +254,7 @@ function IOURequestStepScan({
 
     return (
         <StepScreenWrapper
+            includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={Boolean(backTo)}
@@ -255,16 +293,20 @@ function IOURequestStepScan({
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                 <View style={[styles.cameraView]}>
-                    <View style={styles.flex1}>
-                        <NavigationAwareCamera
-                            ref={camera}
-                            device={device}
-                            style={[styles.flex1]}
-                            zoom={device.neutralZoom}
-                            photo
-                            cameraTabIndex={1}
-                        />
-                    </View>
+                    <GestureDetector gesture={tapGesture}>
+                        <View style={styles.flex1}>
+                            <NavigationAwareCamera
+                                ref={camera}
+                                device={device}
+                                style={[styles.flex1]}
+                                zoom={device.neutralZoom}
+                                photo
+                                cameraTabIndex={1}
+                                orientation="portrait"
+                            />
+                            <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                        </View>
+                    </GestureDetector>
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

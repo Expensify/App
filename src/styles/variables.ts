@@ -12,12 +12,15 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 }
 
 export default {
-    contentHeaderHeight: getValueUsingPixelRatio(65, 100),
+    // do we need to change it?
+    bottomTabHeight: 80,
+    contentHeaderHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
     componentSizeMedium: 48,
     inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
+    spacing2: 8,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
@@ -30,7 +33,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
-    avatarSizeXLarge: 120,
+    avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
@@ -77,6 +80,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
+    iconBottomBar: 24,
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
@@ -182,6 +186,10 @@ export default {
     bankCardWidth: 40,
     bankCardHeight: 26,
     workspaceTypeIconWidth: 34,
+    sectionMargin: 16,
+    workspaceSectionMaxWidth: 600,
+    sectionIllustrationHeight: 240,
+    photoUploadPopoverWidth: 335,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -198,4 +206,8 @@ export default {
     cardPreviewWidth: 235,
     cardNameWidth: 156,
     holdMenuIconSize: 64,
+    updateAnimationW: 390,
+    updateAnimationH: 240,
+    updateTextViewContainerWidth: 310,
+    updateViewHeaderHeight: 70,
 } as const;

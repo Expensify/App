@@ -32,9 +32,23 @@ function LHNOptionsList({
     currentReportID = '',
     draftComments = {},
     transactionViolations = {},
+    onFirstItemRendered = () => {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
+
+    // When the first item renders we want to call the onFirstItemRendered callback.
+    // At this point in time we know that the list is actually displaying items.
+    const hasCalledOnLayout = React.useRef(false);
+    const onLayoutItem = useCallback(() => {
+        if (hasCalledOnLayout.current) {
+            return;
+        }
+        hasCalledOnLayout.current = true;
+
+        onFirstItemRendered();
+    }, [onFirstItemRendered]);
+
     /**
      * Function which renders a row in the list
      */
@@ -48,7 +62,7 @@ function LHNOptionsList({
             const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
-            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport?.ownerAccountID, itemParentReportAction?.actorAccountID];
+            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport?.ownerAccountID, itemParentReportAction?.actorAccountID].filter(Boolean) as number[];
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
 
             return (
@@ -58,7 +72,6 @@ function LHNOptionsList({
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
-                    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                     personalDetails={participantsPersonalDetails}
                     transaction={itemTransaction}
                     receiptTransactions={transactions}
@@ -69,6 +82,7 @@ function LHNOptionsList({
                     comment={itemComment}
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
+                    onLayout={onLayoutItem}
                 />
             );
         },
@@ -86,6 +100,7 @@ function LHNOptionsList({
             transactions,
             transactionViolations,
             canUseViolations,
+            onLayoutItem,
         ],
     );
 
