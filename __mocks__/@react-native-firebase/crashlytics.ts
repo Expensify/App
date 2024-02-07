@@ -1,10 +1,6 @@
 import type {FirebaseCrashlyticsTypes} from '@react-native-firebase/crashlytics';
 
-type CrashlyticsModule = {
-    log: FirebaseCrashlyticsTypes.Module['log'];
-    recordError: FirebaseCrashlyticsTypes.Module['recordError'];
-    setCrashlyticsCollectionEnabled: FirebaseCrashlyticsTypes.Module['setCrashlyticsCollectionEnabled'];
-};
+type CrashlyticsModule = Pick<FirebaseCrashlyticsTypes.Module, 'log' | 'recordError' | 'setCrashlyticsCollectionEnabled'>;
 
 type CrashlyticsMock = () => CrashlyticsModule;
 
