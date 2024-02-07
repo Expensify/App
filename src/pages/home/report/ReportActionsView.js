@@ -264,20 +264,6 @@ function ReportActionsView(props) {
         }
     };
 
-    /**
-     * Create a lightweight Report so as to keep the re-rendering as light as possible by
-     * passing in only the required props.
-     */
-    const report = useMemo(
-        () => ({
-            lastReadTime: props.report.lastReadTime,
-            reportID: props.report.reportID,
-            policyID: props.report.policyID,
-            lastVisibleActionCreated: props.report.lastVisibleActionCreated,
-        }),
-        [props.report.lastReadTime, props.report.reportID, props.report.policyID, props.report.lastVisibleActionCreated],
-    );
-
     // Comments have not loaded at all yet do nothing
     if (!_.size(props.reportActions)) {
         return null;
@@ -286,7 +272,7 @@ function ReportActionsView(props) {
     return (
         <>
             <ReportActionsList
-                report={report}
+                report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
