@@ -203,7 +203,7 @@ function ReportPreview({
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        const managerName = isPolicyExpenseChat && !hasNonReimbursableTransactions ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         let paymentVerb: TranslationPaths = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
@@ -290,12 +290,11 @@ function ReportPreview({
                             )}
                             {shouldShowSettlementButton && (
                                 <SettlementButton
-                                    // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                                     currency={iouReport?.currency}
                                     policyID={policyID}
                                     chatReportID={chatReportID}
                                     iouReport={iouReport}
-                                    onPress={(paymentType: PaymentMethodType) => chatReport && iouReport && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                    onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
                                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                     addBankAccountRoute={bankAccountRoute}
                                     shouldHidePaymentOptions={!shouldShowPayButton}
