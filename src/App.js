@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -31,7 +32,17 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as ActionSheetAwareScrollView from './components/ActionSheetAwareScrollView';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
+import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
+
+const propTypes = {
+    /** Initial url that may be passed as deeplink from Hybrid App */
+    url: PropTypes.string,
+};
+
+const defaultProps = {
+    url: undefined,
+};
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -48,46 +59,50 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-function App() {
+function App({url}) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (
-        <GestureHandlerRootView style={fill}>
-            <ComposeProviders
-                components={[
-                    OnyxProvider,
-                    ThemeProvider,
-                    ThemeStylesProvider,
-                    ThemeIllustrationsProvider,
-                    SafeAreaProvider,
-                    PortalProvider,
-                    SafeArea,
-                    LocaleContextProvider,
-                    HTMLEngineProvider,
-                    WindowDimensionsProvider,
-                    KeyboardStateProvider,
-                    PopoverContextProvider,
-                    CurrentReportIDContextProvider,
-                    ReportAttachmentsProvider,
-                    PickerStateProvider,
-                    EnvironmentProvider,
-                    CustomStatusBarAndBackgroundContextProvider,
-                    ActiveWorkspaceContextProvider,
-                    KeyboardHandlerProvider,
-                    ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
-                ]}
-            >
-                <CustomStatusBarAndBackground />
-                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <ColorSchemeWrapper>
-                        <Expensify />
-                    </ColorSchemeWrapper>
-                </ErrorBoundary>
-            </ComposeProviders>
-        </GestureHandlerRootView>
+        <InitialUrlContext.Provider value={url}>
+            <GestureHandlerRootView style={fill}>
+                <ComposeProviders
+                    components={[
+                        OnyxProvider,
+                        ThemeProvider,
+                        ThemeStylesProvider,
+                        ThemeIllustrationsProvider,
+                        SafeAreaProvider,
+                        PortalProvider,
+                        SafeArea,
+                        LocaleContextProvider,
+                        HTMLEngineProvider,
+                        WindowDimensionsProvider,
+                        KeyboardStateProvider,
+                        PopoverContextProvider,
+                        CurrentReportIDContextProvider,
+                        ReportAttachmentsProvider,
+                        PickerStateProvider,
+                        EnvironmentProvider,
+                        CustomStatusBarAndBackgroundContextProvider,
+                        ActiveWorkspaceContextProvider,
+                        KeyboardHandlerProvider,
+                        ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
+                    ]}
+                >
+                    <CustomStatusBarAndBackground />
+                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                        <ColorSchemeWrapper>
+                            <Expensify />
+                        </ColorSchemeWrapper>
+                    </ErrorBoundary>
+                </ComposeProviders>
+            </GestureHandlerRootView>
+        </InitialUrlContext.Provider>
     );
 }
 
+App.propTypes = propTypes;
+App.defaultProps = defaultProps;
 App.displayName = 'App';
 
 export default App;
