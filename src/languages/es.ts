@@ -581,6 +581,7 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
