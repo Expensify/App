@@ -86,6 +86,9 @@ type ScreenWrapperProps = {
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
     navigation?: StackNavigationProp<RootStackParamList>;
+
+    /** Whether to show offline indicator on wide screens */
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
 };
 
 function ScreenWrapper(
@@ -106,6 +109,7 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
+        shouldShowOfflineIndicatorInWideScreen = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -238,6 +242,12 @@ function ScreenWrapper(
                                             : children
                                     }
                                     {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
+                                        <OfflineIndicator
+                                            containerStyles={[]}
+                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                        />
+                                    )}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>

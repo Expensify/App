@@ -200,6 +200,12 @@ function ReportScreen({
             iouReportID: reportProp.iouReportID,
             isOwnPolicyExpenseChat: reportProp.isOwnPolicyExpenseChat,
             notificationPreference: reportProp.notificationPreference,
+            isPinned: reportProp.isPinned,
+            chatReportID: reportProp.chatReportID,
+            visibility: reportProp.visibility,
+            oldPolicyName: reportProp.oldPolicyName,
+            policyName: reportProp.policyName,
+            isOptimisticReport: reportProp.isOptimisticReport,
         }),
         [
             reportProp.lastReadTime,
@@ -230,6 +236,12 @@ function ReportScreen({
             reportProp.iouReportID,
             reportProp.isOwnPolicyExpenseChat,
             reportProp.notificationPreference,
+            reportProp.isPinned,
+            reportProp.chatReportID,
+            reportProp.visibility,
+            reportProp.oldPolicyName,
+            reportProp.policyName,
+            reportProp.isOptimisticReport,
         ],
     );
 
@@ -653,11 +665,8 @@ export default compose(
             _.isEqual(prevProps.policies, nextProps.policies) &&
             prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
-            prevProps.report.reportID === nextProps.report.reportID &&
-            prevProps.report.policyID === nextProps.report.policyID &&
-            prevProps.report.isOptimisticReport === nextProps.report.isOptimisticReport &&
-            prevProps.report.statusNum === nextProps.report.statusNum &&
-            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
-            prevProps.currentReportID === nextProps.currentReportID,
+            prevProps.currentReportID === nextProps.currentReportID &&
+            prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
+            _.isEqual(prevProps.report, nextProps.report),
     ),
 );

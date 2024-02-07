@@ -12,6 +12,8 @@
     <script src="https://kit.fontawesome.com/263e5e8608.js" crossorigin="anonymous"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.js"></script>
     <script defer src="/assets/js/main.js"></script>
+    <script defer src="/assets/js/platform-tabs.js"></script>
+    <script defer src="/assets/js/selector.js"></script>
     <script async src="https://cse.google.com/cse.js?cx=41f40d6e5c14246ff"></script>
     <!-- Google Tag Manager -->
     <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-TQBQW7CR');</script>
@@ -64,10 +66,13 @@
         <div id="article-content">
             <!-- Article title (only shown in article pages) -->
             {% if page.url contains "/articles/" %}
-            <h1 class="title">
-                {{ page.name | remove: '.md' | split: "-" |  join: " " }}
-            </h1>
-
+            <div class="title-platform-tabs">
+                <h1 class="title">
+                    {{ page.name | remove: '.md' | split: "-" |  join: " " }}
+                </h1>
+                <div id="platform-tabs">
+                </div>
+            </div>
             <div class="article-toc-content article">
                 {{ content }}
             </div>
