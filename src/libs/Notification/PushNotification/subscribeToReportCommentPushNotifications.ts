@@ -34,6 +34,8 @@ export default function subscribeToReportCommentPushNotifications() {
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
         if (onyxData && lastUpdateID && previousUpdateID) {
+            Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+
             const updates: OnyxUpdatesFromServer = {
                 type: CONST.ONYX_UPDATE_TYPES.PUSHER,
                 lastUpdateID,
@@ -54,6 +56,8 @@ export default function subscribeToReportCommentPushNotifications() {
             // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
             SequentialQueue.pause();
             OnyxUpdates.saveUpdateInformation(updates);
+        } else {
+            Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         }
     });
 
