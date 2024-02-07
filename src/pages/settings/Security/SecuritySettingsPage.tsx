@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -8,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -18,6 +20,7 @@ function SecuritySettingsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const menuItems = useMemo(() => {
         const baseMenuItems = [
@@ -47,9 +50,12 @@ function SecuritySettingsPage() {
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.security')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            shouldShowBackButton
+            shouldShowBackButton={isSmallScreenWidth}
             illustration={LottieAnimations.Safe}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
+            shouldShowOfflineIndicatorInWideScreen
+            icon={Illustrations.LockClosed}
+            testID={SecuritySettingsPage.displayName}
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>

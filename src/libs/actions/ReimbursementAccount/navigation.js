@@ -16,11 +16,11 @@ function goToWithdrawalAccountSetupStep(stepID, newAchData) {
 /**
  * Navigate to the correct bank account route based on the bank account state and type
  *
- * @param {string} policyId - The policy ID associated with the bank account.
+ * @param {string} policyID - The policy ID associated with the bank account.
  * @param {string} [backTo=''] - An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
-function navigateToBankAccountRoute(policyId, backTo) {
-    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyId, backTo));
+function navigateToBankAccountRoute(policyID, backTo) {
+    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID, backTo));
 }
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute};

@@ -6,7 +6,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 function NextStepEmailRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
 
-    return <Text style={[styles.breakWord, styles.textLabelSupporting, styles.textStrong]}>{'data' in tnode ? tnode.data : ''}</Text>;
+    return (
+        <Text
+            nativeID="email-with-break-opportunities"
+            style={[styles.breakWord, styles.textLabelSupporting, styles.textStrong]}
+        >
+            {'data' in tnode ? tnode.data : ''}
+        </Text>
+    );
 }
 
 NextStepEmailRenderer.displayName = 'NextStepEmailRenderer';
