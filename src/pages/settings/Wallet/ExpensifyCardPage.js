@@ -116,8 +116,6 @@ const defaultProps = {
 function ExpensifyCardPage({
     cardList,
     draftValues,
-    loginList,
-    privatePersonalDetails,
     route: {
         params: {domain},
     },
@@ -159,9 +157,7 @@ function ExpensifyCardPage({
     };
 
     const goToGetPhysicalCardFlow = () => {
-        const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(draftValues, privatePersonalDetails, loginList);
-
-        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues), loginList);
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues));
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);

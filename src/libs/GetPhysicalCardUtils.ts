@@ -1,5 +1,6 @@
 import ROUTES from '@src/ROUTES';
 import type {Login} from '@src/types/onyx';
+import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
@@ -32,7 +33,7 @@ type LoginList = Record<string, Login>;
  * @param loginList
  * @returns
  */
-function getCurrentRoute(domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
+function getCurrentRoute(domain: string, privatePersonalDetails: PrivatePersonalDetails) {
     const {
         address: {street, city, state, country, zip},
         legalFirstName,
@@ -43,7 +44,7 @@ function getCurrentRoute(domain: string, privatePersonalDetails: PrivatePersonal
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
     }
-    if (!phoneNumber && !UserUtils.getSecondaryPhoneLogin(loginList)) {
+    if (!phoneNumber || !LoginUtils.validateNumber(phoneNumber)) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain);
     }
     if (!(street && city && state && country && zip)) {
@@ -60,8 +61,8 @@ function getCurrentRoute(domain: string, privatePersonalDetails: PrivatePersonal
  * @param loginList
  * @returns
  */
-function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails, loginList));
+function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: PrivatePersonalDetails) {
+    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails));
 }
 
 /**
@@ -72,8 +73,8 @@ function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: Priva
  * @param loginList
  * @returns
  */
-function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    const expectedRoute = getCurrentRoute(domain, privatePersonalDetails, loginList);
+function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDetails: PrivatePersonalDetails) {
+    const expectedRoute = getCurrentRoute(domain, privatePersonalDetails);
 
     // If the user is on the current route or the current route is confirmation, then he's allowed to stay on the current step
     if ([currentRoute, ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain)].includes(expectedRoute)) {

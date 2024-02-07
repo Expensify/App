@@ -176,8 +176,7 @@ function BaseGetPhysicalCard({
         }
 
         // Redirect user to previous steps of the flow if he hasn't finished them yet
-        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
-        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, updatedPrivatePersonalDetails, loginList);
+        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues));
         isRouteSet.current = true;
     }, [cardList, currentRoute, domain, draftValues, loginList, privatePersonalDetails]);
 
