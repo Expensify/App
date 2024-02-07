@@ -118,7 +118,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
             return;
         }
 
-        IOU.navigateToNextPage(iou ?? {}, iouType, report ?? {});
+        IOU.navigateToNextPage(iou, iouType, report ?? undefined);
     };
 
     const content = (

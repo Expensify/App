@@ -49,9 +49,9 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFound & SplitBill
 
 function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {reportID} = report ?? {};
+    const {reportID} = report ?? {reportID: ''};
     const {translate} = useLocalize();
-    const reportAction = reportActions?.[route.params.reportActionID] as (ReportActionBase & OriginalMessageIOU) | undefined;
+    const reportAction = reportActions?.[route.params.reportActionID] as ReportActionBase & OriginalMessageIOU;
     const participantAccountIDs = reportAction?.originalMessage.participantAccountIDs ?? [];
 
     // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
@@ -59,21 +59,18 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     let participants;
     if (ReportUtils.isPolicyExpenseChat(report)) {
         participants = [
-            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true}, personalDetails),
+            OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true, reportID: ''}, personalDetails),
             OptionsListUtils.getPolicyExpenseReportOption({...report, selected: true}),
         ];
     } else {
-        // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-        participants = participantAccountIDs.map((accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true}, personalDetails));
+        participants = participantAccountIDs.map((accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
     }
     const payeePersonalDetails = personalDetails?.[reportAction?.actorAccountID ?? 0];
-    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
-    const isEditingSplitBill = session?.accountID === reportAction?.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction ?? ({} as Transaction));
+    const isEditingSplitBill = session?.accountID === reportAction?.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction ?? undefined);
 
     const {
         amount: splitAmount,
@@ -83,16 +80,17 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         created: splitCreated,
         category: splitCategory,
         tag: splitTag,
-    } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
+        billable: splitBillable,
+    } = ReportUtils.getTransactionDetails((isEditingSplitBill && draftTransaction) || transaction) ?? {};
 
     const onConfirm = useCallback(
-        () => IOU.completeSplitBill(Number(reportID), reportAction ?? {}, draftTransaction ?? {}, session?.accountID ?? -1, session?.email ?? ''),
+        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction ?? undefined, session?.accountID ?? 0, session?.email ?? ''),
         [reportID, reportAction, draftTransaction, session?.accountID, session?.email],
     );
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
+            <FullPageNotFoundView shouldShow={isEmptyObject(reportID) || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
@@ -114,6 +112,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
                             iouTag={splitTag}
+                            iouIsBillable={splitBillable}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
@@ -124,10 +123,10 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction?.reportActionID}
-                            transaction={isEditingSplitBill ? draftTransaction ?? transaction : transaction}
+                            transaction={isEditingSplitBill ? draftTransaction || transaction : transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
-                            policyID={ReportUtils.isPolicyExpenseChat(report) && report?.policyID}
+                            policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : null}
                         />
                     )}
                 </View>

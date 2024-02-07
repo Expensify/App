@@ -36,7 +36,7 @@ function NewDistanceRequestPage({iou, report, route}: NewDistanceRequestPageProp
             Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
             return;
         }
-        IOU.navigateToNextPage(iou ?? {}, iouType, report ?? {});
+        IOU.navigateToNextPage(iou, iouType, report ?? undefined);
     }, [iou, iouType, isEditingNewRequest, report]);
 
     return (
