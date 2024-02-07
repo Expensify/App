@@ -4523,7 +4523,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
         // property. If it does, it indicates that this is a 'Send money' action.
         const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
+        const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency) ?? '';
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
 
         switch (originalMessage.paymentType) {
