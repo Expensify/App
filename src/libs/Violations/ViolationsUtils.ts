@@ -1,5 +1,6 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,17 +18,13 @@ const ViolationsUtils = {
         policyTags: PolicyTags,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
-    ): {
-        onyxMethod: string;
-        key: string;
-        value: TransactionViolation[];
-    } {
+    ): OnyxUpdate {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
+            const isCategoryInPolicy = !!policyCategories[transaction.category ?? '']?.enabled;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && transaction.category && !isCategoryInPolicy) {
@@ -53,7 +50,7 @@ const ViolationsUtils = {
         if (policyRequiresTags) {
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
+            const isTagInPolicy = !!policyTags[transaction.tag ?? '']?.enabled;
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
             if (!hasTagOutOfPolicyViolation && transaction.tag && !isTagInPolicy) {
@@ -155,7 +152,7 @@ const ViolationsUtils = {
                     brokenBankConnection: violation.data?.brokenBankConnection ?? false,
                     isAdmin: violation.data?.isAdmin ?? false,
                     email: violation.data?.email,
-                    isTransactionOlderThan7Days: Boolean(violation.data?.isTransactionOlderThan7Days),
+                    isTransactionOlderThan7Days: !!violation.data?.isTransactionOlderThan7Days,
                     member: violation.data?.member,
                 });
             case 'smartscanFailed':

@@ -37,11 +37,13 @@ import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustra
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
+import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
 import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
@@ -50,6 +52,9 @@ import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration_
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
+import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
+import QrCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
@@ -118,4 +123,9 @@ export {
     CommentBubbles,
     TrashCan,
     TeleScope,
+    Profile,
+    PalmTree,
+    LockClosed,
+    Gears,
+    QrCode,
 };
