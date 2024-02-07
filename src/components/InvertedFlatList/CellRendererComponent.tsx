@@ -1,10 +1,10 @@
 import React from 'react';
-import type {StyleProp, ViewProps} from 'react-native';
+import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 
 type CellRendererComponentProps = ViewProps & {
     index: number;
-    style?: StyleProp<ViewProps>;
+    style?: StyleProp<ViewStyle>;
 };
 
 function CellRendererComponent(props: CellRendererComponentProps) {

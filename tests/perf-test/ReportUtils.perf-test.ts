@@ -12,20 +12,6 @@ import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
-beforeAll(() =>
-    Onyx.init({
-        keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-    }),
-);
-
-// Clear out Onyx after each test so that each test starts with a clean state
-afterEach(() => {
-    Onyx.clear();
-});
-
 const getMockedReports = (length = 500) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -46,199 +32,175 @@ const personalDetails = createCollection<PersonalDetails>(
     1000,
 );
 
-const mockedReportsMap = getMockedReports(5000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
-const mockedPoliciesMap = getMockedPolicies(5000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
+const mockedReportsMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
+const mockedPoliciesMap = getMockedPolicies(1000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
 const participantAccountIDs = Array.from({length: 1000}, (v, i) => i + 1);
 
-test('[ReportUtils] findLastAccessedReport on 2k reports and policies', async () => {
-    const ignoreDomainRooms = true;
-    const isFirstTimeNewExpensifyUser = true;
-    const reports = getMockedReports(2000);
-    const policies = getMockedPolicies(2000);
-    const openOnAdminRoom = true;
+describe('ReportUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom), {runs});
-});
-
-test('[ReportUtils] canDeleteReportAction on 5k reports and policies', async () => {
-    const reportID = '1';
-
-    const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT} as unknown as ReportAction;
-
-    await Onyx.multiSet({
-        ...mockedPoliciesMap,
-        ...mockedReportsMap,
+        Onyx.multiSet({
+            ...mockedPoliciesMap,
+            ...mockedReportsMap,
+        });
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.canDeleteReportAction(reportAction, reportID), {runs});
-});
-
-test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
-    const report = {...createRandomReport(1), participantAccountIDs};
-    const currentLoginAccountID = 1;
-
-    await Onyx.multiSet({
-        ...mockedReportsMap,
+    afterAll(() => {
+        Onyx.clear();
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getReportRecipientAccountIDs(report, currentLoginAccountID), {runs});
-});
+    test('[ReportUtils] findLastAccessedReport on 2k reports and policies', async () => {
+        const ignoreDomainRooms = true;
+        const isFirstTimeNewExpensifyUser = true;
+        const reports = getMockedReports(2000);
+        const policies = getMockedPolicies(2000);
+        const openOnAdminRoom = true;
 
-test('[ReportUtils] getIconsForParticipants on 1k participants', async () => {
-    const participants = Array.from({length: 1000}, (v, i) => i + 1);
-
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getIconsForParticipants(participants, personalDetails), {runs});
-});
-
-test('[ReportUtils] getIcons on 1k participants', async () => {
-    const report = {...createRandomReport(1), parentReportID: '1', parentReportActionID: '1', type: CONST.REPORT.TYPE.CHAT};
-    const policy = createRandomPolicy(1);
-    const defaultIcon = null;
-    const defaultName = '';
-    const defaultIconId = -1;
-
-    await Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getIcons(report, personalDetails, defaultIcon, defaultName, defaultIconId, policy), {runs});
-});
+    test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
+        const reportID = '1';
+        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT} as unknown as ReportAction;
 
-test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
-    const isMultipleParticipantReport = true;
-    const shouldFallbackToHidden = true;
-
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, shouldFallbackToHidden), {runs});
-});
-
-test('[ReportUtils] getReportPreviewMessage on 5k policies', async () => {
-    const reportAction = createRandomReportAction(1);
-    const report = createRandomReport(1);
-    const policy = createRandomPolicy(1);
-    const shouldConsiderReceiptBeingScanned = true;
-    const isPreviewMessageForParentChatReport = true;
-
-    await Onyx.multiSet({
-        ...mockedPoliciesMap,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.canDeleteReportAction(reportAction, reportID));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getReportPreviewMessage(report, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy), {runs});
-});
+    test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
+        const report = {...createRandomReport(1), participantAccountIDs};
+        const currentLoginAccountID = 1;
 
-test('[ReportUtils] getReportName on 1k participants', async () => {
-    const report = {...createRandomReport(1), chatType: undefined, participantAccountIDs};
-    const policy = createRandomPolicy(1);
-
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getReportName(report, policy), {runs});
-});
-
-test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
-    const report = {...createRandomReport(1), participantAccountIDs};
-    const accountID = 1;
-    await Onyx.multiSet({
-        ...mockedReportsMap,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getReportRecipientAccountIDs(report, currentLoginAccountID));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, accountID), {runs});
-});
+    test('[ReportUtils] getIconsForParticipants on 1k participants', async () => {
+        const participants = Array.from({length: 1000}, (v, i) => i + 1);
 
-test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
-    const report = {...createRandomReport(1), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
-    const currentReportId = '2';
-    const isInGSDMode = true;
-    const betas = [CONST.BETAS.DEFAULT_ROOMS];
-    const policies = getMockedPolicies();
-
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies), {runs});
-});
-
-test('[ReportUtils] getWorkspaceIcon on 5k policies', async () => {
-    const report = createRandomReport(1);
-    const policy = createRandomPolicy(1);
-
-    await Onyx.multiSet({
-        ...mockedPoliciesMap,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getIconsForParticipants(participants, personalDetails));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getWorkspaceIcon(report, policy), {runs});
-});
+    test('[ReportUtils] getIcons on 1k participants', async () => {
+        const report = {...createRandomReport(1), parentReportID: '1', parentReportActionID: '1', type: CONST.REPORT.TYPE.CHAT};
+        const policy = createRandomPolicy(1);
+        const defaultIcon = null;
+        const defaultName = '';
+        const defaultIconId = -1;
 
-test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {
-    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, isOwnPolicyExpenseChat: true};
-    const policy = createRandomPolicy(1);
-    const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
-
-    await Onyx.multiSet({
-        ...mockedPoliciesMap,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getIcons(report, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getMoneyRequestOptions(report, policy, reportParticipants), {runs});
-});
+    test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
+        const isMultipleParticipantReport = true;
+        const shouldFallbackToHidden = true;
 
-test('[ReportUtils] getWorkspaceAvatar on 5k policies', async () => {
-    const report = createRandomReport(1);
-
-    await Onyx.multiSet({
-        ...mockedPoliciesMap,
-    });
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getWorkspaceAvatar(report), {runs});
-});
-
-test('[ReportUtils] getWorkspaceChat on 5k policies', async () => {
-    const policyID = '1';
-    const accountsID = Array.from({length: 20}, (v, i) => i + 1);
-
-    await Onyx.multiSet({
-        ...mockedReportsMap,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, shouldFallbackToHidden));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getWorkspaceChats(policyID, accountsID), {runs});
-});
+    test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
+        const reportAction = createRandomReportAction(1);
+        const report = createRandomReport(1);
+        const policy = createRandomPolicy(1);
+        const shouldConsiderReceiptBeingScanned = true;
+        const isPreviewMessageForParentChatReport = true;
 
-test('[ReportUtils] getTransactionDetails on 5k reports', async () => {
-    const transaction = createRandomTransaction(1);
-
-    await Onyx.multiSet({
-        ...mockedReportsMap,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getReportPreviewMessage(report, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getTransactionDetails(transaction, 'yyyy-MM-dd'), {runs});
-});
+    test('[ReportUtils] getReportName on 1k participants', async () => {
+        const report = {...createRandomReport(1), chatType: undefined, participantAccountIDs};
+        const policy = createRandomPolicy(1);
 
-test('[ReportUtils] getIOUReportActionDisplayMessage on 5k policies', async () => {
-    const reportAction = {
-        ...createRandomReportAction(1),
-        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-        originalMessage: {
-            IOUReportID: '1',
-            IOUTransactionID: '1',
-            amount: 100,
-            participantAccountID: 1,
-            currency: CONST.CURRENCY.USD,
-            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        },
-    };
-
-    await Onyx.multiSet({
-        ...mockedPoliciesMap,
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getReportName(report, policy));
     });
 
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getIOUReportActionDisplayMessage(reportAction), {runs});
+    test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
+        const report = {...createRandomReport(1), participantAccountIDs};
+        const accountID = 1;
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, accountID));
+    });
+
+    test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
+        const report = {...createRandomReport(1), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
+        const currentReportId = '2';
+        const isInGSDMode = true;
+        const betas = [CONST.BETAS.DEFAULT_ROOMS];
+        const policies = getMockedPolicies();
+
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInGSDMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
+        );
+    });
+
+    test('[ReportUtils] getWorkspaceIcon on 1k policies', async () => {
+        const report = createRandomReport(1);
+        const policy = createRandomPolicy(1);
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getWorkspaceIcon(report, policy));
+    });
+
+    test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {
+        const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, isOwnPolicyExpenseChat: true};
+        const policy = createRandomPolicy(1);
+        const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getMoneyRequestOptions(report, policy, reportParticipants));
+    });
+
+    test('[ReportUtils] getWorkspaceAvatar on 1k policies', async () => {
+        const report = createRandomReport(1);
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getWorkspaceAvatar(report));
+    });
+
+    test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
+        const policyID = '1';
+        const accountsID = Array.from({length: 20}, (v, i) => i + 1);
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getWorkspaceChats(policyID, accountsID));
+    });
+
+    test('[ReportUtils] getTransactionDetails on 1k reports', async () => {
+        const transaction = createRandomTransaction(1);
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getTransactionDetails(transaction, 'yyyy-MM-dd'));
+    });
+
+    test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                IOUReportID: '1',
+                IOUTransactionID: '1',
+                amount: 100,
+                participantAccountID: 1,
+                currency: CONST.CURRENCY.USD,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            },
+        };
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getIOUReportActionDisplayMessage(reportAction));
+    });
 });

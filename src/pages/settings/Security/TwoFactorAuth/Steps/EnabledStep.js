@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
-import {ScrollView, Text, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -36,6 +36,7 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
@@ -588,6 +589,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
+                enterKeyEventListenerPriority={1}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -596,6 +598,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                enterKeyEventListenerPriority={1}
             />
         );
 
@@ -638,7 +641,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {(receiptImage || receiptThumbnail) && (
+            {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptThumbnail || receiptImage}}
@@ -647,6 +650,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
+            ) : (
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(policy) &&
+                !isDistanceRequest &&
+                iouType === CONST.IOU.TYPE.REQUEST && (
+                    <ReceiptEmptyState
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            )
+                        }
+                    />
+                )
             )}
             {shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
@@ -799,16 +815,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={iouTag}
+                            title={PolicyUtils.getCleanedTagName(iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
                             }
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
+                            rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTax && (

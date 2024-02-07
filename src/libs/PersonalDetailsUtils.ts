@@ -1,11 +1,18 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+
+type FirstAndLastName = {
+    firstName: string;
+    lastName: string;
+};
 
 let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
@@ -91,16 +98,15 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
  * @param accountIDs Array of user accountIDs
  * @returns Object with optimisticData, successData and failureData (object of personal details objects)
  */
-function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
-    const optimisticData: PersonalDetailsList = {};
-    const successData: PersonalDetailsList = {};
-    const failureData: PersonalDetailsList = {};
+function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+    const personalDetailsNew: PersonalDetailsList = {};
+    const personalDetailsCleanup: PersonalDetailsList = {};
 
     logins.forEach((login, index) => {
         const accountID = accountIDs[index];
 
         if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
-            optimisticData[accountID] = {
+            personalDetailsNew[accountID] = {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
@@ -111,32 +117,29 @@ function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
              * Cleanup the optimistic user to ensure it does not permanently persist.
              * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
              */
-            successData[accountID] = null;
+            personalDetailsCleanup[accountID] = null;
         }
     });
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: personalDetailsNew,
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: personalDetailsCleanup,
+        },
+    ];
+
     return {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: optimisticData,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: successData,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: failureData,
-            },
-        ],
+        optimisticData,
+        finallyData,
     };
 }
 
@@ -198,7 +201,66 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
     return undefined;
 }
 
+/**
+ * Creates a new displayName for a user based on passed personal details or login.
+ */
+function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
+    // so that the option looks cleaner in our UI.
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
+
+    if (!passedPersonalDetails) {
+        return userLogin;
+    }
+
+    const firstName = passedPersonalDetails.firstName ?? '';
+    const lastName = passedPersonalDetails.lastName ?? '';
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
+    return fullName || userLogin;
+}
+
+/**
+ * Gets the first and last name from the user's personal details.
+ * If the login is the same as the displayName, then they don't exist,
+ * so we return empty strings instead.
+ */
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
+    // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (firstName || lastName) {
+        return {firstName: firstName ?? '', lastName: lastName ?? ''};
+    }
+    if (login && Str.removeSMSDomain(login) === displayName) {
+        return {firstName: '', lastName: ''};
+    }
+
+    if (displayName) {
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
+    }
+
+    return {firstName: '', lastName: ''};
+}
+
+/**
+ * Whether personal details is empty
+ */
+function isPersonalDetailsEmpty() {
+    return !personalDetails.length;
+}
+
 export {
+    isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getAccountIDsByLogins,
@@ -208,4 +270,6 @@ export {
     getFormattedStreet,
     getStreetLines,
     getEffectiveDisplayName,
+    createDisplayName,
+    extractFirstAndLastNameFromAvailableDetails,
 };

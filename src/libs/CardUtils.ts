@@ -69,6 +69,22 @@ function getYearFromExpirationDateString(expirationDateString: string) {
 }
 
 /**
+ * @returns string with a month in MM/YYYY format
+ */
+function formatCardExpiration(expirationDateString: string) {
+    // already matches MM/YYYY format
+    const dateFormat = /^\d{2}\/\d{4}$/;
+    if (dateFormat.test(expirationDateString)) {
+        return expirationDateString;
+    }
+
+    const expirationMonth = getMonthFromExpirationDateString(expirationDateString);
+    const expirationYear = getYearFromExpirationDateString(expirationDateString);
+
+    return `${expirationMonth}/${expirationYear}`;
+}
+
+/**
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
@@ -120,6 +136,7 @@ export {
     isExpensifyCard,
     isCorporateCard,
     getDomainCards,
+    formatCardExpiration,
     getMonthFromExpirationDateString,
     getYearFromExpirationDateString,
     maskCard,

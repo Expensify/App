@@ -1,5 +1,5 @@
 import React from 'react';
-import {Keyboard, View} from 'react-native';
+import {Keyboard, StyleSheet, View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -30,7 +30,6 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
-    personalDetails = null,
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
@@ -39,6 +38,7 @@ function HeaderWithBackButton({
     shouldShowGetAssistanceButton = false,
     shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
+    shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
     stepCounter,
@@ -52,6 +52,7 @@ function HeaderWithBackButton({
     threeDotsMenuItems = [],
     shouldEnableDetailPageNavigation = false,
     children = null,
+    shouldOverlayDots = false,
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
@@ -69,7 +70,7 @@ function HeaderWithBackButton({
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
+            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2, shouldOverlay && StyleSheet.absoluteFillObject]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
@@ -102,7 +103,6 @@ function HeaderWithBackButton({
                     <AvatarWithDisplayName
                         report={report}
                         policy={policy}
-                        personalDetails={personalDetails}
                         shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />
                 ) : (
@@ -163,7 +163,8 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            shouldOverlay={shouldOverlay}
+                            shouldOverlay={shouldOverlayDots}
+                            shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}
                     {shouldShowCloseButton && (

@@ -143,6 +143,9 @@ type ReportActionBase = {
     /** Type of child report  */
     childType?: string;
 
+    /** The user's ID */
+    accountID?: number;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
@@ -152,7 +155,7 @@ type ReportActionBase = {
     childManagerAccountID?: number;
 
     /** The status of the child report */
-    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
@@ -175,10 +178,10 @@ type ReportActionBase = {
 
     /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
-    delegateAccountID?: string;
+    delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;
