@@ -7,21 +7,35 @@ import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
 
-type ReceiptImageProps = {
-    /** Transaction ID of the transaction the receipt belongs to. */
-    transactionID?: string;
+type ReceiptImageProps = (
+    | {
+          /** Transaction ID of the transaction the receipt belongs to */
+          transactionID: string;
 
-    /** Whether it is receipt preview thumbnail we are displaying. */
-    isThumbnail?: boolean;
+          /** Whether it is EReceipt */
+          isEReceipt: boolean;
 
+          /** Whether it is receipt preview thumbnail we are displaying */
+          isThumbnail?: boolean;
+
+          /** Url of the receipt image */
+          source?: string;
+      }
+    | {
+          transactionID: string;
+          isEReceipt?: boolean;
+          isThumbnail: boolean;
+          source?: string;
+      }
+    | {
+          transactionID?: string;
+          isEReceipt?: boolean;
+          isThumbnail?: boolean;
+          source: string;
+      }
+) & {
     /** Whether we should display the receipt with ThumbnailImage component */
     shouldUseThumbnailImage?: boolean;
-
-    /** Whether it is EReceipt */
-    isEReceipt?: boolean;
-
-    /** Url of the receipt image */
-    source?: string;
 
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
