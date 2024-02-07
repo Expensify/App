@@ -58,6 +58,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        isLoadingNewOptions = false,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -273,7 +274,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
     };
@@ -386,7 +387,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pb3]}>
+                            <View style={[styles.ph4, styles.pb3]}>
                                 <TextInput
                                     ref={(element) => {
                                         textInputRef.current = element as RNTextInput;
@@ -412,6 +413,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
+                                    isLoading={isLoadingNewOptions}
                                 />
                             </View>
                         )}
@@ -427,7 +429,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                                     <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
+                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         role="button"

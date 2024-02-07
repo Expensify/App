@@ -102,6 +102,7 @@ function SplitBillDetailsPage(props) {
         created: splitCreated,
         category: splitCategory,
         tag: splitTag,
+        billable: splitBillable,
     } = isEditingSplitBill && props.draftTransaction ? ReportUtils.getTransactionDetails(props.draftTransaction) : ReportUtils.getTransactionDetails(props.transaction);
 
     const onConfirm = useCallback(
@@ -133,6 +134,7 @@ function SplitBillDetailsPage(props) {
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
                             iouTag={splitTag}
+                            iouIsBillable={splitBillable}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
@@ -146,7 +148,7 @@ function SplitBillDetailsPage(props) {
                             transaction={isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
-                            policyID={ReportUtils.isPolicyExpenseChat(props.report) && props.report.policyID}
+                            policyID={ReportUtils.isPolicyExpenseChat(props.report) ? props.report.policyID : null}
                         />
                     )}
                 </View>
