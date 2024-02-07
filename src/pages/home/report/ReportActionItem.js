@@ -620,6 +620,7 @@ function ReportActionItem(props) {
                     <MoneyRequestView
                         report={props.report}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                        shouldShowAnimatedBackground={true}
                     />
                 </ShowContextMenuContext.Provider>
             );
