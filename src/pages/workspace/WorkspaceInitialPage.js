@@ -187,7 +187,7 @@ function WorkspaceInitialPage(props) {
                             text: translate('common.settings'),
                         },
                     ]}
-                    style={[styles.ph5, styles.pb5]}
+                    style={[styles.ph5, styles.mb5]}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                     <OfflineWithFeedback
