@@ -15,10 +15,7 @@ type UnitRate = {rate: number};
  * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
-    return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy =>
-            policy !== null && policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -107,7 +104,7 @@ function isExpensifyGuideTeam(email: string): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy>): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
 const isPolicyMember = (policyID: string, policies: Record<string, Policy>): boolean => Object.values(policies).some((policy) => policy?.id === policyID);
 
@@ -203,7 +200,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
+function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 

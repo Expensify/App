@@ -230,6 +230,9 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Whether to show the loading indicator for new options */
+    isLoadingNewOptions?: boolean;
 };
 
 type ItemLayout = {
