@@ -35,6 +35,7 @@ function ProcessMoneyRequestHoldPage() {
             title={translate('common.back')}
             footer={footerComponent}
             onBackButtonPress={() => Navigation.goBack()}
+            testID={ProcessMoneyRequestHoldPage.displayName}
         >
             <View style={[styles.mh5, styles.flex1]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
