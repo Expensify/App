@@ -22,9 +22,9 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import getSignInBgStyles from './signInPageStyles';
 import type {
     AllStyles,
     AvatarSize,
