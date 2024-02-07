@@ -80,7 +80,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.SETTINGS)}
                 shouldShowBackButton={isReport || isSmallScreenWidth}
-                icon={Illustrations.QrCode}
+                icon={Illustrations.QRCode}
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.mt3]}>
                 <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection, themeStyles.ph4]}>
