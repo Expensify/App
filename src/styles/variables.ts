@@ -188,6 +188,8 @@ export default {
     bankCardHeight: 26,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
+    oldDotWireframeIconWidth: 263.38,
+    oldDotWireframeIconHeight: 143.28,
     workspaceSectionMaxWidth: 600,
     sectionIllustrationHeight: 240,
     photoUploadPopoverWidth: 335,
