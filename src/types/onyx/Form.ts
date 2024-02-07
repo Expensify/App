@@ -33,7 +33,7 @@ type DisplayNameForm = Form<{
 
 type NewRoomForm = Form<{
     roomName?: string;
-    welcomeMessage?: string;
+    reportDescription?: string;
     policyID?: string;
     writeCapability?: string;
     visibility?: string;
@@ -57,7 +57,20 @@ type PrivateNotesForm = Form<{
 
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
-type WorkspaceSettingsForm = Form<{name: string}>;
+type WorkspaceSettingsForm = Form<{
+    name: string;
+}>;
+
+type ReportFieldEditForm = Form<Record<string, string>>;
+
+type CloseAccountForm = Form<{
+    reasonForLeaving: string;
+    phoneOrEmail: string;
+}>;
+
+type RoomNameForm = Form<{
+    roomName: string;
+}>;
 
 export default Form;
 
@@ -73,4 +86,7 @@ export type {
     IntroSchoolPrincipalForm,
     PersonalBankAccountForm,
     WorkspaceSettingsForm,
+    ReportFieldEditForm,
+    CloseAccountForm,
+    RoomNameForm,
 };

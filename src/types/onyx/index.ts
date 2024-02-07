@@ -10,13 +10,26 @@ import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
-import type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, IKnowATeacherForm, IntroSchoolPrincipalForm, NewRoomForm, PrivateNotesForm, WorkspaceSettingsForm} from './Form';
+import type {
+    AddDebitCardForm,
+    CloseAccountForm,
+    DateOfBirthForm,
+    DisplayNameForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    NewRoomForm,
+    PrivateNotesForm,
+    ReportFieldEditForm,
+    RoomNameForm,
+    WorkspaceSettingsForm,
+} from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
 import type IOU from './IOU';
+import type LastPaymentMethod from './LastPaymentMethod';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -84,6 +97,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    CloseAccountForm,
     DateOfBirthForm,
     Download,
     Form,
@@ -145,13 +159,16 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceSettingsForm,
     ReportUserIsTyping,
     PolicyReportField,
     PolicyReportFields,
     RecentlyUsedReportFields,
+    LastPaymentMethod,
     NewRoomForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
-    WorkspaceSettingsForm,
+    ReportFieldEditForm,
+    RoomNameForm,
 };

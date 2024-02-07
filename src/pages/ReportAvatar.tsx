@@ -35,6 +35,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
             }}
             isWorkspaceAvatar
+            maybeIcon
             originalFileName={policy?.originalFileName ?? policyName}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
