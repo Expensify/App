@@ -41,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import pick from '@src/utils/pick';
 
 type PickedPolicyValues = Pick<OnyxTypes.Policy, 'name' | 'avatar' | 'pendingAction'>;
 
@@ -223,7 +224,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                             {isSmallScreenWidth && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
-                                    style={[styles.LHNToggle]}
+                                    style={styles.LHNToggle}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}
@@ -368,14 +369,7 @@ export default memo(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-            selector: (policy: OnyxEntry<OnyxTypes.Policy>): PickedPolicyValues | EmptyObject => {
-                if (!policy) {
-                    return {};
-                }
-
-                const valuesToPick = ['name', 'avatar', 'pendingAction'] as const;
-                return valuesToPick.reduce((values, key) => (key in policy ? {...values, [key]: policy[key]} : values), {});
-            },
+            selector: (policy: OnyxEntry<OnyxTypes.Policy>): PickedPolicyValues | EmptyObject => pick(policy, ['name', 'avatar', 'pendingAction']),
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
