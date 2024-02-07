@@ -89,7 +89,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState}: DeeplinkWra
             if (preventPrompt === true) {
                 return;
             }
-            
+
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);
         }
