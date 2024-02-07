@@ -72,8 +72,9 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
 };
 
 function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
-    // Check only valid policies
-    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy && policy.id));
+    // When we try to open a policy with an invalid policyID, in the policy collection are added policy objects that contain only information about the errors.
+    // Only policies that are displayed on the policy list page should be checked, otherwise the user will see an RBR that is unrelated to any of the policies in the list.
+    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
 
     const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
     const errorCheckingMethods: CheckingMethod[] = [
@@ -144,9 +145,9 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
 
     // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
-
     Object.values(allPolicies ?? {}).forEach((policy) => {
-        if (!policy) {
+        // Only policies which user has access to on the list should be checked. Policies that don't have an ID and contain only information about the errors aren't displayed anywhere.
+        if (!policy?.id) {
             return;
         }
 
