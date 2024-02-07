@@ -124,7 +124,7 @@ function InitialSettingsPage(props) {
     );
 
     /**
-     * Retuns a list of menu items data for account section
+     * Returns a list of menu items data for account section
      * @returns {Object} object with translationKey, style and items for the account section
      */
     const accountMenuItemsData = useMemo(() => {
@@ -205,7 +205,7 @@ function InitialSettingsPage(props) {
     }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer]);
 
     /**
-     * Retuns a list of menu items data for general section
+     * Returns a list of menu items data for general section
      * @returns {Object} object with translationKey, style and items for the general section
      */
     const generaltMenuItemsData = useMemo(
@@ -234,7 +234,7 @@ function InitialSettingsPage(props) {
     );
 
     /**
-     * Retuns JSX.Element with menu items
+     * Returns JSX.Element with menu items
      * @param {Object} menuItemsData list with menu items data
      * @returns {JSX.Element} the menu items for passed data
      */
