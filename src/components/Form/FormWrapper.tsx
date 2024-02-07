@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import {Keyboard, ScrollView} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {Keyboard, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -99,7 +99,7 @@ function FormWrapper({
                 style={[style, safeAreaPaddingBottomStyle]}
                 onSubmit={onSubmit}
             >
-                {children}
+                <View style={{flex: 1}}>{children}</View>
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
@@ -109,7 +109,7 @@ function FormWrapper({
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter
@@ -130,7 +130,6 @@ function FormWrapper({
             isSubmitButtonVisible,
             onSubmit,
             style,
-            styles.flex1,
             styles.mh0,
             styles.mt5,
             submitButtonStyles,
@@ -146,7 +145,7 @@ function FormWrapper({
                 scrollContextEnabled ? (
                     <ScrollViewWithContext
                         style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
+                        contentContainerStyle={styles.flex1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
                     >
@@ -155,7 +154,7 @@ function FormWrapper({
                 ) : (
                     <ScrollView
                         style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
+                        contentContainerStyle={styles.flex1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
                     >
