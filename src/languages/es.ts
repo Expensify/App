@@ -2641,7 +2641,7 @@ export default {
         someTagLevelsRequired: 'Falta etiqueta',
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName} ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName} ya no es válido`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },
