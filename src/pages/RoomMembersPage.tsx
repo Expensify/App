@@ -77,10 +77,16 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         setRemoveMembersConfirmModalVisible(false);
     };
 
+    /**
+     * Add user from the selectedMembers list
+     */
     const addUser = useCallback((accountID: number) => {
         setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
     }, []);
 
+    /**
+     * Remove user from the selectedEmployees list
+     */
     const removeUser = useCallback((accountID: number) => {
         setSelectedMembers((prevSelected) => prevSelected.filter((selected) => selected !== accountID));
     }, []);
