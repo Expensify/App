@@ -13,6 +13,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
@@ -595,13 +596,19 @@ function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Checks if a report is an IOU report.
+ * Checks if a report is an IOU report using report or reportID
  */
 function isIOUReport(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
 
+/**
+ * Checks if a report is an IOU report using report
+ */
+function isIOUReportUsingReport(report: OnyxEntry<Report> | EmptyObject): report is Report {
+    return report?.type === CONST.REPORT.TYPE.IOU;
+}
 /**
  * Checks if a report is a task report.
  */
@@ -837,7 +844,7 @@ function isPublicAnnounceRoom(report: OnyxEntry<Report>): boolean {
  * If the report is a policy expense, the route should be for adding bank account for that policy
  * else since the report is a personal IOU, the route should be for personal bank account.
  */
-function getBankAccountRoute(report: OnyxEntry<Report>): string {
+function getBankAccountRoute(report: OnyxEntry<Report>): Route {
     return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', report?.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
 }
 
@@ -2250,13 +2257,15 @@ function getReportPreviewMessage(
         });
     }
 
+    let linkedTransaction;
     if (!isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
-
-        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-            return Localize.translateLocal('iou.receiptScanning');
-        }
+        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
     }
+
+    if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+        return Localize.translateLocal('iou.receiptScanning');
+    }
+
     const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
@@ -2283,20 +2292,25 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-
     const lastActorID = reportAction?.actorAccountID;
+    let amount = originalMessage?.amount;
+    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
+
+    if (!isEmptyObject(linkedTransaction)) {
+        amount = TransactionUtils.getAmount(linkedTransaction, isExpenseReport(report));
+        currency = TransactionUtils.getCurrency(linkedTransaction);
+    }
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
-    if (originalMessage?.amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amount = originalMessage?.amount;
-        const currency = originalMessage?.currency ?? report.currency ?? '';
+    if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
         const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
         return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
     }
+
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
 
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
@@ -4577,6 +4591,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         (getVisibleMemberIDs(report).includes(currentUserAccountID ?? 0) || getParticipantsIDs(report).includes(currentUserAccountID ?? 0))
     );
 }
+
 /**
  * Checks if report action has error when smart scanning
  */
@@ -4949,6 +4964,7 @@ export {
     isValidReport,
     getReportDescriptionText,
     isReportFieldOfTypeTitle,
+    isIOUReportUsingReport,
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,

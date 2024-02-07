@@ -24,6 +24,7 @@ type RequestMoneyParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    gpsPoints?: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
 };
