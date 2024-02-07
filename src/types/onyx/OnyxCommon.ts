@@ -11,7 +11,7 @@ type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | un
 
 type Error = string | MaybePhraseKey;
 
-type Errors = Record<string, Error>;
+type Errors = Record<string, Error | null>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
