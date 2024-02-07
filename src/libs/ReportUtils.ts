@@ -1896,6 +1896,13 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 }
 
 /**
+ * Check if report fields are available to use in a report
+ */
+function reportFieldsEnabled(report: Report) {
+    return Permissions.canUseReportFields(allBetas ?? []) && isPaidGroupPolicyExpenseReport(report);
+}
+
+/**
  * Given a report field, check if the field can be edited or not.
  * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
  * For non title fields, its considered disabled if:
@@ -1952,7 +1959,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
-    if (titleReportField && report?.reportName && Permissions.canUseReportFields(allBetas ?? [])) {
+    if (titleReportField && report?.reportName && reportFieldsEnabled(report)) {
         return report.reportName;
     }
 
@@ -4948,6 +4955,7 @@ export {
     isReportFieldOfTypeTitle,
     isReportFieldDisabled,
     getAvailableReportFields,
+    reportFieldsEnabled,
     getAllAncestorReportActionIDs,
 };
 
