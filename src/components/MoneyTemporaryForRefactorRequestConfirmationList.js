@@ -477,6 +477,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestMerchant_temporaryForRefactor(transaction.transactionID, distanceMerchant);
     }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
+    // Auto select the category if there is only one enabled category
     useEffect(() => {
         const enabledCategories = _.filter(policyCategories, (category) => category.enabled);
         if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1) {
@@ -485,6 +486,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestCategory_temporaryForRefactor(transaction.transactionID, enabledCategories[0].name);
     }, [iouCategory, shouldShowCategories, policyCategories, transaction]);
 
+    // Auto select the tag if there is only one enabled tag
     useEffect(() => {
         const enabledTags = _.filter(policyTagList, (tag) => tag.enabled);
         if (iouTag || !shouldShowTags || enabledTags.length !== 1) {
