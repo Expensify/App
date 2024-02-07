@@ -13,7 +13,7 @@ import type {
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as Routes} from '@src/ROUTES';
+import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -215,11 +215,12 @@ type MoneyRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.MONEY_REQUEST.DESCRIPTION]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
-        field: string;
-        threadReportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.CATEGORY]: {
         iouType: string;
@@ -415,7 +416,7 @@ type PublicScreensParamList = {
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
-        exitTo?: Routes;
+        exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
