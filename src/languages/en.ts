@@ -818,6 +818,7 @@ export default {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
+        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account Settings',
         account: 'Account',

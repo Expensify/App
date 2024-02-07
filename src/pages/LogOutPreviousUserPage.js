@@ -1,13 +1,17 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
-import {Linking} from 'react-native';
+import React, {useContext, useEffect} from 'react';
+import {Linking, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import InitialUrlContext from '@libs/InitialUrlContext';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import * as SessionUtils from '@libs/SessionUtils';
 import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -37,10 +41,12 @@ const defaultProps = {
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage(props) {
+    const initUrl = useContext(InitialUrlContext);
     useEffect(() => {
-        Linking.getInitialURL().then((transitionURL) => {
+        Linking.getInitialURL().then((url) => {
             const sessionEmail = props.session.email;
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
+            const transitionUrl = NativeModules.HybridAppModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionUrl, sessionEmail);
 
             if (isLoggingInAsNewUser) {
                 Session.signOutAndRedirectToSignIn();
@@ -57,11 +63,21 @@ function LogOutPreviousUserPage(props) {
                 const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
-        });
 
-        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+            const exitTo = lodashGet(props, 'route.params.exitTo', '');
+            // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+            // which is already called when AuthScreens mounts.
+            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
+                Navigation.isNavigationReady().then(() => {
+                    // remove this screen and navigate to exit route
+                    const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                    Navigation.goBack();
+                    Navigation.navigate(exitUrl);
+                });
+            }
+        });
+    }, [initUrl, props]);
 
     return <FullScreenLoadingIndicator />;
 }
