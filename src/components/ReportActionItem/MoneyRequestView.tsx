@@ -390,7 +390,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
                             title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
-                            description={policyTaxRatesDescription}
+                            description={translate('iou.taxAmount')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
