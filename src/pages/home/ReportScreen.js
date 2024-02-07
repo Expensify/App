@@ -719,6 +719,7 @@ export default compose(
             prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
             _.isEqual(prevProps.betas, nextProps.betas) &&
             _.isEqual(prevProps.policies, nextProps.policies) &&
+            _.isEqual(prevProps.route, nextProps.route) &&
             prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
             prevProps.currentReportID === nextProps.currentReportID &&
