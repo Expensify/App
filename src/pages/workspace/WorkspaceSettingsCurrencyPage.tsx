@@ -1,9 +1,4 @@
-<<<<<<<< HEAD:src/pages/workspace/WorkspaceSettingsCurrencyPage.tsx
 import React, {useCallback, useState} from 'react';
-========
-import PropTypes from 'prop-types';
-import React, {useState} from 'react';
->>>>>>>> main:src/pages/workspace/WorkspaceOverviewCurrencyPage.js
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -70,17 +65,9 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
 
     const headerMessage = searchText.trim() && !currencyItems.length ? translate('common.noResultsFound') : '';
 
-<<<<<<<< HEAD:src/pages/workspace/WorkspaceSettingsCurrencyPage.tsx
-    const onBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy?.id ?? '')), [policy?.id]);
-
     const onSelectCurrency = (item: WorkspaceSettingsCurrencyPageSectionItem) => {
         Policy.updateGeneralSettings(policy?.id ?? '', policy?.name ?? '', item.keyForList);
         Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(policy?.id ?? ''));
-========
-    const onSelectCurrency = (item) => {
-        Policy.updateGeneralSettings(policy.id, policy.name, item.keyForList);
-        Navigation.goBack();
->>>>>>>> main:src/pages/workspace/WorkspaceOverviewCurrencyPage.js
     };
 
     return (
