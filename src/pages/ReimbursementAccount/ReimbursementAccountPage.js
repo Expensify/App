@@ -529,13 +529,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
-        return (
-            <ConnectBankAccount
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={goBack}
-                account={account}
-            />
-        );
+        return <ConnectBankAccount onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {

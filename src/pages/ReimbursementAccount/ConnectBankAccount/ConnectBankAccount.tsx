@@ -12,13 +12,19 @@ import BankAccount from '@libs/models/BankAccount';
 import EnableBankAccount from '@pages/ReimbursementAccount/EnableBankAccount/EnableBankAccount';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, ReimbursementAccount} from '@src/types/onyx';
+import type {Account, Policy, ReimbursementAccount} from '@src/types/onyx';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
 type ConnectBankAccountOnyxProps = {
     /** User's account who is setting up bank account */
     account: OnyxEntry<Account>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
+
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
 type ConnectBankAccountProps = ConnectBankAccountOnyxProps & {
@@ -29,11 +35,11 @@ type ConnectBankAccountProps = ConnectBankAccountOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}: ConnectBankAccountProps) {
+function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account, policy}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat();
+    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(false, true);
     const bankAccountState = reimbursementAccount.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
@@ -74,6 +80,7 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}: 
                 <BankAccountValidationForm
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
                     reimbursementAccount={reimbursementAccount}
+                    policy={policy}
                 />
             )}
             {isBankAccountVerifying && (
@@ -91,5 +98,11 @@ ConnectBankAccount.displayName = 'ConnectBankAccount';
 export default withOnyx<ConnectBankAccountProps, ConnectBankAccountOnyxProps>({
     account: {
         key: ONYXKEYS.ACCOUNT,
+    },
+    policy: {
+        key: ({reimbursementAccount}) => `${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`,
+    },
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
 })(ConnectBankAccount);

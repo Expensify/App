@@ -7,11 +7,13 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 import Enable2FACard from './Enable2FACard';
 
@@ -21,6 +23,9 @@ type BankAccountValidationFormProps = {
 
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: Policy | null;
 };
 
 const getAmountValues = (values: ReimbursementAccountDraftValues): Record<string, string> => ({
@@ -29,41 +34,41 @@ const getAmountValues = (values: ReimbursementAccountDraftValues): Record<string
     amount3: values?.amount3 ?? '',
 });
 
-const filterInput = (amount: string) => {
-    const value = amount ? amount.trim() : '';
-    if (value === '' || Number.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value, true))) {
+const filterInput = (amount: string, amountRegex?: RegExp) => {
+    let value = amount ? amount.toString().trim() : '';
+    value = value.replace(/^0+|0+$/g, '');
+    if (value === '' || Number.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value, false)) || (amountRegex && !amountRegex.test(value))) {
         return '';
-    }
-
-    // If the user enters the values in dollars, convert it to the respective cents amount
-    if (value.includes('.')) {
-        return Str.fromUSDToNumber(value, true);
     }
 
     return value;
 };
 
-const validate = (values: ReimbursementAccountDraftValues) => {
-    const errors: Record<string, string> = {};
-    const amountValues = getAmountValues(values);
-
-    Object.keys(amountValues).forEach((key) => {
-        const value = amountValues[key];
-        const filteredValue = filterInput(value);
-        if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
-            return;
-        }
-        errors[key] = 'common.error.invalidAmount';
-    });
-
-    return errors;
-};
-
-function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}: BankAccountValidationFormProps) {
-    const {translate} = useLocalize();
+function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount, policy}: BankAccountValidationFormProps) {
+    const {translate, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '';
+
+    const validate = (values: ReimbursementAccountDraftValues) => {
+        const errors: Record<string, string> = {};
+        const amountValues = getAmountValues(values);
+        const decimalSeparator = toLocaleDigit('.');
+        const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+        const amountRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CurrencyUtils.getCurrencyDecimals(outputCurrency)}})?$`, 'i');
+
+        Object.keys(amountValues).forEach((key) => {
+            const value = amountValues[key];
+            const filteredValue = filterInput(value, amountRegex);
+            if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
+                return;
+            }
+            errors[key] = 'common.error.invalidAmount';
+        });
+
+        return errors;
+    };
+
     const submit = useCallback(
         (values: ReimbursementAccountDraftValues) => {
             const amount1 = filterInput(values.amount1 ?? '');
