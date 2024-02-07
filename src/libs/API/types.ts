@@ -8,6 +8,7 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
+    DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
     RECONNECT_APP: 'ReconnectApp',
     OPEN_PROFILE: 'OpenProfile',
@@ -84,7 +85,7 @@ const WRITE_COMMANDS = {
     DELETE_COMMENT: 'DeleteComment',
     UPDATE_COMMENT: 'UpdateComment',
     UPDATE_REPORT_NOTIFICATION_PREFERENCE: 'UpdateReportNotificationPreference',
-    UPDATE_WELCOME_MESSAGE: 'UpdateWelcomeMessage',
+    UPDATE_ROOM_DESCRIPTION: 'UpdateRoomDescription',
     UPDATE_REPORT_WRITE_CAPABILITY: 'UpdateReportWriteCapability',
     ADD_WORKSPACE_ROOM: 'AddWorkspaceRoom',
     UPDATE_POLICY_ROOM_NAME: 'UpdatePolicyRoomName',
@@ -115,11 +116,37 @@ const WRITE_COMMANDS = {
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_REPORT_FIELD: 'Report_SetFields',
     SET_REPORT_NAME: 'RenameReport',
+    COMPLETE_SPLIT_BILL: 'CompleteSplitBill',
+    UPDATE_MONEY_REQUEST_DATE: 'UpdateMoneyRequestDate',
+    UPDATE_MONEY_REQUEST_BILLABLE: 'UpdateMoneyRequestBillable',
+    UPDATE_MONEY_REQUEST_MERCHANT: 'UpdateMoneyRequestMerchant',
+    UPDATE_MONEY_REQUEST_TAG: 'UpdateMoneyRequestTag',
+    UPDATE_MONEY_REQUEST_DISTANCE: 'UpdateMoneyRequestDistance',
+    UPDATE_MONEY_REQUEST_CATEGORY: 'UpdateMoneyRequestCategory',
+    UPDATE_MONEY_REQUEST_DESCRIPTION: 'UpdateMoneyRequestDescription',
+    UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY: 'UpdateMoneyRequestAmountAndCurrency',
+    UPDATE_DISTANCE_REQUEST: 'UpdateDistanceRequest',
+    REQUEST_MONEY: 'RequestMoney',
+    SPLIT_BILL: 'SplitBill',
+    SPLIT_BILL_AND_OPEN_REPORT: 'SplitBillAndOpenReport',
+    DELETE_MONEY_REQUEST: 'DeleteMoneyRequest',
+    CREATE_DISTANCE_REQUEST: 'CreateDistanceRequest',
+    START_SPLIT_BILL: 'StartSplitBill',
+    SEND_MONEY_ELSEWHERE: 'SendMoneyElsewhere',
+    SEND_MONEY_WITH_WALLET: 'SendMoneyWithWallet',
+    APPROVE_MONEY_REQUEST: 'ApproveMoneyRequest',
+    EDIT_MONEY_REQUEST: 'EditMoneyRequest',
+    REPLACE_RECEIPT: 'ReplaceReceipt',
+    SUBMIT_REPORT: 'SubmitReport',
+    DETACH_RECEIPT: 'DetachReceipt',
+    PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
+    PAY_MONEY_REQUEST: 'PayMoneyRequest',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
 
 type WriteCommandParameters = {
+    [WRITE_COMMANDS.DISMISS_REFERRAL_BANNER]: Parameters.DismissReferralBannerParams;
     [WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE]: Parameters.UpdatePreferredLocaleParams;
     [WRITE_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [WRITE_COMMANDS.OPEN_PROFILE]: Parameters.OpenProfileParams;
@@ -194,7 +221,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_COMMENT]: Parameters.DeleteCommentParams;
     [WRITE_COMMANDS.UPDATE_COMMENT]: Parameters.UpdateCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE]: Parameters.UpdateReportNotificationPreferenceParams;
-    [WRITE_COMMANDS.UPDATE_WELCOME_MESSAGE]: Parameters.UpdateWelcomeMessageParams;
+    [WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION]: Parameters.UpdateRoomDescriptionParams;
     [WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY]: Parameters.UpdateReportWriteCapabilityParams;
     [WRITE_COMMANDS.ADD_WORKSPACE_ROOM]: Parameters.AddWorkspaceRoomParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME]: Parameters.UpdatePolicyRoomNameParams;
@@ -227,6 +254,31 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
+    [WRITE_COMMANDS.COMPLETE_SPLIT_BILL]: Parameters.CompleteSplitBillParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.REQUEST_MONEY]: Parameters.RequestMoneyParams;
+    [WRITE_COMMANDS.SPLIT_BILL]: Parameters.SplitBillParams;
+    [WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT]: Parameters.SplitBillParams;
+    [WRITE_COMMANDS.DELETE_MONEY_REQUEST]: Parameters.DeleteMoneyRequestParams;
+    [WRITE_COMMANDS.CREATE_DISTANCE_REQUEST]: Parameters.CreateDistanceRequestParams;
+    [WRITE_COMMANDS.START_SPLIT_BILL]: Parameters.StartSplitBillParams;
+    [WRITE_COMMANDS.SEND_MONEY_ELSEWHERE]: Parameters.SendMoneyParams;
+    [WRITE_COMMANDS.SEND_MONEY_WITH_WALLET]: Parameters.SendMoneyParams;
+    [WRITE_COMMANDS.APPROVE_MONEY_REQUEST]: Parameters.ApproveMoneyRequestParams;
+    [WRITE_COMMANDS.EDIT_MONEY_REQUEST]: Parameters.EditMoneyRequestParams;
+    [WRITE_COMMANDS.REPLACE_RECEIPT]: Parameters.ReplaceReceiptParams;
+    [WRITE_COMMANDS.SUBMIT_REPORT]: Parameters.SubmitReportParams;
+    [WRITE_COMMANDS.DETACH_RECEIPT]: Parameters.DetachReceiptParams;
+    [WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]: Parameters.PayMoneyRequestParams;
+    [WRITE_COMMANDS.PAY_MONEY_REQUEST]: Parameters.PayMoneyRequestParams;
 };
 
 const READ_COMMANDS = {

@@ -10,7 +10,7 @@ import type {ValueSelectorModalProps} from './types';
 function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
 
-    const sectionsData = useMemo(() => items.map((item) => ({...item, isSelected: item === selectedItem, keyForList: item.value ?? ''})), [items, selectedItem]);
+    const sectionsData = useMemo(() => [{data: items.map((item) => ({...item, isSelected: item === selectedItem, keyForList: item.value ?? ''}))}], [items, selectedItem]);
 
     return (
         <Modal
@@ -32,7 +32,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={[{data: sectionsData}]}
+                    sections={sectionsData}
                     onSelectRow={(item) => onItemSelected?.(item)}
                     initiallyFocusedOptionKey={selectedItem?.value}
                     shouldStopPropagation

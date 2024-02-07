@@ -202,6 +202,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Whether to show the loading indicator for new options */
+    isLoadingNewOptions?: boolean;
 };
 
 type ItemLayout = {
