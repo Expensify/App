@@ -290,6 +290,8 @@ const ONYXKEYS = {
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
 
+        NEW_ROOM_DRAFT: 'newRoomDraft_',
+
         // Manual request tab selector
         SELECTED_TAB: 'selectedTab_',
 
@@ -485,6 +487,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
+    [ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT]: OnyxTypes.NewRoomDraft;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;

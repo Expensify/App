@@ -35,6 +35,7 @@ import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewRoomDraft from './NewRoomDraft';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList} from './PersonalDetails';
@@ -169,4 +170,5 @@ export type {
     PrivateNotesForm,
     ReportFieldEditForm,
     RoomNameForm,
+    NewRoomDraft,
 };

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -80,6 +80,12 @@ const propTypes = {
 
     /** policyID for main workspace */
     activePolicyID: PropTypes.string,
+
+    newRoomDraft: PropTypes.shape({
+        workspace: PropTypes.any,
+        writeCapability: PropTypes.any,
+        visibility: PropTypes.any,
+    }),
 };
 const defaultProps = {
     reports: {},
@@ -92,9 +98,12 @@ const defaultProps = {
         accountID: 0,
     },
     activePolicyID: null,
+    newRoomDraft: {},
 };
 
 function WorkspaceNewRoomPage(props) {
+    console.log(props);
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -386,6 +395,9 @@ export default compose(
             key: ONYXKEYS.ACCOUNT,
             selector: (account) => (account && account.activePolicyID) || null,
             initialValue: null,
+        },
+        newRoomDraft: {
+            key: ONYXKEYS.NEW_ROOM_DRAFT,
         },
     }),
 )(WorkspaceNewRoomPage);

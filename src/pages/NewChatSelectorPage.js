@@ -11,7 +11,7 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewChatPage from './NewChatPage';
-import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
+import WorkspaceNewRoomPage from './workspace/NewRoomPage/WorkspaceNewRoomPage';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
