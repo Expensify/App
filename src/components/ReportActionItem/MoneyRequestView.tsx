@@ -374,7 +374,7 @@ function MoneyRequestView({
                 )}
 
                 {shouldShowTax && (
-                    <OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
                             title={taxRateTitle}
                             description={policyTaxRatesDescription}
