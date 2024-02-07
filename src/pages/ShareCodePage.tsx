@@ -109,7 +109,8 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={Expensicons.Download}
-                            onPress={qrCodeRef.current?.download}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            onPress={() => qrCodeRef.current?.download?.()}
                         />
                     )}
 
