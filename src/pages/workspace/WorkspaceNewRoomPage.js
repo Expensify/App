@@ -6,7 +6,6 @@ import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
-import INPUT_IDS from '@components/Form/inputs/NewRoomForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -33,6 +32,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewRoomForm';
 
 const propTypes = {
     /** All reports shared with the user */

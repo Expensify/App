@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import INPUT_IDS from '@components/Form/inputs/IntroSchoolPrincipalForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,6 +21,7 @@ import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
 import type {LoginList} from '@src/types/onyx';
 
 type IntroSchoolPrincipalPageOnyxProps = {

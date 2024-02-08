@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import INPUT_IDS from '@components/Form/inputs/GetPhysicalCardForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +11,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const propTypes = {

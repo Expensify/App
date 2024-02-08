@@ -3,7 +3,6 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import INPUT_IDS from '@components/Form/inputs/MoneyRequestMerchantForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 
 const propTypes = {
     /** Transaction default merchant value */

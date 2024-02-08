@@ -8,7 +8,6 @@ import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import INPUT_IDS from '@components/Form/inputs/ReimbursementAccountForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Picker from '@components/Picker';
@@ -25,6 +24,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AddressForm from './AddressForm';
 import StepPropTypes from './StepPropTypes';
 

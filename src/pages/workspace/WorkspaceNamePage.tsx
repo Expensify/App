@@ -1,7 +1,6 @@
 import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import INPUT_IDS from '@components/Form/inputs/WorkspaceSettingsForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +13,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 

@@ -4,7 +4,6 @@ import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
-import INPUT_IDS from '@components/Form/inputs/WorkspaceRateAndUnitForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
@@ -24,6 +23,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/WorkspaceRateAndUnitForm';
 
 const propTypes = {
     ...policyPropTypes,

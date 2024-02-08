@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type * as FormTypes from './components/Form/inputs';
 import type CONST from './CONST';
+import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';

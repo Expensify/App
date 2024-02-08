@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import INPUT_IDS from '@components/Form/inputs/MoneyRequestCreatedForm';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +16,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/MoneyRequestCreatedForm';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
