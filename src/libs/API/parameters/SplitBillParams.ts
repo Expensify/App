@@ -3,6 +3,7 @@ type SplitBillParams = {
     amount: number;
     splits: string;
     comment: string;
+    created: string;
     currency: string;
     merchant: string;
     category: string;
