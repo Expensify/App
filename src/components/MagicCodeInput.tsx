@@ -367,6 +367,7 @@ function MagicCodeInput(
                         collapsable={false}
                     >
                         <TextInput
+                            disableKeyboard={isDisableKeyboard}
                             onLayout={(e) => {
                                 inputWidth.current = e.nativeEvent.layout.width;
                             }}

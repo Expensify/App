@@ -1,28 +1,24 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Lottie from '@components/Lottie';
+import LottieAnimations from '@components/LottieAnimations';
+import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemList from '@components/MenuItemList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
-import Lottie from './Lottie';
-import LottieAnimations from './LottieAnimations';
-import type {MenuItemProps} from './MenuItem';
-import MenuItemList from './MenuItemList';
-import Modal from './Modal';
-import Text from './Text';
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
@@ -51,15 +47,7 @@ const messageCopy = {
         '4. Enter the email address or phone number of your boss\n' +
         '\n' +
         "And we'll take it from there to get you paid back. Please give it a shot and let me know how it goes!",
-    [CONST.INTRO_CHOICES.MANAGE_TEAM]:
-        "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
-        '\n' +
-        '1. Press your avatar icon\n' +
-        '2. Choose Workspaces\n' +
-        '3. Choose New Workspace\n' +
-        '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
-        '\n' +
-        'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!',
+    [CONST.INTRO_CHOICES.MANAGE_TEAM]: '',
     [CONST.INTRO_CHOICES.CHAT_SPLIT]:
         'Hi there, to split an expense such as with a friend, please:\n' +
         '\n' +
@@ -81,40 +69,27 @@ const menuIcons = {
     [CONST.INTRO_CHOICES.MANAGE_TEAM]: Expensicons.MoneyBag,
     [CONST.INTRO_CHOICES.CHAT_SPLIT]: Expensicons.Briefcase,
 };
-type PurposeForUsingExpensifyModalOnyxProps = {
-    isLoadingApp: OnyxEntry<boolean>;
-};
-type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
 
-function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
+function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
-    const navigation = useNavigation();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const {windowHeight} = useWindowDimensions();
     const theme = useTheme();
+    const backgroundColorStyle = StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor);
+    const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
 
-    useEffect(() => {
-        const navigationState = navigation.getState();
-        const routes = navigationState.routes;
-        const currentRoute = routes[navigationState.index];
-        if (currentRoute && NAVIGATORS.BOTTOM_TAB_NAVIGATOR !== currentRoute.name) {
-            return;
-        }
-
-        Welcome.show(routes, () => setIsModalOpen(true));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingApp]);
-
-    const closeModal = useCallback(() => {
+    const navigateBack = useCallback(() => {
         Report.dismissEngagementModal();
-        setIsModalOpen(false);
+        Navigation.goBack(ROUTES.HOME);
     }, []);
 
-    const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
+    const completeEngagement = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
+        if (choice === CONST.INTRO_CHOICES.MANAGE_TEAM) {
+            return Navigation.navigate(ROUTES.ONBOARD_MANAGE_EXPENSES);
+        }
+
         Report.completeEngagementModal(message, choice);
-        setIsModalOpen(false);
         Report.navigateToConciergeChat();
     }, []);
 
@@ -127,25 +102,24 @@ function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingEx
                     title: translate(translationKey),
                     icon: menuIcons[choice],
                     iconRight: Expensicons.ArrowRight,
-                    onPress: () => completeModalAndClose(messageCopy[choice], choice),
+                    onPress: () => completeEngagement(messageCopy[choice], choice),
                     shouldShowRightIcon: true,
                     numberOfLinesTitle: 2,
                 };
             }),
-        [completeModalAndClose, translate],
+        [completeEngagement, translate],
     );
 
     return (
-        <Modal
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isModalOpen}
-            onClose={closeModal}
-            innerContainerStyle={styles.pt0}
-            shouldUseCustomBackdrop
+        <ScreenWrapper
+            style={backgroundColorStyle}
+            shouldEnablePickerAvoiding={false}
+            includeSafeAreaPaddingBottom={false}
+            testID={PurposeForUsingExpensifyModal.displayName}
         >
-            <View style={{maxHeight: windowHeight}}>
+            <View style={[{maxHeight: windowHeight}, styles.flex1, appBGColor]}>
                 <ScrollView>
-                    <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
+                    <View style={backgroundColorStyle}>
                         <Lottie
                             source={LottieAnimations.Hands}
                             style={styles.w100}
@@ -156,7 +130,7 @@ function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingEx
                         <HeaderWithBackButton
                             shouldShowCloseButton
                             shouldShowBackButton={false}
-                            onCloseButtonPress={closeModal}
+                            onCloseButtonPress={navigateBack}
                             shouldOverlay
                             iconFill={theme.iconColorfulBackground}
                         />
@@ -176,13 +150,9 @@ function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingEx
                     />
                 </ScrollView>
             </View>
-        </Modal>
+        </ScreenWrapper>
     );
 }
 
 PurposeForUsingExpensifyModal.displayName = 'PurposeForUsingExpensifyModal';
-export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(PurposeForUsingExpensifyModal);
+export default PurposeForUsingExpensifyModal;

@@ -197,7 +197,7 @@ function SettlementButton({
         }
 
         if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            IOU.approveMoneyRequest(iouReport);
+            IOU.approveMoneyRequest(iouReport ?? {});
             return;
         }
 

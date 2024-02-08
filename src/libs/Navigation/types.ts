@@ -13,7 +13,7 @@ import type {
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as Routes} from '@src/ROUTES';
+import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -215,11 +215,12 @@ type MoneyRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.MONEY_REQUEST.DESCRIPTION]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
-        field: string;
-        threadReportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.CATEGORY]: {
         iouType: string;
@@ -276,6 +277,12 @@ type NewTaskNavigatorParamList = {
     [SCREENS.NEW_TASK.DETAILS]: undefined;
     [SCREENS.NEW_TASK.TITLE]: undefined;
     [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
+};
+
+type OnboardEngagementNavigatorParamList = {
+    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: undefined;
+    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: undefined;
+    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: undefined;
 };
 
 type TeachersUniteNavigatorParamList = {
@@ -374,6 +381,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT]: NavigatorScreenParams<OnboardEngagementNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: NavigatorScreenParams<EnablePaymentsNavigatorParamList>;
@@ -415,7 +423,7 @@ type PublicScreensParamList = {
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
-        exitTo?: Routes;
+        exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
@@ -522,5 +530,6 @@ export type {
     ReimbursementAccountNavigatorParamList,
     State,
     WorkspaceSwitcherNavigatorParamList,
+    OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
 };
