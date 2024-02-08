@@ -701,7 +701,7 @@ function ReportActionItem(props) {
     const hasErrors = !_.isEmpty(props.action.errors);
     const whisperedToAccountIDs = props.action.whisperedToAccountIDs || [];
     const isWhisper = whisperedToAccountIDs.length > 0;
-    if (isWhisper && !ReportUtils.isCurrentUserWhisperTarget(whisperedToAccountIDs)) {
+    if (isWhisper && ReportActionsUtils.isWhisperActionTargetedToOthers(props.reportAction)) {
         return null;
     }
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;

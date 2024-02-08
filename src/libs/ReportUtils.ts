@@ -4137,13 +4137,6 @@ function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[]): bool
     return Boolean(participantAccountIDs?.length === 1 && participantAccountIDs?.[0] === currentUserAccountID);
 }
 
-function isCurrentUserWhisperTarget(whisperedToAccountIDs?: number[]): boolean {
-    if (!whisperedToAccountIDs || !currentUserAccountID) {
-        return false;
-    }
-    return whisperedToAccountIDs.includes(currentUserAccountID);
-}
-
 /**
  * Returns display names for those that can see the whisper.
  * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
@@ -4823,7 +4816,6 @@ export {
     isConciergeChatReport,
     isProcessingReport,
     isCurrentUserTheOnlyParticipant,
-    isCurrentUserWhisperTarget,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
     requiresAttentionFromCurrentUser,
