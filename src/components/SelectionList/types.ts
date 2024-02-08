@@ -1,5 +1,7 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -34,25 +36,25 @@ type CommonListItemProps<TItem> = {
 
 type User = {
     /** Text to display */
-    text: string;
+    text?: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList: string;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** User accountID */
-    accountID?: number;
+    accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactElement;
@@ -73,7 +75,7 @@ type User = {
 
     /** Represents the index of the option within the section it came from */
     index?: number;
-};
+} & Report;
 
 type UserListItemProps = CommonListItemProps<User> & {
     /** The section list item */
@@ -133,7 +135,7 @@ type Section<TItem extends User | RadioItem> = {
 
 type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListData<TItem, Section<TItem>>>;
+    sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -233,6 +235,12 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
+
+    /** Custom callback when Selection List layout changes */
+    onLayout: () => void;
+
+    /**  Whether to auto focus the Search Input */
+    autoFocus: boolean;
 };
 
 type ItemLayout = {

@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -11,34 +12,38 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import SearchPageFooter from './SearchPageFooter';
 
-const propTypes = {
-    /* Onyx Props */
-
+type SearchPageOnyxProps = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
+    reports: OnyxCollection<OnyxTypes.Report>;
 
     /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: PropTypes.bool,
+    isSearchingForReports: OnyxEntry<boolean>;
 };
 
-const defaultProps = {
-    betas: [],
-    reports: {},
-    isSearchingForReports: false,
+type SearchPageProps = SearchPageOnyxProps & StackScreenProps<SearchNavigatorParamList, typeof SCREENS.SEARCH_ROOT>;
+
+type SearchPageSectionItem = {
+    data: ReportUtils.OptionData[];
+    shouldShow: boolean;
+    indexOffset: number;
 };
+
+type SearchPageSectionList = SearchPageSectionItem[];
 
 const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.SEARCH_RENDER);
@@ -47,7 +52,7 @@ const setPerformanceTimersEnd = () => {
 
 const SearchPageFooterInstance = <SearchPageFooter />;
 
-function SearchPage({betas, reports, isSearchingForReports}) {
+function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -75,28 +80,28 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     } = useMemo(() => {
         if (!isScreenTransitionEnd) {
             return {
-                recentReports: {},
-                personalDetails: {},
-                userToInvite: {},
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
                 headerMessage: '',
             };
         }
-        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, debouncedSearchValue.trim(), betas);
+        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, debouncedSearchValue.trim(), betas ?? []);
         const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
         return {...options, headerMessage: header};
     }, [debouncedSearchValue, reports, personalDetails, betas, isScreenTransitionEnd]);
 
-    const sections = useMemo(() => {
-        const newSections = [];
+    const sections = useMemo((): SearchPageSectionList => {
+        const newSections: SearchPageSectionList = [];
         let indexOffset = 0;
 
-        if (recentReports.length > 0) {
+        if (recentReports?.length > 0) {
             newSections.push({
                 data: recentReports,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += recentReports.length;
+            indexOffset += recentReports?.length;
         }
 
         if (localPersonalDetails.length > 0) {
@@ -119,7 +124,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
         return newSections;
     }, [localPersonalDetails, recentReports, userToInvite]);
 
-    const selectReport = (option) => {
+    const selectReport = (option: ReportUtils.OptionData) => {
         if (!option) {
             return;
         }
@@ -128,7 +133,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
             setSearchValue('');
             Navigation.dismissModal(option.reportID);
         } else {
-            Report.navigateToAndOpenReport([option.login]);
+            Report.navigateToAndOpenReport(option.login ? [option.login] : []);
         }
     };
 
@@ -148,7 +153,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                 <>
                     <HeaderWithBackButton title={translate('common.search')} />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList
+                        <SelectionList<ReportUtils.OptionData>
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -160,7 +165,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}
-                            isLoadingNewOptions={isSearchingForReports}
+                            isLoadingNewOptions={isSearchingForReports ?? undefined}
                         />
                     </View>
                 </>
@@ -169,11 +174,9 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     );
 }
 
-SearchPage.propTypes = propTypes;
-SearchPage.defaultProps = defaultProps;
 SearchPage.displayName = 'SearchPage';
 
-export default withOnyx({
+export default withOnyx<SearchPageProps, SearchPageOnyxProps>({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
