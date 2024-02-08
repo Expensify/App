@@ -15,11 +15,6 @@ import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
-<<<<<<< HEAD
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-=======
-import EditRequestMerchantPage from './EditRequestMerchantPage';
->>>>>>> main
 import EditRequestTagPage from './EditRequestTagPage';
 import reportPropTypes from './reportPropTypes';
 
