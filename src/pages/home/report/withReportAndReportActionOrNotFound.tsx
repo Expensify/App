@@ -10,7 +10,6 @@ import type {WindowDimensionsProps} from '@components/withWindowDimensions/types
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';

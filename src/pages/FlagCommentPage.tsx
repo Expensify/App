@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
@@ -26,8 +25,8 @@ import withReportAndReportActionOrNotFound from './home/report/withReportAndRepo
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
 
 type FlagCommentPageWithOnyxProps = {
-    /** All the report actions from the parent report */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    /** The report action from the parent report */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 };
 
 type FlagCommentPageNavigationProps = StackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
@@ -54,7 +53,7 @@ function getReportID(route: FlagCommentPageNavigationProps['route']) {
     return route.params.reportID.toString();
 }
 
-function FlagCommentPage({parentReportActions, route, report, reportActions}: FlagCommentPageProps) {
+function FlagCommentPage({parentReportAction, route, report, reportActions}: FlagCommentPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -113,8 +112,8 @@ function FlagCommentPage({parentReportActions, route, report, reportActions}: Fl
         let reportAction = reportActions?.[`${route.params.reportActionID.toString()}`];
 
         // Handle threads if needed
-        if (reportAction?.reportActionID === undefined) {
-            reportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
+        if (reportAction?.reportActionID === undefined && parentReportAction) {
+            reportAction = parentReportAction;
         }
 
         if (!reportAction) {
@@ -122,12 +121,11 @@ function FlagCommentPage({parentReportActions, route, report, reportActions}: Fl
         }
 
         return reportAction;
-    }, [report, reportActions, route.params.reportActionID, parentReportActions]);
+    }, [reportActions, route.params.reportActionID, parentReportAction]);
 
     const flagComment = (severity: Severity) => {
         let reportID: string | undefined = getReportID(route);
         const reportAction = getActionToFlag();
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
 
         // Handle threads if needed
         if (ReportUtils.isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
@@ -189,11 +187,4 @@ function FlagCommentPage({parentReportActions, route, report, reportActions}: Fl
 
 FlagCommentPage.displayName = 'FlagCommentPage';
 
-export default withReportAndReportActionOrNotFound(
-    withOnyx<FlagCommentPageProps, FlagCommentPageWithOnyxProps>({
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? report?.reportID}`,
-            canEvict: false,
-        },
-    })(FlagCommentPage),
-);
+export default withReportAndReportActionOrNotFound(FlagCommentPage);
