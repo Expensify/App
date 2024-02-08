@@ -1443,6 +1443,10 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        breadcrumsContainer: {
+            height: 24,
+        },
+
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
@@ -2264,6 +2268,10 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+        },
+
+        headerBarDesktopHeight: {
+            height: variables.contentHeaderDesktopHeight,
         },
 
         imageViewContainer: {
@@ -4075,8 +4083,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.appBG,
-            borderColor: theme.textSupporting,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         mapViewContainer: {
