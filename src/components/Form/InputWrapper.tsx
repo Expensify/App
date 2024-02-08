@@ -18,7 +18,7 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     readonly blurOnSubmit: boolean | undefined;
     readonly shouldSetTouchedOnBlurOnly: boolean;
 } {
-    const textInputBasedComponents = [TextInput, RoomNameInput] as TInput[];
+    const textInputBasedComponents: ValidInputs[] = [TextInput, RoomNameInput];
 
     if (textInputBasedComponents.includes(InputComponent)) {
         const isEffectivelyMultiline = Boolean(multiline) || Boolean(autoGrowHeight);
