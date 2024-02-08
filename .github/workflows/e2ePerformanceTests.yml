@@ -200,9 +200,10 @@ jobs:
         if: failure()
         run: |
           echo ${{ steps.schedule-awsdf-main.outputs.data }}
-          cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/Test spec output.txt"
           unzip "Customer Artifacts.zip" -d mainResults
-          cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log
+          cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/logcat.txt" || true
+          cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log || true
+          cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/Test spec output.txt" || true
 
       - name: Unzip AWS Device Farm results
         if: ${{ always() }}
