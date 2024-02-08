@@ -69,7 +69,7 @@ function IOURequestStepTag({
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
-        if (isSplitBill) {
+        if (isSplitBill && isEditing) {
             IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
             navigateBack();
             return;
