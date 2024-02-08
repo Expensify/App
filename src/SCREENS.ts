@@ -100,6 +100,7 @@ const SCREENS = {
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
+        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -223,6 +224,12 @@ const SCREENS = {
         ROOT: 'SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+
+    ONBOARD_ENGAGEMENT: {
+        ROOT: 'Onboard_Engagement_Root',
+        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
+        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

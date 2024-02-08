@@ -278,6 +278,12 @@ type NewTaskNavigatorParamList = {
     [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
 };
 
+type OnboardEngagementNavigatorParamList = {
+    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: undefined;
+    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: undefined;
+    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: undefined;
+};
+
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
@@ -374,6 +380,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT]: NavigatorScreenParams<OnboardEngagementNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: NavigatorScreenParams<EnablePaymentsNavigatorParamList>;
@@ -522,5 +529,6 @@ export type {
     ReimbursementAccountNavigatorParamList,
     State,
     WorkspaceSwitcherNavigatorParamList,
+    OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
 };
