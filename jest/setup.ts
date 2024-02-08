@@ -43,6 +43,6 @@ jest.mock('react-native-sound', () => {
     class SoundMock {
         play = jest.fn();
     }
-  
+
     return SoundMock;
-  });
+});
