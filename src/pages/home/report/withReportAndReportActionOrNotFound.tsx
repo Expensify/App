@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry, WithOnyxInstanceState} from 'react-native-onyx';
@@ -9,10 +9,13 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -39,12 +42,11 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type ComponentProps = OnyxProps &
-    WindowDimensionsProps & {
-        route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
-    };
+type WithReportAndReportActionOrNotFoundProps = OnyxProps & WindowDimensionsProps & StackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
-export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
+export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const getReportAction = useCallback(() => {
             let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
@@ -133,3 +135,5 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         withWindowDimensions,
     )(React.forwardRef(WithReportOrNotFound));
 }
+
+export type {WithReportAndReportActionOrNotFoundProps};
