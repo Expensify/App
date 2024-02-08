@@ -96,6 +96,7 @@ import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
+import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
@@ -109,7 +110,6 @@ import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
 import Rotate from '@assets/images/rotate-image.svg';
-import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
@@ -238,6 +238,7 @@ export {
     NewWorkspace,
     Offline,
     OfflineCloud,
+    OldDotWireframe,
     Paperclip,
     Paycheck,
     Pencil,
@@ -251,7 +252,6 @@ export {
     Receipt,
     ReceiptSearch,
     Rotate,
-    RotateLeft,
     Scan,
     Send,
     Shield,
