@@ -107,7 +107,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                         text: translate('common.settings'),
                     },
                 ]}
-                style={[styles.pb5, styles.ph5]}
+                style={[styles.mb5, styles.ph5]}
             />
             <ScrollView style={[styles.pb4, styles.mh3]}>
                 <MenuItemList
