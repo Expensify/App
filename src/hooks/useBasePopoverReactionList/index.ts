@@ -117,7 +117,7 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
         }
 
         // Hide the list when all reactions are removed
-        const users = emojiReactions?.[emojiName].users;
+        const users = emojiReactions?.[emojiName]?.users;
         const isEmptyList = users && Object.keys(users).length === 0;
 
         if (!isEmptyList) {
