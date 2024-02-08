@@ -1,4 +1,4 @@
-import type {Form} from '@src/types/onyx';
+import type Form from './Form';
 import ADDRESS_INPUT_IDS from './HomeAddressForm';
 
 const INPUT_IDS = {

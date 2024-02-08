@@ -1,5 +1,5 @@
 import {createContext} from 'react';
-import type {Form} from '@src/types/onyx';
+import type {Form} from '@src/types/form';
 import type {InputComponentBaseProps} from './types';
 
 type RegisterInput = (inputID: keyof Form, inputProps: InputComponentBaseProps) => InputComponentBaseProps;

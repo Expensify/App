@@ -11,7 +11,7 @@ import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {Form} from '@src/types/onyx';
+import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {FormInputErrors, FormProps, InputRefs} from './types';

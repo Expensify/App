@@ -1,4 +1,4 @@
-import type {Form} from '@src/types/onyx';
+import type Form from './Form';
 
 const INPUT_IDS = {
     OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',

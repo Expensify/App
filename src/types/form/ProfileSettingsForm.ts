@@ -1,4 +1,4 @@
-import type {Form} from '@src/types/onyx';
+import type Form from './Form';
 
 type ProfileSettingsForm = Form;
 

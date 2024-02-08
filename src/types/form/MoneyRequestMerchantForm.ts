@@ -1,4 +1,4 @@
-import type {Form} from '@src/types/onyx';
+import type Form from './Form';
 
 const INPUT_IDS = {
     MERCHANT: 'merchant',
