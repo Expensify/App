@@ -185,6 +185,8 @@ function BaseModal(
             style={[styles.pAbsolute]}
         >
             <ReactNativeModal
+                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                onClick={(e) => e.stopPropagation()}
                 onBackdropPress={handleBackdropPress}
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces

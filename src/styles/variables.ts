@@ -12,9 +12,9 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 }
 
 export default {
-    // do we need to change it?
     bottomTabHeight: 80,
-    contentHeaderHeight: getValueUsingPixelRatio(80, 100),
+    contentHeaderHeight: getValueUsingPixelRatio(72, 100),
+    contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
     componentSizeMedium: 48,
@@ -81,6 +81,7 @@ export default {
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
     iconBottomBar: 24,
+    iconHeader: 48,
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
@@ -166,6 +167,7 @@ export default {
     eReceiptThumnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
+    eReceiptEmptyIconWidth: 76,
     eReceiptMCCHeightWidth: 40,
     eReceiptIconHeightSmall: 65,
     eReceiptIconWidthSmall: 46,
@@ -187,7 +189,9 @@ export default {
     bankCardHeight: 26,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
-    workspaceSectionMaxWidth: 600,
+    workspaceSectionMaxWidth: 680,
+    oldDotWireframeIconWidth: 263.38,
+    oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 240,
     photoUploadPopoverWidth: 335,
 

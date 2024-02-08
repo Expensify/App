@@ -24,6 +24,12 @@ RCT_EXPORT_MODULE();
   return dispatch_get_main_queue();
 }
 
++ (void)invalidateBootSplash {
+    _resolveQueue = nil;
+    _rootView = nil;
+    _nativeHidden = false;
+}
+
 + (bool)isLoadingViewHidden {
   return _loadingView == nil || [_loadingView isHidden];
 }
@@ -50,6 +56,9 @@ RCT_EXPORT_MODULE();
   if (_duration > 0) {
     dispatch_async(dispatch_get_main_queue(), ^{
       _transitioning = true;
+      
+      if (_rootView == nil)
+        return;
 
       [UIView transitionWithView:_rootView
                         duration:_duration / 1000.0
