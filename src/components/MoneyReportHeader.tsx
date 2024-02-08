@@ -10,6 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
@@ -65,6 +66,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
+    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable],
@@ -73,8 +76,11 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (!isPaidGroupPolicy) {
             return false;
         }
+        if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+            return false;
+        }
         return isManager && !isDraft && !isApproved && !isSettled;
-    }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled]);
+    }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
