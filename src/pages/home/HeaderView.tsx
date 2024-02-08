@@ -215,7 +215,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
             style={[shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeader]}>
+            <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
                 <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />

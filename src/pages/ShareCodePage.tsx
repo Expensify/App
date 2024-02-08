@@ -6,6 +6,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
@@ -79,6 +80,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.SETTINGS)}
                 shouldShowBackButton={isReport || isSmallScreenWidth}
+                icon={Illustrations.QrCode}
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.mt3]}>
                 <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection, themeStyles.ph4]}>

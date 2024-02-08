@@ -49,7 +49,7 @@ function MentionUserRenderer(props) {
         }
 
         // If the emails are not in the same private domain, we also return the displayText
-        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, props.currentUserPersonalDetails.login)) {
+        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, lodashGet(props.currentUserPersonalDetails, 'login', ''))) {
             return displayText;
         }
 

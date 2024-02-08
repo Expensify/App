@@ -10,6 +10,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
@@ -79,6 +80,9 @@ type ScreenWrapperProps = {
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
 
+    /** Whether to avoid scroll on virtual viewport */
+    shouldAvoidScrollOnVirtualViewport?: boolean;
+
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
      * when the screen transition ends.
@@ -109,6 +113,7 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
+        shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
@@ -122,7 +127,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldEnableMaxHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -192,6 +197,8 @@ function ScreenWrapper(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileSafari());
+
     return (
         <SafeAreaConsumer>
             {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
@@ -220,12 +227,12 @@ function ScreenWrapper(
                             {...keyboardDissmissPanResponder.panHandlers}
                         >
                             <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
+                                style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                                 behavior={keyboardAvoidingViewBehavior}
                                 enabled={shouldEnableKeyboardAvoidingView}
                             >
                                 <PickerAvoidingView
-                                    style={styles.flex1}
+                                    style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap styles={headerGapStyles} />
