@@ -1,4 +1,3 @@
-import sortBy from 'lodash/sortBy';
 import React, {useEffect, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -183,7 +182,7 @@ function SettlementButton({
 
         // Put the preferred payment method to the front of the array, so it's shown as default
         if (paymentMethod) {
-            return sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
+            return buttonOptions.sort((method) => (method.value === paymentMethod ? -1 : 0));
         }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
