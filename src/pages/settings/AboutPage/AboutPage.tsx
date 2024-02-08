@@ -13,7 +13,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -25,7 +24,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
 
@@ -51,7 +49,6 @@ type MenuItem = {
 
 function AboutPage() {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
     const waitForNavigate = useWaitForNavigation();
