@@ -49,7 +49,7 @@ function MentionUserRenderer(props) {
         }
 
         // If the emails are not in the same private domain, we also return the displayText
-        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, props.currentUserPersonalDetails.login)) {
+        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, lodashGet(props.currentUserPersonalDetails, 'login', ''))) {
             return displayText;
         }
 
@@ -60,7 +60,7 @@ function MentionUserRenderer(props) {
     if (!_.isEmpty(htmlAttributeAccountID)) {
         const user = lodashGet(personalDetails, htmlAttributeAccountID);
         accountID = parseInt(htmlAttributeAccountID, 10);
-        displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || lodashGet(user, 'displayName', '') || translate('common.hidden');
+        displayNameOrLogin = lodashGet(user, 'displayName', '') || LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || translate('common.hidden');
         displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttributeAccountID, lodashGet(user, 'login', ''));
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttributeAccountID);
     } else if (!_.isEmpty(tnode.data)) {
