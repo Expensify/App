@@ -13,7 +13,7 @@ import type {
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as Routes} from '@src/ROUTES';
+import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -176,8 +176,8 @@ type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
 };
 
-type ReportWelcomeMessageNavigatorParamList = {
-    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: {reportID: string};
+type ReportDescriptionNavigatorParamList = {
+    [SCREENS.REPORT_DESCRIPTION_ROOT]: {reportID: string};
 };
 
 type ParticipantsNavigatorParamList = {
@@ -215,22 +215,26 @@ type MoneyRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.MONEY_REQUEST.DESCRIPTION]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
-        field: string;
-        threadReportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.CATEGORY]: {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.TAG]: {
-        iouType: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
         iouType: string;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_TAG]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
         backTo: string;
@@ -275,6 +279,12 @@ type NewTaskNavigatorParamList = {
     [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
 };
 
+type OnboardEngagementNavigatorParamList = {
+    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: undefined;
+    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: undefined;
+    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: undefined;
+};
+
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
@@ -284,7 +294,6 @@ type TeachersUniteNavigatorParamList = {
 
 type TaskDetailsNavigatorParamList = {
     [SCREENS.TASK.TITLE]: undefined;
-    [SCREENS.TASK.DESCRIPTION]: undefined;
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
     };
@@ -366,12 +375,13 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE]: NavigatorScreenParams<ReportWelcomeMessageNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT]: NavigatorScreenParams<OnboardEngagementNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: NavigatorScreenParams<EnablePaymentsNavigatorParamList>;
@@ -413,7 +423,7 @@ type PublicScreensParamList = {
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
-        exitTo?: Routes;
+        exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
@@ -500,7 +510,7 @@ export type {
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     TaskDetailsNavigatorParamList,
-    ReportWelcomeMessageNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
     ParticipantsNavigatorParamList,
     RoomMembersNavigatorParamList,
     RoomInviteNavigatorParamList,
@@ -520,5 +530,6 @@ export type {
     ReimbursementAccountNavigatorParamList,
     State,
     WorkspaceSwitcherNavigatorParamList,
+    OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
 };
