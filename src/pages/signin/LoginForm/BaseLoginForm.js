@@ -15,7 +15,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -73,8 +72,6 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     isVisible: PropTypes.bool.isRequired,
-
-    ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -381,7 +378,6 @@ export default compose(
         credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
-    withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),

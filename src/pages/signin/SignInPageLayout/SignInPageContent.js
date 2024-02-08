@@ -10,7 +10,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import variables from '@styles/variables';
@@ -37,7 +36,6 @@ const propTypes = {
 };
 
 function SignInPageContent(props) {
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -46,10 +44,10 @@ function SignInPageContent(props) {
         <View style={[styles.flex1, styles.signInPageLeftContainer]}>
             <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
-                <View style={[styles.flexGrow1, isSmallScreenWidth ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
+                <View style={[styles.flexGrow1, shouldUseNarrowLayout ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
                 <View style={[styles.flexGrow2, styles.mb8]}>
                     <SignInPageForm style={[styles.alignSelfStretch]}>
-                        <View style={[isSmallScreenWidth ? styles.mb8 : styles.mb15, isSmallScreenWidth ? styles.alignItemsCenter : styles.alignSelfStart]}>
+                        <View style={[shouldUseNarrowLayout ? styles.mb8 : styles.mb15, shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignSelfStart]}>
                             <ExpensifyWordmark />
                         </View>
                         <View style={[styles.signInPageWelcomeTextContainer]}>
@@ -60,7 +58,7 @@ function SignInPageContent(props) {
                                         StyleUtils.getLineHeightStyle(variables.lineHeightSignInHeroXSmall),
                                         StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
                                         !props.welcomeText ? styles.mb5 : {},
-                                        !isSmallScreenWidth ? styles.textAlignLeft : {},
+                                        !shouldUseNarrowLayout ? styles.textAlignLeft : {},
                                         styles.mb5,
                                     ]}
                                 >
@@ -68,7 +66,7 @@ function SignInPageContent(props) {
                                 </Text>
                             ) : null}
                             {props.shouldShowWelcomeText && props.welcomeText ? (
-                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{props.welcomeText}</Text>
+                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>{props.welcomeText}</Text>
                             ) : null}
                         </View>
                         {props.children}
