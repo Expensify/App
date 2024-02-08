@@ -172,8 +172,8 @@ type ReportRouteParams = {
 };
 
 type ReportOfflinePendingActionAndErrors = {
-    addWorkspaceRoomOrChatPendingAction: PendingAction | undefined;
-    addWorkspaceRoomOrChatErrors: Errors | null | undefined;
+    reportPendingAction: PendingAction | undefined;
+    reportErrors: Errors | null | undefined;
 };
 
 type OptimisticApprovedReportAction = Pick<
@@ -1096,10 +1096,9 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks whether all the transactions linked to the IOU report are of the Distance Request type
- *
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
  */
-function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
+function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
 
     // Early return false in case not having any transaction
@@ -1107,7 +1106,7 @@ function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): bo
         return false;
     }
 
-    return transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
+    return transactions.every((transaction) => TransactionUtils.isFetchingWaypointsFromServer(transaction));
 }
 
 /**
@@ -1227,6 +1226,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
     const report = getReport(reportID);
 
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         // For now, users cannot delete split actions
@@ -1237,6 +1237,10 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         }
 
         if (isActionOwner) {
+            if (!isEmptyObject(report) && isPaidGroupPolicyExpenseReport(report)) {
+                // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
+                return isDraftExpenseReport(report) || PolicyUtils.isPolicyAdmin(policy);
+            }
             return true;
         }
     }
@@ -1250,7 +1254,6 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         return false;
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
 
     return isActionOwner || isAdmin;
@@ -1945,8 +1948,9 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     }
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
-    const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
+    const payerOrApproverName =
+        isExpenseReport(report) && !hasNonReimbursableTransactions(report?.reportID ?? '') ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
@@ -2185,6 +2189,11 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
         // Transaction data might be empty on app's first load, if so we fallback to Request
         return Localize.translateLocal('iou.request');
     }
+
+    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
+        return Localize.translateLocal('iou.routePending');
+    }
+
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
@@ -2196,7 +2205,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
     const transactionDetails = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency, TransactionUtils.isDistanceRequest(transaction)) ?? '',
+        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
         comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
     });
 }
@@ -2209,7 +2218,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
 function getReportPreviewMessage(
     report: OnyxEntry<Report> | EmptyObject,
     reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
-    shouldConsiderReceiptBeingScanned = false,
+    shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
     isForListPreview = false,
@@ -2244,9 +2253,10 @@ function getReportPreviewMessage(
         }
     }
 
+    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
-    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+    const payerName = isExpenseReport(report) && !containsNonReimbursable ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
@@ -2258,12 +2268,16 @@ function getReportPreviewMessage(
     }
 
     let linkedTransaction;
-    if (!isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (!isEmptyObject(reportAction) && shouldConsiderScanningReceiptOrPendingRoute && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
     }
 
     if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
         return Localize.translateLocal('iou.receiptScanning');
+    }
+
+    if (!isEmptyObject(linkedTransaction) && TransactionUtils.isFetchingWaypointsFromServer(linkedTransaction) && !TransactionUtils.getAmount(linkedTransaction)) {
+        return Localize.translateLocal('iou.routePending');
     }
 
     const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
@@ -2309,8 +2323,6 @@ function getReportPreviewMessage(
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
         return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
     }
-
-    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
 
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
@@ -4232,14 +4244,20 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
 }
 
 /**
- * Return the pendingAction and the errors we have when creating a chat or a workspace room offline
+ * Return the pendingAction and the errors resulting from either
+ *
+ * - creating a workspace room
+ * - starting a chat
+ * - paying the money request
+ *
+ * while being offline
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
-    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
-    // simply looking up the first truthy value for each case will get the relevant property if it's set.
-    const addWorkspaceRoomOrChatPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat;
-    const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
+    // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed;
+
+    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+    return {reportPendingAction, reportErrors};
 }
 
 function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null {
@@ -4933,7 +4951,7 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
-    hasOnlyDistanceRequestTransactions,
+    hasOnlyTransactionsWithPendingRoutes,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,
