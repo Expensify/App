@@ -589,6 +589,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        routePending: 'Route pending...',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
@@ -712,6 +713,14 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
         profileAvatar: 'Profile avatar',
+        publicSection: {
+            title: 'Public',
+            subtitle: 'These details are displayed on your public profile, available for people to see.',
+        },
+        privateSection: {
+            title: 'Private',
+            subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
+        },
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -818,6 +827,7 @@ export default {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
+        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account Settings',
         account: 'Account',
@@ -2109,6 +2119,20 @@ export default {
         [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
         welcomeMessage: 'Welcome to Expensify',
         welcomeSubtitle: 'What would you like to do?',
+    },
+    manageTeams: {
+        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
+        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
+        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
+        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
+        title: 'Do you require any of the following features?',
+    },
+    expensifyClassic: {
+        title: "Expensify Classic has everything you'll need",
+        firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
+        secondDescription: "Don't worry, Expensify Classic has everything you need.",
+        buttonText: 'Take me to Expensify Classic',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
