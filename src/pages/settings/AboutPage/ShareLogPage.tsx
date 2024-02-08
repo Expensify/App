@@ -9,12 +9,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as Reports from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Log, Report} from '@src/types/onyx';
+import type {Beta, Report} from '@src/types/onyx';
 
 type ShareLogOnyxProps = {
     /** Beta features list */
@@ -22,14 +24,17 @@ type ShareLogOnyxProps = {
 
     /** All reports shared with the user */
     reports: OnyxCollection<Report>;
-
-    /** Logs */
-    logs: OnyxEntry<Record<number, Log>>;
 };
 
-type ShareLogProps = ShareLogOnyxProps;
+type ShareLogProps = ShareLogOnyxProps & {
+    route: {
+        params: {
+            source: string;
+        };
+    };
+};
 
-function ShareLogPage({betas, reports, logs}: ShareLogProps) {
+function ShareLogPage({betas, reports, route}: ShareLogProps) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.GetOptions, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
         recentReports: [],
@@ -115,6 +120,20 @@ function ShareLogPage({betas, reports, logs}: ShareLogProps) {
         setSearchValue(value);
     };
 
+    const attachLogToReport = (option) => {
+        if (!option || !route.params.source) {
+            return;
+        }
+
+        if (option.reportID) {
+            const filename = FileUtils.appendTimeToFileName('logs');
+            Reports.addAttachment(option.reportID, {name: filename, source: route.params.source});
+
+            const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(option.reportID);
+            Navigation.navigate(routeToNavigate);
+        }
+    };
+
     return (
         <ScreenWrapper
             testID={ShareLogPage.displayName}
@@ -129,6 +148,7 @@ function ShareLogPage({betas, reports, logs}: ShareLogProps) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
+                            onSelectRow={attachLogToReport}
                             onChangeText={onChangeText}
                             value={searchValue}
                             headerMessage={headerMessage}
@@ -155,8 +175,5 @@ export default withOnyx<ShareLogProps, ShareLogOnyxProps>({
     },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    logs: {
-        key: ONYXKEYS.LOGS,
     },
 })(ShareLogPage);

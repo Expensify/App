@@ -156,7 +156,10 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: 'settings/troubleshoot/console',
-    SETTINGS_SHARE_LOG: 'settings/troubleshoot/console/share-log',
+    SETTINGS_SHARE_LOG: {
+        route: 'settings/troubleshoot/console/share-log',
+        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
+    },
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
@@ -167,7 +170,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string) => `r/${reportID}` as const,
+        getRoute: (reportID: string, source?: string) => `r/${reportID}?source=${source}` as const,
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',

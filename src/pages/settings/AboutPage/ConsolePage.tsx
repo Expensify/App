@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addLog from '@libs/actions/Console';
 import {createLog, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
+import localFileCreate from '@libs/localFileCreate';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +30,20 @@ type ConsolePageOnyxProps = {
     /** Logs captured on the current device */
     capturedLogs: OnyxEntry<CapturedLogs>;
 };
+
+const parseStingifiedMessages = (logs: CapturedLogs) =>
+    Object.values(logs).map((log) => {
+        try {
+            const parsedMessage = JSON.parse(log.message);
+            return {
+                ...log,
+                message: parsedMessage,
+            };
+        } catch {
+            // If the message can't be parsed, just return the original log
+            return log;
+        }
+    });
 
 function ConsolePage({capturedLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
@@ -50,24 +65,16 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
     };
 
     const saveLogs = () => {
-        const logsWithParsedMessages = Object.values(logs).map((log) => {
-            try {
-                const parsedMessage = JSON.parse(log.message);
-                return {
-                    ...log,
-                    message: parsedMessage,
-                };
-            } catch {
-                // If the message can't be parsed, just return the original log
-                return log;
-            }
-        });
+        const logsWithParsedMessages = parseStingifiedMessages(logs);
 
         localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), 'File was saved in your Downloads folder.');
     };
 
     const shareLogs = () => {
-        Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG);
+        const logsWithParsedMessages = parseStingifiedMessages(logs);
+        localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path}) => {
+            Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path));
+        });
     };
 
     return (
