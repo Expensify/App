@@ -1,4 +1,4 @@
-import {navigationRef} from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 import useWindowDimensions from './useWindowDimensions';
 
