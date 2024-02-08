@@ -322,7 +322,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - OpenSSL-Universal (1.1.1100)
-  - Plaid (5.1.0)
+  - Plaid (5.2.0)
   - PromisesObjC (2.3.1)
   - RCT-Folly (2022.05.16.00):
     - boost
@@ -1438,10 +1438,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-plaid-link-sdk (11.2.0):
+  - react-native-plaid-link-sdk (11.5.0):
     - glog
     - hermes-engine
-    - Plaid (~> 5.1.0)
+    - Plaid (~> 5.2.0)
     - RCT-Folly (= 2022.05.16.00)
     - RCTRequired
     - RCTTypeSafety
@@ -2499,7 +2499,7 @@ SPEC CHECKSUMS:
   Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
   onfido-react-native-sdk: e7c706cf1c1897437dbbc95132e7928ce43a3a59
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Plaid: 41841853b526d9e88cf0a214d1e5d77692044c4a
+  Plaid: 08a150ee90948c5103ce4425353f9d73e12db3f4
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 9b1e7e262745fb671e33c51c1078d093bd30e322
@@ -2538,7 +2538,7 @@ SPEC CHECKSUMS:
   react-native-pager-view: 9ac6bc0fb3fa31c6d403b253ee361e62ff7ccf7f
   react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
   react-native-performance: 1aa5960d005159f4ab20be15b44714b53b44e075
-  react-native-plaid-link-sdk: e52cefc2c3407884718416706214068937546359
+  react-native-plaid-link-sdk: 93870f8cd1de8e0acca5cb5020188bdc94e15db6
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: e8bdd57d9f8d34cc336f0ee6acb30712a8454446
