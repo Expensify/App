@@ -125,7 +125,7 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
         }
 
         hideReactionList();
-    });
+    }, [emojiReactions, emojiName, isPopoverVisible, reportActionID, preferredLocale]);
 
     return {isPopoverVisible, cursorRelativePosition, popoverAnchorPosition, getReactionInformation, hideReactionList, reactionListRef, showReactionList};
 }
