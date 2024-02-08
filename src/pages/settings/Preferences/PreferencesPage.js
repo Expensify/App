@@ -22,7 +22,6 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /** The chat priority mode */
@@ -73,7 +72,6 @@ function PreferencesPage(props) {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.PreferencesDJ}
-                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
                         <View style={[styles.flex1, styles.mt5]}>

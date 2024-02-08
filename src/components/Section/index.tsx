@@ -90,7 +90,7 @@ function Section({
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? theme.appBG);
+    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? illustration?.backgroundColor ?? theme.appBG);
 
     return (
         <>
