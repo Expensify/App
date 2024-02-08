@@ -1988,7 +1988,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copy',
+        copy: 'Copy URL',
         copied: 'Copied!',
     },
     moderation: {

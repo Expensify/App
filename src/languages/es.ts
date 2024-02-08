@@ -2474,7 +2474,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copiar',
+        copy: 'Copiar URL',
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
