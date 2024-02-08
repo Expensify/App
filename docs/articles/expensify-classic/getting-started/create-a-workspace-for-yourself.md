@@ -80,6 +80,8 @@ You can upload pictures of your receipts to Expensify and SmartScan will automat
            <ul>
               <li>Normal Mode: Upload one receipt.</li>
               <li>Rapid Fire Mode: Upload multiple receipts at once.</li>
+           </ul>
+       </ul>
 </ol>
 {% include end-option.html %}
 
