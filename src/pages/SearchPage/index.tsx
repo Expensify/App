@@ -151,7 +151,10 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')} />
+                    <HeaderWithBackButton
+                        title={translate('common.search')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList<ReportUtils.OptionData>
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
