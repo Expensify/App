@@ -397,7 +397,7 @@ This application is built with the following principles.
 ----
 
 # Security
-Updated rules for managing all types of chats (add/remove people)
+Updated rules for managing members across all types of chats in New Expensify
 
 
 1. ### DM
@@ -407,7 +407,7 @@ Updated rules for managing all types of chats (add/remove people)
     | **Remove** | ❌ 
     | **Leave**  | ❌ 
     | **Can be removed**  | ❌
-- **DM the only ever have 2 participants**
+- DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
 
 2. ### Workspace
     1. #### Workspace
@@ -418,11 +418,11 @@ Updated rules for managing all types of chats (add/remove people)
         | **Leave**  | ❌ |  ✅ |  ❌ | ✅
         | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
 
-        - **Creator can't leave or be removed from their own workspace**
-        - **Admins can't leave from the workspace**
-        - **Admins can remove other workspace admins, as well as workspace members, and invited guests**
-        - **Creator can remove other workspace admins, as well as workspace members, and invited guests**
-        - **Members and Auditoes can't invite or remove from the workspace they were invited to**
+        - Creator can't leave or be removed from their own workspace
+        - Admins can't leave from the workspace
+        - Admins can remove other workspace admins, as well as workspace members, and invited guests
+        - Creator can remove other workspace admins, as well as workspace members, and invited guests
+        - Members and Auditors cannot invite or remove anyone from the workspace
 
     2. #### Workspace #announce room
         |   |  Member(Employee/User) | Admin |  Auditor?
@@ -432,7 +432,7 @@ Updated rules for managing all types of chats (add/remove people)
         | **Leave**  | ❌ |  ❌ |  ❌
         | **Can be removed**  | ❌ |  ❌ |  ❌ |
 
-       - **All members can't leave or be removed from the #announce room**
+       - No one can leave or be removed from the #announce room
 
     3. #### Workspace #admin room
         |   |  Admin |
@@ -442,7 +442,7 @@ Updated rules for managing all types of chats (add/remove people)
         | **Leave**  | ❌ 
         | **Can be removed**  | ❌
 
-        - **Admins can't leave or be removed from #admins**
+        - Admins can't leave or be removed from #admins
     
     4. #### Workspace rooms
         |   |  Creator | Member | Guest(outside of the workspace)
@@ -452,8 +452,8 @@ Updated rules for managing all types of chats (add/remove people)
         | **Leave**  | ✅ | ✅ | ✅
         | **Can be removed**  | ✅ | ✅ | ✅
 
-        - **Everyone can be removed/can leave from the rooms(creator as well)**
-        - **Only guests are not able to remove from the room**
+        - Everyone can be removed/can leave from the room including creator
+        - Guests are not able to remove anyone from the room
 
     4. #### Workspace chats
         |   |  Admin | Member(default) | Member(invited)  
@@ -463,11 +463,11 @@ Updated rules for managing all types of chats (add/remove people)
         | **Leave**  | ❌ |  ❌  | ✅
         | **Can be removed**  | ❌ | ❌ | ✅
 
-        - **Admins are not able to leave/be removed from the workspace chat**
-        - **Default members(automatically invited) are not able to leave/be removed from the workspace chat**
-        - **Invited members(invited by members) are not able to invite or remove from the workspace chat**
-        - **Invited members(invited by members) are able to leave the workspace chat**
-        - **Default members and admins are able to remove invited members**
+        - Admins are not able to leave/be removed from the workspace chat
+        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
+        - Invited members(invited by members) are not able to invite or remove from the workspace chat
+        - Invited members(invited by members) are able to leave the workspace chat
+        - Default members and admins are able to remove invited members
 
 3. ### Domain chat
     |   |  Member
@@ -476,7 +476,7 @@ Updated rules for managing all types of chats (add/remove people)
     | **Leave**  | ❌ 
     | **Can be removed**  | ❌ 
 
-- **Domain members can't leave or be removed from their domain chat**
+- Domain members can't leave or be removed from their domain chat
 
 4. ### Reports
     |   |  Submitter | Manager
@@ -485,8 +485,8 @@ Updated rules for managing all types of chats (add/remove people)
     | **Leave**  | ❌ | ❌
     | **Can be removed**  | ❌ | ❌
 
-- **Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)**
-- **Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)**
+- Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
+- Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
 
 ----
 
