@@ -382,8 +382,6 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Start a call',
-        zoom: 'Zoom',
-        googleMeet: 'Google Meet',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
