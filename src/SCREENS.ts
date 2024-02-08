@@ -49,14 +49,10 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-
-            PERSONAL_DETAILS: {
-                INITIAL: 'Settings_PersonalDetails_Initial',
-                LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
-                DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
-                ADDRESS: 'Settings_PersonalDetails_Address',
-                ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
-            },
+            LEGAL_NAME: 'Settings_LegalName',
+            DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            ADDRESS: 'Settings_Address',
+            ADDRESS_COUNTRY: 'Settings_Address_Country',
         },
 
         PREFERENCES: {

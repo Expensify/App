@@ -154,7 +154,7 @@ function WorkspaceReimburseView(props) {
                                 Policy.setPolicyIDForReimburseView(props.policy.id);
                                 Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id));
                             }}
-                            wrapperStyle={[styles.mt3, styles.ph8, styles.mhn8, styles.wAuto]}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                             brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                         />
                     </OfflineWithFeedback>
