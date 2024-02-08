@@ -1,8 +1,8 @@
+import sortBy from 'lodash/sortBy';
 import React, {useEffect, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import sortBy from 'lodash/sortBy';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
