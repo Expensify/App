@@ -32,6 +32,8 @@ const propTypes = {
     style: stylePropTypes,
 
     showPopoverMenu: PropTypes.func.isRequired,
+
+    togglePlayCurrentVideo: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -39,23 +41,12 @@ const defaultProps = {
     style: undefined,
 };
 
-function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style, showPopoverMenu}) {
+function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style, showPopoverMenu, togglePlayCurrentVideo}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {pauseVideo, playVideo, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
-    const isCurrentlyURLSet = currentlyPlayingURL === url;
     const iconSpacing = small ? styles.mr3 : styles.mr4;
-
-    const togglePlayCurrentVideo = useCallback(() => {
-        if (!isCurrentlyURLSet) {
-            updateCurrentlyPlayingURL(url);
-        } else if (isPlaying) {
-            pauseVideo();
-        } else {
-            playVideo();
-        }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url]);
 
     const onLayout = (e) => {
         setShouldShowTime(e.nativeEvent.layout.width > CONST.VIDEO_PLAYER.HIDE_TIME_TEXT_WIDTH);

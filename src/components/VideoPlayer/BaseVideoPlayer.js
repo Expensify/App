@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +35,8 @@ function BaseVideoPlayer({
 }) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
+    const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
+        usePlaybackContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -47,6 +49,17 @@ function BaseVideoPlayer({
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const isCurrentlyURLSet = currentlyPlayingURL === url;
+
+    const togglePlayCurrentVideo = useCallback(() => {
+        if (!isCurrentlyURLSet) {
+            updateCurrentlyPlayingURL(url);
+        } else if (isPlaying) {
+            pauseVideo();
+        } else {
+            playVideo();
+        }
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url]);
 
     const showPopoverMenu = (e) => {
         setPopoverAnchorPosition({horizontal: e.nativeEvent.pageX, vertical: e.nativeEvent.pageY});
@@ -107,7 +120,10 @@ function BaseVideoPlayer({
         <>
             <Hoverable>
                 {(isHovered) => (
-                    <View style={[styles.w100, styles.h100, style]}>
+                    <View
+                        style={[styles.w100, styles.h100, style]}
+                        on
+                    >
                         {shouldUseSharedVideoElement ? (
                             <>
                                 <View
@@ -132,7 +148,13 @@ function BaseVideoPlayer({
                                     }
                                 }}
                             >
-                                <View style={styles.flex1}>
+                                <PressableWithoutFeedback
+                                    accessibilityRole="button"
+                                    onPress={() => {
+                                        togglePlayCurrentVideo();
+                                    }}
+                                    style={styles.flex1}
+                                >
                                     <Video
                                         ref={videoPlayerRef}
                                         style={videoPlayerStyle || [styles.w100, styles.h100]}
@@ -140,6 +162,7 @@ function BaseVideoPlayer({
                                         source={{
                                             uri: sourceURL,
                                         }}
+                                        togglePlayCurrentVideo={togglePlayCurrentVideo}
                                         shouldPlay={false}
                                         useNativeControls={false}
                                         resizeMode={resizeMode}
@@ -155,7 +178,7 @@ function BaseVideoPlayer({
                                             playVideo();
                                         }}
                                     />
-                                </View>
+                                </PressableWithoutFeedback>
                             </View>
                         )}
 
