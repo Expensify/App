@@ -19,7 +19,7 @@ type Account = {
     /** Whether SAML is required for the current account */
     isSAMLRequired?: boolean;
 
-    /** whenever SAML is enabled for the current account */
+    /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
     /** URL to the assigned guide's appointment booking calendar */

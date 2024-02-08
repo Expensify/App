@@ -22,18 +22,16 @@ type FooterProps = {
     shouldShowSmallScreen?: boolean;
 };
 
-type ColumnRow = {
-    onPress?: () => void;
-    link?: string;
+type FooterColumnRow = ({onPress: () => void; link?: string} | {onPress?: () => void; link: string}) & {
     translationPath: TranslationPaths;
 };
 
-type ColumnData = {
+type FooterColumnData = {
     translationPath: TranslationPaths;
-    rows: ColumnRow[];
+    rows: FooterColumnRow[];
 };
 
-const columns = ({navigateFocus}: {navigateFocus: () => void}): ColumnData[] => [
+const columns = ({navigateFocus}: {navigateFocus: () => void}): FooterColumnData[] => [
     {
         translationPath: 'footer.features',
         rows: [
@@ -183,13 +181,23 @@ function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
                                         <Hoverable key={translationPath}>
                                             {(hovered) => (
                                                 <View>
-                                                    <TextLink
-                                                        style={getTextLinkStyle(hovered)}
-                                                        href={link}
-                                                        onPress={onPress}
-                                                    >
-                                                        {translate(translationPath)}
-                                                    </TextLink>
+                                                    {link ? (
+                                                        <TextLink
+                                                            style={getTextLinkStyle(hovered)}
+                                                            href={link}
+                                                        >
+                                                            {translate(translationPath)}
+                                                        </TextLink>
+                                                    ) : (
+                                                        onPress && (
+                                                            <TextLink
+                                                                style={getTextLinkStyle(hovered)}
+                                                                onPress={onPress}
+                                                            >
+                                                                {translate(translationPath)}
+                                                            </TextLink>
+                                                        )
+                                                    )}
                                                 </View>
                                             )}
                                         </Hoverable>
