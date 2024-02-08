@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -13,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -50,6 +52,7 @@ function AboutPage() {
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
     const waitForNavigate = useWaitForNavigation();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -125,9 +128,13 @@ function AboutPage() {
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.about')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            shouldShowBackButton={isSmallScreenWidth}
             illustration={LottieAnimations.Coin}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
             overlayContent={overlayContent}
+            shouldShowOfflineIndicatorInWideScreen
+            icon={Illustrations.PalmTree}
+            testID={AboutPage.displayName}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
                 <Text style={[styles.textHeadline, styles.mb1]}>{translate('footer.aboutExpensify')}</Text>

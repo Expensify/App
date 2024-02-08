@@ -113,7 +113,7 @@ type SplitAmountParams = {amount: number};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: number};
+type AmountEachParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string};
 

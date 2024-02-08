@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -45,7 +46,7 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     policy: Policy;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction?: ReportAction & OriginalMessageIOU;
+    parentReportAction: ReportAction & OriginalMessageIOU;
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}: MoneyRequestHeaderProps) {
@@ -62,24 +63,28 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', parentReportAction ?? {}, true);
+        IOU.deleteMoneyRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const isPending = !!transaction && TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
-
+    const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
+    let canDeleteRequest = canModifyRequest;
+
+    if (ReportUtils.isPaidGroupPolicyExpenseReport(moneyRequestReport)) {
+        // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
+        canDeleteRequest = canDeleteRequest && (ReportUtils.isDraftExpenseReport(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
+    }
 
     useEffect(() => {
-        if (canModifyRequest) {
+        if (canDeleteRequest) {
             return;
         }
 
         setIsDeleteModalVisible(false);
-    }, [canModifyRequest]);
-    const menuItem = HeaderUtils.getPinMenuItem(report);
-    const threeDotsMenuItems = menuItem ? [menuItem] : [];
+    }, [canDeleteRequest]);
+    const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
@@ -97,11 +102,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     ),
             });
         }
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-            onSelected: () => setIsDeleteModalVisible(true),
-        });
+        if (canDeleteRequest) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Trashcan,
+                text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                onSelected: () => setIsDeleteModalVisible(true),
+            });
+        }
     }
 
     return (
