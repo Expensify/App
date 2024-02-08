@@ -265,9 +265,9 @@ function MoneyRequestConfirmationList({
     const shouldShowBillable = !policy?.disabledFields?.defaultBillable ?? true;
 
     const hasRoute = TransactionUtils.hasRoute(transaction ?? null);
-    const isDistanceRequestWithoutRoute = isDistanceRequest && !hasRoute;
-    const formattedAmount = isDistanceRequestWithoutRoute
-        ? translate('common.tbd')
+    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !mileageRate?.rate);
+    const formattedAmount = isDistanceRequestWithPendingRoute
+        ? ''
         : CurrencyUtils.convertToDisplayString(
               shouldCalculateDistanceAmount
                   ? DistanceRequestUtils.getDistanceRequestAmount(distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate?.rate ?? 0)
@@ -343,7 +343,7 @@ function MoneyRequestConfirmationList({
         let text;
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
-        } else if (!!(receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
+        } else if (!!(receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
             if (iouAmount !== 0) {
                 text = translate('iou.requestAmount', {amount: Number(formattedAmount)});
@@ -358,7 +358,7 @@ function MoneyRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isSplitBill, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate]);
+    }, [isSplitBill, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
 
     const selectedParticipantsMemo = useMemo(() => selectedParticipants.filter((participant) => participant.selected), [selectedParticipants]);
     const payeePersonalDetailsMemo = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
@@ -439,6 +439,12 @@ function MoneyRequestConfirmationList({
         if (!isDistanceRequest) {
             return;
         }
+        /*
+         Set pending waypoints based on the route status. We should handle this dynamically to cover cases such as:
+         When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
+         In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
+        */
+        IOU.setMoneyRequestPendingFields(transactionID ?? '', {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(
             hasRoute,
             distance,
@@ -449,7 +455,7 @@ function MoneyRequestConfirmationList({
             toLocaleDigit,
         );
         IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID ?? '', distanceMerchant);
-    }, [hasRoute, distance, mileageRate?.unit, mileageRate?.rate, mileageRate?.currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
+    }, [hasRoute, distance, mileageRate?.unit, mileageRate?.rate, mileageRate?.currency, translate, toLocaleDigit, isDistanceRequest, transactionID, isDistanceRequestWithPendingRoute]);
 
     const selectParticipant = useCallback(
         (option: Participant) => {
@@ -476,7 +482,7 @@ function MoneyRequestConfirmationList({
     };
 
     const confirm = useCallback(
-        (paymentMethod: IOU.PaymentMethodType | undefined) => {
+        (paymentMethod: OnyxTypes.PaymentMethodType | undefined) => {
             if (selectedParticipantsMemo.length === 0) {
                 return;
             }
@@ -496,7 +502,7 @@ function MoneyRequestConfirmationList({
             } else {
                 // validate the amount for distance requests
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
-                if (isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
+                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
@@ -518,7 +524,7 @@ function MoneyRequestConfirmationList({
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            isDistanceRequestWithoutRoute,
+            isDistanceRequestWithPendingRoute,
             iouAmount,
             isEditingSplitBill,
             transaction,
@@ -686,11 +692,15 @@ function MoneyRequestConfirmationList({
                 title={iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    if (isEditingSplitBill) {
-                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(iouType, reportID));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            iouType,
+                            transaction?.transactionID ?? '',
+                            reportID ?? '',
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    );
                 }}
                 style={styles.moneyRequestMenuItem}
                 titleStyle={styles.flex1}

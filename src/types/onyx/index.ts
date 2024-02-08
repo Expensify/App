@@ -36,6 +36,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type {PaymentMethodType} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -172,4 +173,5 @@ export type {
     PrivateNotesForm,
     ReportFieldEditForm,
     RoomNameForm,
+    PaymentMethodType,
 };

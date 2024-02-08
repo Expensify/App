@@ -1,4 +1,4 @@
-import type {PaymentMethodType} from '@libs/actions/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type SendMoneyParams = {
     iouReportID: string;
