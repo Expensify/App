@@ -11,7 +11,7 @@ function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: Rad
         <View style={[styles.flex1, styles.alignItemsStart]}>
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
-                text={item.text}
+                text={item.text ?? ''}
                 textStyles={textStyles}
             />
 

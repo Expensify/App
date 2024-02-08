@@ -1,7 +1,6 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -75,7 +74,10 @@ type User = {
 
     /** Represents the index of the option within the section it came from */
     index?: number;
-} & Report;
+
+    /** ID of the report */
+    reportID?: string;
+};
 
 type UserListItemProps = CommonListItemProps<User> & {
     /** The section list item */
@@ -87,19 +89,19 @@ type UserListItemProps = CommonListItemProps<User> & {
 
 type RadioItem = {
     /** Text to display */
-    text: string;
+    text?: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList: string;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** Represents the index of the section it came from  */
     sectionIndex?: number;

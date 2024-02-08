@@ -55,13 +55,13 @@ function BaseListItem<TItem extends User | RadioItem>({
             <PressableWithFeedback
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
-                accessibilityLabel={item.text}
+                accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList}
+                nativeID={keyForList ?? ''}
             >
                 <View
                     style={[
@@ -130,7 +130,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                     )}
                     {rightHandSideComponentRender()}
                 </View>
-                {isUserItem && item.invitedSecondaryLogin && (
+                {isUserItem && 'invitedSecondaryLogin' in item && item.invitedSecondaryLogin && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
                         {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
                     </Text>
