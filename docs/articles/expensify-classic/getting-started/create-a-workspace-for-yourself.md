@@ -62,7 +62,7 @@ You can upload pictures of your receipts to Expensify and SmartScan will automat
 
 {% include selector.html values="desktop, mobile" %}
 
-{% include option.html value="desktop" %
+{% include option.html value="desktop" %}
 <ol type="a">
    <li>Click the <b>Expenses</b> tab.</li>
    <li>Click the + icon in the top right and select <b>Scan Receipt</b>.</li>  
