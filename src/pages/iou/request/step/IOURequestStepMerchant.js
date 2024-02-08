@@ -50,18 +50,13 @@ function IOURequestStepMerchant({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const {merchant} = ReportUtils.getTransactionDetails(transaction);
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    let currentMerchant = merchant;
 
-    if (isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction)) {
-        const {merchant: splitBillMerchant} = ReportUtils.getTransactionDetails(splitDraftTransaction);
+    const {merchant} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
-        currentMerchant = splitBillMerchant;
-    }
-    const isEmptyMerchant = currentMerchant === '' || currentMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
     const isMerchantRequired = _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
 
@@ -103,7 +98,7 @@ function IOURequestStepMerchant({
 
         // In case the merchant hasn't been changed, do not make the API request.
         // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
-        if (newMerchant === currentMerchant || (newMerchant === '' && currentMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+        if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
             navigateBack();
             return;
         }
@@ -136,7 +131,7 @@ function IOURequestStepMerchant({
                         InputComponent={TextInput}
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
-                        defaultValue={isEmptyMerchant ? '' : currentMerchant}
+                        defaultValue={isEmptyMerchant ? '' : merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
