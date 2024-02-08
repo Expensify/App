@@ -1,9 +1,9 @@
-name: "Announce failed workflow in Slack"
-description: "Post failed workflow in Slack #announce channel"
+name: 'Announce failed workflow in Slack'
+description: 'Post failed workflow in Slack #announce channel'
 
 inputs:
   SLACK_WEBHOOK:
-    description: "URL of the slack webhook"
+    description: 'URL of the slack webhook'
     required: true
 
 runs:
