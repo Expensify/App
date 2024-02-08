@@ -1,4 +1,5 @@
 import React from 'react';
+import {Platform} from 'react-native';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
@@ -82,7 +83,8 @@ function EmojiReactionBubble(
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{emojiCodes.join('')}</Text>
+            {/* TODO: investigate why emojis are moved up on iOS on the new architecture */}
+            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu), {transform: [{translateY: Platform.OS === 'ios' ? 2 : 0}]}]}>{emojiCodes.join('')}</Text>
             {count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted)]}>{count}</Text>}
         </PressableWithSecondaryInteraction>
     );
