@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -27,10 +26,9 @@ type DistanceEReceiptProps = {
 function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const thumbnail = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction) ?? {};
-    const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
+    const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot((thumbnail as string) || '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
     const sortedWaypoints = useMemo<WaypointCollection>(
@@ -56,7 +54,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {!!isOffline || !thumbnailSource ? (
+                        {TransactionUtils.isFetchingWaypointsFromServer(transaction) || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ThumbnailImage
@@ -68,7 +66,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                         )}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
-                        <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
+                        {!!transactionAmount && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
                         <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
