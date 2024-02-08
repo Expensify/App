@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -6,17 +7,16 @@ import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 
 type Props = WithPolicyProps;
 

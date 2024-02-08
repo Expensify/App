@@ -21,8 +21,8 @@ import type {
     OpenWorkspaceReimburseViewParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
-    UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceDescriptionParams,
+    UpdateWorkspaceGeneralSettingsParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -897,8 +897,6 @@ function updateDescription(policyID: string, description: string, currentDescrip
         return;
     }
     const parsedDescription = ReportUtils.getParsedComment(description);
-
-    console.log(parsedDescription);
 
     const optimisticData: OnyxUpdate[] = [
         {

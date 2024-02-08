@@ -76,7 +76,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                             >
                                 <RenderHTML html={policy.description} />
                             </PressableWithoutFeedback>
-                        ): (
+                        ) : (
                             <Text>
                                 <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
                                 <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>

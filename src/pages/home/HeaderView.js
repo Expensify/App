@@ -40,7 +40,6 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { is } from 'date-fns/locale';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -70,6 +69,9 @@ const propTypes = {
 
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
+
+        /** The id of the policy */
+        id: PropTypes.number,
     }),
 
     /** The reportID of the request */
