@@ -25,6 +25,7 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     file: {name: splittedUrl[splittedUrl.length - 1]},
+                    duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
                     hasBeenFlagged: false,
                 });

@@ -11,14 +11,17 @@ const propTypes = {
     isHovered: PropTypes.bool,
 
     shouldUseSharedVideoElement: PropTypes.bool,
+
+    videoDuration: PropTypes.number,
 };
 
 const defaultProps = {
     isHovered: false,
     shouldUseSharedVideoElement: false,
+    videoDuration: 0,
 };
 
-function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement}) {
+function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, videoDuration}) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
@@ -26,6 +29,7 @@ function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement}) {
             url={source}
             shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreenWidth}
             isVideoHovered={isHovered}
+            videoDuration={videoDuration}
         />
     );
 }

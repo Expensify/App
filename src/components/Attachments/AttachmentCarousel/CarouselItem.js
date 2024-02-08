@@ -35,6 +35,8 @@ const propTypes = {
 
         /** The id of the transaction related to the attachment */
         transactionID: PropTypes.string,
+
+        duration: PropTypes.number,
     }).isRequired,
 
     /** Whether there is only one element in the attachment carousel */
@@ -118,6 +120,7 @@ function CarouselItem({item, index, activeIndex, isSingleItem, onPress, isFocuse
                     transactionID={item.transactionID}
                     isHovered={isModalHovered}
                     isFocused={isFocused}
+                    optionalVideoDuration={item.duration}
                 />
             </View>
 

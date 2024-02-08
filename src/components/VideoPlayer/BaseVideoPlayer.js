@@ -35,7 +35,7 @@ function BaseVideoPlayer({
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
-    const [duration, setDuration] = useState(videoDuration);
+    const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +61,7 @@ function BaseVideoPlayer({
         const isVideoPlaying = e.isPlaying || false;
         setIsPlaying(isVideoPlaying);
         setIsLoading(Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
-        setDuration(e.durationMillis || 0);
+        setDuration(e.durationMillis || videoDuration * 1000);
         setPosition(e.positionMillis || 0);
     }, []);
 

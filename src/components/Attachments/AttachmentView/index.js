@@ -58,6 +58,8 @@ const propTypes = {
     transactionID: PropTypes.string,
 
     isHovered: PropTypes.bool,
+
+    optionalVideoDuration: PropTypes.number,
 };
 
 const defaultProps = {
@@ -70,6 +72,7 @@ const defaultProps = {
     maybeIcon: false,
     transactionID: '',
     isHovered: false,
+    optionalVideoDuration: 0,
 };
 
 function AttachmentView({
@@ -93,6 +96,7 @@ function AttachmentView({
     fallbackSource,
     transaction,
     isHovered,
+    optionalVideoDuration,
 }) {
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
@@ -206,11 +210,13 @@ function AttachmentView({
     }
 
     if (isVideo || (file && Str.isVideo(file.name))) {
+        console.log({optionalVideoDuration});
         return (
             <AttachmentViewVideo
                 source={source}
                 shouldUseSharedVideoElement={isUsedInCarousel}
                 isHovered={isHovered}
+                videoDuration={optionalVideoDuration}
             />
         );
     }
