@@ -4,7 +4,6 @@ import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -33,10 +32,9 @@ function DistanceEReceipt({transaction}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
-    const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
+    const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const sortedWaypoints = useMemo(
@@ -64,7 +62,7 @@ function DistanceEReceipt({transaction}) {
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isOffline || !thumbnailSource ? (
+                        {TransactionUtils.isFetchingWaypointsFromServer(transaction) || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ThumbnailImage
@@ -76,7 +74,7 @@ function DistanceEReceipt({transaction}) {
                         )}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
-                        <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
+                        {!!transactionAmount && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
                         <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
