@@ -106,11 +106,7 @@ function MoneyRequestView({
     } = ReportUtils.getTransactionDetails(transaction) ?? {};
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
-    if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
-        formattedTransactionAmount = translate('common.tbd');
-    }
+    const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -268,7 +264,17 @@ function MoneyRequestView({
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.REQUEST,
+                                    transaction?.transactionID ?? '',
+                                    report.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         numberOfLinesTitle={0}
@@ -279,7 +285,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={hasPendingWaypoints ? transactionMerchant?.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
+                            title={transactionMerchant}
                             interactive={canEditDistance}
                             shouldShowRightIcon={canEditDistance}
                             titleStyle={styles.flex1}

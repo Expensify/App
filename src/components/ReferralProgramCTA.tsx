@@ -33,7 +33,7 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: Ref
     const theme = useTheme();
 
     const handleDismissCallToAction = () => {
-        User.dismissReferralBanner(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND);
+        User.dismissReferralBanner(referralContentType);
     };
 
     if (!referralContentType || dismissedReferralBanners[referralContentType]) {

@@ -501,6 +501,7 @@ const CONST = {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
+        DISMMISSED_REASON: '?dismissedReason=missingFeatures',
     },
 
     SIGN_IN_FORM_WIDTH: 300,
@@ -3173,6 +3174,14 @@ const CONST = {
         SUBMIT: 'newDotSubmit',
         MANAGE_TEAM: 'newDotManageTeam',
         CHAT_SPLIT: 'newDotSplitChat',
+    },
+
+    MANAGE_TEAMS_CHOICE: {
+        MULTI_LEVEL: 'multiLevelApproval',
+        CUSTOM_EXPENSE: 'customExpenseCoding',
+        CARD_TRACKING: 'companyCardTracking',
+        ACCOUNTING: 'accountingIntegrations',
+        RULE: 'ruleEnforcement',
     },
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
