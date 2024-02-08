@@ -50,7 +50,7 @@ const defaultProps = {
     subtitle: '',
     onCtaPress: () => {},
     illustration: null,
-    illustrationBackgroundColor: '',
+    illustrationBackgroundColor: null,
     illustrationStyle: [],
 };
 
