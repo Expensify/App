@@ -207,10 +207,20 @@ jobs:
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        uses: 8398a7/action-slack@v3
         with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          CHANNEL: "#expensify-margelo"
+          status: custom
+          custom_payload: |
+            {
+              channel: '#expensify-margelo',
+              attachments: [{
+                color: 'danger',
+                text: `💥 ${process.env.AS_REPO} E2E Test run failed failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Unzip AWS Device Farm results
         if: ${{ always() }}
@@ -237,10 +247,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: If regression announce it in Slack
+      - name: 'Announce regression in Slack'
         if: ${{ steps.checkIfRegressionDetected.outputs.performanceRegressionDetected == 'true' }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        uses: 8398a7/action-slack@v3
         with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          CHANNEL: "#newdot-performance"
-          CUSTOM_TEXT: "🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow."
+          status: custom
+          custom_payload: |
+            {
+              channel: '#newdot-performance',
+              attachments: [{
+                color: 'danger',
+                text: `🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
