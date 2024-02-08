@@ -646,7 +646,7 @@ export default compose(
                     if (!parentReportActionID) {
                         return {};
                     }
-                    return lodashGet(parentReportActions, parentReportActionID);
+                    return lodashGet(parentReportActions, parentReportActionID, {});
                 },
                 canEvict: false,
             },
