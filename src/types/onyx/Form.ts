@@ -82,7 +82,7 @@ type AdditionalDetailStepForm = Form<{
     dob: string;
     ssn: string;
     addressState: string;
-}>
+}>;
 
 type RoomNameForm = Form<{
     roomName: string;

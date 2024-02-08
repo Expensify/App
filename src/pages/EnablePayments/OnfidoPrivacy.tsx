@@ -46,7 +46,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
         BankAccounts.openOnfidoFlow();
     };
 
-    let onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData ?? {}) || '';
+    let onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData ?? {}) ?? '';
 
     const onfidoFixableErrors = walletOnfidoData?.fixableErrors ?? [];
     onfidoError += !isEmptyObject(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
