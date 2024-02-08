@@ -1,17 +1,17 @@
 import type {AirshipContact, AirshipPush, AirshipPushAndroid, AirshipPushIOS, AirshipRoot} from '@ua/react-native-airship';
-import {EventType as EventTypeAirship, iOS as iOSAirship} from '@ua/react-native-airship';
+import {EventType as AirshipEventType, iOS as AirshipIOS} from '@ua/react-native-airship';
 
-const EventType: Partial<typeof EventTypeAirship> = {
-    NotificationResponse: EventTypeAirship.NotificationResponse,
-    PushReceived: EventTypeAirship.PushReceived,
+const EventType: Partial<typeof AirshipEventType> = {
+    NotificationResponse: AirshipEventType.NotificationResponse,
+    PushReceived: AirshipEventType.PushReceived,
 };
 
-const iOS: Partial<typeof iOSAirship> = {
+const iOS: Partial<typeof AirshipIOS> = {
     ForegroundPresentationOption: {
-        Sound: iOSAirship.ForegroundPresentationOption.Sound,
-        Badge: iOSAirship.ForegroundPresentationOption.Badge,
-        Banner: iOSAirship.ForegroundPresentationOption.Banner,
-        List: iOSAirship.ForegroundPresentationOption.List,
+        Sound: AirshipIOS.ForegroundPresentationOption.Sound,
+        Badge: AirshipIOS.ForegroundPresentationOption.Badge,
+        Banner: AirshipIOS.ForegroundPresentationOption.Banner,
+        List: AirshipIOS.ForegroundPresentationOption.List,
     },
 };
 
