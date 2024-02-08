@@ -107,6 +107,7 @@ function Section({
                             <Lottie
                                 source={illustration}
                                 style={styles.h100}
+                                webStyle={styles.h100}
                                 autoPlay
                                 loop
                             />

@@ -189,7 +189,7 @@ export default {
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
-    sectionIllustrationHeight: 240,
+    sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
