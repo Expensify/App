@@ -415,6 +415,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        fontWeightNormal: {
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -1437,6 +1441,10 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        breadcrumsContainer: {
+            height: 24,
+        },
+
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
@@ -1810,6 +1818,12 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        renderHTML: {
             maxWidth: '100%',
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
@@ -2252,6 +2266,10 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+        },
+
+        headerBarDesktopHeight: {
+            height: variables.contentHeaderDesktopHeight,
         },
 
         imageViewContainer: {
@@ -4063,8 +4081,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.appBG,
-            borderColor: theme.textSupporting,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         mapViewContainer: {
