@@ -13,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -23,7 +22,7 @@ type AddressPageOnyxProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
 
-type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS> & AddressPageOnyxProps;
+type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & AddressPageOnyxProps;
 
 /**
  * Submit form to update user's first and last legal name
@@ -103,7 +102,7 @@ function AddressPage({privatePersonalDetails = {address: {street: '', city: '', 
             <HeaderWithBackButton
                 title={translate('privatePersonalDetails.address')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
