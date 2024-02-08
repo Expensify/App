@@ -120,7 +120,18 @@ function HeaderView(props) {
     const reportDescription = ReportUtils.getReportDescriptionText(props.report);
     const policyName = ReportUtils.getPolicyName(props.report);
     const policyDescription = ReportUtils.getPolicyDescriptionText(props.policy);
-    const shouldShowSubtitle = !_.isEmpty(subtitle) && (isChatRoom ? _.isEmpty(reportDescription) : isPolicyExpenseChat ? _.isEmpty(policyDescription) : true);
+    const shouldShowSubtitle = () => {
+        if (_.isEmpty(subtitle)) {
+            return false;
+        }
+        if (isChatRoom) {
+            return _.isEmpty(reportDescription);
+        }
+        if (isPolicyExpenseChat) {
+            return _.isEmpty(policyDescription);
+        }
+        return true;
+    };
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -186,7 +197,7 @@ function HeaderView(props) {
     );
 
     const renderAdditionalText = () => {
-        if (shouldShowSubtitle || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
+        if (shouldShowSubtitle() || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
             return null;
         }
         return (
@@ -304,7 +315,7 @@ function HeaderView(props) {
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {shouldShowSubtitle && (
+                                        {shouldShowSubtitle() && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
