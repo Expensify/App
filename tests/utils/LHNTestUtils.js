@@ -252,14 +252,18 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         avatar: '',
         employeeList: [],
         isPolicyExpenseChatEnabled: true,
-        areChatRoomsEnabled: true,
         lastModified: 1697323926777105,
         autoReporting: true,
         autoReportingFrequency: 'immediate',
-        isHarvestingEnabled: true,
+        harvesting: {
+            enabled: true,
+        },
+        autoReportingOffset: 1,
+        isPreventSelfApprovalEnabled: true,
         submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
+        approvalMode: 'BASIC',
     };
 }
 

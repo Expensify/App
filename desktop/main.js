@@ -512,10 +512,10 @@ const mainWindow = () => {
                 });
 
                 browserWindow.on('swipe', (e, direction) => {
-                    if (direction === 'right') {
+                    if (direction === 'left') {
                         browserWindow.webContents.goBack();
                     }
-                    if (direction === 'left') {
+                    if (direction === 'right') {
                         browserWindow.webContents.goForward();
                     }
                 });

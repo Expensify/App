@@ -2,36 +2,23 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {
+    AcceptWalletTermsParams,
+    AnswerQuestionsForWalletParams,
+    RequestPhysicalExpensifyCardParams,
+    UpdatePersonalDetailsForWalletParams,
+    VerifyIdentityParams,
+} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-type WalletTerms = {
-    hasAcceptedTerms: boolean;
-    reportID: string;
-};
-
 type WalletQuestionAnswer = {
     question: string;
     answer: string;
-};
-
-type IdentityVerification = {
-    onfidoData: string;
-};
-
-type PersonalDetails = {
-    phoneNumber: string;
-    legalFirstName: string;
-    legalLastName: string;
-    addressStreet: string;
-    addressCity: string;
-    addressState: string;
-    addressZip: string;
-    dob: string;
-    ssn: string;
 };
 
 /**
@@ -62,14 +49,7 @@ function openOnfidoFlow() {
         },
     ];
 
-    API.read(
-        'OpenOnfidoFlow',
-        {},
-        {
-            optimisticData,
-            finallyData,
-        },
-    );
+    API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, {}, {optimisticData, finallyData});
 }
 
 function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[], idNumber: string) {
@@ -88,14 +68,14 @@ function setAdditionalDetailsErrorMessage(additionalErrorMessage: string) {
 /**
  * Save the source that triggered the KYC wall and optionally the chat report ID associated with the IOU
  */
-function setKYCWallSource(source: string, chatReportID = '') {
+function setKYCWallSource(source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>, chatReportID = '') {
     Onyx.merge(ONYXKEYS.WALLET_TERMS, {source, chatReportID});
 }
 
 /**
  * Validates a user's provided details against a series of checks
  */
-function updatePersonalDetails(personalDetails: PersonalDetails) {
+function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -118,7 +98,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         },
     ];
 
-    API.write('UpdatePersonalDetailsForWallet', personalDetails, {
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET, personalDetails, {
         optimisticData,
         finallyData,
     });
@@ -130,7 +110,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
  * The API will always return the updated userWallet in the response as a convenience so we can avoid an additional
  * API request to fetch the userWallet after we call VerifyIdentity
  */
-function verifyIdentity(parameters: IdentityVerification) {
+function verifyIdentity(parameters: VerifyIdentityParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -171,7 +151,7 @@ function verifyIdentity(parameters: IdentityVerification) {
             },
         },
     ];
-    API.write('VerifyIdentity', parameters, {
+    API.write(WRITE_COMMANDS.VERIFY_IDENTITY, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -183,7 +163,7 @@ function verifyIdentity(parameters: IdentityVerification) {
  *
  * @param parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
-function acceptWalletTerms(parameters: WalletTerms) {
+function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -223,23 +203,23 @@ function acceptWalletTerms(parameters: WalletTerms) {
         },
     ];
 
-    const requestParams: WalletTerms = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.reportID};
+    const requestParams: AcceptWalletTermsParams = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.reportID};
 
-    API.write('AcceptWalletTerms', requestParams, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ACCEPT_WALLET_TERMS, requestParams, {optimisticData, successData, failureData});
 }
 
 /**
  * Fetches data when the user opens the InitialSettingsPage
  */
 function openInitialSettingsPage() {
-    API.read('OpenInitialSettingsPage', {});
+    API.read(READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE, {});
 }
 
 /**
  * Fetches data when the user opens the EnablePaymentsPage
  */
 function openEnablePaymentsPage() {
-    API.read('OpenEnablePaymentsPage', {});
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, {});
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
@@ -269,17 +249,12 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
         },
     ];
 
-    type AnswerQuestionsForWallet = {
-        idologyAnswers: string;
-        idNumber: string;
-    };
-
-    const requestParams: AnswerQuestionsForWallet = {
+    const requestParams: AnswerQuestionsForWalletParams = {
         idologyAnswers,
         idNumber,
     };
 
-    API.write('AnswerQuestionsForWallet', requestParams, {
+    API.write(WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET, requestParams, {
         optimisticData,
         finallyData,
     });
@@ -292,18 +267,6 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
         phoneNumber,
         address: {city, country, state, street, zip},
     } = privatePersonalDetails;
-
-    type RequestPhysicalExpensifyCardParams = {
-        authToken: string;
-        legalFirstName: string;
-        legalLastName: string;
-        phoneNumber: string;
-        addressCity: string;
-        addressCountry: string;
-        addressState: string;
-        addressStreet: string;
-        addressZip: string;
-    };
 
     const requestParams: RequestPhysicalExpensifyCardParams = {
         authToken,
@@ -334,7 +297,7 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
         },
     ];
 
-    API.write('RequestPhysicalExpensifyCard', requestParams, {optimisticData});
+    API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData});
 }
 
 export {

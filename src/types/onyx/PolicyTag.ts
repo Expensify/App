@@ -8,12 +8,13 @@ type PolicyTag = {
     /** "General Ledger code" that corresponds to this tag in an accounting system. Similar to an ID. */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'GL Code': string;
+
+    /** Nested tags */
+    tags: PolicyTags;
 };
 
 type PolicyTags = Record<string, PolicyTag>;
 
-// When queried from Onyx, if there is no matching policy tag list, the data
-// returned will be an empty object, represented by Record<string, undefined>.
 type PolicyTagList<T extends string = string> = Record<
     T,
     {
@@ -25,6 +26,6 @@ type PolicyTagList<T extends string = string> = Record<
 
         tags: PolicyTags;
     }
-> | Record<string, undefined>;
+>;
 
 export type {PolicyTag, PolicyTags, PolicyTagList};

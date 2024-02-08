@@ -22,6 +22,9 @@ type Task = {
 
     /** Report id only when a task was created from a report */
     parentReportID?: string;
+
+    /** Chat report with assignee of task */
+    assigneeChatReport?: Report;
 };
 
 export default Task;

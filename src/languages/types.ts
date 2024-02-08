@@ -113,7 +113,7 @@ type SplitAmountParams = {amount: number};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: number};
+type AmountEachParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string};
 
@@ -134,8 +134,6 @@ type PayerSettledParams = {amount: number | string};
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
-
-type AdminCanceledRequestParams = {amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
@@ -289,8 +287,11 @@ type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
+type TermsParams = {amount: string};
+
+type ElectronicFundsParams = {percentage: string; amount: string};
+
 export type {
-    AdminCanceledRequestParams,
     ApprovedAmountParams,
     AddressLineParams,
     AlreadySignedInParams,
@@ -308,6 +309,7 @@ export type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    ElectronicFundsParams,
     EnglishTranslation,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
@@ -356,6 +358,7 @@ export type {
     StepCounterParams,
     TagSelectionParams,
     TaskCreatedActionParams,
+    TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,

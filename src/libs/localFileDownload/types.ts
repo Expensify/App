@@ -1,3 +1,3 @@
-type LocalFileDownload = (fileName: string, textContent: string) => void;
+type LocalFileDownload = (fileName: string, textContent: string, successMessage?: string) => void;
 
 export default LocalFileDownload;

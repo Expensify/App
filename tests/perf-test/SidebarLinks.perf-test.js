@@ -10,6 +10,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/hooks/usePermissions.ts');
 jest.mock('../../src/libs/Navigation/Navigation');
 jest.mock('../../src/components/Icon/Expensicons');
 
@@ -29,8 +30,6 @@ const getMockedReportsMap = (length = 100) => {
 };
 
 const mockedResponseMap = getMockedReportsMap(500);
-
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
 describe('SidebarLinks', () => {
     beforeAll(() => {
@@ -72,7 +71,7 @@ describe('SidebarLinks', () => {
         };
 
         await waitForBatchedUpdates();
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs});
+        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should scroll and click some of the items', async () => {
@@ -107,6 +106,6 @@ describe('SidebarLinks', () => {
 
         await waitForBatchedUpdates();
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs});
+        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 });

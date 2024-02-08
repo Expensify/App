@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import semver from 'semver';
-import * as AppUpdate from '@userActions/AppUpdate';
+import * as AppUpdate from '@libs/actions/AppUpdate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../../package.json';

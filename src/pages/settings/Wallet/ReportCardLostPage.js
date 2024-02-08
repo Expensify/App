@@ -23,14 +23,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
 
+const OPTIONS_KEYS = {
+    DAMAGED: 'damaged',
+    STOLEN: 'stolen',
+};
+
 /** Options for reason selector */
 const OPTIONS = [
     {
-        key: 'damaged',
+        key: OPTIONS_KEYS.DAMAGED,
         label: 'reportCardLostOrDamaged.cardDamaged',
     },
     {
-        key: 'stolen',
+        key: OPTIONS_KEYS.STOLEN,
         label: 'reportCardLostOrDamaged.cardLostOrStolen',
     },
 ];
@@ -107,7 +112,7 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
     }, [domain, formData.isLoading, prevIsLoading, physicalCard.errors]);
 
     useEffect(() => {
@@ -156,6 +161,8 @@ function ReportCardLostPage({
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
+    const isDamaged = reason && reason.key === OPTIONS_KEYS.DAMAGED;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -178,14 +185,18 @@ function ReportCardLostPage({
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                                 numberOfLinesTitle={2}
                             />
-                            <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
+                            {isDamaged ? (
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
+                            ) : (
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
+                            )}
                         </View>
                         <FormAlertWithSubmitButton
                             isAlertVisible={shouldShowAddressError}
                             onSubmit={handleSubmitSecondStep}
                             message={translate('reportCardLostOrDamaged.addressError')}
                             isLoading={formData.isLoading}
-                            buttonText={translate('reportCardLostOrDamaged.deactivateCardButton')}
+                            buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
                         />
                     </>
                 ) : (
