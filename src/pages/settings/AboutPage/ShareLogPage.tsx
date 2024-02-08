@@ -126,8 +126,8 @@ function ShareLogPage({betas, reports, route}: ShareLogProps) {
         }
 
         if (option.reportID) {
-            const filename = FileUtils.appendTimeToFileName('logs');
-            Reports.addAttachment(option.reportID, {name: filename, source: route.params.source});
+            const filename = FileUtils.appendTimeToFileName('logs.txt');
+            Reports.addAttachment(option.reportID, {name: filename, source: route.params.source, uri: route.params.source, type: 'text/plain'});
 
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(option.reportID);
             Navigation.navigate(routeToNavigate);

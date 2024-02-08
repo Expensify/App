@@ -48,6 +48,7 @@ const parseStingifiedMessages = (logs: CapturedLogs) =>
 function ConsolePage({capturedLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
     const [logs, setLogs] = useState<CapturedLogs>(capturedLogs);
+    const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -71,8 +72,10 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
     };
 
     const shareLogs = () => {
+        setIsGeneratingLogsFile(true);
         const logsWithParsedMessages = parseStingifiedMessages(logs);
         localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path}) => {
+            setIsGeneratingLogsFile(false);
             Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path));
         });
     };
@@ -108,8 +111,9 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
                 <Button
                     text={translate('initialSettingsPage.debugConsole.shareLog')}
                     onPress={shareLogs}
-                    icon={Expensicons.UploadAlt}
+                    icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
                     style={[styles.flex1, styles.ml1]}
+                    isLoading={isGeneratingLogsFile}
                 />
             </View>
             <View style={[styles.mh5]}>
