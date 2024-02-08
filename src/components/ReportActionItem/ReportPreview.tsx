@@ -104,11 +104,11 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
 
-    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
             hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
             areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
-            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(iouReportID),
+            hasOnlyTransactionsWithPendingRoutes: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
@@ -130,21 +130,20 @@ function ReportPreview({
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
+
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
+
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
-    }
-    const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && transactionsWithReceipts.every((transaction) => transaction.pendingFields?.waypoints);
-    if (formattedMerchant && hasPendingWaypoints) {
-        formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
     }
     const previewSubtitle =
         // Formatted merchant can be an empty string
@@ -164,17 +163,14 @@ function ReportPreview({
     );
 
     const getDisplayAmount = (): string => {
-        if (hasPendingWaypoints) {
-            return translate('common.tbd');
-        }
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
         if (isScanning) {
             return translate('iou.receiptScanning');
         }
-        if (hasOnlyDistanceRequests) {
-            return translate('common.tbd');
+        if (hasOnlyTransactionsWithPendingRoutes) {
+            return translate('iou.routePending');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -201,7 +197,7 @@ function ReportPreview({
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        const managerName = isPolicyExpenseChat && !hasNonReimbursableTransactions ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         let paymentVerb: TranslationPaths = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
@@ -228,8 +224,23 @@ function ReportPreview({
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+
+    /*
+     Show subtitle if at least one of the money requests is not being smart scanned, and either:
+     - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
+     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant is shown;
+
+     * There is an edge case when there is only one distance request with a pending route and amount = 0.
+       In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
+     */
+    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || numberOfRequests > 1);
+
     return (
-        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.preview}>
+        <OfflineWithFeedback
+            pendingAction={iouReport?.pendingFields?.preview}
+            shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
+        >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
@@ -276,7 +287,7 @@ function ReportPreview({
                                     )}
                                 </View>
                             </View>
-                            {!isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant)) && (
+                            {shouldShowSubtitle && (
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
@@ -285,12 +296,11 @@ function ReportPreview({
                             )}
                             {shouldShowSettlementButton && (
                                 <SettlementButton
-                                    // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                                     currency={iouReport?.currency}
                                     policyID={policyID}
                                     chatReportID={chatReportID}
                                     iouReport={iouReport}
-                                    onPress={(paymentType: PaymentMethodType) => chatReport && iouReport && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                    onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
                                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                     addBankAccountRoute={bankAccountRoute}
                                     shouldHidePaymentOptions={!shouldShowPayButton}
@@ -304,6 +314,7 @@ function ReportPreview({
                                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                     }}
+                                    isDisabled={!canAllowSettlement}
                                 />
                             )}
                             {shouldShowSubmitButton && (

@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
@@ -21,21 +24,25 @@ const propTypes = {
 };
 
 function WorkspaceCardPage(props) {
+    const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
             headerText={props.translate('workspace.common.card')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
+            shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID, isUsingECard) => (
-                <>
+                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
 
                     {hasVBA && isUsingECard && <WorkspaceCardVBAWithECardView />}
-                </>
+                </View>
             )}
         </WorkspacePageWithSections>
     );

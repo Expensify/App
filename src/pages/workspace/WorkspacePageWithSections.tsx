@@ -1,8 +1,8 @@
-import React, {useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,14 +10,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {PolicyRoute} from './withPolicy';
@@ -61,6 +62,15 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Option to show the loading page while the API is calling */
         shouldShowLoading?: boolean;
 
+        /** Should show the back button. It is used when in RHP. */
+        shouldShowBackButton?: boolean;
+
+        /** Whether the offline indicator should be shown in wide screen devices */
+        shouldShowOfflineIndicatorInWideScreen?: boolean;
+
+        /** Whether to show this page to non admin policy members */
+        shouldShowNonAdmin?: boolean;
+
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
     };
@@ -80,12 +90,16 @@ function WorkspacePageWithSections({
     guidesCallTaskID = '',
     headerText,
     policy,
+    policyDraft,
     reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
+    shouldShowBackButton = false,
     user,
     shouldShowLoading = true,
+    shouldShowOfflineIndicatorInWideScreen = false,
+    shouldShowNonAdmin = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
@@ -94,10 +108,17 @@ function WorkspacePageWithSections({
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const policyID = route.params?.policyID ?? '';
-    const policyName = policy?.name;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = children(hasVBA, policyID, isUsingECard);
+    const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
+
+    const goBack = () => {
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+        // Needed when workspace with given policyID does not exist
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+    };
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -109,12 +130,13 @@ function WorkspacePageWithSections({
     }, [shouldSkipVBBACall]);
 
     const shouldShow = useMemo(() => {
-        if (isEmptyObject(policy)) {
+        if (isEmptyObject(policy) && isEmptyObject(policyDraft)) {
             return true;
         }
 
-        return !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    }, [policy]);
+        return (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) || PolicyUtils.isPendingDeletePolicy(policy);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policy, shouldShowNonAdmin]);
 
     return (
         <ScreenWrapper
@@ -122,17 +144,19 @@ function WorkspacePageWithSections({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={WorkspacePageWithSections.displayName}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={goBack}
+                onLinkPress={goBack}
                 shouldShow={shouldShow}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldForceFullScreen
             >
                 <HeaderWithBackButton
                     title={headerText}
-                    subtitle={policyName}
-                    shouldShowGetAssistanceButton
                     guidesCallTaskID={guidesCallTaskID}
+                    shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
