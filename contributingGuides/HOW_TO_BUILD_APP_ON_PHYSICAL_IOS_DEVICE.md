@@ -9,7 +9,7 @@
 2. **Configure code signing**
 	 
 > [!Important]
-> You must have a paid Apple Developer account to run your app on a physical device. If you don't have one, you can register here: [Apple Developer Program](https://developer.apple.com/).
+> You must have a Apple Developer account to run your app on a physical device. If you don't have one, you can register here: [Apple Developer Program](https://developer.apple.com/).
 
    2.1. Go to `Signing and Capabilities` then in the section called `Signing (Debug/Development and Release/Development)`
    
