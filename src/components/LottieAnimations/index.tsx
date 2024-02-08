@@ -38,6 +38,7 @@ const DotLottieAnimations = {
         file: require('@assets/animations/WorkspacePlanet.lottie'),
         w: 375,
         h: 240,
+        backgroundColor: colors.pink800,
     },
     SaveTheWorld: {
         file: require('@assets/animations/SaveTheWorld.lottie'),

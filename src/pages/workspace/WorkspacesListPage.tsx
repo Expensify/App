@@ -341,9 +341,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
                             onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                            // @ts-expect-error TODO: Remove once FeatureList (https://github.com/Expensify/App/issues/25039) is migrated to TS
                             illustration={LottieAnimations.WorkspacePlanet}
-                            illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
                         />
