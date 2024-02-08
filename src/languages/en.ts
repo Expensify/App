@@ -382,8 +382,6 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Start a call',
-        zoom: 'Zoom',
-        googleMeet: 'Google Meet',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -906,6 +904,9 @@ export default {
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
         composerLabel: 'Notes',
         myNote: 'My note',
+        error: {
+            genericFailureMessage: "Private notes couldn't be saved",
+        },
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',

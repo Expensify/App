@@ -372,8 +372,6 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Iniciar una llamada',
-        zoom: 'Zoom',
-        googleMeet: 'Google Meet',
     },
     hello: 'Hola',
     phoneCountryCode: '34',
@@ -901,6 +899,9 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
+        error: {
+            genericFailureMessage: 'Las notas privadas no han podido ser guardadas',
+        },
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
