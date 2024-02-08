@@ -89,9 +89,6 @@ const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus: PropTypes.bool,
 
-    /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
-    submitOnEnter: PropTypes.bool,
-
     /** Indicate whether input is multiline */
     multiline: PropTypes.bool,
 
@@ -132,7 +129,6 @@ const defaultProps = {
     prefixCharacter: '',
     onInputChange: () => {},
     shouldDelayFocus: false,
-    submitOnEnter: false,
     icon: null,
     shouldUseDefaultValue: false,
     multiline: false,
