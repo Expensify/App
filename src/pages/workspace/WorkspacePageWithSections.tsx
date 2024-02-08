@@ -84,7 +84,7 @@ function fetchData(skipVBBACal?: boolean) {
 }
 
 function WorkspacePageWithSections({
-    backButtonRoute = '',
+    backButtonRoute,
     children = () => null,
     footer = null,
     guidesCallTaskID = '',
