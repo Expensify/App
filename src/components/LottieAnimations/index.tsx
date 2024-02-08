@@ -64,6 +64,7 @@ const DotLottieAnimations = {
         file: require('@assets/animations/Coin.lottie'),
         w: 375,
         h: 240,
+        backgroundColor: colors.yellow600,
     },
 } satisfies Record<string, DotLottieAnimation>;
 

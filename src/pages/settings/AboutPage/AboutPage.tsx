@@ -150,7 +150,6 @@ function AboutPage() {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Coin}
-                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
                     >
