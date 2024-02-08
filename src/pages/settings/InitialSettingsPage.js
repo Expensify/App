@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
@@ -71,7 +72,7 @@ const propTypes = {
             validatedDate: PropTypes.string,
 
             /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
 

@@ -12,6 +12,7 @@ import * as Wallet from '@libs/actions/Wallet';
 import * as CardUtils from '@libs/CardUtils';
 import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
 import CONST from '@src/CONST';
@@ -69,7 +70,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Field-specific pending states for offline UI status */
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
