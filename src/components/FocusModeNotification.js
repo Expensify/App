@@ -35,7 +35,7 @@ function FocusModeNotification() {
                             Link.openLink(href, environmentURL);
                         }}
                     >
-                        {translate('common.here')}
+                        {translate('focusModeUpdateModal.settings')}
                     </TextLinkWithRef>
                     .
                 </Text>
