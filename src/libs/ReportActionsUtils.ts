@@ -132,11 +132,11 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
 function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>): boolean {
     const whisperedToAccountIDs = reportAction?.whisperedToAccountIDs ?? [];
-    if (!currentUserAccountID) {
-        return true;
-    }
     if (!whisperedToAccountIDs || whisperedToAccountIDs.length === 0) {
         return false;
+    }
+    if (!currentUserAccountID) {
+        return true;
     }
     return !whisperedToAccountIDs.includes(currentUserAccountID);
 }
