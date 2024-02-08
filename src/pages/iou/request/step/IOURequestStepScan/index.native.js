@@ -300,7 +300,6 @@ function IOURequestStepScan({
                                 device={device}
                                 style={[styles.flex1]}
                                 zoom={device.neutralZoom}
-                                photo
                                 cameraTabIndex={1}
                                 orientation="portrait"
                             />

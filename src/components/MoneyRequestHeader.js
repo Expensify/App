@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -82,16 +83,21 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
-
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
+    let canDeleteRequest = canModifyRequest;
+
+    if (ReportUtils.isPaidGroupPolicyExpenseReport(moneyRequestReport)) {
+        // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
+        canDeleteRequest = canDeleteRequest && (ReportUtils.isDraftExpenseReport(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
+    }
 
     useEffect(() => {
-        if (canModifyRequest) {
+        if (canDeleteRequest) {
             return;
         }
 
         setIsDeleteModalVisible(false);
-    }, [canModifyRequest]);
+    }, [canDeleteRequest]);
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
@@ -110,11 +116,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     ),
             });
         }
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-            onSelected: () => setIsDeleteModalVisible(true),
-        });
+        if (canDeleteRequest) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Trashcan,
+                text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                onSelected: () => setIsDeleteModalVisible(true),
+            });
+        }
     }
 
     return (
