@@ -37,9 +37,6 @@ const propTypes = {
     /** Whether referral CTA should be displayed */
     shouldShowReferralCTA: PropTypes.bool,
 
-    /** A method triggered when the user closes the call to action banner */
-    onCallToActionClosed: PropTypes.func,
-
     /** Referral content type */
     referralContentType: PropTypes.string,
 
@@ -48,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     shouldShowReferralCTA: false,
-    onCallToActionClosed: () => {},
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
@@ -93,7 +89,6 @@ function BaseOptionsSelector(props) {
     const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
     const [disableEnterShortCut, setDisableEnterShortCut] = useState(false);
-    const [shouldShowReferralModal, setShouldShowReferralModal] = useState(props.shouldShowReferralCT);
 
     const relatedTarget = useRef(null);
     const listRef = useRef();
@@ -227,11 +222,6 @@ function BaseOptionsSelector(props) {
         },
         [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow, shouldDisableRowSelection],
     );
-
-    const handleReferralModal = () => {
-        setShouldShowReferralModal((prev) => !prev);
-        props.onCallToActionClosed(props.referralContentType);
-    };
 
     const handleFocusIn = () => {
         const activeElement = document.activeElement;
@@ -665,12 +655,9 @@ function BaseOptionsSelector(props) {
                     </>
                 )}
             </View>
-            {props.shouldShowReferralCTA && shouldShowReferralModal && (
+            {props.shouldShowReferralCTA && (
                 <View style={[themeStyles.ph5, themeStyles.pb5, themeStyles.flexShrink0]}>
-                    <ReferralProgramCTA
-                        referralContentType={props.referralContentType}
-                        onCloseButtonPress={handleReferralModal}
-                    />
+                    <ReferralProgramCTA referralContentType={props.referralContentType} />
                 </View>
             )}
 
