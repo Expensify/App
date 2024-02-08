@@ -210,7 +210,6 @@ function AttachmentView({
     }
 
     if (isVideo || (file && Str.isVideo(file.name))) {
-        console.log({optionalVideoDuration});
         return (
             <AttachmentViewVideo
                 source={source}
