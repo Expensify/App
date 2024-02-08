@@ -193,6 +193,7 @@ function BaseVideoPlayer({
                                 isPlaying={isPlaying}
                                 small={shouldUseSmallVideoControls}
                                 style={videoControlsStyle}
+                                togglePlayCurrentVideo={togglePlayCurrentVideo}
                                 showPopoverMenu={showPopoverMenu}
                             />
                         )}
