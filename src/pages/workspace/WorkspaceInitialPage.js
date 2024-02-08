@@ -149,11 +149,11 @@ function WorkspaceInitialPage(props) {
 
     const menuItems = [
         {
-            translationKey: 'workspace.common.overview',
+            translationKey: 'workspace.common.profile',
             icon: Expensicons.Home,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policy.id)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
-            routeName: SCREENS.WORKSPACE.OVERVIEW,
+            routeName: SCREENS.WORKSPACE.PROFILE,
         },
     ].concat(shouldShowProtectedItems ? protectedMenuItems : []);
 

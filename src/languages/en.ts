@@ -1539,7 +1539,7 @@ export default {
             travel: 'Travel',
             members: 'Members',
             plan: 'Plan',
-            overview: 'Overview',
+            profile: 'Profile',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
