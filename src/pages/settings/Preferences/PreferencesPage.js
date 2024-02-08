@@ -14,7 +14,6 @@ import TestToolMenu from '@components/TestToolMenu';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,7 +43,6 @@ const defaultProps = {
 };
 
 function PreferencesPage(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
