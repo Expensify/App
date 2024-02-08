@@ -172,8 +172,8 @@ type ReportRouteParams = {
 };
 
 type ReportOfflinePendingActionAndErrors = {
-    addWorkspaceRoomOrChatPendingAction: PendingAction | undefined;
-    addWorkspaceRoomOrChatErrors: Errors | null | undefined;
+    reportPendingAction: PendingAction | undefined;
+    reportErrors: Errors | null | undefined;
 };
 
 type OptimisticApprovedReportAction = Pick<
@@ -4244,14 +4244,20 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
 }
 
 /**
- * Return the pendingAction and the errors we have when creating a chat or a workspace room offline
+ * Return the pendingAction and the errors resulting from either
+ *
+ * - creating a workspace room
+ * - starting a chat
+ * - paying the money request
+ *
+ * while being offline
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
-    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
-    // simply looking up the first truthy value for each case will get the relevant property if it's set.
-    const addWorkspaceRoomOrChatPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat;
-    const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
+    // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed;
+
+    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+    return {reportPendingAction, reportErrors};
 }
 
 function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null {
