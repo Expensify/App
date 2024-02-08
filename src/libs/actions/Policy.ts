@@ -597,10 +597,6 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: R
         }
         const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, cleanAccountID);
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
-        const pendingVisibleChatMembers = Object.values(invitedEmailsToAccountIDs).map((accountID) => ({
-            accountID: accountID.toString(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        }));
         workspaceMembersChats.reportCreationData[login] = {
             reportID: optimisticReport.reportID,
             reportActionID: optimisticCreatedAction.reportActionID,
@@ -616,7 +612,10 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: R
                 },
                 isOptimisticReport: true,
                 hasOutstandingChildRequest,
-                pendingVisibleChatMembers,
+                pendingVisibleChatMembers: [{
+                    accountID: accountID.toString(),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }]
             },
         });
         workspaceMembersChats.onyxOptimisticData.push({
