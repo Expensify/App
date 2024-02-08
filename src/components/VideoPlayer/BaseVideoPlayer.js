@@ -34,7 +34,7 @@ function BaseVideoPlayer({
 }) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
+    const {playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
     const [duration, setDuration] = useState(videoDuration);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -143,6 +143,14 @@ function BaseVideoPlayer({
                                         isLooping={isLooping}
                                         onReadyForDisplay={onVideoLoaded}
                                         onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+                                        onFullscreenUpdate={(event) => {
+                                            // fix for iOS native and mWeb: when switching to fullscreen and then exiting
+                                            // the fullscreen mode while playing, the video pauses
+                                            if (!event.status.isPlaying) {
+                                                return;
+                                            }
+                                            playVideo();
+                                        }}
                                     />
                                 </View>
                             </View>
