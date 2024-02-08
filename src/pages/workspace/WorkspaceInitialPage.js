@@ -46,7 +46,7 @@ const defaultProps = {
  * @param {string} policyID
  */
 function dismissError(policyID) {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+    PolicyUtils.goBackFromInvalidPolicy();
     Policy.removeWorkspace(policyID);
 }
 
@@ -173,7 +173,8 @@ function WorkspaceInitialPage(props) {
             style={[styles.pb0]}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
