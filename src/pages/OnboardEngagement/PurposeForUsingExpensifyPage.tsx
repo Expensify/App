@@ -76,7 +76,7 @@ function PurposeForUsingExpensifyModal() {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const theme = useTheme();
-    const backgroundColorStyle = StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor);
+    const backgroundColorStyle = StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.ONBOARD_ENGAGEMENT.ROOT].backgroundColor);
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
 
     const navigateBack = useCallback(() => {
