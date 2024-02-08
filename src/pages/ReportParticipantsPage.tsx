@@ -45,12 +45,8 @@ const getAllParticipants = (
     ReportUtils.getVisibleMemberIDs(report)
         .map((accountID, index) => {
             const userPersonalDetail = personalDetails?.[accountID];
-            let userLogin;
-            if (CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)) {
-                userLogin = translate('common.hidden');
-            } else {
-                userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail?.login ?? '') ?? translate('common.hidden');
-            }
+            const userLogin =
+                !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
             return {

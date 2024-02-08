@@ -1558,7 +1558,7 @@ const CONST = {
 
     // Emails that profile view is prohibited
     get RESTRICTED_EMAILS() {
-        return [this.EMAIL.NOTIFICATIONS];
+        return [this.EMAIL.NOTIFICATIONS] as string[];
     },
     // Account IDs that profile view is prohibited
     get RESTRICTED_ACCOUNT_IDS() {

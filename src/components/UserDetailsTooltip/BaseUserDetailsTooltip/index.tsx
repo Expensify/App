@@ -46,7 +46,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
             subtitle = '';
         }
     }
-    if (CONST.RESTRICTED_ACCOUNT_IDS.includes(userAccountID) || CONST.RESTRICTED_EMAILS.includes(userLogin.trim() as (typeof CONST.RESTRICTED_EMAILS)[number])) {
+    if (CONST.RESTRICTED_ACCOUNT_IDS.includes(userAccountID) || CONST.RESTRICTED_EMAILS.includes(userLogin.trim())) {
         subtitle = '';
     }
     const renderTooltipContent = useCallback(
