@@ -13,7 +13,7 @@ import EmailUtils from './EmailUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportUtils from './ReportUtils';
 
-let currentUserAccountID: number | undefined;
+let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -21,7 +21,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = value.accountID;
+        currentUserAccountID = value?.accountID ?? -1;
     },
 });
 
@@ -65,7 +65,7 @@ type BuildNextStepParameters = {
 function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
     const policy = ReportUtils.getPolicy(policyID);
-    const {submitsTo, isHarvestingEnabled, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const {submitsTo, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
@@ -103,7 +103,7 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             };
 
             // Scheduled submit enabled
-            if (isHarvestingEnabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+            if (autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
                     {
                         text: 'These expenses are scheduled to ',
