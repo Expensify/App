@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -82,9 +82,22 @@ const propTypes = {
     activePolicyID: PropTypes.string,
 
     newRoomDraft: PropTypes.shape({
-        workspace: PropTypes.any,
-        writeCapability: PropTypes.any,
-        visibility: PropTypes.any,
+        workspace: PropTypes.shape({
+            label: PropTypes.string,
+            key: PropTypes.string,
+            value: PropTypes.string,
+        }),
+
+        writeCapability: PropTypes.shape({
+            value: PropTypes.oneOfType(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
+            label: PropTypes.string,
+        }),
+
+        visibility: PropTypes.shape({
+            value: PropTypes.oneOfType(_.values(CONST.REPORT.VISIBILITY)),
+            label: PropTypes.string,
+            description: PropTypes.string,
+        }),
     }),
 };
 const defaultProps = {
@@ -102,7 +115,7 @@ const defaultProps = {
 };
 
 function WorkspaceNewRoomPage(props) {
-    console.log(props);
+    // console.log(props);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
