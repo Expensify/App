@@ -61,7 +61,7 @@ function IOURequestStepDate({
      * @param {String} value.moneyRequestCreated
      */
     const updateDate = (value) => {
-        const newCreated = value.moneyRequestCreated.trim();
+        const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed
         if (newCreated === currentCreated) {
