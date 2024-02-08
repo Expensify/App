@@ -42,8 +42,6 @@ function AddressSearch(
         onBlur,
         onInputChange,
         onPress,
-        onSubmitEditing,
-        returnKeyType,
         predefinedPlaces = [],
         preferredLocale,
         renamedInputKeys = {
@@ -382,8 +380,6 @@ function AddressSearch(
                             defaultValue,
                             inputID,
                             shouldSaveDraft,
-                            returnKeyType,
-                            onSubmitEditing,
                             onFocus: () => {
                                 setIsFocused(true);
                             },

@@ -1,6 +1,5 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext} from 'react';
-import AddressSearch from '@components/AddressSearch';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import TextInput from '@components/TextInput';
@@ -19,7 +18,7 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     readonly blurOnSubmit: boolean | undefined;
     readonly shouldSetTouchedOnBlurOnly: boolean;
 } {
-    const textInputBasedComponents = [TextInput, AddressSearch, RoomNameInput] as TInput[];
+    const textInputBasedComponents = [TextInput, RoomNameInput] as TInput[];
 
     if (textInputBasedComponents.includes(InputComponent)) {
         const isEffectivelyMultiline = Boolean(multiline) || Boolean(autoGrowHeight);
