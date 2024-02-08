@@ -115,13 +115,8 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
  *
  * @param amount – should be a float.
  * @param currency - IOU currency
- * @param shouldFallbackToTbd - whether to return 'TBD' instead of a falsy value (e.g. 0.00)
  */
-function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD, shouldFallbackToTbd = false): string {
-    if (shouldFallbackToTbd && !amount) {
-        return Localize.translateLocal('common.tbd');
-    }
-
+function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = amount / 100.0;
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
