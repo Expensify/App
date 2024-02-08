@@ -349,14 +349,14 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         value: {
             participantAccountIDs: announceReport?.participantAccountIDs,
             visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
-            pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
+            pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers ?? null,
         },
     });
     announceRoomMembers.onyxSuccessData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
-            pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
+            pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers ?? null,
         },
     });
     return announceRoomMembers;
@@ -401,14 +401,14 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
             value: {
                 participantAccountIDs: announceReport.participantAccountIDs,
                 visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
-                pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
+                pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers ?? null,
             },
         });
         announceRoomMembers.onyxSuccessData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
-                pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers,
+                pendingVisibleChatMembers: announceReport?.pendingVisibleChatMembers ?? null,
             },
         });
     }
@@ -457,6 +457,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
             key: membersListKey,
             value: successMembersState,
         },
+        ...announceRoomMembers.onyxSuccessData,
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -612,10 +613,12 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: R
                 },
                 isOptimisticReport: true,
                 hasOutstandingChildRequest,
-                pendingVisibleChatMembers: [{
-                    accountID: accountID.toString(),
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                }]
+                pendingVisibleChatMembers: [
+                    {
+                        accountID: accountID.toString(),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                ],
             },
         });
         workspaceMembersChats.onyxOptimisticData.push({
@@ -666,7 +669,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
-
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
@@ -712,6 +714,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
         },
         ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxSuccessData,
+        ...announceRoomMembers.onyxSuccessData,
     ];
 
     const failureData: OnyxUpdate[] = [

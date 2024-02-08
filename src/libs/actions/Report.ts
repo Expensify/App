@@ -2329,7 +2329,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2341,7 +2341,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: report.participantAccountIDs,
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2383,7 +2383,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: report?.participantAccountIDs,
                 visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
             },
         },
     ];
@@ -2397,7 +2397,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
-                pendingVisibleChatMembers: report?.pendingVisibleChatMembers,
+                pendingVisibleChatMembers: report?.pendingVisibleChatMembers ?? null,
             },
         },
     ];
