@@ -1,8 +1,9 @@
-import {act, fireEvent, screen} from '@testing-library/react-native';
+import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import SearchPage from '@pages/SearchPage';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -15,6 +16,22 @@ import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+jest.mock('lodash/debounce', () =>
+    jest.fn((fn) => {
+        // eslint-disable-next-line no-param-reassign
+        fn.cancel = jest.fn();
+        return fn;
+    }),
+);
+
+jest.mock('../../src/libs/Log');
+
+jest.mock('../../src/libs/API', () => ({
+    write: jest.fn(),
+    makeRequestWithSideEffects: jest.fn(),
+    read: jest.fn(),
+}));
 
 jest.mock('../../src/libs/Navigation/Navigation');
 
@@ -93,7 +110,7 @@ afterEach(() => {
 
 function SearchPageWrapper(args) {
     return (
-        <ComposeProviders components={[OnyxProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SearchPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
@@ -103,13 +120,13 @@ function SearchPageWrapper(args) {
     );
 }
 
-test.skip('[Search Page] should interact when text input changes', async () => {
+test('[Search Page] should interact when text input changes', async () => {
     const {addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
 
-        const input = screen.getByTestId('options-selector-input');
+        const input = screen.getByTestId('selection-list-text-input');
         fireEvent.changeText(input, 'Email Four');
         fireEvent.changeText(input, 'Report');
         fireEvent.changeText(input, 'Email Five');
@@ -121,7 +138,6 @@ test.skip('[Search Page] should interact when text input changes', async () => {
         .then(() =>
             Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
@@ -130,13 +146,14 @@ test.skip('[Search Page] should interact when text input changes', async () => {
         .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
 });
 
-test.skip('[Search Page] should render options list', async () => {
+test('[Search Page] should render selection list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
-        await act(triggerTransitionEnd);
+        await waitFor(triggerTransitionEnd);
+        await screen.findByTestId('selection-list');
         await screen.findByText(smallMockedPersonalDetails['1'].login);
         await screen.findByText(smallMockedPersonalDetails['2'].login);
     };
@@ -147,7 +164,6 @@ test.skip('[Search Page] should render options list', async () => {
         .then(() =>
             Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: smallMockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
@@ -156,16 +172,18 @@ test.skip('[Search Page] should render options list', async () => {
         .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
 });
 
-test.skip('[Search Page] should search in options list', async () => {
+test('[Search Page] should search in selection list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
-        const input = screen.getByTestId('options-selector-input');
+        await waitFor(triggerTransitionEnd);
 
-        fireEvent.changeText(input, mockedPersonalDetails['88'].login);
-        await act(triggerTransitionEnd);
-        await screen.findByText(mockedPersonalDetails['88'].login);
+        const input = screen.getByTestId('selection-list-text-input');
+        const searchValue = mockedPersonalDetails['88'].login;
+
+        fireEvent.changeText(input, searchValue);
+        await screen.findByText(searchValue);
     };
 
     const navigation = {addListener};
@@ -174,7 +192,6 @@ test.skip('[Search Page] should search in options list', async () => {
         .then(() =>
             Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
@@ -183,17 +200,18 @@ test.skip('[Search Page] should search in options list', async () => {
         .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
 });
 
-test.skip('[Search Page] should click on list item', async () => {
+test('[Search Page] should click on list item', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
-        const input = screen.getByTestId('options-selector-input');
+        const input = screen.getByTestId('selection-list-text-input');
+        await waitFor(triggerTransitionEnd);
 
-        fireEvent.changeText(input, mockedPersonalDetails['4'].login);
-        await act(triggerTransitionEnd);
-        const optionButton = await screen.findByText(mockedPersonalDetails['4'].login);
+        const searchValue = mockedPersonalDetails['4'].login;
+        fireEvent.changeText(input, searchValue);
 
+        const optionButton = await screen.findByText(searchValue);
         fireEvent.press(optionButton);
     };
 
@@ -202,7 +220,6 @@ test.skip('[Search Page] should click on list item', async () => {
         .then(() =>
             Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
