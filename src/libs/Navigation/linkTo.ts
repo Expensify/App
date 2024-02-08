@@ -216,16 +216,18 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath)!;
-                root.dispatch({
-                    type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                    payload: {
-                        name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                        params: {
-                            screen: matchingCentralPaneRoute.name,
-                            params: matchingCentralPaneRoute.params,
+                if (matchingCentralPaneRoute && 'name' in matchingCentralPaneRoute) {
+                    root.dispatch({
+                        type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                        payload: {
+                            name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+                            params: {
+                                screen: matchingCentralPaneRoute.name,
+                                params: matchingCentralPaneRoute.params,
+                            },
                         },
-                    },
-                });
+                    });
+                }
             } else {
                 // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
                 root.dispatch({

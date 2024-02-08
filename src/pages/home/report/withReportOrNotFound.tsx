@@ -16,16 +16,22 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
+
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
+
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route: RouteProp<{params: {reportID: string}}>;
+
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
 };
 
 export default function (
