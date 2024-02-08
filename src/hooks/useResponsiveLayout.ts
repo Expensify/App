@@ -1,4 +1,4 @@
-import navigationRef from '@libs/Navigation/navigationRef';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -12,7 +12,7 @@ type ResponsiveLayoutResult = {
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const state = navigationRef?.getRootState();
+    const state = navigationRef?.current?.getRootState?.();
     const lastRoute = state?.routes?.at(-1);
     const lastRouteName = lastRoute?.name;
     const isInModal = lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
