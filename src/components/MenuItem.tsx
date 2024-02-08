@@ -565,7 +565,7 @@ function MenuItem(
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                {(subtitle ?? subtitle === 0) && (
+                                {(subtitle === 0 || subtitle) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                     </View>
