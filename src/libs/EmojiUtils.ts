@@ -370,7 +370,7 @@ function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEF
  * Find all emojis in a text and replace them with their code.
  */
 function replaceAndExtractEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text ?? '', preferredSkinTone, lang);
+    const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
         text: convertedText,

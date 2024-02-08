@@ -12,16 +12,13 @@ import type {PersonalDetails} from '@src/types/onyx';
 type ParticipantLocalTimeProps = {
     /** Personal details of the participant */
     participant: PersonalDetails;
-
-    /** The user's preferred locale e.g. 'en', 'es-ES' */
-    preferredLocale?: Locale;
 };
 
-function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: Locale | undefined) {
+function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: Locale) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
-    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, undefined, reportRecipientTimezone.selected);
-    const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT);
+    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale, undefined, reportRecipientTimezone.selected);
+    const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale);
     const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone);
     const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone);
     if (reportRecipientDay !== currentUserDay) {
@@ -30,8 +27,8 @@ function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: 
     return `${DateUtils.formatToLocalTime(reportTimezone)}`;
 }
 
-function ParticipantLocalTime({participant, preferredLocale}: ParticipantLocalTimeProps) {
-    const {translate} = useLocalize();
+function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
 
     const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, preferredLocale));

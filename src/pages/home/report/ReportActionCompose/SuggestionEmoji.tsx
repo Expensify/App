@@ -28,7 +28,7 @@ type SuggestionEmojiOnyxProps = {
 type SuggestionEmojiProps = SuggestionProps &
     SuggestionEmojiOnyxProps & {
         /** Function to clear the input */
-        resetKeyboardInput: (() => void) | undefined;
+        resetKeyboardInput?: () => void;
     };
 
 /**

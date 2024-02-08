@@ -78,99 +78,99 @@ type ComposerWithSuggestionsOnyxProps = {
     editFocused: OnyxEntry<boolean>;
 };
 
-type ComposerWithSuggestionsProps = {
-    /** Report ID */
-    reportID: string;
+type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
+    Partial<ChildrenProps> & {
+        /** Report ID */
+        reportID: string;
 
-    /** Callback to focus composer */
-    onFocus: () => void;
+        /** Callback to focus composer */
+        onFocus: () => void;
 
-    /** Callback to blur composer */
-    onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+        /** Callback to blur composer */
+        onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
-    /** Callback to update the value of the composer */
-    onValueChange: (value: string) => void;
+        /** Callback to update the value of the composer */
+        onValueChange: (value: string) => void;
 
-    /** Whether the composer is full size */
-    isComposerFullSize: boolean;
+        /** Whether the composer is full size */
+        isComposerFullSize: boolean;
 
-    /** Whether the menu is visible */
-    isMenuVisible: boolean;
+        /** Whether the menu is visible */
+        isMenuVisible: boolean;
 
-    /** The placeholder for the input */
-    inputPlaceholder: string;
+        /** The placeholder for the input */
+        inputPlaceholder: string;
 
-    /** Function to display a file in a modal */
-    displayFileInModal: (file: FileObject | undefined) => void;
+        /** Function to display a file in a modal */
+        displayFileInModal: (file: FileObject) => void;
 
-    /** Whether the text input should clear */
-    textInputShouldClear: boolean;
+        /** Whether the text input should clear */
+        textInputShouldClear: boolean;
 
-    /** Function to set the text input should clear */
-    setTextInputShouldClear: (shouldClear: boolean) => void;
+        /** Function to set the text input should clear */
+        setTextInputShouldClear: (shouldClear: boolean) => void;
 
-    /** Whether the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
+        /** Whether the user is blocked from concierge */
+        isBlockedFromConcierge: boolean;
 
-    /** Whether the input is disabled */
-    disabled: boolean;
+        /** Whether the input is disabled */
+        disabled: boolean;
 
-    /** Whether the full composer is available */
-    isFullComposerAvailable: boolean;
+        /** Whether the full composer is available */
+        isFullComposerAvailable: boolean;
 
-    /** Function to set whether the full composer is available */
-    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
+        /** Function to set whether the full composer is available */
+        setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
-    /** Function to set whether the comment is empty */
-    setIsCommentEmpty: (isCommentEmpty: boolean) => void;
+        /** Function to set whether the comment is empty */
+        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
-    /** Function to handle sending a message */
-    handleSendMessage: () => void;
+        /** Function to handle sending a message */
+        handleSendMessage: () => void;
 
-    /** Whether the compose input should show */
-    shouldShowComposeInput: OnyxEntry<boolean>;
+        /** Whether the compose input should show */
+        shouldShowComposeInput: OnyxEntry<boolean>;
 
-    /** Function to measure the parent container */
-    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
+        /** Function to measure the parent container */
+        measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 
-    /** The height of the list */
-    listHeight: number;
+        /** The height of the list */
+        listHeight: number;
 
-    /** Whether the scroll is likely to trigger a layout */
-    isScrollLikelyLayoutTriggered: RefObject<boolean>;
+        /** Whether the scroll is likely to trigger a layout */
+        isScrollLikelyLayoutTriggered: RefObject<boolean>;
 
-    /** Function to raise the scroll is likely layout triggered */
-    raiseIsScrollLikelyLayoutTriggered: () => void;
+        /** Function to raise the scroll is likely layout triggered */
+        raiseIsScrollLikelyLayoutTriggered: () => void;
 
-    /** The ref to the suggestions */
-    suggestionsRef: React.RefObject<SuggestionsRef>;
+        /** The ref to the suggestions */
+        suggestionsRef: React.RefObject<SuggestionsRef>;
 
-    /** The ref to the animated input */
-    animatedRef: AnimatedRef;
+        /** The ref to the animated input */
+        animatedRef: AnimatedRef;
 
-    /** The ref to the next modal will open */
-    isNextModalWillOpenRef: MutableRefObject<boolean | null>;
+        /** The ref to the next modal will open */
+        isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
-    /** Whether the edit is focused */
-    editFocused: boolean;
+        /** Whether the edit is focused */
+        editFocused: boolean;
 
-    /** Wheater chat is empty */
-    isEmptyChat?: boolean;
+        /** Wheater chat is empty */
+        isEmptyChat?: boolean;
 
-    /** The last report action */
-    lastReportAction?: OnyxTypes.ReportAction;
+        /** The last report action */
+        lastReportAction?: OnyxTypes.ReportAction;
 
-    /** Whether to include chronos */
-    includeChronos?: boolean;
+        /** Whether to include chronos */
+        includeChronos?: boolean;
 
-    /** The parent report action ID */
-    parentReportActionID?: string;
+        /** The parent report action ID */
+        parentReportActionID?: string;
 
-    /** The parent report ID */
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReportID: string | undefined;
-} & ComposerWithSuggestionsOnyxProps &
-    Partial<ChildrenProps>;
+        /** The parent report ID */
+        // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
+        parentReportID: string | undefined;
+    };
 
 const {RNTextInputReset} = NativeModules;
 
@@ -240,7 +240,7 @@ function ComposerWithSuggestions(
         // For testing
         children,
     }: ComposerWithSuggestionsProps,
-    ref: ForwardedRef<ComposerRef | null>,
+    ref: ForwardedRef<ComposerRef>,
 ) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -340,24 +340,24 @@ function ComposerWithSuggestions(
             let currentIndex = 0;
 
             // Find the first character mismatch with newText
-            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText?.charAt(currentIndex) && selection.start > currentIndex) {
+            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
                 currentIndex++;
             }
 
-            if (currentIndex < (newText?.length ?? 0)) {
+            if (currentIndex < newText.length) {
                 startIndex = currentIndex;
-                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText ?? '', selection.end);
+                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection.end);
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
                 if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
-                    endIndex = (newText?.length ?? 0) - commonSuffixLength;
+                    endIndex = newText.length - commonSuffixLength;
                 } else {
-                    endIndex = currentIndex + (newText?.length ?? 0);
+                    endIndex = currentIndex + newText.length;
                 }
             }
             return {
                 startIndex,
                 endIndex,
-                diff: newText?.substring(startIndex, endIndex) ?? '',
+                diff: newText.substring(startIndex, endIndex),
             };
         },
         [selection.start, selection.end],
@@ -375,7 +375,7 @@ function ComposerWithSuggestions(
                 text: newComment,
                 emojis,
                 cursorPosition,
-            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue ?? '', preferredSkinTone, preferredLocale);
+            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
             if (emojis.length) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
@@ -748,7 +748,7 @@ function ComposerWithSuggestions(
                     isComposerFullSize={isComposerFullSize}
                     value={value}
                     testID="composer"
-                    numberOfLines={numberOfLines ?? 0}
+                    numberOfLines={numberOfLines ?? undefined}
                     onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}

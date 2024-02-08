@@ -16,7 +16,7 @@ function IncrementRenderCount() {
     return null;
 }
 
-function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef | null>) {
+function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef>) {
     // Eventually Auto focus on e2e tests
     useEffect(() => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();

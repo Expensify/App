@@ -1,15 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {FC} from 'react';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -29,25 +28,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestOption = {
-    icon: FC<SvgProps>;
-    text: string;
-    onSelected: () => void;
-};
-
-type MoneyRequestOptions = Record<ValueOf<typeof CONST.IOU.TYPE>, MoneyRequestOption>;
+type MoneyRequestOptions = Record<ValueOf<typeof CONST.IOU.TYPE>, PopoverMenuItem>;
 
 type AttachmentPickerWithMenuItemsOnyxProps = {
     /** The policy tied to the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-type AttachmentPickerWithMenuItemsProps = {
+type AttachmentPickerWithMenuItemsProps = AttachmentPickerWithMenuItemsOnyxProps & {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** Callback to open the file in the modal */
-    displayFileInModal: (url: FileObject | undefined) => void;
+    displayFileInModal: (url: FileObject) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -59,7 +52,7 @@ type AttachmentPickerWithMenuItemsProps = {
     isBlockedFromConcierge: boolean;
 
     /** Whether or not the attachment picker is disabled */
-    disabled: boolean;
+    disabled?: boolean;
 
     /** Sets the menu visibility */
     setMenuVisibility: (isVisible: boolean) => void;
@@ -93,7 +86,7 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** The personal details of everyone in the report */
     reportParticipantIDs?: number[];
-} & AttachmentPickerWithMenuItemsOnyxProps;
+};
 
 /**
  * This includes the popover of options you see when pressing the + button in the composer.
@@ -155,7 +148,7 @@ function AttachmentPickerWithMenuItems({
     /**
      * Determines if we can show the task option
      */
-    const taskOption: MoneyRequestOption[] = useMemo(() => {
+    const taskOption: PopoverMenuItem[] = useMemo(() => {
         if (!ReportUtils.canCreateTaskInReport(report)) {
             return [];
         }

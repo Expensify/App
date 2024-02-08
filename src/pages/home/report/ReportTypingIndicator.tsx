@@ -41,7 +41,7 @@ function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps)
     if (usersTyping.length === 1) {
         return (
             <TextWithEllipsis
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
                 leadingText={firstUserTypingDisplayName || translate('common.someone')}
                 trailingText={` ${translate('reportTypingIndicator.isTyping')}`}
                 textStyle={[styles.chatItemComposeSecondaryRowSubText]}

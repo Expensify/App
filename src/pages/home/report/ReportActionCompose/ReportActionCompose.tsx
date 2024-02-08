@@ -289,9 +289,7 @@ function ReportActionCompose({
      */
     const submitForm = useCallback(
         (event?: SyntheticEvent) => {
-            if (event) {
-                event.preventDefault();
-            }
+            event?.preventDefault();
 
             const newComment = composerRef.current?.prepareCommentAndResetComposer();
             if (!newComment) {

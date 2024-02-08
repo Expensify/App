@@ -80,7 +80,7 @@ type ImagePickerResponse = {
 type FileObject = File | ImagePickerResponse;
 
 type ChildrenProps = {
-    displayFileInModal: (data: FileObject | undefined) => void;
+    displayFileInModal: (data: FileObject) => void;
     show: () => void;
 };
 
@@ -317,7 +317,7 @@ function AttachmentModal({
     }, []);
 
     const validateAndDisplayFileToUpload = useCallback(
-        (data: FileObject | undefined) => {
+        (data: FileObject) => {
             if (!data || !isDirectoryCheck(data)) {
                 return;
             }
