@@ -113,7 +113,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
  * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey | Localize.MaybePhraseKey) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string | null, message?: TKey | Localize.MaybePhraseKey) {
     if (!message || !inputID) {
         return;
     }
@@ -141,3 +141,5 @@ export {
     addErrorMessage,
     getLatestErrorMessageField,
 };
+
+export type {ErrorsList};
