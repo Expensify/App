@@ -1,9 +1,8 @@
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import type DotLottieAnimation from './types';
-import type {AnimationKey} from './types';
 
-const DotLottieAnimations: Record<AnimationKey, DotLottieAnimation> = {
+const DotLottieAnimations = {
     ExpensifyLounge: {
         file: require('@assets/animations/ExpensifyLounge.lottie'),
         w: 1920,
@@ -65,6 +64,6 @@ const DotLottieAnimations: Record<AnimationKey, DotLottieAnimation> = {
         w: 375,
         h: 240,
     },
-};
+} satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;
