@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -34,7 +35,7 @@ const defaultProps = {
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
-function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
+function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -91,11 +92,11 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             }
 
             // If the input is not focused and the new index is out of range, focus the input
-            if (newIndex < 0 && !searchInputRef.current.isFocused()) {
+            if (newIndex < 0 && !searchInputRef.current.isFocused() && shouldFocusInputOnScreenFocus) {
                 searchInputRef.current.focus();
             }
         },
-        [filteredEmojis.length, highlightFirstEmoji, isUsingKeyboardMovement],
+        [filteredEmojis.length, highlightFirstEmoji, isUsingKeyboardMovement, shouldFocusInputOnScreenFocus],
     );
 
     const disabledIndexes = useMemo(() => (isListFiltered ? [] : [...headerIndices, ...spacersIndexes]), [headerIndices, isListFiltered, spacersIndexes]);
@@ -259,7 +260,8 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
             const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
-            const shouldEmojiBeHighlighted = index === focusedIndex && highlightEmoji;
+            const shouldEmojiBeHighlighted =
+                (index === focusedIndex && highlightEmoji) || (Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
             const shouldFirstEmojiBeHighlighted = index === 0 && highlightFirstEmoji;
 
             return (
@@ -293,6 +295,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             translate,
             onEmojiSelected,
             setFocusedIndex,
+            activeEmoji,
         ],
     );
 

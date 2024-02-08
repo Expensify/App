@@ -489,7 +489,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
             send: 'send money',
             split: 'split a bill',
@@ -589,6 +589,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        routePending: 'Route pending...',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
@@ -679,6 +680,7 @@ export default {
             always: 'Immediately',
             daily: 'Daily',
             mute: 'Mute',
+            hidden: 'Hidden',
         },
     },
     loginField: {
@@ -817,6 +819,7 @@ export default {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
+        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account Settings',
         account: 'Account',
@@ -1053,10 +1056,10 @@ export default {
             },
         },
     },
-    welcomeMessagePage: {
-        welcomeMessage: 'Welcome message',
-        welcomeMessageOptional: 'Welcome message (optional)',
-        explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
+    reportDescriptionPage: {
+        roomDescription: 'Room description',
+        roomDescriptionOptional: 'Room description (optional)',
+        explainerText: 'Set a custom decription for the room.',
     },
     languagePage: {
         language: 'Language',
@@ -1969,7 +1972,7 @@ export default {
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
-        in: 'In',
+        in: 'in',
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
@@ -2108,6 +2111,20 @@ export default {
         [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
         welcomeMessage: 'Welcome to Expensify',
         welcomeSubtitle: 'What would you like to do?',
+    },
+    manageTeams: {
+        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
+        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
+        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
+        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
+        title: 'Do you require any of the following features?',
+    },
+    expensifyClassic: {
+        title: "Expensify Classic has everything you'll need",
+        firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
+        secondDescription: "Don't worry, Expensify Classic has everything you need.",
+        buttonText: 'Take me to Expensify Classic',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
