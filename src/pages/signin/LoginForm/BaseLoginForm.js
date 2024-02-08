@@ -29,6 +29,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -87,6 +88,8 @@ const defaultProps = {
     blurOnSubmit: false,
     innerRef: () => {},
 };
+
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function LoginForm(props) {
     const styles = useThemeStyles();
@@ -275,13 +278,23 @@ function LoginForm(props) {
                     id="username"
                     name="username"
                     testID="username"
-                    onBlur={() => {
-                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                            return;
-                        }
-                        firstBlurred.current = true;
-                        validate(login);
-                    }}
+                    onBlur={
+                        // As we have only two signin buttons (Apple/Google) other than the text input,
+                        // for natives onBlur is called only when the buttons are pressed and we don't need
+                        // to validate in those case as the user has opted for other signin flow.
+                        willBlurTextInputOnTapOutside
+                            ? () =>
+                                  // This delay is to avoid the validate being called before google iframe is rendered to
+                                  // avoid error message appearing after pressing google signin button.
+                                  setTimeout(() => {
+                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                          return;
+                                      }
+                                      firstBlurred.current = true;
+                                      validate(login);
+                                  }, 500)
+                            : undefined
+                    }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
@@ -331,10 +344,10 @@ function LoginForm(props) {
                                     </Text>
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <AppleSignIn />
                                         </View>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <GoogleSignIn />
                                         </View>
                                     </View>

@@ -22,7 +22,7 @@ import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import participantPropTypes from './participantPropTypes';
+import {usePersonalDetails} from './OnyxProvider';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
@@ -34,9 +34,6 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }),
-
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     /* Onyx Props */
     /** Session info for the currently logged in user. */
@@ -65,7 +62,8 @@ const defaultProps = {
     policy: {},
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}) {
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);

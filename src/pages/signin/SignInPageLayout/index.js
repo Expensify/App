@@ -14,6 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
@@ -124,6 +125,7 @@ function SignInPageLayout(props) {
                                     isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
+                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                                 />
                             </View>
                             <View>
@@ -163,6 +165,7 @@ function SignInPageLayout(props) {
                             isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
+                            transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                         />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
