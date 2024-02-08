@@ -122,7 +122,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
                             description={translate('workspace.reimburse.trackDistanceRate')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(policy?.id ?? ''))}
-                            wrapperStyle={[styles.mt3, styles.ph8, styles.mhn8, styles.wAuto]}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                             brickRoadIndicator={(distanceCustomUnit?.errors ?? distanceCustomRate?.errors) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                         />
                     </OfflineWithFeedback>
