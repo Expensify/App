@@ -2,7 +2,7 @@ import type * as OnyxCommon from './OnyxCommon';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {Unit} from './Policy';
 
-type FormValueType = string | boolean | Date | number | OnyxCommon.Errors;
+type FormValueType = string | boolean | Date | OnyxCommon.Errors;
 
 type BaseForm = {
     /** Controls the loading state of the form */

@@ -56,7 +56,7 @@ function WorkspaceRateAndUnitPage({policy, route}: WorkspaceRateAndUnitPageProps
         const currentCustomUnitRate = Object.values(distanceCustomUnit?.rates ?? {}).find((r) => r.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         const unitID = distanceCustomUnit.customUnitID ?? '';
         const unitName = distanceCustomUnit.name ?? '';
-        const rateNumValue = PolicyUtils.getNumericValue(rate, toLocaleDigit) as number;
+        const rateNumValue = PolicyUtils.getNumericValue(rate, toLocaleDigit);
 
         const newCustomUnit: Policy.NewCustomUnit = {
             customUnitID: unitID,
@@ -64,7 +64,7 @@ function WorkspaceRateAndUnitPage({policy, route}: WorkspaceRateAndUnitPageProps
             attributes: {unit},
             rates: {
                 ...currentCustomUnitRate,
-                rate: rateNumValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                rate: Number(rateNumValue) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             },
         };
 

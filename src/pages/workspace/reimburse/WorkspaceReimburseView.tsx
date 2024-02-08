@@ -127,19 +127,6 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
                         />
                     </OfflineWithFeedback>
                 </View>
-                <OfflineWithFeedback
-                    pendingAction={distanceCustomUnit?.pendingAction ?? distanceCustomRate?.pendingAction}
-                    shouldShowErrorMessages={false}
-                >
-                    <MenuItemWithTopDescription
-                        title={currentRatePerUnit}
-                        description={translate('workspace.reimburse.trackDistanceRate')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(policy?.id ?? ''))}
-                        wrapperStyle={[styles.mhn5, styles.wAuto]}
-                        brickRoadIndicator={(distanceCustomUnit?.errors ?? distanceCustomRate?.errors) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                    />
-                </OfflineWithFeedback>
             </Section>
 
             <WorkspaceReimburseSection
