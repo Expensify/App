@@ -411,7 +411,6 @@ const mainWindow = () => {
                                 },
                             },
                             {
-                                id: 'back_left',
                                 role: 'back',
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Left' : 'Shift+Left',
@@ -428,7 +427,6 @@ const mainWindow = () => {
                                 },
                             },
                             {
-                                id: 'forward_right',
                                 role: 'forward',
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Right' : 'Shift+Right',
