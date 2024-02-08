@@ -25,7 +25,7 @@ type DateOfBirthPageOnyxProps = {
 };
 type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
 
-function DateOfBirthPage({privatePersonalDetails = {dob: ''}}: DateOfBirthPageProps) {
+function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     usePrivatePersonalDetails();

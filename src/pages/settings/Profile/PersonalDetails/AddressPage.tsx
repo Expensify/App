@@ -39,7 +39,7 @@ function updateAddress(values: Address) {
     );
 }
 
-function AddressPage({privatePersonalDetails = {address: {street: '', city: '', state: '', zip: '', country: ''}}, route}: AddressPageProps) {
+function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();

@@ -45,7 +45,7 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName ?? '')) {
             ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (values.legalFirstName === '') {
+        } else if (!values.legalFirstName) {
             errors.legalFirstName = 'common.error.fieldRequired';
         }
         if (ValidationUtils.doesContainReservedWord(values.legalFirstName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES)) {
@@ -57,7 +57,7 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName ?? '')) {
             ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (values.legalLastName === '') {
+        } else if (!values.legalLastName) {
             errors.legalLastName = 'common.error.fieldRequired';
         }
         if (ValidationUtils.doesContainReservedWord(values.legalLastName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES)) {

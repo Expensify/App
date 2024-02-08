@@ -367,8 +367,6 @@ const ONYXKEYS = {
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
         PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
         PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
-        // LEGAL_NAME: 'legalName',
-        // LEGAL_NAME_DRAFT: 'legalNameDraft',
     },
 } as const;
 
