@@ -107,11 +107,11 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param tagIndex - the index of a tag list
  * @returns
  */
-function insertTagIntoReportTagsSting(reportTags: string, tag: string, tagIndex: number): string {
+function insertTagIntoReportTagsString(reportTags: string, tag: string, tagIndex: number): string {
     const splittedReportTags = reportTags.split(CONST.COLON);
     splittedReportTags[tagIndex] = tag;
 
     return splittedReportTags.join(CONST.COLON).replace(/:*$/, '');
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoReportTagsSting};
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoReportTagsString};

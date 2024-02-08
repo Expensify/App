@@ -166,7 +166,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                 // In case the same tag has been selected, reset the tag.
                 updatedTag = '';
             }
-            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, IOUUtils.insertTagIntoReportTagsSting(transactionTag, updatedTag, tagIndex));
+            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, IOUUtils.insertTagIntoReportTagsString(transactionTag, updatedTag, tagIndex));
             Navigation.dismissModal();
         },
         [tag, transactionTag, tagIndex, transaction.transactionID, report.reportID],
