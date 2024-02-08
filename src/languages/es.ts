@@ -135,7 +135,6 @@ export default {
         payments: 'Pagos',
         wallet: 'Billetera',
         preferences: 'Preferencias',
-        security: 'Seguridad',
         view: 'Ver',
         not: 'No',
         signIn: 'Conectarse',

@@ -8,17 +8,14 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 function SecuritySettingsPage() {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
@@ -58,7 +55,7 @@ function SecuritySettingsPage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={translate('common.security')}
+                title={translate('initialSettingsPage.security')}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack()}
                 icon={Illustrations.LockClosed}
@@ -71,8 +68,6 @@ function SecuritySettingsPage() {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Safe}
-                        illustrationStyle={{height: 220}}
-                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
                     >

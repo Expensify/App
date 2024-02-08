@@ -146,7 +146,6 @@ export default {
         payments: 'Payments',
         wallet: 'Wallet',
         preferences: 'Preferences',
-        security: 'Security',
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
