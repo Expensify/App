@@ -61,6 +61,7 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
 
     const policyName = lodashGet(policy, 'name', '');
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
+    const pendingAction = lodashGet(policy, 'pendingFields.generalSettings') || lodashGet(policy, 'pendingFields.description');
 
     return (
         <WorkspacePageWithSections
@@ -106,7 +107,7 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                         disabled={readOnly}
                         disabledStyle={styles.cursorDefault}
                     />
-                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
+                    <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemWithTopDescription
                             title={policy.name}
                             description={translate('workspace.editor.nameInputLabel')}

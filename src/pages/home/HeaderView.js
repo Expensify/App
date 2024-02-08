@@ -120,6 +120,7 @@ function HeaderView(props) {
     const reportDescription = ReportUtils.getReportDescriptionText(props.report);
     const policyName = ReportUtils.getPolicyName(props.report);
     const policyDescription = ReportUtils.getPolicyDescriptionText(props.policy);
+    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(props.report.reportID);
     const shouldShowSubtitle = () => {
         if (_.isEmpty(subtitle)) {
             return false;
@@ -197,7 +198,7 @@ function HeaderView(props) {
     );
 
     const renderAdditionalText = () => {
-        if (shouldShowSubtitle() || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
             return null;
         }
         return (
