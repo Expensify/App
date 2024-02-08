@@ -167,6 +167,7 @@ export default {
     eReceiptThumnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
+    eReceiptEmptyIconWidth: 76,
     eReceiptMCCHeightWidth: 40,
     eReceiptIconHeightSmall: 65,
     eReceiptIconWidthSmall: 46,
@@ -189,6 +190,8 @@ export default {
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
+    oldDotWireframeIconWidth: 263.38,
+    oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
 
