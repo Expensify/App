@@ -146,6 +146,7 @@ export default {
         payments: 'Payments',
         wallet: 'Wallet',
         preferences: 'Preferences',
+        security: 'Security',
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
@@ -721,6 +722,10 @@ export default {
             title: 'Private',
             subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
         },
+    },
+    securityPage: {
+        title: 'Security options',
+        subtitle: 'Enable two-factor authentication to keep your account safe.',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',

@@ -135,6 +135,7 @@ export default {
         payments: 'Pagos',
         wallet: 'Billetera',
         preferences: 'Preferencias',
+        security: 'Seguridad',
         view: 'Ver',
         not: 'No',
         signIn: 'Conectarse',
@@ -715,6 +716,10 @@ export default {
             title: 'Privada',
             subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         },
+    },
+    securityPage: {
+        title: 'Opciones de seguridad',
+        subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
