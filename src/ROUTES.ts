@@ -159,6 +159,7 @@ const ROUTES = {
     NEW: 'new',
     NEW_CHAT: 'new/chat',
     NEW_ROOM: 'new/room',
+    NEW_ROOM_WORKSPACE_SELECTOR: 'new/room/workspace',
 
     REPORT: 'r',
     REPORT_WITH_ID: {

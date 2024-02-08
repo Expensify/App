@@ -141,6 +141,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_ROOM_WORKSPACE_SELECTOR]: undefined;
 };
 
 type SearchNavigatorParamList = {

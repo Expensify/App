@@ -297,6 +297,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.NEW_CHAT.NEW_ROOM_WORKSPACE_SELECTOR]: ROUTES.NEW_ROOM_WORKSPACE_SELECTOR,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {

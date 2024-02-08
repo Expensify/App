@@ -9,6 +9,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -373,7 +374,18 @@ function WorkspaceNewRoomPage(props) {
                                     shouldShowTooltips={false}
                                 />
                             </View>
+                            <MenuItemWithTopDescription
+                                // shouldShowRightIcon={!isReadOnly}
+                                title={'taxRateTitle'}
+                                description={'policyTaxRates.name'}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_ROOM_WORKSPACE_SELECTOR)}
+                                // disabled={didConfirm}
+                                // interactive={!isReadOnly}
+                            />
                         </FormProvider>
+
                         {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )
