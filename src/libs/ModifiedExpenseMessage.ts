@@ -191,9 +191,10 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = transactionTag.split(CONST.COLON);
         const splittedOldTag = oldTransactionTag.split(CONST.COLON);
+        const localizedTagListName = Localize.translateLocal('common.tag');
 
         Object.keys(policyTags).forEach((policyTagKey, index) => {
-            const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || Localize.translateLocal('common.tag');
+            const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || localizedTagListName;
 
             const newTag = splittedTag[index] ?? '';
             const oldTag = splittedOldTag[index] ?? '';
@@ -207,7 +208,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
                     setFragments,
                     removalFragments,
                     changeFragments,
-                    policyTagListName === Localize.translateLocal('common.tag'),
+                    policyTagListName === localizedTagListName,
                 );
             }
         });
