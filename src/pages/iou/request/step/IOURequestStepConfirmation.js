@@ -138,7 +138,9 @@ function IOURequestStepConfirmation({
             return;
         }
         IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
-    }, [transactionID, transaction.category, requestType, defaultCategory]);
+        // Prevent resetting to default when unselect category
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactionID, requestType, defaultCategory]);
 
     const navigateBack = useCallback(() => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
