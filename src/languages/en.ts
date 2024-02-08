@@ -713,6 +713,14 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
         profileAvatar: 'Profile avatar',
+        publicSection: {
+            title: 'Public',
+            subtitle: 'These details are displayed on your public profile, available for people to see.',
+        },
+        privateSection: {
+            title: 'Private',
+            subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
+        },
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',

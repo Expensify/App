@@ -70,7 +70,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
         >
             <HeaderWithBackButton
                 title={translate('common.dob')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

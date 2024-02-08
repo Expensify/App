@@ -91,7 +91,7 @@ function LegalNamePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
