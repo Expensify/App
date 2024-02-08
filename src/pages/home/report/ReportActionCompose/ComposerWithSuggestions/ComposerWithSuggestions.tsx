@@ -614,7 +614,7 @@ function ComposerWithSuggestions(
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA'].includes((e.target as Element)?.nodeName)) {
+            if (['INPUT', 'TEXTAREA', 'DIV'].includes((e.target as Element)?.nodeName)) {
                 return;
             }
 

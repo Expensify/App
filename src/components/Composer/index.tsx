@@ -1,3 +1,4 @@
+import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
@@ -5,10 +6,10 @@ import {flushSync} from 'react-dom';
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -80,6 +81,7 @@ function Composer(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const markdownStyle = useMarkdownStyle();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedTextInputRef | null>(null);
@@ -168,7 +170,7 @@ function Composer(
 
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
-                const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
+                const isTargetInput = ['INPUT', 'TEXTAREA', 'SPAN'].includes(eventTarget?.nodeName ?? '') || eventTarget?.contentEditable === 'true';
                 if (isTargetInput) {
                     return true;
                 }
@@ -328,13 +330,14 @@ function Composer(
 
     return (
         <>
-            <RNTextInput
+            <MarkdownTextInput
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
-                ref={(el) => (textInput.current = el)}
+                ref={(el) => (textInput.current = el as AnimatedTextInputRef)}
                 selection={selection}
                 style={inputStyleMemo}
+                markdownStyle={markdownStyle}
                 value={value}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
