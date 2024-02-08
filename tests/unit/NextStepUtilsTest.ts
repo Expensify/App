@@ -22,6 +22,9 @@ describe('libs/NextStepUtils', () => {
             id: policyID,
             owner: currentUserEmail,
             submitsTo: currentUserAccountID,
+            harvesting: {
+                enabled: false,
+            },
             // Required props
             name: 'Policy',
             role: 'admin',
@@ -109,6 +112,9 @@ describe('libs/NextStepUtils', () => {
 
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -132,6 +138,9 @@ describe('libs/NextStepUtils', () => {
 
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -155,6 +164,9 @@ describe('libs/NextStepUtils', () => {
 
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -179,6 +191,9 @@ describe('libs/NextStepUtils', () => {
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                         autoReportingOffset: 2,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -203,6 +218,9 @@ describe('libs/NextStepUtils', () => {
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                         autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -228,6 +246,9 @@ describe('libs/NextStepUtils', () => {
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                         autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -251,6 +272,9 @@ describe('libs/NextStepUtils', () => {
 
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -281,6 +305,9 @@ describe('libs/NextStepUtils', () => {
 
                     return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
+                        harvesting: {
+                            enabled: true,
+                        },
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
