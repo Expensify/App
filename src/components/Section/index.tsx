@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -65,6 +66,9 @@ type SectionProps = ChildrenProps & {
 
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
+
+    /** Overlay content to display on top of animation */
+    overlayContent?: () => ReactNode;
 };
 
 function Section({
@@ -84,6 +88,7 @@ function Section({
     illustration,
     illustrationBackgroundColor,
     illustrationStyle,
+    overlayContent,
 }: SectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -111,6 +116,7 @@ function Section({
                                 autoPlay
                                 loop
                             />
+                            {overlayContent?.()}
                         </View>
                     </View>
                 )}
