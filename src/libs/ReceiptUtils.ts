@@ -5,7 +5,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import {splitExtensionFromFileName} from './fileDownload/FileUtils';
+import * as FileUtils from './fileDownload/FileUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type ThumbnailAndImageURI = {
     image?: string;
@@ -25,7 +26,7 @@ type ThumbnailAndImageURI = {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
+    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
         return {isThumbnail: true, isLocalFile: true};
     }
     // If there're errors, we need to display them in preview. We can store many files in errors, but we just need to get the last one
@@ -51,7 +52,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     }
 
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
-    const {fileExtension} = splitExtensionFromFileName(filename);
+    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
     return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile, filename};
 }
 
