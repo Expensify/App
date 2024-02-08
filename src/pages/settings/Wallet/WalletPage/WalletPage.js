@@ -97,9 +97,9 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         const position = getClickedTargetLocation(paymentMethodButtonRef.current);
 
         setAnchorPosition({
-            anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
+            anchorPositionTop: position.top + position.height - variables.bankAccountActionPopoverTopSpacing,
             // We want the position to be 23px to the right of the left border
-            anchorPositionRight: windowWidth - position.right - variables.addBankAccountLeftSpacing,
+            anchorPositionRight: windowWidth - position.right + variables.bankAccountActionPopoverRightSpacing,
             anchorPositionHorizontal: position.x + (shouldShowEmptyState ? -variables.addPaymentMethodLeftSpacing : variables.addBankAccountLeftSpacing),
             anchorPositionVertical: position.y,
         });
@@ -513,7 +513,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         anchorRef={paymentMethodButtonRef}
                     >
                         {!showConfirmDeleteModal && (
-                            <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
+                            <View style={[styles.mv3, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title || ''}
@@ -524,19 +524,21 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                     />
                                 )}
                                 {shouldShowMakeDefaultButton && (
-                                    <Button
+                                    <MenuItem
+                                        title={translate('walletPage.setDefaultConfirmation')}
+                                        icon={Expensicons.Mail}
                                         onPress={() => {
                                             makeDefaultPaymentMethod();
                                             setShouldShowDefaultDeleteMenu(false);
                                         }}
-                                        text={translate('walletPage.setDefaultConfirmation')}
+                                        wrapperStyle={[styles.pv3, styles.ph5, styles.mh0, !isSmallScreenWidth ? styles.sidebarPopover : '']}
                                     />
                                 )}
-                                <Button
+                                <MenuItem
+                                    title={translate('common.delete')}
+                                    icon={Expensicons.Trashcan}
                                     onPress={() => setShowConfirmDeleteModal(true)}
-                                    style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
-                                    text={translate('common.delete')}
-                                    danger
+                                    wrapperStyle={[styles.pv3, styles.ph5, styles.mh0, !isSmallScreenWidth ? styles.sidebarPopover : '']}
                                 />
                             </View>
                         )}

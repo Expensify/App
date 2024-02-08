@@ -269,9 +269,12 @@ function PaymentMethodList({
 
             return {
                 ...paymentMethod,
+                iconRight: Expensicons.ThreeDots,
+                shouldShowRightIcon: true,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isMethodActive,
             };
         });
 
@@ -292,11 +295,12 @@ function PaymentMethodList({
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                hoverAndPressStyle={styles.hoveredComponentBG}
                 ref={buttonRef}
             />
         ),
 
-        [onPress, translate, styles.paymentMethod, listItemStyle, buttonRef],
+        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef],
     );
 
     /**
@@ -328,16 +332,20 @@ function PaymentMethodList({
                     iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    iconRight={item.iconRight}
+                    badgeStyle={styles.badgeBordered}
+                    hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
+                    success={item.isMethodActive}
                 />
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.hoveredComponentBG, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
