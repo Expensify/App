@@ -1,16 +1,10 @@
 name: "Announce failed workflow in Slack"
-description: "Post failed workflow in Slack channel (default #announce)"
+description: "Post failed workflow in Slack #announce channel"
 
 inputs:
   SLACK_WEBHOOK:
     description: "URL of the slack webhook"
     required: true
-  CHANNEL:
-    description: "Slack channel to post the message"
-    default: "#announce"
-  CUSTOM_TEXT:
-    description: "Custom text for the Slack message"
-    required: false
 
 runs:
   using: composite
@@ -22,14 +16,13 @@ runs:
         fields: workflow, repo
         custom_payload: |
           {
-            channel: '${{ inputs.CHANNEL }}',
+            channel: '#announce',
             attachments: [{
               color: "#DB4545",
               pretext: `<!subteam^S4TJJ3PSL>`,
-              text: process.env.CUSTOM_TEXT ? process.env.CUSTOM_TEXT : `💥 ${process.env.AS_REPO} failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
+              text: `💥 ${process.env.AS_REPO} failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
             }]
           }
       env:
         GITHUB_TOKEN: ${{ github.token }}
         SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK }}
-        CUSTOM_TEXT: ${{ inputs.CUSTOM_TEXT }}
