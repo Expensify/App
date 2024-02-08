@@ -31,6 +31,27 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
+type ConnectionLastSync = {
+    successfulDate: string;
+    isSuccessful: boolean;
+    errorDate?: string;
+    source: string;
+};
+
+type ConnectionData = {
+    // TBD
+};
+
+type ConnectionConfig = {
+    // TBD
+};
+
+type Connection = {
+    lastSync?: ConnectionLastSync;
+    data: ConnectionData;
+    config: ConnectionConfig;
+};
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type Policy = {
@@ -158,6 +179,9 @@ type Policy = {
 
     /** ReportID of the announce room for this workspace */
     chatReportIDAnnounce?: number;
+
+    /** All the integration connections attached to the policy */
+    connections?: Record<string, Connection>;
 };
 
 export default Policy;
