@@ -34,13 +34,13 @@ export default function (pageTitle: TranslationPaths) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const {route, report, session} = props;
-            const accountID = 'accountID' in route.params && route.params.accountID;
+            const accountID = ('accountID' in route.params && route.params.accountID) || '';
             const isPrivateNotesFetchTriggered = report.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);
             const isReconnecting = prevIsOffline && !isOffline;
-            const isOtherUserNote = accountID && Number(session?.accountID) !== Number(accountID);
+            const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
             const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !report.isLoadingPrivateNotes;
-            const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)].note : isEmptyObject(report?.privateNotes);
+            const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)]?.note : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {
                 // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
@@ -52,12 +52,12 @@ export default function (pageTitle: TranslationPaths) {
                 // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
             }, [report.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
-            const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished || (isPrivateNotesEmpty && (!!report.isLoadingPrivateNotes || !isOtherUserNote));
+            const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;
 
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
                 // Show not found view if the report is archived, or if the note is not of current user.
-                if (ReportUtils.isArchivedRoom(report) || (accountID && Number(session?.accountID) !== Number(accountID))) {
+                if (ReportUtils.isArchivedRoom(report) || isOtherUserNote) {
                     return true;
                 }
 
@@ -68,7 +68,7 @@ export default function (pageTitle: TranslationPaths) {
 
                 // As notes being empty and not loading is a valid case, show not found view only in offline mode.
                 return isOffline;
-            }, [report, isOffline, accountID, session?.accountID, isPrivateNotesEmpty, shouldShowFullScreenLoadingIndicator, isReconnecting]);
+            }, [report, isOtherUserNote, shouldShowFullScreenLoadingIndicator, isPrivateNotesEmpty, isReconnecting, isOffline]);
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <LoadingPage title={translate(pageTitle)} />;
