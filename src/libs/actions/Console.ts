@@ -12,4 +12,8 @@ function addLog(log: Log) {
     });
 }
 
-export default addLog;
+function setShouldStoreLogs(store: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_STORE_LOGS, store);
+}
+
+export {addLog, setShouldStoreLogs};

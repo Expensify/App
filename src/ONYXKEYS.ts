@@ -255,6 +255,9 @@ const ONYXKEYS = {
     /** Stores the logs of the app for debugging purposes */
     LOGS: 'logs',
 
+    /** Indicates whether we should store logs or not */
+    SHOULD_STORE_LOGS: 'shouldStoreLogs',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -457,6 +460,7 @@ type OnyxValues = {
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
+    [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

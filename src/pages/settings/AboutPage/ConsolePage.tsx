@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import addLog from '@libs/actions/Console';
+import {addLog, setShouldStoreLogs} from '@libs/actions/Console';
 import {createLog, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
@@ -22,14 +22,15 @@ import ROUTES from '@src/ROUTES';
 
 type CapturedLogs = Record<number, Log>;
 
-type ConsolePageProps = {
-    capturedLogs: CapturedLogs;
-};
-
 type ConsolePageOnyxProps = {
     /** Logs captured on the current device */
     capturedLogs: OnyxEntry<CapturedLogs>;
+
+    /** Whether or not logs should be stored */
+    shouldStoreLogs: OnyxEntry<boolean>;
 };
+
+type ConsolePageProps = ConsolePageOnyxProps;
 
 const parseStingifiedMessages = (logs: CapturedLogs) =>
     Object.values(logs).map((log) => {
@@ -45,7 +46,7 @@ const parseStingifiedMessages = (logs: CapturedLogs) =>
         }
     });
 
-function ConsolePage({capturedLogs}: ConsolePageProps) {
+function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
     const [logs, setLogs] = useState<CapturedLogs>(capturedLogs);
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
@@ -53,6 +54,18 @@ function ConsolePage({capturedLogs}: ConsolePageProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
+        if (shouldStoreLogs) {
+            return;
+        }
+
+        setShouldStoreLogs(true);
+    }, [shouldStoreLogs]);
+
+    useEffect(() => {
+        if (!shouldStoreLogs) {
+            return;
+        }
+
         setLogs((prevLogs) => ({...prevLogs, ...capturedLogs}));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [capturedLogs]);
@@ -141,5 +154,8 @@ ConsolePage.displayName = 'ConsolePage';
 export default withOnyx<ConsolePageProps, ConsolePageOnyxProps>({
     capturedLogs: {
         key: ONYXKEYS.LOGS,
+    },
+    shouldStoreLogs: {
+        key: ONYXKEYS.SHOULD_STORE_LOGS,
     },
 })(ConsolePage);
