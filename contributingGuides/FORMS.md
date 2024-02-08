@@ -10,7 +10,7 @@ Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensif
 <InputWrapper
     // `InputWrapper` required props
     InputComponent={TextInput}
-    inputID={INPUT_IDS[formID].UNIQUE_INPUT_ID}
+    inputID={INPUT_IDS.UNIQUE_INPUT_ID}
     // `TextInput` specific props
     placeholder="Text input placeholder"
     label="Text input label"
@@ -240,7 +240,7 @@ function onSubmit(values) {
         <InputWrapper
             InputComponent={TextInput}
             label="Routing number"
-            inputID={INPUT_IDS[formID].ROUTING_NUMBER}
+            inputID={INPUT_IDS.ROUTING_NUMBER}
             maxLength={8}
             shouldSaveDraft
         />
@@ -248,7 +248,7 @@ function onSubmit(values) {
     <InputWrapper
         InputComponent={TextInput}
         label="Account number"
-        inputID={INPUT_IDS[formID].ACCOUNT_NUMBER}
+        inputID={INPUT_IDS.ACCOUNT_NUMBER}
         containerStyles={[styles.mt4]}
     />
 </FormProvider>
@@ -263,7 +263,7 @@ const BankAccountForm = () => (
             <InputWrapper
                 InputComponent={TextInput}
                 label="Routing number"
-                inputID={INPUT_IDS[formID].ROUTING_NUMBER}
+                inputID={INPUT_IDS.ROUTING_NUMBER}
                 maxLength={8}
                 shouldSaveDraft
             />
@@ -271,7 +271,7 @@ const BankAccountForm = () => (
         <InputWrapper
             InputComponent={TextInput}
             label="Account number"
-            inputID={INPUT_IDS[formID].ACCOUNT_NUMBER}
+            inputID={INPUT_IDS.ACCOUNT_NUMBER}
             containerStyles={[styles.mt4]}
         />
     </>
