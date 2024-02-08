@@ -11,7 +11,7 @@ import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
-import type {BaseForm} from '@src/types/onyx/Form';
+import type {BaseForm} from '@src/types/form/Form';
 
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it

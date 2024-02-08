@@ -1,5 +1,5 @@
 import type {FormValue} from '@components/Form/types';
-import type * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type BaseForm = {
     /** Controls the loading state of the form */

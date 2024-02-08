@@ -1,4 +1,4 @@
-import type * as OnyxTypes from './index';
+import type Form from '@src/types/form/Form';
 
 type OnfidoData = Record<string, unknown>;
 
@@ -59,7 +59,7 @@ type ReimbursementAccountProps = {
 
 type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps;
 
-type ReimbursementAccountFormDraft = ReimbursementAccountDraft & OnyxTypes.Form;
+type ReimbursementAccountFormDraft = ReimbursementAccountDraft & Form;
 
 export default ReimbursementAccountDraft;
 export type {ACHContractStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps, ReimbursementAccountFormDraft};
