@@ -127,7 +127,6 @@ function AboutPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
