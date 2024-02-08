@@ -1,4 +1,5 @@
 import type {ListItem} from '@components/SelectionList/types';
+import type {MaybePhraseKey} from '@libs/Localize';
 
 type ValuePickerItem = ListItem & {
     value?: string;
@@ -41,7 +42,7 @@ type ValuePickerProps = {
     placeholder?: string;
 
     /** Form Error description */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
