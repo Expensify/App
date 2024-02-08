@@ -206,7 +206,7 @@ jobs:
           cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/Test spec output.txt" || true
 
       - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
+        if: failure()
         uses: 8398a7/action-slack@v3
         with:
           status: custom
@@ -223,11 +223,11 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Unzip AWS Device Farm results
-        if: ${{ always() }}
+        if: always()
         run: unzip "Customer Artifacts.zip"
 
       - name: Print AWS Device Farm run results
-        if: ${{ always() }}
+        if: always()
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
