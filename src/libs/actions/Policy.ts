@@ -1545,7 +1545,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, reportTags?: s
         }
 
         const tagListKey = policyTagKeys[index];
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = lodashUnion([tag], policyRecentlyUsedTags[tagListKey] ?? []);
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([...tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
     });
 
     return newOptimisticPolicyRecentlyUsedTags;
