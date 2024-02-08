@@ -57,13 +57,16 @@ function BaseVideoPlayer({
         setIsPopoverVisible(false);
     };
 
-    const onPlaybackStatusUpdate = useCallback((e) => {
-        const isVideoPlaying = e.isPlaying || false;
-        setIsPlaying(isVideoPlaying);
-        setIsLoading(Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
-        setDuration(e.durationMillis || videoDuration * 1000);
-        setPosition(e.positionMillis || 0);
-    }, []);
+    const onPlaybackStatusUpdate = useCallback(
+        (e) => {
+            const isVideoPlaying = e.isPlaying || false;
+            setIsPlaying(isVideoPlaying);
+            setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
+            setDuration(e.durationMillis || videoDuration * 1000);
+            setPosition(e.positionMillis || 0);
+        },
+        [videoDuration],
+    );
 
     const bindFunctions = useCallback(() => {
         currentVideoPlayerRef.current._onPlaybackStatusUpdate = onPlaybackStatusUpdate;

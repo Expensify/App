@@ -23,7 +23,7 @@ function VideoRenderer(props) {
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const activeRoute = Navigation.getActiveRoute();
     const {reportID} = parseReportRouteParams(activeRoute);
-    console.log({duration});
+
     return (
         <VideoPlayerPreview
             videoUrl={sourceURL}
