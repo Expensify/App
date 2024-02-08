@@ -16,7 +16,7 @@ type CommonListItemProps<TItem> = {
     alternateTextStyles?: StyleProp<TextStyle>;
 
     /** Whether this item is disabled */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** Whether this item should show Tooltip */
     showTooltip: boolean;
@@ -116,7 +116,7 @@ type RadioListItemProps = CommonListItemProps<RadioItem> & {
 type BaseListItemProps<TItem extends User | RadioItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
-    keyForList?: string;
+    keyForList?: string | null;
 };
 
 type Section<TItem extends User | RadioItem> = {
@@ -237,10 +237,10 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     isLoadingNewOptions?: boolean;
 
     /** Custom callback when Selection List layout changes */
-    onLayout: () => void;
+    onLayout?: () => void;
 
     /**  Whether to auto focus the Search Input */
-    autoFocus: boolean;
+    autoFocus?: boolean;
 };
 
 type ItemLayout = {
