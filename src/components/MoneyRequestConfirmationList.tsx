@@ -85,7 +85,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         onConfirm?: (selectedParticipants: Participant[]) => void;
 
         /** Callback to parent modal to send money */
-        onSendMoney?: (paymentMethod: IOU.PaymentMethodType) => void;
+        onSendMoney?: (paymentMethod: OnyxTypes.PaymentMethodType) => void;
 
         /** Callback to inform a participant is selected */
         onSelectParticipant?: (option: Participant) => void;
@@ -567,7 +567,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                onPress={(_, value) => confirm(value as IOU.PaymentMethodType)}
+                onPress={(_, value) => confirm(value as OnyxTypes.PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
