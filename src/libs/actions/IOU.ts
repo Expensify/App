@@ -49,7 +49,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -286,13 +286,16 @@ function setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID: str
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {originalCurrency});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestDescription_temporaryForRefactor(transactionID: string, comment: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {comment: comment.trim()}});
+function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
 function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
+}
+
+function setMoneyRequestPendingFields(transactionID: string, pendingFields: PendingFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -995,7 +998,7 @@ function getUpdateMoneyRequestParams(
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
+    let updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
     if (transactionDetails?.waypoints) {
@@ -1013,12 +1016,41 @@ function getUpdateMoneyRequestParams(
         transactionID,
     };
 
+    const hasPendingWaypoints = 'waypoints' in transactionChanges;
+    if (transaction && updatedTransaction && hasPendingWaypoints) {
+        updatedTransaction = {
+            ...updatedTransaction,
+            amount: CONST.IOU.DEFAULT_AMOUNT,
+            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+            modifiedMerchant: Localize.translateLocal('iou.routePending'),
+        };
+
+        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
+            value: null,
+        });
+
+        // Revert the transaction's amount to the original value on failure.
+        // The IOU Report will be fully reverted in the failureData further below.
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: transaction.amount,
+                modifiedAmount: transaction.modifiedAmount,
+                modifiedMerchant: transaction.modifiedMerchant,
+            },
+        });
+    }
+
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    if (!('waypoints' in transactionChanges)) {
-        const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    if (!hasPendingWaypoints) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -1045,33 +1077,33 @@ function getUpdateMoneyRequestParams(
                 },
             },
         });
+    }
 
-        // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-        // Should only update if the transaction matches the currency of the report, else we wait for the update
-        // from the server with the currency conversion
-        let updatedMoneyRequestReport = {...iouReport};
-        if (updatedTransaction?.currency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
-            const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
-            if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-                updatedMoneyRequestReport.total += diff;
-            } else {
-                updatedMoneyRequestReport = iouReport
-                    ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
-                    : {};
-            }
-
-            updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                value: updatedMoneyRequestReport,
-            });
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                value: {pendingAction: null},
-            });
+    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+    // Should only update if the transaction matches the currency of the report, else we wait for the update
+    // from the server with the currency conversion
+    let updatedMoneyRequestReport = {...iouReport};
+    if ((hasPendingWaypoints || updatedTransaction?.modifiedAmount) && updatedTransaction?.currency === iouReport?.currency) {
+        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+        if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
+            updatedMoneyRequestReport.total += diff;
+        } else {
+            updatedMoneyRequestReport = iouReport
+                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
+                : {};
         }
+
+        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.currency);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: updatedMoneyRequestReport,
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {pendingAction: null},
+        });
     }
 
     // Optimistically modify the transaction
@@ -1081,7 +1113,7 @@ function getUpdateMoneyRequestParams(
         value: {
             ...updatedTransaction,
             pendingFields,
-            isLoading: 'waypoints' in transactionChanges,
+            isLoading: hasPendingWaypoints,
             errorFields: null,
         },
     });
@@ -1144,15 +1176,6 @@ function getUpdateMoneyRequestParams(
         },
     });
 
-    if ('waypoints' in transactionChanges) {
-        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
-        successData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
-            value: null,
-        });
-    }
-
     // Clear out loading states, pending fields, and add the error fields
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1165,7 +1188,7 @@ function getUpdateMoneyRequestParams(
     });
 
     if (iouReport) {
-        // Reset the iouReport to it's original state
+        // Reset the iouReport to its original state
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -3553,10 +3576,6 @@ function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
-function setMoneyRequestDescription(comment: string) {
-    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
-}
-
 function setMoneyRequestCategory(category: string) {
     Onyx.merge(ONYXKEYS.IOU, {category});
 }
@@ -3693,16 +3712,16 @@ export {
     setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated_temporaryForRefactor,
     setMoneyRequestCurrency_temporaryForRefactor,
+    setMoneyRequestDescription,
     setMoneyRequestOriginalCurrency_temporaryForRefactor,
-    setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
+    setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
-    setMoneyRequestDescription,
     setMoneyRequestId,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
