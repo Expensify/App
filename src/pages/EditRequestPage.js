@@ -23,7 +23,6 @@ import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
@@ -78,7 +77,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
-        comment: transactionDescription,
         merchant: transactionMerchant,
         category: transactionCategory,
         tag: transactionTag,
@@ -183,26 +181,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         },
         [transactionCategory, transaction.transactionID, report.reportID],
     );
-
-    const saveComment = useCallback(
-        ({comment: newComment}) => {
-            // Only update comment if it has changed
-            if (newComment.trim() !== transactionDescription) {
-                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
-            }
-            Navigation.dismissModal();
-        },
-        [transactionDescription, transaction.transactionID, report.reportID],
-    );
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
-        return (
-            <EditRequestDescriptionPage
-                defaultDescription={transactionDescription}
-                onSubmit={saveComment}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
