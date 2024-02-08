@@ -7,6 +7,8 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import FormContext from './FormContext';
 import type {InputWrapperProps, ValidInputs} from './types';
 
+const textInputBasedComponents: ValidInputs[] = [TextInput, RoomNameInput];
+
 function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>({
     InputComponent,
     shouldSubmitForm,
@@ -18,8 +20,6 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     readonly blurOnSubmit: boolean | undefined;
     readonly shouldSetTouchedOnBlurOnly: boolean;
 } {
-    const textInputBasedComponents: ValidInputs[] = [TextInput, RoomNameInput];
-
     if (textInputBasedComponents.includes(InputComponent)) {
         const isEffectivelyMultiline = Boolean(multiline) || Boolean(autoGrowHeight);
 
