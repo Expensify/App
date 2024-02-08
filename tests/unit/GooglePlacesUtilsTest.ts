@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
+import type {AddressComponent, AddressTerm, FieldsToExtract} from '../../src/libs/GooglePlacesUtils';
 
-const standardObjectToFind = {
+const standardObjectToFind: FieldsToExtract = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
     postal_code: 'long_name',
     'doesnt-exist': 'long_name',
 };
 
-const objectWithCountryToFind = {
+const objectWithCountryToFind: FieldsToExtract = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
     postal_code: 'long_name',
@@ -15,7 +17,7 @@ const objectWithCountryToFind = {
     country: 'long_name',
 };
 
-const addressComponents = [
+const addressComponents: AddressComponent[] = [
     {
         long_name: 'Bushwick',
         short_name: 'Bushwick',
@@ -43,10 +45,7 @@ const addressComponents = [
     },
 ];
 
-const autoCompleteTerms = [
-    {offset: 0, value: 'Bangladesh Border Road'},
-    {offset: 24, value: 'Bangladesh'},
-];
+const autoCompleteTerms: AddressTerm[] = [{value: 'Bangladesh Border Road'}, {value: 'Bangladesh'}];
 
 describe('GooglePlacesUtilsTest', () => {
     describe('getAddressComponents', () => {
