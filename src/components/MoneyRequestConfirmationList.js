@@ -699,7 +699,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={isMerchantEmpty ? '' : props.iouMerchant}
-                            description={translate('common.merchant')}
+                            description={canUseViolations && PolicyUtils.isPaidGroupPolicy(props.policy) ? translate('common.merchant') : ''}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
