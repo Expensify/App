@@ -19,6 +19,8 @@ const videoPlayerPropTypes = {
 
     videoControlsStyle: stylePropTypes,
 
+    videoDuration: PropTypes.number,
+
     shouldUseSharedVideoElement: PropTypes.bool,
 
     shouldUseSmallVideoControls: PropTypes.bool,
@@ -34,6 +36,7 @@ const videoPlayerDefaultProps = {
     videoPlayerStyle: undefined,
     videoStyle: undefined,
     videoControlsStyle: undefined,
+    videoDuration: 0,
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
     isVideoHovered: false,

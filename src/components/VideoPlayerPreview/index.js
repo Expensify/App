@@ -20,6 +20,8 @@ const propTypes = {
         height: PropTypes.number.isRequired,
     }),
 
+    videoDuration: PropTypes.number,
+
     thumbnailUrl: PropTypes.string,
 
     fileName: PropTypes.string.isRequired,
@@ -30,9 +32,10 @@ const propTypes = {
 const defaultProps = {
     videoDimensions: CONST.VIDEO_PLAYER.DEFAULT_VIDEO_DIMENSIONS,
     thumbnailUrl: undefined,
+    videoDuration: 0,
 };
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, onShowModalPress}) {
+function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, videoDuration, onShowModalPress}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -73,6 +76,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         url={videoUrl}
                         onOpenInModalButtonPress={onShowModalPress}
                         onVideoLoaded={onVideoLoaded}
+                        videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                     />
 

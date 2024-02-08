@@ -22,6 +22,7 @@ function BaseVideoPlayer({
     videoPlayerStyle,
     videoStyle,
     videoControlsStyle,
+    videoDuration,
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
@@ -34,7 +35,7 @@ function BaseVideoPlayer({
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
-    const [duration, setDuration] = useState(0);
+    const [duration, setDuration] = useState(videoDuration);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);

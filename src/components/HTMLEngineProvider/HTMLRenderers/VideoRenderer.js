@@ -20,15 +20,16 @@ function VideoRenderer(props) {
     const thumbnailUrl = htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE];
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
+    const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const activeRoute = Navigation.getActiveRoute();
     const {reportID} = parseReportRouteParams(activeRoute);
-
     return (
         <VideoPlayerPreview
             videoUrl={sourceURL}
             fileName={fileName}
             thumbnailUrl={thumbnailUrl}
             videoDimensions={{width, height}}
+            videoDuration={duration}
             onShowModalPress={() => {
                 const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, sourceURL);
                 Navigation.navigate(route);

@@ -962,6 +962,7 @@ const CONST = {
     ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
+    ATTACHMENT_DURATION_ATTRIBUTE: 'data-expensify-duration',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
