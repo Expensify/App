@@ -722,6 +722,10 @@ export default {
             subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
         },
     },
+    shareCodePage: {
+        title: 'Your code',
+        subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
+    },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
         headline: 'The Expensify Lounge is closed.',
