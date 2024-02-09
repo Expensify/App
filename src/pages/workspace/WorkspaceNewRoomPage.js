@@ -105,11 +105,6 @@ function WorkspaceNewRoomPage(props) {
     const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
 
-    console.log(
-        PolicyUtils.getActivePolicies(props.policies),
-        _.filter(PolicyUtils.getActivePolicies(props.policies), (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL),
-    );
-
     const workspaceOptions = useMemo(
         () =>
             _.map(
