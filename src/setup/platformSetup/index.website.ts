@@ -6,6 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import Visibility from '@libs/Visibility';
 import Config from '@src/CONFIG';
 import pkg from '../../../package.json';
+import type PlatformSpecificUpdater from './types';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
@@ -21,23 +22,21 @@ function webUpdate() {
 
             if (!Visibility.isVisible()) {
                 // Page is hidden, refresh immediately
-                window.location.reload(true);
+                window.location.reload();
                 return;
             }
 
             // Prompt user to refresh the page
             if (window.confirm('Refresh the page to get the latest updates!')) {
-                window.location.reload(true);
+                window.location.reload();
             }
         });
 }
 
 /**
  * Create an object whose shape reflects the callbacks used in checkForUpdates.
- *
- * @returns {Object}
  */
-const webUpdater = () => ({
+const webUpdater = (): PlatformSpecificUpdater => ({
     init: () => {
         // We want to check for updates and refresh the page if necessary when the app is backgrounded.
         // That way, it will auto-update silently when they minimize the page,

@@ -1,97 +1,89 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import {usePersonalDetails} from './OnyxProvider';
-import transactionPropTypes from './transactionPropTypes';
 
-const propTypes = {
-    /** The report currently being looked at */
-    report: iouReportPropTypes.isRequired,
-
-    /** The policy which the report is tied to */
-    policy: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
-    /* Onyx Props */
+type MoneyRequestHeaderOnyxProps = {
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
+    session: OnyxEntry<Session>;
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: iouReportPropTypes,
-
-    /** The report action the transaction is tied to from the parent report */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
+    parentReport: OnyxEntry<Report>;
 
     /** All the data for the transaction */
-    transaction: transactionPropTypes,
+    transaction: OnyxEntry<Transaction>;
+
+    /** All report actions */
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportActions: OnyxEntry<ReportActions>;
 };
 
-const defaultProps = {
-    session: {
-        email: null,
-    },
-    parentReport: {},
-    parentReportAction: {},
-    transaction: {},
-    policy: {},
+type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
+    /** The report currently being looked at */
+    report: Report;
+
+    /** The policy which the report is tied to */
+    policy: Policy;
+
+    /** The report action the transaction is tied to from the parent report */
+    parentReportAction: ReportAction & OriginalMessageIOU;
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}: MoneyRequestHeaderProps) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = parentReport;
-    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
-    const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
+    const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), parentReportAction, true);
+        IOU.deleteMoneyRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
-
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
+    let canDeleteRequest = canModifyRequest;
+
+    if (ReportUtils.isPaidGroupPolicyExpenseReport(moneyRequestReport)) {
+        // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
+        canDeleteRequest = canDeleteRequest && (ReportUtils.isDraftExpenseReport(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
+    }
 
     useEffect(() => {
-        if (canModifyRequest) {
+        if (canDeleteRequest) {
             return;
         }
 
         setIsDeleteModalVisible(false);
-    }, [canModifyRequest]);
+    }, [canDeleteRequest]);
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
@@ -103,18 +95,20 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,
                             CONST.IOU.TYPE.REQUEST,
-                            transaction.transactionID,
+                            transaction?.transactionID ?? '',
                             report.reportID,
                             Navigation.getActiveRouteWithoutParams(),
                         ),
                     ),
             });
         }
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-            onSelected: () => setIsDeleteModalVisible(true),
-        });
+        if (canDeleteRequest) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Trashcan,
+                text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                onSelected: () => setIsDeleteModalVisible(true),
+            });
+        }
     }
 
     return (
@@ -129,7 +123,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     report={{
                         ...report,
-                        ownerAccountID: lodashGet(parentReport, 'ownerAccountID', null),
+                        ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
                     personalDetails={personalDetails}
@@ -166,29 +160,25 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 }
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
-MoneyRequestHeader.propTypes = propTypes;
-MoneyRequestHeader.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
+const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction'>>({
+    transaction: {
+        key: ({report, parentReportActions}) => {
+            const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction.originalMessage.IOUTransactionID ?? 0}`;
         },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-            canEvict: false,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
-        },
-    }),
-)(MoneyRequestHeader);
+    },
+})(MoneyRequestHeader);
+
+export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction'>, Omit<MoneyRequestHeaderOnyxProps, 'transaction'>>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    parentReport: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+    },
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '0'}`,
+        canEvict: false,
+    },
+})(MoneyRequestHeaderWithTransaction);

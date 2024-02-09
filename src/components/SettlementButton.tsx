@@ -147,7 +147,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere'),
+                text: translate('iou.payElsewhere', {formattedAmount}),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
@@ -182,7 +182,7 @@ function SettlementButton({
 
         // Put the preferred payment method to the front of the array, so it's shown as default
         if (paymentMethod) {
-            return buttonOptions.sort((method) => (method.value === paymentMethod ? 0 : 1));
+            return buttonOptions.sort((method) => (method.value === paymentMethod ? -1 : 0));
         }
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
