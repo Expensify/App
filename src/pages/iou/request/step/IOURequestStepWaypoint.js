@@ -113,8 +113,8 @@ function IOURequestStepWaypoint({
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
-    // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = waypointCount > 2;
+    // Hide the menu when there is only start and finish waypoint or the current waypoint is empty
+    const shouldShowThreeDotsButton = waypointCount > 2 && waypointAddress;
     const shouldDisableEditor =
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
