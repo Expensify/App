@@ -155,20 +155,27 @@ function MoneyRequestPreview({
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
-    const shouldShowMerchant = !!requestMerchant && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    /*
+     Show the merchant for IOUs and expenses only if:
+     - the merchant is not empty, is custom, or is not related to scanning smartscan;
+     - the request is not a distance request with a pending route and amount = 0 - in this case,
+       the merchant says: "Route pending...", which is already shown in the amount field;
+    */
+    const shouldShowMerchant =
+        !!requestMerchant &&
+        requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
+        requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
+        !(isFetchingWaypointsFromServer && !requestAmount);
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
-    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
 
     let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
         merchantOrDescription = description || '';
-    } else if (hasPendingWaypoints) {
-        merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
     }
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(transaction)] : [];
@@ -217,12 +224,12 @@ function MoneyRequestPreview({
     };
 
     const getDisplayAmountText = (): string => {
-        if (isDistanceRequest) {
-            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency) : translate('common.tbd');
-        }
-
         if (isScanning) {
             return translate('iou.receiptScanning');
+        }
+
+        if (isFetchingWaypointsFromServer && !requestAmount) {
+            return translate('iou.routePending');
         }
 
         if (!isSettled && TransactionUtils.hasMissingSmartscanFields(transaction)) {

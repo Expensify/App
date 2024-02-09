@@ -1,6 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
 import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputSubmitEditingEventData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -204,7 +205,7 @@ function FormProvider(
     }));
 
     const registerInput = useCallback<RegisterInput>(
-        <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps): TInputProps => {
+        <TInputProps extends BaseInputProps>(inputID: keyof Form, shouldSubmitForm: boolean, inputProps: TInputProps): TInputProps => {
             const newRef: MutableRefObject<BaseInputProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
@@ -232,6 +233,14 @@ function FormProvider(
 
             return {
                 ...inputProps,
+                ...(shouldSubmitForm && {
+                    onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+                        submit();
+
+                        inputProps.onSubmitEditing?.(event);
+                    },
+                    returnKeyType: 'go',
+                }),
                 ref:
                     typeof inputRef === 'function'
                         ? (node: BaseInputProps) => {
@@ -319,7 +328,7 @@ function FormProvider(
                 },
             };
         },
-        [draftValues, formID, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
