@@ -1,5 +1,5 @@
-import type {FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
+import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountTextInput from '@components/AmountTextInput';
@@ -48,8 +48,9 @@ type InputComponentValueProps<TValue extends ValueTypeKey = ValueTypeKey> = {
 };
 
 type MeasureLayoutOnSuccessCallback = (left: number, top: number, width: number, height: number) => void;
-type InputComponentBaseProps = InputComponentValueProps & {
-    inputID?: string;
+type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = InputComponentValueProps<TValue> & {
+    InputComponent: ComponentType;
+    inputID: string;
     errorText?: string;
     shouldSetTouchedOnBlurOnly?: boolean;
     isFocused?: boolean;
@@ -60,8 +61,13 @@ type InputComponentBaseProps = InputComponentValueProps & {
     onPressOut?: (event: GestureResponderEvent) => void;
     onPress?: (event: GestureResponderEvent) => void;
     onInputChange?: (value: FormValue, key: string) => void;
+    onSubmitEditing?: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
     key?: Key;
     ref?: Ref<unknown>;
+    multiline?: boolean;
+    autoGrowHeight?: boolean;
+    blurOnSubmit?: boolean;
+    shouldSubmitForm?: boolean;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;

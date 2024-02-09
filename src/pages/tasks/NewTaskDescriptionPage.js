@@ -11,7 +11,6 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -80,7 +79,7 @@ function NewTaskDescriptionPage(props) {
                                 updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
-                            submitOnEnter={!Browser.isMobile()}
+                            shouldSubmitForm
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>

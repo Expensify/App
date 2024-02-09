@@ -1,6 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
 import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputSubmitEditingEventData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -13,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Network} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import type {FormInputErrors, FormOnyxValues, FormProps, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
@@ -204,8 +206,8 @@ function FormProvider(
         resetForm,
     }));
 
-    const registerInput = useCallback(
-        (inputID: keyof Form, inputProps: InputComponentBaseProps): InputComponentBaseProps => {
+    const registerInput = useCallback<RegisterInput>(
+        (inputID, shouldSubmitForm, inputProps) => {
             const newRef: MutableRefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
@@ -224,15 +226,23 @@ function FormProvider(
 
             const errorFields = formState?.errorFields?.[inputID] ?? {};
             const fieldErrorMessage =
-                Object.keys(errorFields)
+                (Object.keys(errorFields)
                     .sort()
                     .map((key) => errorFields[key])
-                    .at(-1) ?? '';
+                    .at(-1) as string) ?? '';
 
             const inputRef = inputProps.ref;
 
             return {
                 ...inputProps,
+                ...(shouldSubmitForm && {
+                    onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+                        submit();
+
+                        inputProps.onSubmitEditing?.(event);
+                    },
+                    returnKeyType: 'go',
+                }),
                 ref:
                     typeof inputRef === 'function'
                         ? (node: InputComponentBaseProps) => {
@@ -320,7 +330,7 @@ function FormProvider(
                 },
             };
         },
-        [draftValues, formID, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 

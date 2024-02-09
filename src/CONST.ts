@@ -189,6 +189,7 @@ const CONST = {
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
+        ORDINAL_DAY_OF_MONTH: 'do',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -462,8 +463,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     USE_EXPENSIFY_URL,
-    NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
-    NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
