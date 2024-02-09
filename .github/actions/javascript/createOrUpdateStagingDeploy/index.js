@@ -13,7 +13,7 @@ const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
 const CONST = __nccwpck_require__(4097);
 const GithubUtils = __nccwpck_require__(7999);
-const GitUtils = __nccwpck_require__(669);
+const GitUtils = __nccwpck_require__(1547);
 
 async function run() {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
@@ -175,163 +175,6 @@ CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}
 CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 
 module.exports = CONST;
-
-
-/***/ }),
-
-/***/ 669:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const _ = __nccwpck_require__(5067);
-const {spawn, execSync} = __nccwpck_require__(2081);
-const CONST = __nccwpck_require__(4097);
-const sanitizeStringForJSONParse = __nccwpck_require__(9338);
-const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
-
-/**
- * @param {String} tag
- * @param {String} [shallowExcludeTag] when fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
- */
-function fetchTag(tag, shallowExcludeTag = '') {
-    let shouldRetry = true;
-    let needsRepack = false;
-    while (shouldRetry) {
-        try {
-            let command = '';
-            if (needsRepack) {
-                // We have seen some scenarios where this fixes the git fetch.
-                // Why? Who knows... https://github.com/Expensify/App/pull/31459
-                command = 'git repack -d';
-                console.log(`Running command: ${command}`);
-                execSync(command);
-            }
-
-            command = `git fetch origin tag ${tag} --no-tags`;
-
-            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
-            if (shallowExcludeTag && shallowExcludeTag !== tag) {
-                command += ` --shallow-exclude=${shallowExcludeTag}`;
-            }
-
-            console.log(`Running command: ${command}`);
-            execSync(command);
-            shouldRetry = false;
-        } catch (e) {
-            console.error(e);
-            if (!needsRepack) {
-                console.log('Attempting to repack and retry...');
-                needsRepack = true;
-            } else {
-                console.error("Repack didn't help, giving up...");
-                shouldRetry = false;
-            }
-        }
-    }
-}
-
-/**
- * Get merge logs between two tags (inclusive) as a JavaScript object.
- *
- * @param {String} fromTag
- * @param {String} toTag
- * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
- */
-function getCommitHistoryAsJSON(fromTag, toTag) {
-    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
-
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-    return new Promise((resolve, reject) => {
-        let stdout = '';
-        let stderr = '';
-        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
-        const spawnedProcess = spawn('git', args);
-        spawnedProcess.on('message', console.log);
-        spawnedProcess.stdout.on('data', (chunk) => {
-            console.log(chunk.toString());
-            stdout += chunk.toString();
-        });
-        spawnedProcess.stderr.on('data', (chunk) => {
-            console.error(chunk.toString());
-            stderr += chunk.toString();
-        });
-        spawnedProcess.on('close', (code) => {
-            if (code !== 0) {
-                return reject(new Error(`${stderr}`));
-            }
-
-            resolve(stdout);
-        });
-        spawnedProcess.on('error', (err) => reject(err));
-    }).then((stdout) => {
-        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => sanitizeStringForJSONParse(subject));
-
-        // Then remove newlines, format as JSON and convert to a proper JS object
-        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
-
-        return JSON.parse(json);
-    });
-}
-
-/**
- * Parse merged PRs, excluding those from irrelevant branches.
- *
- * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<Number>}
- */
-function getValidMergedPRs(commits) {
-    const mergedPRs = new Set();
-    _.each(commits, (commit) => {
-        const author = commit.authorName;
-        if (author === CONST.OS_BOTIFY) {
-            return;
-        }
-
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
-        if (!_.isArray(match) || match.length < 2) {
-            return;
-        }
-
-        const pr = Number.parseInt(match[1], 10);
-        if (mergedPRs.has(pr)) {
-            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
-            // That also means that we don't want to include it in the current checklist, so we remove it now.
-            mergedPRs.delete(pr);
-            return;
-        }
-
-        mergedPRs.add(pr);
-    });
-
-    return Array.from(mergedPRs);
-}
-
-/**
- * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- *
- * @param {String} fromTag
- * @param {String} toTag
- * @returns {Promise<Array<Number>>} – Pull request numbers
- */
-async function getPullRequestsMergedBetween(fromTag, toTag) {
-    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
-
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-    return pullRequestNumbers;
-}
-
-module.exports = {
-    getValidMergedPRs,
-    getPullRequestsMergedBetween,
-};
 
 
 /***/ }),
@@ -16834,6 +16677,140 @@ function wrappy (fn, cb) {
     return ret
   }
 }
+
+
+/***/ }),
+
+/***/ 1547:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPullRequestsMergedBetween = exports.getValidMergedPRs = void 0;
+const child_process_1 = __nccwpck_require__(2081);
+const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(9338));
+const versionUpdater_1 = __nccwpck_require__(8007);
+/**
+ * When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ */
+function fetchTag(tag, shallowExcludeTag = '') {
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                (0, child_process_1.execSync)(command);
+            }
+            command = `git fetch origin tag ${tag} --no-tags`;
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
+            }
+            console.log(`Running command: ${command}`);
+            (0, child_process_1.execSync)(command);
+            shouldRetry = false;
+        }
+        catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            }
+            else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
+        }
+    }
+}
+/**
+ * Get merge logs between two tags (inclusive) as a JavaScript object.
+ */
+function getCommitHistoryAsJSON(fromTag, toTag) {
+    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = (0, versionUpdater_1.getPreviousVersion)(fromTag, versionUpdater_1.SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    return new Promise((resolve, reject) => {
+        let stdout = '';
+        let stderr = '';
+        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
+        console.log(`Running command: git ${args.join(' ')}`);
+        const spawnedProcess = (0, child_process_1.spawn)('git', args);
+        spawnedProcess.on('message', console.log);
+        spawnedProcess.stdout.on('data', (chunk) => {
+            console.log(chunk.toString());
+            stdout += chunk.toString();
+        });
+        spawnedProcess.stderr.on('data', (chunk) => {
+            console.error(chunk.toString());
+            stderr += chunk.toString();
+        });
+        spawnedProcess.on('close', (code) => {
+            if (code !== 0) {
+                return reject(new Error(`${stderr}`));
+            }
+            resolve(stdout);
+        });
+        spawnedProcess.on('error', (err) => reject(err));
+    }).then((stdout) => {
+        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => (0, sanitizeStringForJSONParse_1.default)(subject));
+        // Then remove newlines, format as JSON and convert to a proper JS object
+        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        return JSON.parse(json);
+    });
+}
+/**
+ * Parse merged PRs, excluding those from irrelevant branches.
+ */
+function getValidMergedPRs(commits) {
+    const mergedPRs = new Set();
+    commits.forEach((commit) => {
+        const author = commit.authorName;
+        if (author === CONST_1.default.OS_BOTIFY) {
+            return;
+        }
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        if (!Array.isArray(match) || match.length < 2) {
+            return;
+        }
+        const pr = Number.parseInt(match[1], 10);
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+        mergedPRs.add(pr);
+    });
+    return Array.from(mergedPRs);
+}
+exports.getValidMergedPRs = getValidMergedPRs;
+/**
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ */
+async function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
+}
+exports.getPullRequestsMergedBetween = getPullRequestsMergedBetween;
 
 
 /***/ }),
