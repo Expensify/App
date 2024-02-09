@@ -24,6 +24,8 @@ import type SCREENS from '@src/SCREENS';
 import type {IOU as IOUType, Report} from '@src/types/onyx';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 
+type NavigateToNextPageOptions = {amount: string};
+
 type NewRequestAmountPageOnyxProps = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: OnyxEntry<IOUType>;
@@ -113,7 +115,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
         Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
-    const navigateToNextPage = ({amount}: {amount: string}) => {
+    const navigateToNextPage = ({amount}: NavigateToNextPageOptions) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
