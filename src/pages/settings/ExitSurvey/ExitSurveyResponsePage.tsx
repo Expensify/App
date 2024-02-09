@@ -123,7 +123,6 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
                                 }
                                 updateMultilineInputRange(el);
                             }}
-                            value={draftResponse}
                             containerStyles={[baseResponseInputContainerStyle, StyleUtils.getMaximumHeight(responseInputMaxHeight)]}
                             shouldSaveDraft
                         />
