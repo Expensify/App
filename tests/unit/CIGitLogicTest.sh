@@ -12,7 +12,7 @@ declare -r SEMVER_LEVEL_PATCH='PATCH'
 
 declare -r bumpVersion="$TEST_DIR/utils/bumpVersion.mjs"
 declare -r getPreviousVersion="$TEST_DIR/utils/getPreviousVersion.mjs"
-declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.ts"
+declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mts"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
