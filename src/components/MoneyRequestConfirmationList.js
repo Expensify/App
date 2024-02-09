@@ -672,15 +672,11 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            props.iouType,
-                            transaction.transactionID,
-                            props.reportID,
-                            Navigation.getActiveRouteWithoutParams(),
-                        ),
-                    );
+                    if (props.isEditingSplitBill) {
+                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(props.iouType, props.reportID));
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}

@@ -214,12 +214,11 @@ type MoneyRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
+    [SCREENS.MONEY_REQUEST.DESCRIPTION]: {
+        iouType: string;
         reportID: string;
-        backTo: string;
+        field: string;
+        threadReportID: string;
     };
     [SCREENS.MONEY_REQUEST.CATEGORY]: {
         iouType: string;
