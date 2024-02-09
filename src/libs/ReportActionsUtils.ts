@@ -131,13 +131,13 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>): boolean {
-    const whisperedToAccountIDs = reportAction?.whisperedToAccountIDs ?? [];
-    if (!whisperedToAccountIDs || whisperedToAccountIDs.length === 0) {
+    if (!isWhisperAction(reportAction)) {
         return false;
     }
     if (!currentUserAccountID) {
         return true;
     }
+    const whisperedToAccountIDs = reportAction?.whisperedToAccountIDs ?? [];
     return !whisperedToAccountIDs.includes(currentUserAccountID);
 }
 
