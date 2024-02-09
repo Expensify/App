@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as SessionUtils from '@libs/SessionUtils';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -38,8 +38,8 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
             // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
             const shouldForceLogin = route.params.shouldForceLogin === 'true';
             if (shouldForceLogin) {
-                const email = route.params.email;
-                const shortLivedAuthToken = route.params.shortLivedAuthToken;
+                const email = route.params.email ?? '';
+                const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
                 SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
         });
