@@ -266,10 +266,8 @@ function ReportScreen({
     if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
-                // @ts-expect-error TODO: Remove this once MoneyRequestHeader (https://github.com/Expensify/App/issues/25111) is migrated to TypeScript.
                 report={report}
                 policy={policy}
-                isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
             />
         );

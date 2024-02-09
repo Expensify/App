@@ -2,8 +2,6 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import GoogleMeetIcon from '@assets/images/google-meet.svg';
-import ZoomIcon from '@assets/images/zoom-icon.svg';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
@@ -92,15 +90,15 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const title = ReportUtils.isGroupChat(report) ? getGroupChatName(report) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
+    const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
-    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
-    const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
-    const reportDescription = ReportUtils.getReportDescriptionText(props.report);
-    const policyName = ReportUtils.getPolicyName(props.report);
+    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
+    const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
+    const reportDescription = ReportUtils.getReportDescriptionText(report);
+    const policyName = ReportUtils.getPolicyName(report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.

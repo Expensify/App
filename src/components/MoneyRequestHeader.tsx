@@ -43,10 +43,10 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     report: Report;
 
     /** The policy which the report is tied to */
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction: ReportAction & OriginalMessageIOU;
+    parentReportAction: OnyxEntry<ReportAction>;
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}: MoneyRequestHeaderProps) {
@@ -63,7 +63,11 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
+        if (parentReportAction) {
+            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+        }
+
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
