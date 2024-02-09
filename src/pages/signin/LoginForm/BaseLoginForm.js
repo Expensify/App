@@ -259,9 +259,8 @@ function LoginForm(props) {
         },
     }));
 
-    const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
-    const shouldShowServerError = !_.isEmpty(serverErrorText) && _.isEmpty(formErrorText);
+    const shouldShowServerError = !_.isEmpty(serverErrorText) && _.isEmpty(formError);
 
     return (
         <>
@@ -302,18 +301,17 @@ function LoginForm(props) {
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formErrorText}
+                    errorText={formError || ''}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
             {!_.isEmpty(props.closeAccount.success || props.account.message) && (
-                // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    messages={{0: props.closeAccount.success || props.account.message}}
+                    messages={{0: props.closeAccount.success ? [props.closeAccount.success, {isTranslated: true}] : props.account.message}}
                 />
             )}
             {
