@@ -164,7 +164,7 @@ function ProfilePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={props.isSmallScreenWidth}
                 icon={Illustrations.Profile}
             />
