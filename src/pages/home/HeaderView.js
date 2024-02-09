@@ -118,7 +118,7 @@ function HeaderView(props) {
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const reportDescription = ReportUtils.getReportDescriptionText(props.report);
-    const policyName = ReportUtils.getPolicyName(props.report);
+    const policyName = ReportUtils.getPolicyName(props.report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(props.policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(props.report.reportID);
     const shouldShowSubtitle = () => {
