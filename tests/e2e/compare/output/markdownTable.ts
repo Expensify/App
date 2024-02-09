@@ -354,4 +354,4 @@ function toAlignment(value: string | null | undefined): number {
         : 0;
 }
 
-module.exports = markdownTable;
+export default markdownTable;
