@@ -26,6 +26,9 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
+
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
 
@@ -64,6 +67,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
+    dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
 };
 
@@ -76,16 +80,17 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
+    dismissedReferralBanners,
     didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(true);
+    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
-    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const actionTypeForParticipants = iouType === CONST.IOU.TYPE.REQUEST && participants.length > 0 ? CONST.IOU.TYPE.SPLIT : iouRequestType;
@@ -240,7 +245,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                _.get(newChatOptions, 'personalDetails.length', 0) + _.get(newChatOptions, 'recentReports.length', 0) !== 0,
+                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
@@ -255,7 +260,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
-    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
 
     const handleConfirmSelection = useCallback(() => {
         if (shouldShowSplitBillErrorMessage) {
@@ -268,12 +272,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const footerContent = useMemo(
         () => (
             <View>
-                {shouldShowReferralCTA && (
+                {!dismissedReferralBanners[referralContentType] && (
                     <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA
-                            referralContentType={referralContentType}
-                            onCloseButtonPress={() => setShouldShowReferralCTA(false)}
-                        />
+                        <ReferralProgramCTA referralContentType={referralContentType} />
                     </View>
                 )}
 
@@ -296,7 +297,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
@@ -360,6 +361,10 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data.dismissedReferralBanners || {},
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

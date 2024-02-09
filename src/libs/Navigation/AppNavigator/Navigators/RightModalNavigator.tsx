@@ -62,8 +62,8 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.ReportSettingsModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE}
-                        component={ModalStackNavigators.ReportWelcomeMessageModalStackNavigator}
+                        name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
+                        component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
@@ -84,6 +84,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_TASK}
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT}
+                        component={ModalStackNavigators.OnboardEngagementModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
