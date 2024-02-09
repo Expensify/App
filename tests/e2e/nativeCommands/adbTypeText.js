@@ -7,4 +7,4 @@ const adbTypeText = async (text) => {
     return true;
 };
 
-module.exports = adbTypeText;
+export default adbTypeText;

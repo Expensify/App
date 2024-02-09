@@ -15,8 +15,4 @@ const executeFromPayload = (actionName, payload) => {
     }
 };
 
-module.exports = {
-    NativeCommandsAction,
-    executeFromPayload,
-    adbTypeText,
-};
+export {NativeCommandsAction, executeFromPayload, adbTypeText};

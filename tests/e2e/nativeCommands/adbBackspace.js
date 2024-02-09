@@ -7,4 +7,4 @@ const adbBackspace = async () => {
     return true;
 };
 
-module.exports = adbBackspace;
+export default adbBackspace;

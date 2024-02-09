@@ -8,7 +8,7 @@ const Logger = require('./logger');
  * @param {object} env environment variables
  * @returns {Promise<void>}
  */
-module.exports = (command, env = {}) => {
+export default (command, env = {}) => {
     let childProcess;
     const promise = new Promise((resolve, reject) => {
         const finalEnv = {

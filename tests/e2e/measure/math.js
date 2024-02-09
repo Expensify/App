@@ -46,6 +46,4 @@ const getStats = (entries) => {
     };
 };
 
-module.exports = {
-    getStats,
-};
+export {getStats};

@@ -72,7 +72,7 @@ set a name property for the config. You can, however, add any other values
 that you might need to pass to the test running inside the app:
 
 ```diff
- module.exports = {
+ export {
     // …
     TESTS_CONFIG: {
 +        [TEST_NAMES.AnotherTest]: {

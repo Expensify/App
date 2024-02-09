@@ -115,4 +115,4 @@ const writeToMarkdown = (filePath, data) => {
     });
 };
 
-module.exports = writeToMarkdown;
+export default writeToMarkdown;

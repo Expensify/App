@@ -196,4 +196,4 @@ const createServerInstance = () => {
     };
 };
 
-module.exports = createServerInstance;
+export default createServerInstance;

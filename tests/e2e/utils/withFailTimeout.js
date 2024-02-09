@@ -20,4 +20,4 @@ const withFailTimeout = (promise, name) =>
             });
     });
 
-module.exports = withFailTimeout;
+export default withFailTimeout;

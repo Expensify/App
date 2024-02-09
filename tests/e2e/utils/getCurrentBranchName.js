@@ -7,4 +7,4 @@ const getCurrentBranchName = () => {
     return stdout.trim();
 };
 
-module.exports = getCurrentBranchName;
+export default getCurrentBranchName;

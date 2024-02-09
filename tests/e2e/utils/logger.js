@@ -99,14 +99,4 @@ const progressInfo = (textParam) => {
     };
 };
 
-module.exports = {
-    log,
-    info,
-    warn,
-    note,
-    error,
-    success,
-    important,
-    progressInfo,
-    setLogLevelVerbose,
-};
+export {log, info, warn, note, error, success, important, progressInfo, setLogLevelVerbose};

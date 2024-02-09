@@ -106,7 +106,7 @@ function compareResults(compareEntries, baselineEntries) {
     };
 }
 
-module.exports = (main, delta, outputFile, outputFormat = 'all') => {
+export default (main, delta, outputFile, outputFormat = 'all') => {
     const outputData = compareResults(main, delta);
 
     if (outputFormat === 'console' || outputFormat === 'all') {

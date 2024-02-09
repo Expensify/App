@@ -17,11 +17,11 @@ const replacer = (str) =>
  * @param {String} inputString
  * @returns {String}
  */
-module.exports = function (inputString) {
+export default function (inputString) {
     if (typeof inputString !== 'string') {
         throw new TypeError('Input must me of type String');
     }
 
     // Replace any newlines and escape backslashes
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-};
+}

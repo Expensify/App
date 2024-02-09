@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-import * as GitUtils from '../../.github/libs/GitUtils';
+import {getPullRequestsMergedBetween} from '../../.github/libs/GitUtils';
 
 const fromRef = process.argv[2];
 const toRef = process.argv[3];
@@ -8,7 +7,7 @@ const toRef = process.argv[3];
 const realConsoleLog = console.log;
 console.log = () => {};
 
-const output = await GitUtils.getPullRequestsMergedBetween(fromRef, toRef);
+const output = await getPullRequestsMergedBetween(fromRef, toRef);
 
 console.log = realConsoleLog;
 console.log(output);
