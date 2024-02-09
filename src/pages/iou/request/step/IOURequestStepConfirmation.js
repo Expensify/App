@@ -66,9 +66,9 @@ const propTypes = {
 };
 const defaultProps = {
     personalDetails: {},
-    policy: {},
-    policyCategories: {},
-    policyTags: {},
+    policy: null,
+    policyCategories: null,
+    policyTags: null,
     report: {},
     transaction: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
