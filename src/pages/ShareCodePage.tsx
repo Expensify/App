@@ -78,7 +78,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
         >
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : undefined)}
                 shouldShowBackButton={isReport || isSmallScreenWidth}
                 icon={Illustrations.QrCode}
             />
