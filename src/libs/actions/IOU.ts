@@ -504,7 +504,7 @@ function buildOnyxDataForMoneyRequest(
 
     if (!isEmptyObject(optimisticNextStep)) {
         optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
             value: optimisticNextStep,
         });
@@ -3188,7 +3188,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
             value: {[iouReport.policyID ?? '']: paymentMethodType},
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
             value: optimisticNextStep,
         },
@@ -3331,7 +3331,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
         },
     };
     const optimisticNextStepData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.SET,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStep,
     };
@@ -3405,7 +3405,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: optimisticNextStep,
         },
