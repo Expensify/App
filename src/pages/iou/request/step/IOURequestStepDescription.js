@@ -10,7 +10,6 @@ import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -136,7 +135,7 @@ function IOURequestStepDescription({
                         }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        submitOnEnter={!Browser.isMobile()}
+                        shouldSubmitForm
                     />
                 </View>
             </FormProvider>
