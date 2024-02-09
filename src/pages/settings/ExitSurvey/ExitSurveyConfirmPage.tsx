@@ -47,8 +47,8 @@ function ExitSurveyConfirmPage({exitReason, isLoading}: ExitSurveyConfirmPageOny
                             width={variables.mushroomTopHatWidth}
                             height={variables.mushroomTopHatHeight}
                         />
-                        <Text style={[styles.headerAnonymousFooter, styles.mt5]}>{translate('exitSurvey.thankYou')}</Text>
-                        <Text style={[styles.mt2]}>{translate('exitSurvey.thankYouSubtitle')}</Text>
+                        <Text style={[styles.headerAnonymousFooter, styles.mt5, styles.textAlignCenter]}>{translate('exitSurvey.thankYou')}</Text>
+                        <Text style={[styles.mt2, styles.textAlignCenter]}>{translate('exitSurvey.thankYouSubtitle')}</Text>
                     </>
                 )}
             </View>

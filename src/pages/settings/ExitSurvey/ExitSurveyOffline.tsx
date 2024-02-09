@@ -17,8 +17,8 @@ function ExitSurveyOffline() {
                 height={variables.modalTopIconHeight}
                 src={ToddBehindCloud}
             />
-            <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.offlineTitle')}</Text>
-            <Text style={styles.mt2}>{translate('exitSurvey.offline')}</Text>
+            <Text style={[styles.headerAnonymousFooter, styles.textAlignCenter]}>{translate('exitSurvey.offlineTitle')}</Text>
+            <Text style={[styles.mt2, styles.textAlignCenter]}>{translate('exitSurvey.offline')}</Text>
         </View>
     );
 }
