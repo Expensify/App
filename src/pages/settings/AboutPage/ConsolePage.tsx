@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
@@ -32,8 +33,17 @@ type ConsolePageOnyxProps = {
 
 type ConsolePageProps = ConsolePageOnyxProps;
 
-const parseStingifiedMessages = (logs: CapturedLogs) =>
-    Object.values(logs).map((log) => {
+/**
+ * Loops through all the logs and parses the message if it's a stringified JSON
+ * @param logs Logs captured on the current device
+ * @returns CapturedLogs with parsed messages
+ */
+const parseStingifiedMessages = (logs: CapturedLogs | null) => {
+    if (isEmpty(logs)) {
+        return;
+    }
+
+    return Object.values(logs).map((log) => {
         try {
             const parsedMessage = JSON.parse(log.message);
             return {
@@ -45,10 +55,11 @@ const parseStingifiedMessages = (logs: CapturedLogs) =>
             return log;
         }
     });
+};
 
 function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
-    const [logs, setLogs] = useState<CapturedLogs>(capturedLogs);
+    const [logs, setLogs] = useState(capturedLogs);
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -112,7 +123,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
                 <FlatList
-                    data={Object.values(logs).reverse()}
+                    data={logs ? Object.values(logs).reverse() : []}
                     renderItem={renderItem}
                     contentContainerStyle={styles.p5}
                     inverted

@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
@@ -15,18 +14,15 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BaseShareLogListOnyxProps} from './types';
-
-type BaseShareLogListProps = BaseShareLogListOnyxProps & {
-    onAttachLogToReport: (reportID: string, filename: string) => void;
-};
+import type {Report} from '@src/types/onyx';
+import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
 
 function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.GetOptions, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
         recentReports: [],
         personalDetails: [],
-        userToInvite: {},
+        userToInvite: null,
     });
 
     const {isOffline} = useNetwork();
@@ -40,7 +36,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
-        } = OptionsListUtils.getShareLogOptions(reports, personalDetails, searchValue.trim(), betas);
+        } = OptionsListUtils.getShareLogOptions(reports, personalDetails, searchValue.trim(), betas ?? []);
 
         setSearchOptions({
             recentReports: localRecentReports,
@@ -107,7 +103,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
         setSearchValue(value);
     };
 
-    const attachLogToReport = (option) => {
+    const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
             return;
         }
@@ -129,6 +125,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
+                            // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
                             sections={sections}
                             onSelectRow={attachLogToReport}
                             onChangeText={onChangeText}
@@ -144,7 +141,6 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
                     </View>
                 </>
             )}
-            {/* <Text>ShareLog</Text> */}
         </ScreenWrapper>
     );
 }
@@ -157,5 +153,6 @@ export default withOnyx<BaseShareLogListProps, BaseShareLogListOnyxProps>({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+        initialValue: [],
     },
 })(BaseShareLogList);

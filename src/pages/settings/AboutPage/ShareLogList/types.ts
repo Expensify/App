@@ -1,5 +1,5 @@
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {Beta} from '@src/types/onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Beta, Report} from '@src/types/onyx';
 
 type BaseShareLogListOnyxProps = {
     /** Beta features list */
@@ -10,7 +10,12 @@ type BaseShareLogListOnyxProps = {
 };
 
 type ShareLogListProps = {
+    /** The source of the log file to share */
     logSource: string;
 };
 
-export type {BaseShareLogListOnyxProps, ShareLogListProps};
+type BaseShareLogListProps = BaseShareLogListOnyxProps & {
+    onAttachLogToReport: (reportID: string, filename: string) => void;
+};
+
+export type {BaseShareLogListOnyxProps, BaseShareLogListProps, ShareLogListProps};
