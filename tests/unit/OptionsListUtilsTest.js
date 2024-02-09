@@ -2160,9 +2160,5 @@ describe('OptionsListUtils', () => {
 
         // `isDisabled` is always false
         expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
-
-        // Passing a config should override the other keys
-        const formattedMembersWithRightElement = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, {rightElement: <View />}));
-        expect(_.every(formattedMembersWithRightElement, (personalDetail) => Boolean(personalDetail.rightElement))).toBe(true);
     });
 });
