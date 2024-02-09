@@ -43,7 +43,6 @@ function AmountTextInput(
             disableKeyboard
             autoGrow
             hideFocusedState
-            shouldInterceptSwipe
             inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, style]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={onChangeAmount}
