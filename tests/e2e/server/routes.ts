@@ -1,4 +1,6 @@
-module.exports = {
+type Routes = Record<string, string>;
+
+const routes: Routes = {
     // The app calls this endpoint to know which test to run
     testConfig: '/test_config',
 
@@ -17,3 +19,5 @@ module.exports = {
     // Gets the network cache
     testGetNetworkCache: '/test_get_network_cache',
 };
+
+export default routes;
