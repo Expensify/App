@@ -38,18 +38,20 @@ function ExitSurveyConfirmPage({exitReason, isLoading}: ExitSurveyConfirmPageOny
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack(exitReason ? ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(exitReason, ROUTES.SETTINGS_EXIT_SURVEY_REASON) : undefined)}
             />
-            {isOffline && <ExitSurveyOffline />}
-            {!isOffline && (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.p5]}>
-                    <Icon
-                        src={MushroomTopHat}
-                        width={variables.modalTopIconWidth}
-                        height={variables.modalTopIconHeight}
-                    />
-                    <Text style={[styles.headerAnonymousFooter, styles.mt5]}>{translate('exitSurvey.thankYou')}</Text>
-                    <Text style={[styles.mt2]}>{translate('exitSurvey.thankYouSubtitle')}</Text>
-                </View>
-            )}
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.mh5]}>
+                {isOffline && <ExitSurveyOffline />}
+                {!isOffline && (
+                    <>
+                        <Icon
+                            src={MushroomTopHat}
+                            width={variables.mushroomTopHatWidth}
+                            height={variables.mushroomTopHatHeight}
+                        />
+                        <Text style={[styles.headerAnonymousFooter, styles.mt5]}>{translate('exitSurvey.thankYou')}</Text>
+                        <Text style={[styles.mt2]}>{translate('exitSurvey.thankYouSubtitle')}</Text>
+                    </>
+                )}
+            </View>
             <FixedFooter>
                 <Button
                     success

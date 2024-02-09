@@ -11,7 +11,7 @@ function ExitSurveyOffline() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     return (
-        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.p5]}>
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
             <Icon
                 width={variables.modalTopIconWidth}
                 height={variables.modalTopIconHeight}
