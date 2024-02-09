@@ -60,7 +60,7 @@ function SecuritySettingsPage() {
                 onBackButtonPress={() => Navigation.goBack()}
                 icon={Illustrations.LockClosed}
             />
-            <ScrollView contentContainerStyle={styles.pt3}>
+            <ScrollView>
                 <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('securityPage.title')}

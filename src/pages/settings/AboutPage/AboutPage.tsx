@@ -138,7 +138,7 @@ function AboutPage() {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.PalmTree}
             />
-            <ScrollView contentContainerStyle={styles.pt3}>
+            <ScrollView>
                 <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('footer.aboutExpensify')}
