@@ -36,6 +36,8 @@ import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
+import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 const {RNTextInputReset} = NativeModules;
@@ -116,8 +118,8 @@ function ComposerWithSuggestions({
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
-
     const draftComment = getDraftComment(reportID) || '';
+    const mobileInputScrollPosition = useRef(0);
     const [value, setValue] = useState(() => {
         if (draftComment) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
@@ -136,7 +138,7 @@ function ComposerWithSuggestions({
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
+    const [selection, setSelection] = useState(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -426,7 +428,8 @@ function ComposerWithSuggestions({
         [suggestionsRef],
     );
 
-    const hideSuggestionMenu = useCallback(() => {
+    const hideSuggestionMenu = useCallback((e) => {
+        mobileInputScrollPosition.current = e.nativeEvent?.contentOffset?.y;
         if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
             return;
         }
@@ -588,6 +591,23 @@ function ComposerWithSuggestions({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const measureParentContainerAndReportCursor = useCallback(
+        (callback) => {
+            const {x: positionX, y: positionY} = getCursorPosition(selection);
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            measureParentContainer((x, y, width, height) => {
+                callback({
+                    x,
+                    y,
+                    width,
+                    height,
+                    scrollValue,
+                    cursorCoordinates: {x: positionX, y: positionY},
+                });
+            });
+        },
+        [measureParentContainer, selection],
+    );
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -633,7 +653,7 @@ function ComposerWithSuggestions({
                 isComposerFocused={textInputRef.current && textInputRef.current.isFocused()}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
-                measureParentContainer={measureParentContainer}
+                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
                 // Input
                 value={value}

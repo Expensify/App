@@ -41,7 +41,7 @@ function Suggestions({
     composerHeight,
     forwardedRef,
     resetKeyboardInput,
-    measureParentContainer,
+    measureParentContainerAndReportCursor,
     isAutoSuggestionPickerLarge,
     isComposerFocused,
 }) {
@@ -131,7 +131,7 @@ function Suggestions({
         updateComment,
         composerHeight,
         isAutoSuggestionPickerLarge,
-        measureParentContainer,
+        measureParentContainerAndReportCursor,
         isComposerFocused,
     };
 

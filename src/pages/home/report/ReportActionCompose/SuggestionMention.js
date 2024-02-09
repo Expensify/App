@@ -50,6 +50,7 @@ function SuggestionMention({
     isAutoSuggestionPickerLarge,
     measureParentContainer,
     isComposerFocused,
+    measureParentContainerAndReportCursor,
 }) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
@@ -310,6 +311,7 @@ function SuggestionMention({
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
             measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
         />
     );
 }
