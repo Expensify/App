@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useContext} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {OnyxCollectionKey, OnyxKey, OnyxKeyValue, OnyxValues} from '@src/ONYXKEYS';
@@ -8,8 +9,10 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type OnyxKeys = (OnyxKey | OnyxCollectionKey) & keyof OnyxValues;
 
+type OnyxContextType<TOnyxKey extends OnyxKeys> = (TOnyxKey extends OnyxCollectionKey ? OnyxCollection<OnyxKeyValue<TOnyxKey>> : OnyxKeyValue<TOnyxKey>) | null;
+
 // Provider types
-type ProviderOnyxProps<TOnyxKey extends OnyxKeys> = Record<TOnyxKey, OnyxKeyValue<TOnyxKey>>;
+type ProviderOnyxProps<TOnyxKey extends OnyxKeys> = Record<TOnyxKey, OnyxContextType<TOnyxKey>>;
 
 type ProviderPropsWithOnyx<TOnyxKey extends OnyxKeys> = ChildrenProps & ProviderOnyxProps<TOnyxKey>;
 
@@ -18,7 +21,7 @@ type WithOnyxKeyProps<TOnyxKey extends OnyxKeys, TNewOnyxKey extends string, TTr
     propName?: TOnyxKey | TNewOnyxKey;
     // It's not possible to infer the type of props of the wrapped component, so we have to use `any` here
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    transformValue?: (value: OnyxKeyValue<TOnyxKey>, props: any) => TTransformedValue;
+    transformValue?: (value: OnyxContextType<TOnyxKey>, props: any) => TTransformedValue;
 };
 
 type WrapComponentWithConsumer<TNewOnyxKey extends string, TTransformedValue> = <TProps extends Record<TNewOnyxKey, TTransformedValue>, TRef>(
@@ -33,12 +36,12 @@ type WithOnyxKey<TOnyxKey extends OnyxKeys> = <TNewOnyxKey extends string = TOny
 type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [
     WithOnyxKey<TOnyxKey>,
     ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>,
-    React.Context<OnyxKeyValue<TOnyxKey>>,
-    () => OnyxValues[TOnyxKey],
+    React.Context<OnyxContextType<TOnyxKey>>,
+    () => OnyxContextType<TOnyxKey> & (NonNullable<unknown> | undefined),
 ];
 
 export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey): CreateOnyxContext<TOnyxKey> => {
-    const Context = createContext<OnyxKeyValue<TOnyxKey>>(null);
+    const Context = createContext<OnyxContextType<TOnyxKey>>(null);
     function Provider(props: ProviderPropsWithOnyx<TOnyxKey>): ReactNode {
         return <Context.Provider value={props[onyxKeyName]}>{props.children}</Context.Provider>;
     }

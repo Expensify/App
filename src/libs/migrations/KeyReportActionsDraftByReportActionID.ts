@@ -27,7 +27,7 @@ export default function () {
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<Record<string, ReportActionsDrafts>>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDraft]) => {
                     if (typeof reportActionDraft !== 'string') {
                         return;

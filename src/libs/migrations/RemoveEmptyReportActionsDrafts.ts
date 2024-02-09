@@ -24,9 +24,9 @@ export default function (): Promise<void> {
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<Record<string, ReportActionsDrafts>>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDrafts]) => {
-                    const newReportActionsDraftsForReport: Record<string, Record<string, ReportActionsDraft>> = {};
+                    const newReportActionsDraftsForReport: Record<string, ReportActionsDraft> = {};
 
                     // Whether there is at least one draft in this report that has to be migrated
                     let hasUnmigratedDraft = false;
