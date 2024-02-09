@@ -46,8 +46,8 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
         BankAccounts.openOnfidoFlow();
     };
 
-    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) || '';
-    const onfidoFixableErrors = walletOnfidoData?.fixableErrors??[];
+    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
+    const onfidoFixableErrors = walletOnfidoData?.fixableErrors ?? [];
     if (Array.isArray(onfidoError)) {
         onfidoError[0] += !isEmptyObject(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
     }
