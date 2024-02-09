@@ -437,7 +437,24 @@ function WorkspaceMembersPage(props) {
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                />
+                >
+                    <View style={[styles.w100, styles.flexRow]}>
+                        <Button
+                            medium
+                            success
+                            text={props.translate('common.invite')}
+                            onPress={inviteUser}
+                        />
+                        <Button
+                            medium
+                            danger
+                            style={[styles.ml2]}
+                            isDisabled={selectedEmployees.length === 0}
+                            text={props.translate('common.remove')}
+                            onPress={askForConfirmationToRemove}
+                        />
+                    </View>
+                </HeaderWithBackButton>
                 <ConfirmModal
                     danger
                     title={props.translate('workspace.people.removeMembersTitle')}
@@ -456,24 +473,8 @@ function WorkspaceMembersPage(props) {
                         })
                     }
                 />
-                <View style={[styles.w100, styles.flex1, styles.mt3]}>
-                    <View style={[styles.w100, styles.flexRow, styles.ph5]}>
-                        <Button
-                            medium
-                            success
-                            text={props.translate('common.invite')}
-                            onPress={inviteUser}
-                        />
-                        <Button
-                            medium
-                            danger
-                            style={[styles.ml2]}
-                            isDisabled={selectedEmployees.length === 0}
-                            text={props.translate('common.remove')}
-                            onPress={askForConfirmationToRemove}
-                        />
-                    </View>
-                    <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                <View style={[styles.w100, styles.flex1]}>
+                    <View style={[styles.w100, styles.flex1]}>
                         <SelectionList
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
