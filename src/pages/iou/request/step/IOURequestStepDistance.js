@@ -102,7 +102,7 @@ function IOURequestStepDistance({
     }, [waypoints]);
 
     const hasError = useMemo(() => {
-        return duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading;
+        return (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading);
     }, [waypoints]);
 
     const navigateBack = () => {
