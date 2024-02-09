@@ -1205,6 +1205,15 @@ function getUpdateMoneyRequestParams(
         });
     }
 
+    if (transactionThread) {
+        // Reset the transaction thread to its original state
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            value: transactionThread,
+        });
+    }
+
     return {
         params,
         onyxData: {optimisticData, successData, failureData},
