@@ -49,10 +49,14 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-            LEGAL_NAME: 'Settings_LegalName',
-            DATE_OF_BIRTH: 'Settings_DateOfBirth',
-            ADDRESS: 'Settings_Address',
-            ADDRESS_COUNTRY: 'Settings_Address_Country',
+
+            PERSONAL_DETAILS: {
+                INITIAL: 'Settings_PersonalDetails_Initial',
+                LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
+                DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
+                ADDRESS: 'Settings_PersonalDetails_Address',
+                ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
+            },
         },
 
         PREFERENCES: {
@@ -96,11 +100,10 @@ const SCREENS = {
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
         REPORT_SETTINGS: 'Report_Settings',
-        REPORT_DESCRIPTION: 'Report_Description',
+        REPORT_WELCOME_MESSAGE: 'Report_WelcomeMessage',
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
-        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -147,7 +150,9 @@ const SCREENS = {
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
         DATE: 'Money_Request_Date',
+        DESCRIPTION: 'Money_Request_Description',
         CATEGORY: 'Money_Request_Category',
+        TAG: 'Money_Request_Tag',
         MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -179,6 +184,7 @@ const SCREENS = {
 
     TASK: {
         TITLE: 'Task_Title',
+        DESCRIPTION: 'Task_Description',
         ASSIGNEE: 'Task_Assignee',
     },
 
@@ -226,12 +232,6 @@ const SCREENS = {
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },
 
-    ONBOARD_ENGAGEMENT: {
-        ROOT: 'Onboard_Engagement_Root',
-        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
-        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
-    },
-
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
     INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
     I_AM_A_TEACHER: 'I_Am_A_Teacher',
@@ -243,7 +243,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
-    REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
+    REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',

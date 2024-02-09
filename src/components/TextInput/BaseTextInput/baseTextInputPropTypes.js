@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import sourcePropTypes from '@components/Image/sourcePropTypes';
-import {translatableTextPropTypes} from '@libs/Localize';
 
 const propTypes = {
     /** Input label */
@@ -19,7 +18,7 @@ const propTypes = {
     placeholder: PropTypes.string,
 
     /** Error text to display */
-    errorText: translatableTextPropTypes,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Icon to display in right side of text input */
     icon: sourcePropTypes,
@@ -69,7 +68,7 @@ const propTypes = {
     maxLength: PropTypes.number,
 
     /** Hint text to display below the TextInput */
-    hint: translatableTextPropTypes,
+    hint: PropTypes.string,
 
     /** Prefix character */
     prefixCharacter: PropTypes.string,
@@ -89,6 +88,9 @@ const propTypes = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus: PropTypes.bool,
+
+    /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
+    submitOnEnter: PropTypes.bool,
 
     /** Indicate whether input is multiline */
     multiline: PropTypes.bool,
@@ -130,6 +132,7 @@ const defaultProps = {
     prefixCharacter: '',
     onInputChange: () => {},
     shouldDelayFocus: false,
+    submitOnEnter: false,
     icon: null,
     shouldUseDefaultValue: false,
     multiline: false,

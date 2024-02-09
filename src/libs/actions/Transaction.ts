@@ -66,9 +66,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
                 [`waypoint${index}`]: waypoint,
             },
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
-        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
-        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
             route: null,
@@ -106,7 +104,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean): Promise<void> {
+function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean) {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -115,7 +113,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
     const waypointValues = Object.values(existingWaypoints);
     const removed = waypointValues.splice(index, 1);
     if (removed.length === 0) {
-        return Promise.resolve();
+        return;
     }
 
     const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
@@ -139,9 +137,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
-        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
-        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
+        amount: CONST.IOU.DEFAULT_AMOUNT,
     };
 
     if (!isRemovedWaypointEmpty) {
@@ -164,9 +160,10 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
         };
     }
     if (isDraft) {
-        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+        return;
     }
-    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, newTransaction);
 }
 
 function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {
@@ -250,9 +247,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
         comment: {
             waypoints,
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
-        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
-        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,

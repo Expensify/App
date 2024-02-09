@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -212,22 +212,20 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             root.dispatch(actionForBottomTabNavigator);
 
             // If the layout is wide we need to push matching central pane route to the stack.
-            if (!getIsNarrowLayout()) {
+            if (!getIsSmallScreenWidth()) {
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath)!;
-                if (matchingCentralPaneRoute && 'name' in matchingCentralPaneRoute) {
-                    root.dispatch({
-                        type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                        payload: {
-                            name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                            params: {
-                                screen: matchingCentralPaneRoute.name,
-                                params: matchingCentralPaneRoute.params,
-                            },
+                root.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                    payload: {
+                        name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+                        params: {
+                            screen: matchingCentralPaneRoute.name,
+                            params: matchingCentralPaneRoute.params,
                         },
-                    });
-                }
+                    },
+                });
             } else {
                 // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
                 root.dispatch({

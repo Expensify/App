@@ -21,7 +21,6 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import compose from '@libs/compose';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -45,7 +44,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
 
         /** Field-specific pending states for offline UI status */
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),

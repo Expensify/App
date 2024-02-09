@@ -46,7 +46,7 @@ function getTaskTitle(taskReportID: string, fallbackTitle = ''): string {
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
     const taskReportID = reportAction?.childReportID ?? '';
     const taskTitle = getTaskTitle(taskReportID, reportAction?.childReportName);
-    return taskTitle ? Localize.translateLocal('task.messages.created', {title: taskTitle}) : '';
+    return Localize.translateLocal('task.messages.created', {title: taskTitle});
 }
 
 export {getTaskReportActionMessage, getTaskTitle, getTaskCreatedMessage};

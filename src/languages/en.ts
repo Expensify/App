@@ -25,6 +25,7 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -381,6 +382,8 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Start a call',
+        zoom: 'Zoom',
+        googleMeet: 'Google Meet',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -486,7 +489,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
             send: 'send money',
             split: 'split a bill',
@@ -586,7 +589,6 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Route pending...',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
@@ -600,7 +602,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
+        payElsewhere: 'Pay elsewhere',
         nextStep: 'Next Steps',
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
@@ -677,7 +679,6 @@ export default {
             always: 'Immediately',
             daily: 'Daily',
             mute: 'Mute',
-            hidden: 'Hidden',
         },
     },
     loginField: {
@@ -710,14 +711,6 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
         profileAvatar: 'Profile avatar',
-        publicSection: {
-            title: 'Public',
-            subtitle: 'These details are displayed on your public profile, available for people to see.',
-        },
-        privateSection: {
-            title: 'Private',
-            subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
-        },
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -824,7 +817,6 @@ export default {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
-        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
         accountSettings: 'Account Settings',
         account: 'Account',
@@ -903,9 +895,6 @@ export default {
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
         composerLabel: 'Notes',
         myNote: 'My note',
-        error: {
-            genericFailureMessage: "Private notes couldn't be saved",
-        },
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -1064,10 +1053,10 @@ export default {
             },
         },
     },
-    reportDescriptionPage: {
-        roomDescription: 'Room description',
-        roomDescriptionOptional: 'Room description (optional)',
-        explainerText: 'Set a custom decription for the room.',
+    welcomeMessagePage: {
+        welcomeMessage: 'Welcome message',
+        welcomeMessageOptional: 'Welcome message (optional)',
+        explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
         language: 'Language',
@@ -1175,7 +1164,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
-            incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
@@ -1980,7 +1969,7 @@ export default {
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
-        in: 'in',
+        in: 'In',
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
@@ -2120,20 +2109,6 @@ export default {
         welcomeMessage: 'Welcome to Expensify',
         welcomeSubtitle: 'What would you like to do?',
     },
-    manageTeams: {
-        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
-        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
-        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
-        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
-        title: 'Do you require any of the following features?',
-    },
-    expensifyClassic: {
-        title: "Expensify Classic has everything you'll need",
-        firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
-        secondDescription: "Don't worry, Expensify Classic has everything you need.",
-        buttonText: 'Take me to Expensify Classic',
-    },
     violations: {
         allTagLevelsRequired: 'All tags required',
         autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
@@ -2174,9 +2149,9 @@ export default {
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
         someTagLevelsRequired: 'Missing tag',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? ''} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? ''} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
     },

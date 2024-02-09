@@ -10,6 +10,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import OnfidoPrivacy from './OnfidoPrivacy';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
 
@@ -31,7 +32,7 @@ function OnfidoStep({walletOnfidoData}) {
     const shouldShowOnfido = walletOnfidoData.hasAcceptedPrivacyPolicy && !walletOnfidoData.isLoading && !walletOnfidoData.error && walletOnfidoData.sdkToken;
 
     const goBack = useCallback(() => {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
     }, []);
 
     const goToPreviousStep = useCallback(() => {

@@ -20,11 +20,8 @@ import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import withPolicy from '@pages/workspace/withPolicy';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
@@ -64,20 +61,23 @@ const defaultProps = {
  * Any dollar amount (e.g. 1.12) will be returned as 112
  *
  * @param {String} amount field input
- * @param {RegExp} amountRegex
  * @returns {String}
  */
-const filterInput = (amount, amountRegex) => {
+const filterInput = (amount) => {
     let value = amount ? amount.toString().trim() : '';
-    value = value.replace(/^0+|0+$/g, '');
-    if (value === '' || _.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value)) || (amountRegex && !amountRegex.test(value))) {
+    if (value === '' || _.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value))) {
         return '';
+    }
+
+    // If the user enters the values in dollars, convert it to the respective cents amount
+    if (_.contains(value, '.')) {
+        value = Str.fromUSDToNumber(value);
     }
 
     return value;
 };
 
-function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID, toLocaleDigit, policy}) {
+function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID}) {
     const styles = useThemeStyles();
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -85,13 +85,9 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
      */
     const validate = (values) => {
         const errors = {};
-        const decimalSeparator = toLocaleDigit('.');
-        const outputCurrency = lodashGet(policy, 'outputCurrency', CONST.CURRENCY.USD);
-
-        const amountRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CurrencyUtils.getCurrencyDecimals(outputCurrency)}})?$`, 'i');
 
         _.each(values, (value, key) => {
-            const filteredValue = typeof value === 'string' ? filterInput(value, amountRegex) : value;
+            const filteredValue = typeof value === 'string' ? filterInput(value) : value;
             if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
@@ -235,7 +231,6 @@ ValidationStep.displayName = 'ValidationStep';
 
 export default compose(
     withLocalize,
-    withPolicy,
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,

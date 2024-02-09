@@ -163,6 +163,8 @@ type DateShouldBeBeforeParams = {dateString: string};
 
 type DateShouldBeAfterParams = {dateString: string};
 
+type IncorrectZipFormatParams = {zipFormat?: string};
+
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
 type ToValidateLoginParams = {primaryLogin: string; secondaryLogin: string};
@@ -313,6 +315,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,

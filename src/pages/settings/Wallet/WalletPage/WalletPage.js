@@ -340,8 +340,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                 >
                     <HeaderWithBackButton
                         title={translate('common.wallet')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        icon={Illustrations.MoneyIntoWallet}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
                     <ScrollView>

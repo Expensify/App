@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -19,18 +20,10 @@ type EReceiptThumbnailOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type IconSize = 'small' | 'medium' | 'large';
-
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
-
-    /** Center the eReceipt Icon vertically */
-    centerIconV?: boolean;
-
-    /** Size of the eReceipt icon. Possible values 'small', 'medium' or 'large' */
-    iconSize?: IconSize;
 };
 
 const backgroundImages = {
@@ -42,28 +35,41 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [containerHeight, setContainerHeight] = useState(0);
 
     const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
 
     const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
+
+    const onContainerLayout = (event: LayoutChangeEvent) => {
+        const {width, height} = event.nativeEvent.layout;
+        setContainerWidth(width);
+        setContainerHeight(height);
+    };
+
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
+
+    const isSmall = containerWidth && containerWidth < variables.eReceiptThumbnailSmallBreakpoint;
+    const isMedium = containerWidth && containerWidth < variables.eReceiptThumbnailMediumBreakpoint;
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
 
-    if (iconSize === 'small') {
+    if (isSmall) {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
-    } else if (iconSize === 'medium') {
+    } else if (isMedium) {
         receiptIconWidth = variables.eReceiptIconWidthMedium;
         receiptIconHeight = variables.eReceiptIconHeightMedium;
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
@@ -76,8 +82,9 @@ function EReceiptThumbnail({transaction, centerIconV = true, iconSize = 'large'}
                 primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {},
                 styles.overflowHidden,
                 styles.alignItemsCenter,
-                centerIconV ? styles.justifyContentCenter : {},
+                containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
             ]}
+            onLayout={onContainerLayout}
         >
             <Image
                 source={backgroundImage}

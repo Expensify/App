@@ -29,15 +29,11 @@ const propTypes = {
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
     reports: {},
-    isSearchingForReports: false,
 };
 
 const setPerformanceTimersEnd = () => {
@@ -47,14 +43,14 @@ const setPerformanceTimersEnd = () => {
 
 const SearchPageFooterInstance = <SearchPageFooter />;
 
-function SearchPage({betas, reports, isSearchingForReports}) {
+function SearchPage({betas, reports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
-    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -63,9 +59,10 @@ function SearchPage({betas, reports, isSearchingForReports}) {
         Performance.markStart(CONST.TIMING.SEARCH_RENDER);
     }, []);
 
-    useEffect(() => {
-        Report.searchInServer(debouncedSearchValue.trim());
-    }, [debouncedSearchValue]);
+    const onChangeText = (text = '') => {
+        Report.searchInServer(text);
+        setSearchValue(text);
+    };
 
     const {
         recentReports,
@@ -146,24 +143,20 @@ function SearchPage({betas, reports, isSearchingForReports}) {
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('common.search')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderWithBackButton title={translate('common.search')} />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputHint={offlineMessage}
-                            onChangeText={setSearchValue}
+                            onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             onLayout={setPerformanceTimersEnd}
                             autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}
-                            isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
                 </>

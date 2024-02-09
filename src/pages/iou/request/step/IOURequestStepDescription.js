@@ -1,21 +1,21 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -28,31 +28,23 @@ const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: transactionPropTypes,
-
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
-    splitDraftTransaction: {},
 };
 
 function IOURequestStepDescription({
     route: {
-        params: {action, iouType, reportID, backTo},
+        params: {transactionID, backTo},
     },
     transaction,
-    splitDraftTransaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
-    // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescription =
-        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? lodashGet(splitDraftTransaction, 'comment.comment', '') : lodashGet(transaction, 'comment.comment', '');
+
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
@@ -70,7 +62,7 @@ function IOURequestStepDescription({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**
@@ -78,27 +70,7 @@ function IOURequestStepDescription({
      * @param {String} value.moneyRequestComment
      */
     const updateComment = (value) => {
-        const newComment = value.moneyRequestComment.trim();
-
-        // Only update comment if it has changed
-        if (newComment === currentDescription) {
-            navigateBack();
-            return;
-        }
-
-        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-        if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction.transactionID, {comment: newComment});
-            navigateBack();
-            return;
-        }
-
-        IOU.setMoneyRequestDescription(transaction.transactionID, newComment, action === CONST.IOU.ACTION.CREATE);
-
-        if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment);
-        }
-
+        IOU.setMoneyRequestDescription_temporaryForRefactor(transactionID, value.moneyRequestComment);
         navigateBack();
     };
 
@@ -121,10 +93,10 @@ function IOURequestStepDescription({
                         InputComponent={TextInput}
                         inputID="moneyRequestComment"
                         name="moneyRequestComment"
-                        defaultValue={currentDescription}
+                        defaultValue={lodashGet(transaction, 'comment.comment', '')}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => {
                             if (!el) {
                                 return;
@@ -134,7 +106,8 @@ function IOURequestStepDescription({
                         }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        shouldSubmitForm
+                        inputStyle={[styles.verticalAlignTop]}
+                        submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
             </FormProvider>
@@ -146,15 +119,4 @@ IOURequestStepDescription.propTypes = propTypes;
 IOURequestStepDescription.defaultProps = defaultProps;
 IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 
-export default compose(
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-    withOnyx({
-        splitDraftTransaction: {
-            key: ({route}) => {
-                const transactionID = lodashGet(route, 'params.transactionID', 0);
-                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-            },
-        },
-    }),
-)(IOURequestStepDescription);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepDescription);

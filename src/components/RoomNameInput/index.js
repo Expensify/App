@@ -6,7 +6,7 @@ import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 
-function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, onSubmitEditing, returnKeyType, shouldDelayFocus}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
 
     const [selection, setSelection] = useState();
@@ -52,8 +52,6 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             value={value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
             selection={selection}
             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
-            onSubmitEditing={onSubmitEditing}
-            returnKeyType={returnKeyType}
             errorText={errorText}
             autoCapitalize="none"
             onBlur={(event) => isFocused && onBlur(event)}

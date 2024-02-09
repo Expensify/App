@@ -3,6 +3,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ActivatePhysicalExpensifyCardParams, ReportVirtualExpensifyCardFraudParams, RequestReplacementExpensifyCardParams, RevealExpensifyCardDetailsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Response} from '@src/types/onyx';
@@ -166,14 +167,12 @@ function revealVirtualCardDetails(cardID: number): Promise<Response> {
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters)
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject('cardPage.cardDetailsLoadingFailure');
+                    reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
                     return;
                 }
                 resolve(response);
             })
-            // eslint-disable-next-line prefer-promise-reject-errors
-            .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
+            .catch(() => reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure')));
     });
 }
 

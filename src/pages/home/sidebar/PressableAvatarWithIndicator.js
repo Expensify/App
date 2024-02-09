@@ -58,7 +58,7 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
             <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                 <AvatarWithIndicator
                     source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
-                    tooltipText={translate('profilePage.profile')}
+                    tooltipText={translate('common.settings')}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     isLoading={isLoading && !currentUserPersonalDetails.avatar}
                 />

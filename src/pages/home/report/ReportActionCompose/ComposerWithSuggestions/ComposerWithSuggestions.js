@@ -643,14 +643,12 @@ function ComposerWithSuggestions({
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {ReportUtils.isValidReportIDFromPath(reportID) && (
-                <SilentCommentUpdater
-                    reportID={reportID}
-                    value={value}
-                    updateComment={updateComment}
-                    commentRef={commentRef}
-                />
-            )}
+            <SilentCommentUpdater
+                reportID={reportID}
+                value={value}
+                updateComment={updateComment}
+                commentRef={commentRef}
+            />
 
             {/* Only used for testing so far */}
             {children}

@@ -91,6 +91,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
             value: {
                 id: policyID,
                 isPolicyExpenseChatEnabled: true,
+                areChatRoomsEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,

@@ -18,7 +18,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {translatableTextPropTypes} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -46,7 +45,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
 
         /** Field-specific pending states for offline UI status */
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -189,7 +188,7 @@ function BaseValidateCodeForm(props) {
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
-                errorText={formError.validateCode || ErrorUtils.getLatestErrorMessage(props.account)}
+                errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
                 hasError={!_.isEmpty(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}

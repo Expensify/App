@@ -91,7 +91,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                     <AddPlaidBankAccount
                         onSelect={setSelectedPlaidAccountId}
                         plaidData={plaidData}
-                        onExitPlaid={() => Navigation.goBack()}
+                        onExitPlaid={() => Navigation.goBack(ROUTES.HOME)}
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         selectedPlaidAccountID={selectedPlaidAccountId}
                     />

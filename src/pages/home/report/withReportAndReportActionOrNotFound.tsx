@@ -1,20 +1,19 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry, WithOnyxInstanceState} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -28,9 +27,6 @@ type OnyxProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
-    /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
@@ -41,22 +37,23 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportAndReportActionOrNotFoundProps = OnyxProps & WindowDimensionsProps & StackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
+type ComponentProps = OnyxProps &
+    WindowDimensionsProps & {
+        route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
+    };
 
-export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): ComponentType<TProps & RefAttributes<TRef>> {
+export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const getReportAction = useCallback(() => {
             let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
             if (!reportAction?.reportActionID) {
-                reportAction = props?.parentReportAction ?? {};
+                reportAction = ReportActionsUtils.getParentReportAction(props.report);
             }
 
             return reportAction;
-        }, [props.reportActions, props.route.params.reportActionID, props.parentReportAction]);
+        }, [props.report, props.reportActions, props.route.params.reportActionID]);
 
         const reportAction = getReportAction();
 
@@ -81,9 +78,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         }
 
         // Perform the access/not found checks
-        // Be sure to avoid showing the not-found page while the parent report actions are still being read from Onyx. The parentReportAction will be undefined while it's being read from Onyx
-        // and then reportAction will either be a valid parentReportAction or an empty object. In the case of an empty object, then it's OK to show the not-found page.
-        if (shouldHideReport || (props?.parentReportAction !== undefined && isEmptyObject(reportAction))) {
+        if (shouldHideReport || isEmptyObject(reportAction)) {
             return <NotFoundPage />;
         }
 
@@ -119,20 +114,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
                 canEvict: false,
             },
-            parentReportAction: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
-                    const parentReportActionID = props?.report?.parentReportActionID;
-                    if (!parentReportActionID) {
-                        return null;
-                    }
-                    return parentReportActions?.[parentReportActionID] ?? null;
-                },
-                canEvict: false,
-            },
         }),
         withWindowDimensions,
     )(React.forwardRef(WithReportOrNotFound));
 }
-
-export type {WithReportAndReportActionOrNotFoundProps};

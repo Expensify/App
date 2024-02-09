@@ -1,7 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import SubscriptAvatar from '@components/SubscriptAvatar';
-import TextWithTooltip from '@components/TextWithTooltip';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {UserListItemProps} from './types';
 
@@ -17,17 +18,29 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
                 />
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
+                <Tooltip
+                    shouldRender={showTooltip}
                     text={item.text}
-                    textStyles={[textStyles, style]}
-                />
+                >
+                    <Text
+                        style={[textStyles, style]}
+                        numberOfLines={1}
+                    >
+                        {item.text}
+                    </Text>
+                </Tooltip>
                 {!!item.alternateText && (
-                    <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
+                    <Tooltip
+                        shouldRender={showTooltip}
                         text={item.alternateText}
-                        textStyles={[alternateTextStyles, style]}
-                    />
+                    >
+                        <Text
+                            style={[alternateTextStyles, style]}
+                            numberOfLines={1}
+                        >
+                            {item.alternateText}
+                        </Text>
+                    </Tooltip>
                 )}
             </View>
             {!!item.rightElement && item.rightElement}

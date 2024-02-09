@@ -51,6 +51,7 @@ function BaseTextInput(
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
+        submitOnEnter = false,
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
@@ -243,8 +244,6 @@ function BaseTextInput(
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
-    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
@@ -395,6 +394,9 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
+                                // FormSubmit Enter key handler does not have access to direct props.
+                                // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
+                                dataSet={{submitOnEnter: isMultiline && submitOnEnter}}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator

@@ -55,13 +55,13 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
-            return 'attachmentView.passwordIncorrect';
+            return translate('attachmentView.passwordIncorrect');
         }
         if (!_.isEmpty(validationErrorText)) {
-            return validationErrorText;
+            return translate(validationErrorText);
         }
         return '';
-    }, [isPasswordInvalid, validationErrorText]);
+    }, [isPasswordInvalid, translate, validationErrorText]);
 
     useEffect(() => {
         if (!isFocused) {

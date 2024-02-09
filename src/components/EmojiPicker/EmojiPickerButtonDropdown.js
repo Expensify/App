@@ -29,25 +29,18 @@ function EmojiPickerButtonDropdown(props) {
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
+
     const onPress = () => {
         if (EmojiPickerAction.isEmojiPickerVisible()) {
             EmojiPickerAction.hideEmojiPicker();
             return;
         }
 
-        EmojiPickerAction.showEmojiPicker(
-            props.onModalHide,
-            (emoji) => props.onInputChange(emoji),
-            emojiPopoverAnchor,
-            {
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                shiftVertical: 4,
-            },
-            () => {},
-            undefined,
-            props.value,
-        );
+        EmojiPickerAction.showEmojiPicker(props.onModalHide, (emoji) => props.onInputChange(emoji), emojiPopoverAnchor, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            shiftVertical: 4,
+        });
     };
 
     return (

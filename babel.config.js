@@ -1,7 +1,5 @@
 require('dotenv').config();
 
-const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
-
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
 const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
@@ -74,8 +72,7 @@ const metro = {
     ],
     env: {
         production: {
-            // Keep console logs for e2e tests
-            plugins: IS_E2E_TESTING ? [] : [['transform-remove-console', {exclude: ['error', 'warn']}]],
+            plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
     },
 };

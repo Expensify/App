@@ -45,11 +45,9 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
         BankAccounts.openOnfidoFlow();
     };
 
-    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) || '';
+    let onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) || '';
     const onfidoFixableErrors = lodashGet(walletOnfidoData, 'fixableErrors', []);
-    if (_.isArray(onfidoError)) {
-        onfidoError[0] += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
-    }
+    onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween]}>

@@ -98,8 +98,6 @@ function SignInPageLayout(props) {
 
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
-    const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
-
     return (
         <View style={containerStyles}>
             {!props.shouldShowSmallScreen ? (
@@ -165,15 +163,13 @@ function SignInPageLayout(props) {
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(backgroundImageHeight), StyleUtils.getSignInBgStyles(theme)]}>
-                        <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
-                            <BackgroundImage
-                                isSmallScreen
-                                pointerEvents="none"
-                                width={variables.signInHeroBackgroundWidthMobile}
-                                transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
-                            />
-                        </View>
+                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
+                        <BackgroundImage
+                            isSmallScreen
+                            pointerEvents="none"
+                            width={variables.signInHeroBackgroundWidthMobile}
+                            transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
+                        />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
                             welcomeText={props.welcomeText}

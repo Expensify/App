@@ -1,7 +1,6 @@
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type Locale from '@src/types/onyx/Locale';
 
 type CurrentLocationButtonProps = {
@@ -44,7 +43,7 @@ type AddressSearchProps = {
     onBlur?: () => void;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Hint text to display */
     hint?: string;

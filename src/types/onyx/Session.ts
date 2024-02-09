@@ -20,9 +20,6 @@ type Session = {
     /** Currently logged in user encrypted authToken */
     encryptedAuthToken?: string;
 
-    /** Boolean that indicates whether it is loading or not */
-    loading?: boolean;
-
     /** Currently logged in user accountID */
     accountID?: number;
 

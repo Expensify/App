@@ -110,17 +110,17 @@ function NewTaskPage(props) {
     // the response
     function onSubmit() {
         if (!props.task.title && !props.task.shareDestination) {
-            setErrorMessage('newTaskPage.confirmError');
+            setErrorMessage(props.translate('newTaskPage.confirmError'));
             return;
         }
 
         if (!props.task.title) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskName');
+            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskName'));
             return;
         }
 
         if (!props.task.shareDestination) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskDestination');
+            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
         }
 

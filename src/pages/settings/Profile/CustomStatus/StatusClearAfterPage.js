@@ -54,17 +54,21 @@ function getSelectedStatusType(data) {
 }
 
 const useValidateCustomDate = (data) => {
+    const {translate} = useLocalize();
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
         const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(data);
 
-        setCustomDateError(dateValidationErrorKey);
-        setCustomTimeError(timeValidationErrorKey);
+        const dateError = dateValidationErrorKey ? translate(dateValidationErrorKey) : '';
+        setCustomDateError(dateError);
+
+        const timeError = timeValidationErrorKey ? translate(timeValidationErrorKey) : '';
+        setCustomTimeError(timeError);
 
         return {
-            dateValidationErrorKey,
-            timeValidationErrorKey,
+            dateError,
+            timeError,
         };
     };
 

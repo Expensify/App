@@ -212,6 +212,7 @@ Once you’ve created your expenses, they may be automatically added to an expen
         <li>Attach PDF: Select this checkbox to attach a copy of your report to the email.</li>
       </ul>
    <li>Tap <b>Submit</b>.</li>
+   </li>
 </ol>
 {% include end-option.html %}
 

@@ -536,7 +536,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
-                    message="common.error.invalidTimeShouldBeFuture"
+                    message={translate('common.error.invalidTimeShouldBeFuture')}
                     style={styles.pl5}
                 />
             ) : (

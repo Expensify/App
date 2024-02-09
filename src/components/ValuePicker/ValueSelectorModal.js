@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -42,9 +42,11 @@ const defaultProps = {
 
 function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected, shouldShowTooltips}) {
     const styles = useThemeStyles();
-    const sections = useMemo(() => {
+    const [sectionsData, setSectionsData] = useState([]);
+
+    useEffect(() => {
         const itemsData = _.map(items, (item) => ({value: item.value, alternateText: item.description, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
-        return [{data: itemsData}];
+        setSectionsData(itemsData);
     }, [items, selectedItem]);
 
     return (
@@ -67,7 +69,7 @@ function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onI
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={sections}
+                    sections={[{data: sectionsData}]}
                     onSelectRow={onItemSelected}
                     initiallyFocusedOptionKey={selectedItem.value}
                     shouldStopPropagation

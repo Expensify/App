@@ -1,6 +1,9 @@
-import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
-
 const UPDATE_INTERVAL = 1000 * 60 * 60 * 8;
+
+type PlatformSpecificUpdater = {
+    update: () => void;
+    init?: () => void;
+};
 
 function checkForUpdates(platformSpecificUpdater: PlatformSpecificUpdater) {
     if (typeof platformSpecificUpdater.init === 'function') {
@@ -13,4 +16,4 @@ function checkForUpdates(platformSpecificUpdater: PlatformSpecificUpdater) {
     }, UPDATE_INTERVAL);
 }
 
-export default checkForUpdates;
+module.exports = checkForUpdates;

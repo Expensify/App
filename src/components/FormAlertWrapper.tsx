@@ -4,7 +4,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type Network from '@src/types/onyx/Network';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
@@ -29,7 +28,7 @@ type FormAlertWrapperProps = {
     isMessageHtml?: boolean;
 
     /** Error message to display above button */
-    message?: MaybePhraseKey;
+    message?: string;
 
     /** Props to detect online status */
     network: Network;
@@ -69,7 +68,7 @@ function FormAlertWrapper({
                 {` ${translate('common.inTheFormBeforeContinuing')}.`}
             </Text>
         );
-    } else if (isMessageHtml && typeof message === 'string') {
+    } else if (isMessageHtml) {
         content = <RenderHTML html={`<alert-text>${message}</alert-text>`} />;
     }
 

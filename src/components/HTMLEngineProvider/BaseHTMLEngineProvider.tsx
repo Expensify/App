@@ -93,6 +93,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             <RenderHTMLConfigProvider
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
+                // @ts-expect-error TODO: Remove this once HTMLRenderers (https://github.com/Expensify/App/issues/25154) is migrated to TypeScript.
                 renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
                 enableExperimentalBRCollapsing={enableExperimentalBRCollapsing}

@@ -66,7 +66,6 @@ type PayeePersonalDetails = {
     descriptiveText: string;
     login: string;
     accountID: number;
-    keyForList: string;
 };
 
 type CategorySection = {
@@ -1001,7 +1000,7 @@ function getCategoryListSections(
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled)
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -1738,7 +1737,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
         descriptiveText: amountText,
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
-        keyForList: String(personalDetail.accountID),
     };
 }
 

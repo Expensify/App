@@ -415,10 +415,6 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
-        fontWeightNormal: {
-            fontWeight: FontUtils.fontWeight.normal,
-        },
-
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -1441,10 +1437,6 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
-        breadcrumsContainer: {
-            height: 24,
-        },
-
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
@@ -1818,12 +1810,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
-            maxWidth: '100%',
-            ...whiteSpace.preWrap,
-            ...wordBreak.breakWord,
-        },
-
-        renderHTML: {
             maxWidth: '100%',
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
@@ -2268,10 +2254,6 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        headerBarDesktopHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
-
         imageViewContainer: {
             width: '100%',
             height: '100%',
@@ -2596,22 +2578,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        accountSettingsSectionTitle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: FontUtils.fontWeight.bold,
-        },
-
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
             height: 56,
             alignItems: 'center',
-        },
-
-        sectionMenuItemTopDescription: {
-            ...spacing.ph8,
-            ...spacing.mhn8,
-            width: 'auto',
         },
 
         selectCircle: {
@@ -3388,8 +3359,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
         },
 
         cardMenuItem: {
@@ -4093,9 +4063,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.highlightBG,
-            borderColor: theme.border,
-            borderWidth: 1,
+            backgroundColor: theme.appBG,
+            borderColor: theme.textSupporting,
         },
 
         mapViewContainer: {

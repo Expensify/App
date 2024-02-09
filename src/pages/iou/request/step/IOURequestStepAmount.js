@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -59,19 +59,18 @@ const getTaxAmount = (transaction, defaultTaxValue, amount) => {
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
     transaction,
-    transaction: {currency},
+    transaction: {currency: originalCurrency},
     policyTaxRates,
     policy,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
-    const isSaveButtonPressed = useRef(false);
-    const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
+    const currency = selectedCurrency || originalCurrency;
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
@@ -88,24 +87,8 @@ function IOURequestStepAmount({
         }, []),
     );
 
-    useEffect(() => {
-        if (transaction.originalCurrency) {
-            originalCurrency.current = transaction.originalCurrency;
-        } else {
-            originalCurrency.current = currency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currency);
-        }
-        return () => {
-            if (isSaveButtonPressed.current) {
-                return;
-            }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -116,7 +99,6 @@ function IOURequestStepAmount({
      * @param {Number} amount
      */
     const navigateToNextPage = ({amount}) => {
-        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
@@ -125,7 +107,7 @@ function IOURequestStepAmount({
             IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);

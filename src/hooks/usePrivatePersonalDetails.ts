@@ -15,6 +15,6 @@ export default function usePrivatePersonalDetails() {
             return;
         }
 
-        PersonalDetails.openPersonalDetails();
+        PersonalDetails.openPersonalDetailsPage();
     }, [network?.isOffline]);
 }

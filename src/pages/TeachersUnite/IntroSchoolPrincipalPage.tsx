@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type IntroSchoolPrincipalPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -47,7 +48,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
      */
     const validate = useCallback(
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
-            const errors: Partial<Record<keyof OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>, string>> = {};
+            const errors: Errors = {};
 
             if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');

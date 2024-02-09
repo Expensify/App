@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
@@ -49,7 +50,7 @@ function FullPageNotFoundView({
     titleKey = 'notFound.notHere',
     subtitleKey = 'notFound.pageNotFound',
     linkKey = 'notFound.goBackHome',
-    onBackButtonPress = () => Navigation.goBack(),
+    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     shouldShowLink = true,
     shouldShowBackButton = true,
     onLinkPress = () => Navigation.dismissModal(),

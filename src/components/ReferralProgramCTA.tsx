@@ -1,44 +1,31 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DismissedReferralBanners} from '@src/types/onyx/Account';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
-type ReferralProgramCTAOnyxProps = {
-    dismissedReferralBanners: DismissedReferralBanners;
-};
-
-type ReferralProgramCTAProps = ReferralProgramCTAOnyxProps & {
+type ReferralProgramCTAProps = {
     referralContentType:
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
+
+    /** Method to trigger when pressing close button of the banner */
+    onCloseButtonPress?: () => void;
 };
 
-function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: ReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType, onCloseButtonPress = () => {}}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-
-    const handleDismissCallToAction = () => {
-        User.dismissReferralBanner(referralContentType);
-    };
-
-    if (!referralContentType || dismissedReferralBanners[referralContentType]) {
-        return null;
-    }
 
     return (
         <PressableWithoutFeedback
@@ -60,7 +47,7 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: Ref
             </Text>
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
-                    onPress={handleDismissCallToAction}
+                    onPress={onCloseButtonPress}
                     onMouseDown={(e) => {
                         e.preventDefault();
                     }}
@@ -80,9 +67,4 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: Ref
     );
 }
 
-export default withOnyx<ReferralProgramCTAProps, ReferralProgramCTAOnyxProps>({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data?.dismissedReferralBanners ?? {},
-    },
-})(ReferralProgramCTA);
+export default ReferralProgramCTA;

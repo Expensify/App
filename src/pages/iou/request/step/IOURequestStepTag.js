@@ -12,8 +12,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -44,7 +44,7 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, transactionID, backTo, iouType},
+        params: {transactionID, backTo},
     },
     transaction: {tag},
 }) {
@@ -54,11 +54,9 @@ function IOURequestStepTag({
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**
@@ -66,19 +64,11 @@ function IOURequestStepTag({
      * @param {String} selectedTag.searchText
      */
     const updateTag = (selectedTag) => {
-        const isSelectedTag = selectedTag.searchText === tag;
-        const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
-        if (isSplitBill && isEditing) {
-            IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
-            navigateBack();
-            return;
+        if (selectedTag.searchText === tag) {
+            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
+        } else {
+            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, selectedTag.searchText);
         }
-        if (isEditing) {
-            IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag);
-            Navigation.dismissModal();
-            return;
-        }
-        IOU.setMoneyRequestTag(transactionID, updatedTag);
         navigateBack();
     };
 
@@ -89,18 +79,13 @@ function IOURequestStepTag({
             shouldShowWrapper
             testID={IOURequestStepTag.displayName}
         >
-            {({insets}) => (
-                <>
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-                    <TagPicker
-                        policyID={report.policyID}
-                        tag={tagListKey}
-                        selectedTag={tag || ''}
-                        onSubmit={updateTag}
-                        insets={insets}
-                    />
-                </>
-            )}
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+            <TagPicker
+                policyID={report.policyID}
+                tag={tagListKey}
+                selectedTag={tag || ''}
+                onSubmit={updateTag}
+            />
         </StepScreenWrapper>
     );
 }

@@ -68,7 +68,7 @@ function Template(args) {
                 label="Street"
                 inputID="street"
                 containerStyles={[defaultStyles.mt4]}
-                hint="common.noPO"
+                hint="No PO box"
             />
             <InputWrapper
                 InputComponent={DatePicker}

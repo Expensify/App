@@ -283,7 +283,7 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(transaction?.transactionID ?? '');
+        IOU.detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.dismissModal(report?.reportID);
     }, [transaction, report]);
@@ -436,7 +436,7 @@ function AttachmentModal({
                 },
             });
         }
-        if (!isOffline && allowDownload) {
+        if (!isOffline) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),

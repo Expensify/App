@@ -51,10 +51,7 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
     return (
         <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
             <View style={styles.fullScreen}>
-                <EReceiptThumbnail
-                    transactionID={transactionID}
-                    centerIconV={false}
-                />
+                <EReceiptThumbnail transactionID={transactionID} />
             </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pb14, styles.pt8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight)]} />

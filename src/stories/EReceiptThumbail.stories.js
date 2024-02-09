@@ -17,38 +17,23 @@ function Template(args) {
     return (
         <View style={{display: 'flex', flexDirection: 'column', gap: 12}}>
             <View>
-                <EReceiptThumbnail
-                    {...args}
-                    iconSize="large"
-                />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 116, width: 89, borderRadius: 0, overflow: 'hidden'}}>
-                <EReceiptThumbnail
-                    {...args}
-                    iconSize="small"
-                />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 140, width: 143, borderRadius: 16, overflow: 'hidden'}}>
-                <EReceiptThumbnail
-                    {...args}
-                    iconSize="medium"
-                />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 140, width: 283, borderRadius: 16, overflow: 'hidden'}}>
-                <EReceiptThumbnail
-                    {...args}
-                    iconSize="medium"
-                />
+                <EReceiptThumbnail {...args} />
             </View>
 
             <View style={{height: 175, width: 335, borderRadius: 16, overflow: 'hidden'}}>
-                <EReceiptThumbnail
-                    {...args}
-                    iconSize="large"
-                />
+                <EReceiptThumbnail {...args} />
             </View>
         </View>
     );

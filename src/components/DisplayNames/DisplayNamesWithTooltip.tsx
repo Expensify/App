@@ -11,7 +11,7 @@ import type DisplayNamesProps from './types';
 
 type HTMLElementWithText = HTMLElement & RNText;
 
-function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
+function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1}: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
@@ -53,11 +53,10 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
-            testID={DisplayNamesWithToolTip.displayName}
         >
             {shouldUseFullTitle
                 ? ReportUtils.formatReportLastMessageText(fullTitle)
-                : displayNamesWithTooltips?.map(({displayName, accountID, avatar, login}, index) => (
+                : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
                           <DisplayNamesTooltipItem
@@ -73,7 +72,6 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                       </Fragment>
                   ))}
-            {renderAdditionalText?.()}
             {Boolean(isEllipsisActive) && (
                 <View style={styles.displayNameTooltipEllipsis}>
                     <Tooltip text={fullTitle}>

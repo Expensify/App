@@ -19,6 +19,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -87,10 +88,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
+    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(!dismissedReferralBanners[referralContentType]);
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
-    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -241,7 +243,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
+                _.get(newChatOptions, 'personalDetails.length', 0) + _.get(newChatOptions, 'recentReports.length', 0) !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
@@ -265,12 +267,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         onFinish();
     }, [shouldShowSplitBillErrorMessage, onFinish]);
 
+    const closeCallToActionBanner = useCallback(() => {
+        setShouldShowReferralCTA(false);
+        User.dismissReferralBanner(referralContentType);
+    }, [referralContentType]);
+
     const footerContent = useMemo(
         () => (
             <View>
-                {!dismissedReferralBanners[referralContentType] && (
+                {shouldShowReferralCTA && (
                     <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA referralContentType={referralContentType} />
+                        <ReferralProgramCTA
+                            referralContentType={referralContentType}
+                            onCloseButtonPress={closeCallToActionBanner}
+                        />
                     </View>
                 )}
 
@@ -293,7 +303,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate, closeCallToActionBanner],
     );
 
     const itemRightSideComponent = useCallback(

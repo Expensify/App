@@ -46,7 +46,6 @@ function WalletEmptyState({onAddPaymentMethod}) {
             shouldShowBackButton={isSmallScreenWidth}
             shouldShowOfflineIndicatorInWideScreen
             style={isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection}
-            testID={WalletEmptyState.displayName}
         >
             <FeatureList
                 menuItems={WALLET_FEATURES}

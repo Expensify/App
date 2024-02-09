@@ -2,7 +2,7 @@ import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {getPathFromState} from '@react-navigation/native';
 import type {ValueOf, Writable} from 'type-fest';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -95,7 +95,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     // If the layout is wide we need to push matching central pane route to the stack.
-    if (!getIsNarrowLayout()) {
+    if (!getIsSmallScreenWidth()) {
         // Case when the user selects "All" workspace from the specific workspace settings
         if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.ALL_SETTINGS) && !policyID) {
             root.dispatch({

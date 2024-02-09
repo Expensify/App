@@ -12,8 +12,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import {PressableWithoutFeedback} from './Pressable';
-import RenderHTML from './RenderHTML';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -59,47 +57,29 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                     {isChatRoom ? translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(report)}) : translate('reportActionsView.sayHello')}
                 </Text>
             </View>
-            <View style={[styles.mt3, styles.mw100]}>
+            <Text style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
-                    <Text>
+                    <>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
-                    </Text>
+                    </>
                 )}
                 {isChatRoom && (
                     <>
-                        {report?.description ? (
-                            <PressableWithoutFeedback
-                                onPress={() => {
-                                    if (ReportUtils.canEditReportDescription(report, policy)) {
-                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
-                                }}
-                                style={styles.renderHTML}
-                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                        <Text>{roomWelcomeMessage.phrase1}</Text>
+                        {roomWelcomeMessage.showReportName && (
+                            <Text
+                                style={[styles.textStrong]}
+                                onPress={navigateToReport}
+                                suppressHighlighting
                             >
-                                <RenderHTML html={report.description} />
-                            </PressableWithoutFeedback>
-                        ) : (
-                            <Text>
-                                <Text>{roomWelcomeMessage.phrase1}</Text>
-                                {roomWelcomeMessage.showReportName && (
-                                    <Text
-                                        style={[styles.textStrong]}
-                                        onPress={navigateToReport}
-                                        suppressHighlighting
-                                    >
-                                        {ReportUtils.getReportName(report)}
-                                    </Text>
-                                )}
-                                {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
+                                {ReportUtils.getReportName(report)}
                             </Text>
                         )}
+                        {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                     </>
                 )}
                 {isDefault && (
@@ -132,7 +112,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
                     <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
                 )}
-            </View>
+            </Text>
         </>
     );
 }

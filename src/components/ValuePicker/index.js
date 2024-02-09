@@ -7,13 +7,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {translatableTextPropTypes} from '@libs/Localize';
 import variables from '@styles/variables';
 import ValueSelectorModal from './ValueSelectorModal';
 
 const propTypes = {
     /** Form Error description */
-    errorText: translatableTextPropTypes,
+    errorText: PropTypes.string,
 
     /** Item to display */
     value: PropTypes.string,

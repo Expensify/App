@@ -15,6 +15,7 @@ import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
+import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportPropTypes from './reportPropTypes';
@@ -57,6 +58,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
+        comment: transactionDescription,
         merchant: transactionMerchant,
         created: transactionCreated,
         category: transactionCategory,
@@ -73,6 +75,19 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
         navigateBackToSplitDetails();
     };
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
+        return (
+            <EditRequestDescriptionPage
+                defaultDescription={transactionDescription}
+                onSubmit={(transactionChanges) => {
+                    setDraftSplitTransaction({
+                        comment: transactionChanges.comment.trim(),
+                    });
+                }}
+            />
+        );
+    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (

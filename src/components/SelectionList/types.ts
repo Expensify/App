@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -230,12 +230,6 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
-
-    /** Whether to show the loading indicator for new options */
-    isLoadingNewOptions?: boolean;
-
-    /** Fired when the list is displayed with the items */
-    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type ItemLayout = {

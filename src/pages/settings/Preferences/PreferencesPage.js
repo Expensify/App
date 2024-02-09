@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -56,8 +55,6 @@ function PreferencesPage(props) {
             illustration={LottieAnimations.PreferencesDJ}
             shouldShowBackButton={isSmallScreenWidth}
             shouldShowOfflineIndicatorInWideScreen
-            icon={Illustrations.Gears}
-            testID={PreferencesPage.displayName}
         >
             <View style={styles.mb6}>
                 <Text

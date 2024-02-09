@@ -1,11 +1,10 @@
-import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import {useNavigationState} from '@react-navigation/native';
+import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
+import PurposeForUsingExpensifyModal from '@components/PurposeForUsingExpensifyModal';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -18,38 +17,15 @@ import type {RootStackParamList} from '@libs/Navigation/types';
 import {checkIfWorkspaceSettingsTabHasRBR, getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type PurposeForUsingExpensifyModalOnyxProps = {
-    isLoadingApp: OnyxEntry<boolean>;
-};
-type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
-
-function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
+function BottomTabBar() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-
-    const navigation = useNavigation();
-
-    useEffect(() => {
-        const navigationState = navigation.getState();
-        const routes = navigationState.routes;
-        const currentRoute = routes[navigationState.index];
-
-        if (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
-            return;
-        }
-
-        Welcome.show(routes, () => Navigation.navigate(ROUTES.ONBOARD));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingApp]);
 
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
@@ -110,14 +86,11 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
+            <PurposeForUsingExpensifyModal />
         </View>
     );
 }
 
 BottomTabBar.displayName = 'BottomTabBar';
 
-export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(BottomTabBar);
+export default BottomTabBar;

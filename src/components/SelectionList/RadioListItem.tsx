@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import TextWithTooltip from '@components/TextWithTooltip';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {RadioListItemProps} from './types';
 
@@ -9,18 +10,30 @@ function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: Rad
 
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
+            <Tooltip
+                shouldRender={showTooltip}
                 text={item.text}
-                textStyles={textStyles}
-            />
+            >
+                <Text
+                    style={textStyles}
+                    numberOfLines={1}
+                >
+                    {item.text}
+                </Text>
+            </Tooltip>
 
             {!!item.alternateText && (
-                <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
+                <Tooltip
+                    shouldRender={showTooltip}
                     text={item.alternateText}
-                    textStyles={alternateTextStyles}
-                />
+                >
+                    <Text
+                        style={alternateTextStyles}
+                        numberOfLines={1}
+                    >
+                        {item.alternateText}
+                    </Text>
+                </Tooltip>
             )}
         </View>
     );
