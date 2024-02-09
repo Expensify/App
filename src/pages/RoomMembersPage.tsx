@@ -45,9 +45,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
      * Get members for the current room
      */
     const getRoomMembers = useCallback(() => {
-        if (report) {
-            Report.openRoomMembersPage(report.reportID);
+        if (!report) {
+            return;
         }
+        Report.openRoomMembersPage(report.reportID);
         setDidLoadRoomMembers(true);
     }, [report]);
 
@@ -60,10 +61,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
      * Open the modal to invite a user
      */
     const inviteUser = () => {
-        setSearchValue('');
-        if (report) {
-            Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID));
+        if (!report) {
+            return;
         }
+        setSearchValue('');
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID));
     };
 
     /**
@@ -174,16 +176,14 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: details.login ? formatPhoneNumber(details.login) : '',
-                icons: details.login
-                    ? [
-                          {
-                              source: UserUtils.getAvatar(details.avatar, accountID),
-                              name: details.login,
-                              type: CONST.ICON_TYPE_AVATAR,
-                          },
-                      ]
-                    : [],
+                alternateText: formatPhoneNumber(details.login),
+                icons: [
+                    {
+                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        name: details.login ?? '',
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
             });
         });
 
@@ -210,9 +210,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 shouldShow={isEmptyObject(report) || !isPolicyMember}
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
-                    if (!report) {
-                        return;
-                    }
                     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                 }}
             >
@@ -221,9 +218,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     subtitle={ReportUtils.getReportName(report)}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        if (!report) {
-                            return;
-                        }
                         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                     }}
                 />
