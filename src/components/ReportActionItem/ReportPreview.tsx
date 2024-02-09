@@ -265,7 +265,6 @@ function ReportPreview({
                             <ReportActionItemImages
                                 images={lastThreeReceipts}
                                 total={transactionsWithReceipts.length}
-                                isHovered={isHovered || isScanning}
                                 size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                             />
                         )}
