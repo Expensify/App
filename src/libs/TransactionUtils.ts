@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import type {Comment, Receipt, TransactionChanges, Waypoint, WaypointCollection, IOUActionType} from '@src/types/onyx/Transaction';
+import type {Comment, IOUActionType, Receipt, TransactionChanges, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';

@@ -207,5 +207,7 @@ type AdditionalTransactionChanges = {
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
+type IOUActionType = ValueOf<typeof CONST.IOU.REQUEST_TYPE> | ValueOf<Pick<typeof CONST.IOU.TYPE, 'SPLIT'>>;
+
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey, TransactionChanges, TaxRate, ReceiptSource};
+export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey, TransactionChanges, TaxRate, ReceiptSource, IOUActionType};
