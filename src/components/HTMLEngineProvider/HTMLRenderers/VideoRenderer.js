@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -6,10 +7,10 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 const propTypes = {
-    ...htmlRendererPropTypes,
+    // eslint-disable-next-line react/forbid-prop-types
+    tnode: PropTypes.object.isRequired,
 };
 
 function VideoRenderer(props) {
