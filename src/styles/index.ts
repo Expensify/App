@@ -1448,6 +1448,10 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        breadcrumsContainer: {
+            height: 24,
+        },
+
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
@@ -2271,8 +2275,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        headerBarExtendedHeight: {
-            height: variables.contentHeaderExtendedHeight,
+        headerBarDesktopHeight: {
+            height: variables.contentHeaderDesktopHeight,
         },
 
         imageViewContainer: {
@@ -2599,11 +2603,22 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        accountSettingsSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
             height: 56,
             alignItems: 'center',
+        },
+
+        sectionMenuItemTopDescription: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
         },
 
         selectCircle: {
@@ -4090,8 +4105,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.appBG,
-            borderColor: theme.textSupporting,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         mapViewContainer: {

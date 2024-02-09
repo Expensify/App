@@ -68,12 +68,21 @@ function HeaderWithBackButton({
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
 
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
+
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2, shouldOverlay && StyleSheet.absoluteFillObject]}
+            style={[
+                styles.headerBar,
+                isCentralPaneSettings && styles.headerBarDesktopHeight,
+                shouldShowBorderBottom && styles.borderBottom,
+                shouldShowBackButton && styles.pl2,
+                shouldOverlay && StyleSheet.absoluteFillObject,
+            ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
