@@ -3,12 +3,28 @@
  * from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/utils/format.ts
  */
 
-const formatPercent = (value) => {
+type Stats = {
+    mean: number;
+    stdev: number;
+    runs: number;
+    entries: Record<string, number[]>;
+};
+
+type CompareEntry = {
+    name: string;
+    baseline: Stats;
+    current: Stats;
+    diff: number;
+    relativeDurationDiff: number;
+    isDurationDiffOfSignificance: boolean;
+};
+
+const formatPercent = (value: number): string => {
     const valueAsPercent = value * 100;
     return `${valueAsPercent.toFixed(1)}%`;
 };
 
-const formatPercentChange = (value) => {
+const formatPercentChange = (value: number): string => {
     const absValue = Math.abs(value);
 
     // Round to zero
@@ -19,9 +35,9 @@ const formatPercentChange = (value) => {
     return `${value >= 0 ? '+' : '-'}${formatPercent(absValue)}`;
 };
 
-const formatDuration = (duration) => `${duration.toFixed(3)} ms`;
+const formatDuration = (duration: number): string => `${duration.toFixed(3)} ms`;
 
-const formatDurationChange = (value) => {
+const formatDurationChange = (value: number): string => {
     if (value > 0) {
         return `+${formatDuration(value)}`;
     }
@@ -31,7 +47,7 @@ const formatDurationChange = (value) => {
     return '0 ms';
 };
 
-const formatChange = (value) => {
+const formatChange = (value: number): string => {
     if (value > 0) {
         return `+${value}`;
     }
@@ -41,7 +57,7 @@ const formatChange = (value) => {
     return '0';
 };
 
-const getDurationSymbols = (entry) => {
+const getDurationSymbols = (entry: CompareEntry): string => {
     if (!entry.isDurationDiffOfSignificance) {
         if (entry.relativeDurationDiff > 0.15) {
             return '🟡';
@@ -68,7 +84,7 @@ const getDurationSymbols = (entry) => {
     return '';
 };
 
-const formatDurationDiffChange = (entry) => {
+const formatDurationDiffChange = (entry: CompareEntry): string => {
     const {baseline, current} = entry;
 
     let output = `${formatDuration(baseline.mean)} → ${formatDuration(current.mean)}`;
@@ -82,7 +98,7 @@ const formatDurationDiffChange = (entry) => {
     return output;
 };
 
-module.exports = {
+export default {
     formatPercent,
     formatPercentChange,
     formatDuration,
