@@ -268,13 +268,7 @@ function MoneyRequestView({
                         titleStyle={styles.flex1}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    CONST.IOU.TYPE.REQUEST,
-                                    transaction?.transactionID ?? '',
-                                    report.reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
                             )
                         }
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
