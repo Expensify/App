@@ -670,6 +670,7 @@ export default compose(
         (prevProps, nextProps) =>
             prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
             _.isEqual(prevProps.reportActions, nextProps.reportActions) &&
+            _.isEqual(prevProps.transactionThreadReportActions, nextProps.transactionThreadReportActions) &&
             _.isEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
             prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
             _.isEqual(prevProps.betas, nextProps.betas) &&
