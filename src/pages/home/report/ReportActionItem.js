@@ -136,7 +136,7 @@ const defaultProps = {
     emojiReactions: {},
     shouldShowSubscriptAvatar: false,
     iouReport: undefined,
-    transactionThreadReport: {},
+    transactionThreadReport: undefined,
     shouldHideThreadDividerLine: false,
     userWallet: {},
     parentReportActions: {},
@@ -669,7 +669,7 @@ function ReportActionItem(props) {
                         policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
-                    {!isEmptyObject(props.transactionThreadReport) && (
+                    {props.transactionThreadReport && !isEmptyObject(props.transactionThreadReport) && (
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <MoneyRequestView
                                 report={props.transactionThreadReport}
@@ -830,7 +830,7 @@ export default compose(
         transactionThreadReport: {
             key: ({report}) => {
                 const transactionThreadReportID = ReportUtils.isOneTransactionReport(report) ? ReportUtils.getOneTransactionThreadReportID(report) : '';
-                return transactionThreadReportID ? `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}` : {};
+                return transactionThreadReportID ? `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}` : undefined;
             },
             initialValue: {},
         },
