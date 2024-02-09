@@ -1,6 +1,6 @@
-import {FlashList} from '@shopify/flash-list';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {FlatList, View} from 'react-native';
+import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -95,6 +95,15 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
         });
     };
 
+    const renderItem: ListRenderItem<Log> = useCallback(
+        ({item}: ListRenderItemInfo<Log>) => (
+            <View style={styles.mb2}>
+                <Text family="MONOSPACE">{`${item.time.toLocaleTimeString()} ${item.message}`}</Text>
+            </View>
+        ),
+        [styles.mb2],
+    );
+
     return (
         <ScreenWrapper testID={ConsolePage.displayName}>
             <HeaderWithBackButton
@@ -102,19 +111,13 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TROUBLESHOOT)}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
-                {logs !== undefined && (
-                    <FlashList
-                        data={Object.values(logs).reverse()}
-                        renderItem={({item}) => (
-                            <View style={styles.mb2}>
-                                <Text family="MONOSPACE">{`${item.time.toLocaleTimeString()} ${item.message}`}</Text>
-                            </View>
-                        )}
-                        estimatedItemSize={70}
-                        contentContainerStyle={styles.p5}
-                        inverted
-                    />
-                )}
+                <FlatList
+                    data={Object.values(logs).reverse()}
+                    renderItem={renderItem}
+                    contentContainerStyle={styles.p5}
+                    inverted
+                    ListEmptyComponent={<Text>{translate('initialSettingsPage.debugConsole.noLogsAvailable')}</Text>}
+                />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.m5]}>
                 <Button

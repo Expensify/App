@@ -821,6 +821,7 @@ export default {
             shareLog: 'Share log',
             enterCommand: 'Enter command',
             execute: 'Execute',
+            noLogsAvailable: 'No logs available',
         },
         goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',

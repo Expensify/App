@@ -815,6 +815,7 @@ export default {
             shareLog: 'Compartir registro',
             enterCommand: 'Introducir comando',
             execute: 'Ejecutar',
+            noLogsAvailable: 'No hay registros disponibles',
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
