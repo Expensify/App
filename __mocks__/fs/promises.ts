@@ -5,4 +5,4 @@ type PromisesMock = FsPromisesApi;
 
 const promisesMock: PromisesMock = fs.promises;
 
-module.exports = promisesMock;
+export default promisesMock;
