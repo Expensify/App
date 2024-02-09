@@ -24,7 +24,6 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -372,8 +371,6 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Iniciar una llamada',
-        zoom: 'Zoom',
-        googleMeet: 'Google Meet',
     },
     hello: 'Hola',
     phoneCountryCode: '34',
@@ -581,6 +578,7 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
@@ -594,7 +592,7 @@ export default {
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
-        payElsewhere: 'Pagar de otra forma',
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
@@ -706,6 +704,14 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
         profileAvatar: 'Perfil avatar',
+        publicSection: {
+            title: 'Público',
+            subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',
+        },
+        privateSection: {
+            title: 'Privada',
+            subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
+        },
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
@@ -892,6 +898,9 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
+        error: {
+            genericFailureMessage: 'Las notas privadas no han podido ser guardadas',
+        },
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
@@ -1163,7 +1172,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
             hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
@@ -2597,6 +2606,20 @@ export default {
         [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
         welcomeMessage: 'Bienvenido a Expensify',
         welcomeSubtitle: '¿Qué te gustaría hacer?',
+    },
+    manageTeams: {
+        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
+        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación personalizada de gastos',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Seguimiento de tarjetas corporativas',
+        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Integraciones de contaduría',
+        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Aplicación de reglas',
+        title: '¿Necesitas alguna de las siguientes funciones?',
+    },
+    expensifyClassic: {
+        title: 'Expensify Classic tiene todo lo que necesitas',
+        firstDescription: 'Aunque estamos ocupados trabajando en el Nuevo Expensify, actualmente no soporta algunas de las funciones que estás buscando.',
+        secondDescription: 'No te preocupes, Expensify Classic tiene todo lo que necesitas.',
+        buttonText: 'Llévame a Expensify Classic',
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
