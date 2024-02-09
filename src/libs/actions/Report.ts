@@ -85,12 +85,14 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
+let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, val is undefined
         if (!value?.accountID) {
+            conciergeChatReportID = undefined;
             return;
         }
 
@@ -167,7 +169,6 @@ Onyx.connect({
 });
 
 const allReports: OnyxCollection<Report> = {};
-let conciergeChatReportID: string | undefined;
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
