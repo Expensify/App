@@ -261,7 +261,11 @@ function clearMoneyRequest(transactionID: string) {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string, removeOriginalCurrency = false) {
     if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+            amount,
+            currency,
+            originalCurrency: null,
+        });
         return;
     }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
@@ -357,7 +361,11 @@ function resetMoneyRequestInfo(id = '') {
 function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = true): Errors | ErrorFields {
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
-        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''});
+        : ErrorUtils.getMicroSecondOnyxErrorObject({
+              error: CONST.IOU.RECEIPT_ERROR,
+              source: receipt.source?.toString() ?? '',
+              filename: filename ?? '',
+          });
 }
 
 /** Return the object to update hasOutstandingChildRequest */
@@ -1205,14 +1213,12 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (transactionThread) {
-        // Reset the transaction thread to its original state
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-            value: transactionThread,
-        });
-    }
+    // Reset the transaction thread to its original state
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: transactionThread,
+    });
 
     return {
         params,
@@ -1565,7 +1571,13 @@ function createSplitsAndOnyxData(
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits: Split[] = [
+        {
+            email: currentUserEmailForIOUSplit,
+            accountID: currentUserAccountID,
+            amount: IOUUtils.calculateAmount(participants.length, amount, currency, true),
+        },
+    ];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
@@ -3581,9 +3593,17 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
         ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
-        : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+        : (chatReport?.participantAccountIDs ?? [])
+              .filter((accountID) => currentUserAccountID !== accountID)
+              .map((accountID) => ({
+                  accountID,
+                  selected: true,
+              }));
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        participants,
+        participantsAutoAssigned: true,
+    });
 }
 
 /** Initialize money request info and navigate to the MoneyRequest page */
@@ -3671,7 +3691,12 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
             const currentUserAccountID = currentUserPersonalDetails.accountID;
             const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
                 ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
-                : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+                : (chatReport?.participantAccountIDs ?? [])
+                      .filter((accountID) => currentUserAccountID !== accountID)
+                      .map((accountID) => ({
+                          accountID,
+                          selected: true,
+                      }));
             setMoneyRequestParticipants(participants);
             resetMoneyRequestCategory();
         }
