@@ -1683,7 +1683,7 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false) {
+function navigateToConciergeChat(shouldDismissModal = false, shouldPopCurrentScreen = false, checkIfCurrentPageActive = () => true) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeChatReportID) {
@@ -1691,11 +1691,20 @@ function navigateToConciergeChat(shouldDismissModal = false) {
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
             // If we don't have a chat with Concierge then create it
+            if (!checkIfCurrentPageActive()) {
+                return;
+            }
+            if (shouldPopCurrentScreen && !shouldDismissModal) {
+                Navigation.goBack();
+            }
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);
     } else {
+        if (shouldPopCurrentScreen) {
+            Navigation.goBack();
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
