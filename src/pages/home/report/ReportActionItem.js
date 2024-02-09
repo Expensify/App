@@ -77,6 +77,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -113,6 +114,9 @@ const propTypes = {
     /** IOU report for this action, if any */
     iouReport: reportPropTypes,
 
+    /** Single transaction thread associated with the report, if any */
+    transactionThreadReport: reportPropTypes,
+
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
 
@@ -132,6 +136,7 @@ const defaultProps = {
     emojiReactions: {},
     shouldShowSubscriptAvatar: false,
     iouReport: undefined,
+    transactionThreadReport: {},
     shouldHideThreadDividerLine: false,
     userWallet: {},
     parentReportActions: {},
@@ -664,6 +669,15 @@ function ReportActionItem(props) {
                         policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
+                    {!isEmptyObject(props.transactionThreadReport) && (
+                        <ShowContextMenuContext.Provider value={contextValue}>
+                            <MoneyRequestView
+                                report={props.transactionThreadReport}
+                                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                                shouldShowAnimatedBackground={false}
+                            />
+                        </ShowContextMenuContext.Provider>
+                    )}
                 </OfflineWithFeedback>
             );
         }
@@ -813,6 +827,13 @@ export default compose(
             },
             initialValue: {},
         },
+        transactionThreadReport: {
+            key: ({report}) => {
+                const transactionThreadReportID = ReportUtils.isOneTransactionReport(report) ? ReportUtils.getOneTransactionThreadReportID(report) : '';
+                return transactionThreadReportID ? `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}` : {};
+            },
+            initialValue: {},
+        },
         policyReportFields: {
             key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
             initialValue: [],
@@ -847,6 +868,7 @@ export default compose(
             _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
             _.isEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
             _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
+            _.isEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
             lodashGet(prevProps.report, 'parentReportID') === lodashGet(nextProps.report, 'parentReportID') &&
