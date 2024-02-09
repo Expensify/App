@@ -253,6 +253,7 @@ export {
     Receipt,
     ReceiptSearch,
     Rotate,
+    RotateLeft,
     Scan,
     Send,
     Shield,
