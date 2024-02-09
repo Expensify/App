@@ -35,7 +35,6 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Icon from "@components/Icon";
 import * as Expensicons from '@components/Icon/Expensicons';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
@@ -418,6 +417,28 @@ function WorkspaceMembersPage(props) {
         );
     };
 
+    const getHeaderButtons = () => (
+        <View style={[styles.w100, styles.flexRow]}>
+            <Button
+                medium
+                success
+                onPress={inviteUser}
+                text={props.translate('workspace.invite.member')}
+                icon={Expensicons.Plus}
+                iconStyles={{transform: [{scale: 0.6}]}}
+                style={[isSmallScreenWidth && styles.flexGrow1]}
+            />
+            <Button
+                medium
+                danger
+                style={[styles.ml2]}
+                isDisabled={selectedEmployees.length === 0}
+                text={props.translate('common.remove')}
+                onPress={askForConfirmationToRemove}
+            />
+        </View>
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -440,25 +461,13 @@ function WorkspaceMembersPage(props) {
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                 >
-                    <View style={[styles.w100, styles.flexRow]}>
-                        <Button
-                            medium
-                            success
-                            onPress={inviteUser}
-                            text={props.translate('workspace.invite.member')}
-                            icon={Expensicons.Plus}
-                            iconStyles={{transform: [{scale: 0.6}]}}
-                        />
-                        <Button
-                            medium
-                            danger
-                            style={[styles.ml2]}
-                            isDisabled={selectedEmployees.length === 0}
-                            text={props.translate('common.remove')}
-                            onPress={askForConfirmationToRemove}
-                        />
-                    </View>
+                    {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && (
+                    <View style={[styles.pl5, styles.pr5]}>
+                        {getHeaderButtons()}
+                    </View>
+                )}
                 <ConfirmModal
                     danger
                     title={props.translate('workspace.people.removeMembersTitle')}
