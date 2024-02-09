@@ -44,7 +44,7 @@ function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherB
             accessible
             onPress={() =>
                 interceptAnonymousUser(() => {
-                    Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
+                    Navigation.navigate(ROUTES.WELCOME);
                 })
             }
         >

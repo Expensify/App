@@ -119,6 +119,9 @@ const SCREENS = {
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
+    ONBOARDING_MODAL: {
+        ONBOARDING: 'Onboarding',
+    },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
@@ -228,6 +231,11 @@ const SCREENS = {
         ROOT: 'SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+
+    ONBOARDING: {
+        WELCOME: 'Onboarding_Welcome',
+        PURPOSE: 'Onboarding_Purpose',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

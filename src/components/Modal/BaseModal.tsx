@@ -191,7 +191,7 @@ function BaseModal(
             backdropColor={theme.overlay}
             backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
-            hasBackdrop={fullscreen}
+            hasBackdrop={false}
             coverScreen={fullscreen}
             style={modalStyle}
             deviceHeight={windowHeight}

@@ -86,7 +86,6 @@ function BottomTabBar() {
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <PurposeForUsingExpensifyModal />
         </View>
     );
 }

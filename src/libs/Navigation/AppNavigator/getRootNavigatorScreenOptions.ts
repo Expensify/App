@@ -39,6 +39,15 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 right: 0,
             },
         },
+        onboardingModalNavigator: {
+            headerShown: false,
+            detachPreviousScreen: false,
+            animationEnabled: false,
+            presentation: 'transparentModal',
+            cardStyle: {
+                backgroundColor: 'transparent',
+            },
+        },
         leftModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),

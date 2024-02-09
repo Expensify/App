@@ -41,6 +41,7 @@ import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -256,14 +257,22 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
             unsubscribeChatShortcut();
             Session.cleanupSession();
         };
-
+        
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
+    
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+                <RootStack.Screen
+                    name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    component={OnboardingModalNavigator}
+                />
                 <RootStack.Screen
                     name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                     options={screenOptions.bottomTab}

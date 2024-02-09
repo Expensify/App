@@ -7,6 +7,7 @@ import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRo
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import Log from '@libs/Log';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config from './config';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
@@ -288,6 +289,8 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
     const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
+    Log.info("STATE FROM PATH");
+    Log.info(JSON.stringify(state));
     replacePathInNestedState(state, path);
 
     if (state === undefined) {
