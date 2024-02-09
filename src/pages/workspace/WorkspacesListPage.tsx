@@ -125,7 +125,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             return;
         }
 
-        Policy.deleteWorkspace(policyIDToDelete, [], policyNameToDelete);
+        Policy.deleteWorkspace(policyIDToDelete, reports, policyNameToDelete);
         setIsDeleteModalOpen(false);
     };
 
