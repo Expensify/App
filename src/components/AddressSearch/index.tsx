@@ -440,12 +440,12 @@ function AddressSearch(
                                 styles.borderLeft,
                                 styles.borderRight,
                                 styles.flexGrow0,
-                                !isFocused && {height: 0},
+                                !isFocused && styles.h0,
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
-                            container: [{maxHeight: '100%'}],
+                            container: [styles.mh100],
                         }}
                         numberOfLines={2}
                         isRowScrollable={false}

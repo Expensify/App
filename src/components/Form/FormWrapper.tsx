@@ -99,7 +99,7 @@ function FormWrapper({
                 ref={formContentRef}
                 style={[style, safeAreaPaddingBottomStyle]}
             >
-                <View style={{flex: 1}}>{children}</View>
+                <View style={styles.flex1}>{children}</View>
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
@@ -118,24 +118,25 @@ function FormWrapper({
             </FormElement>
         ),
         [
-            children,
-            enabledWhenOffline,
-            errorMessage,
-            errors,
-            footerContent,
             formID,
-            formState?.errorFields,
-            formState?.isLoading,
-            isSubmitActionDangerous,
-            isSubmitButtonVisible,
-            onSubmit,
             style,
+            styles.flex1,
             styles.mh0,
             styles.mt5,
-            submitButtonStyles,
+            children,
+            isSubmitButtonVisible,
             submitButtonText,
+            errors,
+            formState?.errorFields,
+            formState?.isLoading,
             shouldHideFixErrorsAlert,
+            errorMessage,
+            onSubmit,
+            footerContent,
             onFixTheErrorsLinkPressed,
+            submitButtonStyles,
+            enabledWhenOffline,
+            isSubmitActionDangerous,
             disablePressOnEnter,
         ],
     );
