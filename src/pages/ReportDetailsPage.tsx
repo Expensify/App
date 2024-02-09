@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
+import {useRoute} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -60,6 +61,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const route =_useRoute();
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(report?.policyID ?? '', policies), [report?.policyID, policies]);
@@ -178,17 +180,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             shouldUseFullTitle
         />
     ) : null;
-
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
-                    shouldNavigateToTopMostReport
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? ''));
-                    }}
+                    shouldNavigateToTopMostReport={!!route.params?.backTo}
+                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
