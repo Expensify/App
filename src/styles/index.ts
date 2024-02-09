@@ -443,11 +443,12 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
-        textIvoryLight: {
+        textVersion: {
             color: theme.iconColorfulBackground,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightNormal,
             fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+            textAlign: 'center',
         },
 
         textNoWrap: {

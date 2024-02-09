@@ -114,7 +114,7 @@ function AboutPage() {
             <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb3]}>
                 <Text
                     selectable
-                    style={[styles.textLabel, styles.textIvoryLight, styles.alignSelfCenter]}
+                    style={[styles.textLabel, styles.textVersion, styles.alignSelfCenter]}
                 >
                     v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                 </Text>
