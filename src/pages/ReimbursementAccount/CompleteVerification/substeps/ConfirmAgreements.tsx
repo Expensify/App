@@ -58,11 +58,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
     };
 
     return (
-        <ScreenWrapper
-            testID={ConfirmAgreements.displayName}
-            style={[styles.pt5]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
+        <ScreenWrapper testID={ConfirmAgreements.displayName}>
             <FormProvider
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}
@@ -70,6 +66,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                 submitButtonText={translate('common.saveAndContinue')}
                 style={[styles.mh5, styles.flexGrow1]}
             >
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}

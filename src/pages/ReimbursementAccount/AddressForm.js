@@ -127,7 +127,7 @@ function AddressForm(props) {
                 containerStyles={[styles.mt6]}
             />
 
-            <View style={[styles.mt6, styles.mhn5]}>
+            <View style={[styles.mt3, styles.mhn5]}>
                 <InputWrapper
                     InputComponent={StatePicker}
                     inputID={props.inputKeys.state}
@@ -152,7 +152,7 @@ function AddressForm(props) {
                 errorText={props.errors.zipCode ? 'bankAccount.error.zipCode' : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={['common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}]}
-                containerStyles={[styles.mt2]}
+                containerStyles={[styles.mt3]}
             />
         </>
     );

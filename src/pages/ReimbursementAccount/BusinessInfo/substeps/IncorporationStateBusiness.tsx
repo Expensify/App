@@ -48,7 +48,7 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
             style={[styles.mh0, styles.flexGrow1]}
             submitButtonStyles={[styles.p5, styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
             <InputWrapper
                 InputComponent={StatePicker}
                 inputID={COMPANY_INCORPORATION_STATE_KEY}
