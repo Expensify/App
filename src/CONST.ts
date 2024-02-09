@@ -736,7 +736,6 @@ const CONST = {
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
-        OPEN_SEARCH: 'open_search',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
         WARM: 'warm',
