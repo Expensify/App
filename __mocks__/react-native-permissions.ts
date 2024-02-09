@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 type Results = ValueOf<typeof RESULTS>;
 type ResultsCollection = Record<string, Results>;
 type NotificationSettings = Record<string, boolean>;
-type Notification = {status: Results; settings: typeof notificationSettings}
+type Notification = {status: Results; settings: typeof notificationSettings};
 
 const openLimitedPhotoLibraryPicker: jest.Mock<void> = jest.fn(() => {});
 const openSettings: jest.Mock<void> = jest.fn(() => {});
