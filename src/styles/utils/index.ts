@@ -793,8 +793,6 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
  * Gets the correct position for auto complete suggestion container
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
-    'worklet';
-
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
 
