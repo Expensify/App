@@ -19,6 +19,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import * as Illustrations from '@components/Icon/Illustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -429,6 +430,7 @@ function WorkspaceMembersPage(props) {
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
+                    icon={Illustrations.ReceiptWrangler}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack();
