@@ -2148,10 +2148,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
         Session.waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
                 const route = ReportUtils.getRouteFromLink(url);
-                if (route === ROUTES.CONCIERGE) {
-                    navigateToConciergeChat(true);
-                    return;
-                }
+
                 if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
