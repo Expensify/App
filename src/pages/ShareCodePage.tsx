@@ -83,7 +83,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                 shouldShowBackButton={isReport || isSmallScreenWidth}
                 icon={Illustrations.QrCode}
             />
-            <ScrollView style={[themeStyles.flex1, themeStyles.mt3]}>
+            <ScrollView style={[themeStyles.flex1]}>
                 <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
                     <Section
                         title={translate('shareCodePage.title')}
