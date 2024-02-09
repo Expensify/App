@@ -7,6 +7,7 @@ import getStyledTextArray from '@libs/GetStyledTextArray';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+import type { MeasureParentContainerAndCursorCallback } from './AutoCompleteSuggestions/types';
 import Avatar from './Avatar';
 import Text from './Text';
 
@@ -42,8 +43,8 @@ type MentionSuggestionsProps = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isMentionPickerLarge: boolean;
 
-    /** Measures the parent container's position and dimensions. */
-    measureParentContainer: () => void;
+    /** Measures the parent container's position and dimensions. Also add cursor coordinates */
+    measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
 };
 
 /**
@@ -51,7 +52,7 @@ type MentionSuggestionsProps = {
  */
 const keyExtractor = (item: Mention) => item.alternateText;
 
-function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
+function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainerAndReportCursor = () => {}}: MentionSuggestionsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -134,7 +135,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             onSelect={onSelect}
             isSuggestionPickerLarge={isMentionPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
         />
     );
 }
