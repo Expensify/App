@@ -15,15 +15,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Report} from '@src/types/onyx';
-
-type BaseShareLogListOnyxProps = {
-    /** Beta features list */
-    betas: OnyxEntry<Beta[]>;
-
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
-};
+import type {BaseShareLogListOnyxProps} from './types';
 
 type BaseShareLogListProps = BaseShareLogListOnyxProps & {
     onAttachLogToReport: (reportID: string, filename: string) => void;

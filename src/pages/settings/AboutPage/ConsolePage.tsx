@@ -87,6 +87,8 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const shareLogs = () => {
         setIsGeneratingLogsFile(true);
         const logsWithParsedMessages = parseStingifiedMessages(logs);
+
+        // Generate a file with the logs and pass its path to the list of reports to share it with
         localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path}) => {
             setIsGeneratingLogsFile(false);
             Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path));

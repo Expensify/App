@@ -4,10 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';
-
-type ShareLogListProps = {
-    logSource: string;
-};
+import type {ShareLogListProps} from './types';
 
 function ShareLogList({logSource}: ShareLogListProps) {
     const onAttachLogToReport = (reportID: string, filename: string) => {
