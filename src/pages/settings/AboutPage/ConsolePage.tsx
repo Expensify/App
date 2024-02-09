@@ -107,7 +107,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
 
             return (
                 <View style={styles.mb2}>
-                    <Text family="MONOSPACE">{`${format(item.time, 'Y/M/d ')} ${item.message}`}</Text>
+                    <Text family="MONOSPACE">{`${format(item.time, 'Y/M/d pp')} ${item.message}`}</Text>
                 </View>
             );
         },
