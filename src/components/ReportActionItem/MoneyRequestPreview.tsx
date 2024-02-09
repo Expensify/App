@@ -275,70 +275,76 @@ function MoneyRequestPreview({
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
-                        <View style={styles.moneyRequestPreviewBoxText}>
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
-                                </Text>
-                                {!isSettled && hasFieldErrors && (
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={theme.danger}
-                                    />
-                                )}
-                            </View>
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text
-                                        style={[
-                                            styles.textHeadline,
-                                            isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
-                                            isDeleted && styles.lineThrough,
-                                        ]}
-                                        numberOfLines={1}
-                                    >
-                                        {displayAmount}
-                                    </Text>
-                                    {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
-                                        <View style={styles.defaultCheckmarkWrapper}>
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={theme.iconSuccessFill}
-                                            />
+                        <View style={styles.expenseAndReportPreviewBoxBody}>
+                            <View style={styles.expenseAndReportPreviewTextButtonContainer}>
+                                <View style={styles.expenseAndReportPreviewTextContainer}>
+                                        <View style={[styles.flexRow]}>
+                                            <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>
+                                                {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
+                                            </Text>
+                                            {!isSettled && hasFieldErrors && (
+                                                <Icon
+                                                    src={Expensicons.DotIndicator}
+                                                    fill={theme.danger}
+                                                />
+                                            )}
                                         </View>
-                                    )}
-                                </View>
-                                {isBillSplit && (
-                                    <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                        <MultipleAvatars
-                                            icons={sortedParticipantAvatars}
-                                            shouldStackHorizontally
-                                            size="small"
-                                            isHovered={isHovered}
-                                            shouldUseCardBackground
-                                        />
+                                        <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                                <View style={[styles.flexRow]}>
+                                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                        <Text
+                                                            style={[
+                                                                styles.textHeadline,
+                                                                isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                                                isDeleted && styles.lineThrough,
+                                                            ]}
+                                                            numberOfLines={1}
+                                                        >
+                                                            {displayAmount}
+                                                        </Text>
+                                                        {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
+                                                            <View style={styles.defaultCheckmarkWrapper}>
+                                                                <Icon
+                                                                    src={Expensicons.Checkmark}
+                                                                    fill={theme.iconSuccessFill}
+                                                                />
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                    {isBillSplit && (
+                                                        <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                                            <MultipleAvatars
+                                                                icons={sortedParticipantAvatars}
+                                                                shouldStackHorizontally
+                                                                size="small"
+                                                                isHovered={isHovered}
+                                                                shouldUseCardBackground
+                                                            />
+                                                        </View>
+                                                    )}
+                                                </View>
+                                                <View style={[styles.flexRow, styles.mt1]}>
+                                                    <View style={[styles.flex1]}>
+                                                        {!isCurrentUserManager && shouldShowPendingConversionMessage && (
+                                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
+                                                        )}
+                                                        {shouldShowDescription && <RenderHTML html={parser.replace(merchantOrDescription)} />}
+                                                        {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
+                                                    </View>
+                                                    {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
+                                                        <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                                                            {translate('iou.amountEach', {
+                                                                amount: CurrencyUtils.convertToDisplayString(
+                                                                    IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? ''),
+                                                                    requestCurrency,
+                                                                ),
+                                                            })}
+                                                        </Text>
+                                                    )}
+                                                </View>
+                                        </View>
                                     </View>
-                                )}
-                            </View>
-                            <View style={[styles.flexRow, styles.mt1]}>
-                                <View style={[styles.flex1]}>
-                                    {!isCurrentUserManager && shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
-                                    )}
-                                    {shouldShowDescription && <RenderHTML html={parser.replace(merchantOrDescription)} />}
-                                    {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
-                                {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                        {translate('iou.amountEach', {
-                                            amount: CurrencyUtils.convertToDisplayString(
-                                                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? ''),
-                                                requestCurrency,
-                                            ),
-                                        })}
-                                    </Text>
-                                )}
-                            </View>
                         </View>
                     )}
                 </View>

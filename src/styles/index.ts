@@ -3961,14 +3961,27 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        reportPreviewBoxBody: {
+        expenseAndReportPreviewBoxBody: {
             padding: 16,
+            marginTop: -4,
+        },
+
+        expenseAndReportPreviewTextContainer: {
+            gap: 8,
+        },
+
+        reportPreviewAmountSubtitleContainer: {
+            gap: 4,
+        },
+
+        expenseAndReportPreviewTextButtonContainer: {
+            gap: 16,
         },
 
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },
