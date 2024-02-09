@@ -10,7 +10,7 @@ import updateStatusBarAppearance from './updateStatusBarAppearance';
 type CustomStatusBarAndBackgroundProps = {
     /** Whether the CustomStatusBar is nested within another CustomStatusBar.
      *  A nested CustomStatusBar will disable the "root" CustomStatusBar. */
-    isNested: boolean;
+    isNested?: boolean;
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
