@@ -427,6 +427,7 @@ type PublicScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
+        exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;

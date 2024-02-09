@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import {NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
@@ -14,7 +15,7 @@ function ValidateLoginPage({
     account,
     credentials,
     route: {
-        params: {accountID, validateCode},
+        params: {accountID, validateCode, exitTo},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
@@ -35,6 +36,12 @@ function ValidateLoginPage({
         Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
+            if (exitTo) {
+                Navigation.isNavigationReady().then(() => {
+                    const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                    Navigation.navigate(url);
+                });
+            }
             return;
         }
 
@@ -45,7 +52,13 @@ function ValidateLoginPage({
 
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
-            return;
+            if (exitTo) {
+                Navigation.isNavigationReady().then(() => {
+                    const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                    Navigation.navigate(url);
+                });
+            }
+            return; 
         }
 
         // The user clicked the option to sign in the current tab
