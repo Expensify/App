@@ -127,7 +127,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldEnableMaxHeight);
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
