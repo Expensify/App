@@ -178,7 +178,7 @@ function DebitCardPage(props) {
                     role={CONST.ROLE.PRESENTATION}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                    hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
+                    hint={['common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}]}
                     containerStyles={[styles.mt4]}
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
