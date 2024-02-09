@@ -721,6 +721,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                     brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     error={merchantError ? translate('common.error.fieldRequired') : ''}
+                    rightLabel={(canUseViolations && PolicyUtils.isPaidGroupPolicy(policy)) || isMerchantRequired ? translate('common.required') : ''}
                 />
             )}
             {!shouldShowAllFields && (

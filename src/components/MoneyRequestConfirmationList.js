@@ -725,7 +725,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={isMerchantEmpty ? '' : props.iouMerchant}
-                            description={canUseViolations && PolicyUtils.isPaidGroupPolicy(props.policy) ? translate('common.merchant') : ''}
+                            description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
@@ -745,6 +745,7 @@ function MoneyRequestConfirmationList(props) {
                                     ? translate('common.error.enterMerchant')
                                     : ''
                             }
+                            rightLabel={canUseViolations && PolicyUtils.isPaidGroupPolicy(props.policy) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowCategories && (

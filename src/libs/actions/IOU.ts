@@ -661,11 +661,11 @@ function buildOnyxDataForMoneyRequest(
     ];
 
     // Policy won't be set for P2P cases for which we don't need to compute violations
-    if (!policy?.id) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTags ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy?.requiresTag, policyTags ?? {}, !!policy?.requiresCategory, policyCategories ?? {});
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -1181,15 +1181,15 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy?.id && updatedTransaction) {
+    if (PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 currentTransactionViolations,
-                !!policy.requiresTag,
+                !!policy?.requiresTag,
                 policyTags ?? {},
-                !!policy.requiresCategory,
+                !!policy?.requiresCategory,
                 policyCategories ?? {},
             ),
         );
@@ -2613,7 +2613,7 @@ function editRegularMoneyRequest(
     ];
 
     // Add transaction violations if there is a policy and updated transaaction
-    if (policy?.id && updatedTransaction) {
+    if (PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
