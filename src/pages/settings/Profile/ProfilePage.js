@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -37,7 +38,7 @@ const propTypes = {
             validatedDate: PropTypes.string,
 
             /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
 

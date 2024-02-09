@@ -580,7 +580,7 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
                 {button}
@@ -599,7 +599,6 @@ function MoneyRequestConfirmationList({
         formError,
         styles.ph1,
         styles.mb2,
-        translate,
     ]);
 
     const receiptData = ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename);
