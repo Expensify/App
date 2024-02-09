@@ -276,7 +276,7 @@ function AttachmentPickerWithMenuItems({
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
-                            <Tooltip text={translate('reportActionCompose.addAction')}>
+                            <Tooltip text={translate('common.create')}>
                                 <PressableWithFeedback
                                     ref={actionButtonRef}
                                     onPress={(e) => {

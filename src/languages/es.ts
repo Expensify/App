@@ -115,6 +115,7 @@ export default {
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
         next: 'Siguiente',
+        create: 'Crear',
         previous: 'Anterior',
         goBack: 'Volver',
         add: 'Añadir',

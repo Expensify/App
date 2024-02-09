@@ -127,6 +127,7 @@ export default {
         next: 'Next',
         previous: 'Previous',
         goBack: 'Go back',
+        create: 'Create',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
