@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,17 +15,24 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
-import type {WithReportAndReportActionOrNotFound} from '@pages/home/report/withReportAndReportActionOrNotFound';
+import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, Report, Session, Transaction} from '@src/types/onyx';
-import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {PersonalDetailsList, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SplitBillDetailsPageOnyxProps = {
+type SplitBillDetailsPageTransactionOnyxProps = {
+    /** The current transaction */
+    transaction: OnyxEntry<Transaction>;
+
+    /** The draft transaction that holds data to be persisited on the current transaction */
+    draftTransaction: OnyxEntry<Transaction>;
+};
+
+type SplitBillDetailsPageOnyxPropsWithoutTransaction = {
     /** The personal details of the person who is logged in */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
@@ -35,24 +42,22 @@ type SplitBillDetailsPageOnyxProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
 
-    /** The current transaction */
-    transaction: OnyxEntry<Transaction>;
-
-    /** The draft transaction that holds data to be persisited on the current transaction */
-    draftTransaction: OnyxEntry<Transaction>;
-
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
 };
 
-type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFound & SplitBillDetailsPageOnyxProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
+type SplitBillDetailsPageOnyxProps = SplitBillDetailsPageTransactionOnyxProps & SplitBillDetailsPageOnyxPropsWithoutTransaction;
+
+type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps &
+    SplitBillDetailsPageOnyxProps &
+    StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
 function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {reportID} = report ?? {reportID: ''};
+    const reportID = report?.reportID ?? '';
     const {translate} = useLocalize();
-    const reportAction = reportActions?.[route.params.reportActionID] as ReportActionBase & OriginalMessageIOU;
-    const participantAccountIDs = reportAction?.originalMessage.participantAccountIDs ?? [];
+    const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
+    const participantAccountIDs = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
 
     // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -60,17 +65,17 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     if (ReportUtils.isPolicyExpenseChat(report)) {
         participants = [
             OptionsListUtils.getParticipantsOption({accountID: participantAccountIDs[0], selected: true, reportID: ''}, personalDetails),
-            OptionsListUtils.getPolicyExpenseReportOption({...report, selected: true}),
+            OptionsListUtils.getPolicyExpenseReportOption({...report, selected: true, reportID}),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => OptionsListUtils.getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
     }
-    const payeePersonalDetails = personalDetails?.[reportAction?.actorAccountID ?? 0];
+    const payeePersonalDetails = personalDetails?.[reportAction?.actorAccountID ?? -1];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const hasSmartScanFailed = TransactionUtils.hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
-    const isEditingSplitBill = session?.accountID === reportAction?.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction ?? undefined);
+    const isEditingSplitBill = session?.accountID === reportAction?.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
 
     const {
         amount: splitAmount,
@@ -81,10 +86,10 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         category: splitCategory,
         tag: splitTag,
         billable: splitBillable,
-    } = ReportUtils.getTransactionDetails((isEditingSplitBill && draftTransaction) || transaction) ?? {};
+    } = ReportUtils.getTransactionDetails(isEditingSplitBill ? draftTransaction : transaction) ?? {};
 
     const onConfirm = useCallback(
-        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction ?? undefined, session?.accountID ?? 0, session?.email ?? ''),
+        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? 0, session?.email ?? ''),
         [reportID, reportAction, draftTransaction, session?.accountID, session?.email],
     );
 
@@ -100,7 +105,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             shouldShowBorderBottom
                         />
                     )}
-                    {Boolean(participants.length) && (
+                    {!!participants.length && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
@@ -123,7 +128,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction?.reportActionID}
-                            transaction={isEditingSplitBill ? draftTransaction || transaction : transaction}
+                            transaction={isEditingSplitBill ? draftTransaction ?? transaction : transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : null}
@@ -137,22 +142,26 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
 
 SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
-const WrappedComponent = withOnyx<SplitBillDetailsPageProps, Pick<SplitBillDetailsPageOnyxProps, 'transaction' | 'draftTransaction'>>({
+const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPageTransactionOnyxProps>({
     transaction: {
         key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID] as (ReportActionBase & OriginalMessageIOU) | undefined;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${reportAction?.originalMessage.IOUTransactionID ?? 0}`;
+            const reportAction = reportActions?.[route.params.reportActionID];
+            const IOUTransactionID =
+                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`;
         },
     },
     draftTransaction: {
         key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID] as (ReportActionBase & OriginalMessageIOU) | undefined;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${reportAction?.originalMessage.IOUTransactionID ?? 0}`;
+            const reportAction = reportActions?.[route.params.reportActionID];
+            const IOUTransactionID =
+                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
         },
     },
 })(withReportAndReportActionOrNotFound(SplitBillDetailsPage));
 
-export default withOnyx<Omit<SplitBillDetailsPageProps, 'transaction' | 'draftTransaction'>, Omit<SplitBillDetailsPageOnyxProps, 'transaction' | 'draftTransaction'>>({
+export default withOnyx<Omit<SplitBillDetailsPageProps, keyof SplitBillDetailsPageTransactionOnyxProps>, SplitBillDetailsPageOnyxPropsWithoutTransaction>({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },

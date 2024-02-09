@@ -725,7 +725,7 @@ function createOption(
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(report: Partial<Report>): ReportUtils.OptionData {
+function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
     const option = createOption(
@@ -1001,7 +1001,7 @@ function getCategoryListSections(
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,

@@ -25,9 +25,14 @@ import type {IOU as IOUType, Report} from '@src/types/onyx';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 
 type NewRequestAmountPageOnyxProps = {
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: OnyxEntry<IOUType>;
+
+    /** The report on which the request is initiated on */
     report: OnyxEntry<Report>;
-    selectedTab: OnyxEntry<string>;
+
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: OnyxEntry<ValueOf<typeof CONST.TAB_REQUEST>>;
 };
 
 type NewRequestAmountPageProps = NewRequestAmountPageOnyxProps & StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.AMOUNT>;
@@ -43,7 +48,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
     const reportID = route.params.reportID ?? '';
     const isEditing = Navigation.getActiveRoute().includes('amount');
     const currentCurrency = route.params.currency ?? '';
-    const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType as ValueOf<typeof CONST.IOU.TYPE>, selectedTab as ValueOf<typeof CONST.TAB_REQUEST>);
+    const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
     const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou?.currency ?? '';
 
@@ -118,7 +123,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, report ?? undefined);
+        IOU.navigateToNextPage(iou, iouType, report);
     };
 
     const content = (
@@ -168,7 +173,7 @@ NewRequestAmountPage.displayName = 'NewRequestAmountPage';
 export default withOnyx<NewRequestAmountPageProps, NewRequestAmountPageOnyxProps>({
     iou: {key: ONYXKEYS.IOU},
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? ''}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,

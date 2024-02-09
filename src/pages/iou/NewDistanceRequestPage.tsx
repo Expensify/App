@@ -12,7 +12,10 @@ import type SCREENS from '@src/SCREENS';
 import type {IOU as IOUType, Report} from '@src/types/onyx';
 
 type NewDistanceRequestPageOnyxProps = {
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: OnyxEntry<IOUType>;
+
+    /** The report on which the request is initiated on */
     report: OnyxEntry<Report>;
 };
 
@@ -36,7 +39,7 @@ function NewDistanceRequestPage({iou, report, route}: NewDistanceRequestPageProp
             Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
             return;
         }
-        IOU.navigateToNextPage(iou, iouType, report ?? undefined);
+        IOU.navigateToNextPage(iou, iouType, report);
     }, [iou, iouType, isEditingNewRequest, report]);
 
     return (

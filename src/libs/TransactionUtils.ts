@@ -131,11 +131,11 @@ function hasEReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
-function hasReceipt(transaction: Transaction | undefined | null): boolean {
+function hasReceipt(transaction: OnyxEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
-function isMerchantMissing(transaction: Transaction | undefined) {
+function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
@@ -151,15 +151,15 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: Transaction | undefined) {
+function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: Transaction | undefined) {
+function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: Transaction | undefined): boolean {
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
@@ -262,8 +262,8 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport?: boolean): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false): number {
+    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
@@ -309,6 +309,13 @@ function getOriginalCurrency(transaction: Transaction): string {
 function getOriginalAmount(transaction: Transaction): number {
     const amount = transaction?.originalAmount ?? 0;
     return Math.abs(amount);
+}
+
+/**
+ * Verify if the transaction is expecting the distance to be calculated on the server
+ */
+function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boolean {
+    return !!transaction?.pendingFields?.waypoints;
 }
 
 /**
@@ -577,6 +584,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,
     isPending,

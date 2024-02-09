@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
@@ -78,7 +79,7 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 /**
  * Check if distance request or not
  */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
+function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: OnyxEntry<ValueOf<typeof CONST.TAB_REQUEST>>): boolean {
     return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
 }
 
