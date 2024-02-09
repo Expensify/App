@@ -189,8 +189,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 // we focus the first one after all the selected (selected items are always at the top).
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
 
-                setFocusedIndex(selectedOptionsCount);
-
                 if (!item.isSelected) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
