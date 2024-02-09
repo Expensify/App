@@ -1,5 +1,6 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Str from 'expensify-common/lib/str';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -62,18 +63,21 @@ type BuildNextStepParameters = {
  * @param parameters.isPaidWithWallet - Whether a report has been paid with the wallet or outside of Expensify
  * @returns nextStep
  */
-function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
+function buildNextStep(
+    report: OnyxEntry<Report> | EmptyObject,
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
+    {isPaidWithWallet}: BuildNextStepParameters = {},
+): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
 
-    const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = ReportUtils.getPolicy(report?.policyID);
     const {submitsTo, harvesting, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
-    const isOwner = currentUserAccountID === ownerAccountID;
-    const isManager = currentUserAccountID === managerID;
+    const isOwner = currentUserAccountID === report?.ownerAccountID;
+    const isManager = currentUserAccountID === report?.managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
-    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
+    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([report?.ownerAccountID ?? -1])[0] ?? '';
     const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
