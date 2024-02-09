@@ -48,18 +48,6 @@ function generateHexadecimalValue(num: number): string {
 }
 
 /**
- * Clamp a number in a range.
- * This is a worklet so it should be used only from UI thread.
-
- * @returns clamped value between min and max
- */
-function clampWorklet(num: number, min: number, max: number): number {
-    'worklet';
-
-    return Math.min(Math.max(num, min), max);
-}
-
-/**
  * Generates a random integer between a and b
  * It's and equivalent of _.random(a, b)
  *
@@ -88,4 +76,4 @@ function roundDownToLargestMultiple(p: number, q: number) {
     return Math.floor(p / q) * q;
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt, clampWorklet, parseFloatAnyLocale, roundDownToLargestMultiple};
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundDownToLargestMultiple};
