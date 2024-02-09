@@ -272,6 +272,7 @@ function BaseTextInput(
                 <PressableWithoutFeedback
                     onPress={onPress}
                     tabIndex={-1}
+                    role={inputProps.role}
                     accessibilityLabel={label}
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
