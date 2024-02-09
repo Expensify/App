@@ -253,6 +253,7 @@ export {
     Receipt,
     ReceiptSearch,
     Rotate,
+    RotateLeft,
     Scan,
     Send,
     Shield,
@@ -279,5 +280,4 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
-    RotateLeft,
 };
