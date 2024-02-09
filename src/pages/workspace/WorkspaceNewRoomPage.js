@@ -103,26 +103,6 @@ function WorkspaceNewRoomPage(props) {
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
-    const [newRoomReportID, setNewRoomReportID] = useState(undefined);
-    const [policyID, setPolicyID] = useState('');
-
-    const sortWorkspacesBySelected = (workspace1, workspace2, selectedWorkspaceID) => {
-        if (workspace1.value === selectedWorkspaceID) {
-            return -1;
-        }
-        if (workspace2.value === selectedWorkspaceID) {
-            return 1;
-        }
-        return _.get(workspace1, 'label', '').toLowerCase().localeCompare(_.get(workspace2, 'label', '').toLowerCase());
-    };
-
-    const isPolicyAdmin = useMemo(() => {
-        if (!policyID) {
-            return false;
-        }
-
-        return ReportUtils.isPolicyAdmin(policyID, props.policies);
-    }, [policyID, props.policies]);
 
     const workspaceOptions = useMemo(
         () =>
@@ -133,9 +113,23 @@ function WorkspaceNewRoomPage(props) {
                     key: policy.id,
                     value: policy.id,
                 }),
-            ).sort((policy1, policy2) => sortWorkspacesBySelected(policy1, policy2, policyID)),
-        [props.policies, policyID],
+            ).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())),
+        [props.policies],
     );
+    const [policyID, setPolicyID] = useState(() => {
+        if (_.some(workspaceOptions, (option) => option.value === props.activePolicyID)) {
+            return props.activePolicyID;
+        }
+        return '';
+    });
+    const isPolicyAdmin = useMemo(() => {
+        if (!policyID) {
+            return false;
+        }
+
+        return ReportUtils.isPolicyAdmin(policyID, props.policies);
+    }, [policyID, props.policies]);
+    const [newRoomReportID, setNewRoomReportID] = useState(undefined);
 
     /**
      * @param {Object} values - form input values passed by the Form component
