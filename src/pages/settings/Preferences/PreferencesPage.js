@@ -61,7 +61,7 @@ function PreferencesPage(props) {
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('preferencesPage.appSection.title')}
