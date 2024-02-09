@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
@@ -166,7 +167,7 @@ function TransferBalancePage(props) {
     const transferAmount = props.userWallet.currentBalance - calculatedFee;
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
-    const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? _.chain(props.walletTransfer.errors).values().first().value() : '';
+    const errorMessage = ErrorUtils.getLatestErrorMessage(props.walletTransfer);
 
     const shouldShowTransferView =
         PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, props.bankAccountList) &&
@@ -219,6 +220,7 @@ function TransferBalancePage(props) {
                             title={selectedAccount.title}
                             description={selectedAccount.description}
                             shouldShowRightIcon
+                            iconStyles={selectedAccount.iconStyles}
                             iconWidth={selectedAccount.iconSize}
                             iconHeight={selectedAccount.iconSize}
                             icon={selectedAccount.icon}

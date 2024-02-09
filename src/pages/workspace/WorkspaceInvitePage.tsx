@@ -323,7 +323,7 @@ function WorkspaceInvitePage({
                         isAlertVisible={shouldShowAlertPrompt}
                         buttonText={translate('common.next')}
                         onSubmit={inviteUser}
-                        message={policy?.alertMessage}
+                        message={[policy?.alertMessage, {isTranslated: true}]}
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                         enabledWhenOffline
                         disablePressOnEnter

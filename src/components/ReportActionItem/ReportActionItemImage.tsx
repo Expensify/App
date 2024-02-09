@@ -89,7 +89,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                         report={report}
                         isReceiptAttachment
                         canEditReceipt={canEditReceipt}
-                        allowDownload
+                        allowDownload={!isEReceipt}
                         originalFileName={filename}
                     >
                         {({show}) => (
