@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
-import type {AddressComponent, AddressTerm, FieldsToExtract} from '../../src/libs/GooglePlacesUtils';
+import * as GooglePlacesUtils from '@src/libs/GooglePlacesUtils';
+import type {AddressComponent, AddressTerm, FieldsToExtract} from '@src/libs/GooglePlacesUtils';
 
 const standardObjectToFind: FieldsToExtract = {
     sublocality: 'long_name',
