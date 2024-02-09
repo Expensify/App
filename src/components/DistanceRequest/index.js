@@ -204,7 +204,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             });
 
             setOptimisticWaypoints(newWaypoints);
-            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex, true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
+            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
                 setOptimisticWaypoints(null);
             });
         },
