@@ -273,7 +273,6 @@ function MoneyRequestView({
                                     CONST.IOU.TYPE.REQUEST,
                                     transaction?.transactionID ?? '',
                                     report.reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
                                 ),
                             )
                         }
