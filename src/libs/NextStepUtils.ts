@@ -63,6 +63,10 @@ type BuildNextStepParameters = {
  * @returns nextStep
  */
 function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
+    if (!ReportUtils.isExpenseReport(report)) {
+        return null;
+    }
+
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
     const policy = ReportUtils.getPolicy(policyID);
     const {submitsTo, harvesting, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
