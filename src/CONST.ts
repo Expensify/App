@@ -189,6 +189,7 @@ const CONST = {
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
+        ORDINAL_DAY_OF_MONTH: 'do',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -735,7 +736,6 @@ const CONST = {
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
-        OPEN_SEARCH: 'open_search',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
         WARM: 'warm',
@@ -1335,9 +1335,9 @@ const CONST = {
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
         REIMBURSEMENT_CHOICES: {
-            REIMBURSEMENT_YES: 'reimburseYes',
-            REIMBURSEMENT_NO: 'reimburseNo',
-            REIMBURSEMENT_MANUAL: 'reimburseManual',
+            REIMBURSEMENT_YES: 'reimburseYes', // Direct
+            REIMBURSEMENT_NO: 'reimburseNo', // None
+            REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
