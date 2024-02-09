@@ -128,7 +128,6 @@ function AboutPage() {
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
             testID={AboutPage.displayName}
         >

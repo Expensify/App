@@ -51,7 +51,6 @@ function SecuritySettingsPage() {
             testID={SecuritySettingsPage.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton

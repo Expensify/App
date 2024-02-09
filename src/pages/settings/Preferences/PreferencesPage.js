@@ -52,7 +52,6 @@ function PreferencesPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
             testID={PreferencesPage.displayName}
         >
