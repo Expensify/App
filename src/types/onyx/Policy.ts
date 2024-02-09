@@ -85,9 +85,6 @@ type Policy = {
     /** The scheduled submit frequency set up on this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-    /** @deprecated Whether the scheduled submit is enabled */
-    isHarvestingEnabled?: boolean;
-
     /** Whether the scheduled submit is enabled */
     harvesting?: {
         enabled: boolean;
@@ -152,6 +149,9 @@ type Policy = {
 
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
+
+    /** The email of the reimburser set when reimbursement is direct */
+    reimburserEmail?: string;
 
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
