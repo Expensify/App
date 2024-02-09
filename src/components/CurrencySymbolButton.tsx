@@ -1,13 +1,13 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import useTheme from '@hooks/useTheme';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 
 type CurrencySymbolButtonProps = {
     /** Currency symbol of selected currency */
@@ -17,8 +17,8 @@ type CurrencySymbolButtonProps = {
     onCurrencyButtonPress: () => void;
 };
 
-function CurrencySymbolButton({ onCurrencyButtonPress, currencySymbol }: CurrencySymbolButtonProps) {
-    const { translate } = useLocalize();
+function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencySymbolButtonProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     return (
