@@ -1,7 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -14,6 +14,7 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
@@ -29,6 +30,7 @@ import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
+import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
@@ -57,7 +59,7 @@ type NoIcon = {
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     /** Function to fire when component is pressed */
-    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** Whether the menu item should be interactive at all */
     interactive?: boolean;
@@ -135,7 +137,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     error?: string;
 
     /** Error to display at the bottom of the component */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
@@ -303,6 +305,7 @@ function MenuItem(
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
+    const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -378,7 +381,15 @@ function MenuItem(
         }
 
         if (onPress && event) {
-            onPress(event);
+            if (!singleExecution || !waitForNavigate) {
+                onPress(event);
+                return;
+            }
+            singleExecution(
+                waitForNavigate(() => {
+                    onPress(event);
+                }),
+            )();
         }
     };
 
@@ -403,7 +414,7 @@ function MenuItem(
                         ] as StyleProp<ViewStyle>
                     }
                     disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
-                    disabled={disabled}
+                    disabled={disabled || isExecuting}
                     ref={ref}
                     role={CONST.ROLE.MENUITEM}
                     accessibilityLabel={title ? title.toString() : ''}
@@ -555,7 +566,7 @@ function MenuItem(
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                {(subtitle ?? subtitle === 0) && (
+                                {(subtitle === 0 || subtitle) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                     </View>
