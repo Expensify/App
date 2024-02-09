@@ -4,11 +4,13 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
@@ -77,8 +79,7 @@ function AddressForm({
         }
     }
 
-    const zipFormat = ['common.zipCodeExampleFormat', {zipSampleFormat}];
-
+    const zipFormat: MaybePhraseKey = ['common.zipCodeExampleFormat', {zipSampleFormat}];
 
     const isUSAForm = country === CONST.COUNTRY.US;
 
@@ -89,8 +90,10 @@ function AddressForm({
      * @returns - An object containing the errors for each inputID
      */
 
-    const validator = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): ErrorUtils.ErrorsList => {
-        const errors: ErrorUtils.ErrorsList = {};
+    const validator = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): Errors => {
+        const errors: Errors & {
+            zipPostCode?: string | string[];
+        } = {};
         const requiredFields = ['addressLine1', 'city', 'country', 'state'] as const;
 
         // Check "State" dropdown is a valid state if selected Country is USA
@@ -113,7 +116,7 @@ function AddressForm({
 
         // The postal code system might not exist for a country, so no regex either for them.
         let countrySpecificZipRegex;
-        let countryZipFormat;
+        let countryZipFormat = '';
 
         if ('regex' in countryRegexDetails) {
             countrySpecificZipRegex = countryRegexDetails.regex as RegExp;

@@ -12,6 +12,7 @@ import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {Form} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {FormProps, InputRefs} from './types';
@@ -28,7 +29,7 @@ type FormWrapperProps = ChildrenProps &
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Server side errors keyed by microtime */
-        errors: ErrorUtils.ErrorsList;
+        errors: Errors;
 
         /** Assuming refs are React refs */
         inputRefs: RefObject<InputRefs>;

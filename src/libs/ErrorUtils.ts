@@ -109,8 +109,6 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
     return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
 
-type ErrorsList = Record<string, Localize.MaybePhraseKey>;
-
 /**
  * Method used to attach already translated message with isTranslated property
  * @param errors - An object containing current errors in the form
@@ -164,5 +162,3 @@ export {
     addErrorMessage,
     getLatestErrorMessageField,
 };
-
-export type {ErrorsList};

@@ -3,7 +3,6 @@ import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
 import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ErrorsList} from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
@@ -12,6 +11,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form, Network} from '@src/types/onyx';
 import type {FormValueType} from '@src/types/onyx/Form';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
@@ -54,7 +54,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
         children: ((props: {inputValues: OnyxFormValues<TFormID>}) => ReactNode) | ReactNode;
 
         /** Callback to validate the form */
-        validate?: (values: OnyxFormValuesFields<TFormID>) => ErrorsList;
+        validate?: (values: OnyxFormValuesFields<TFormID>) => Errors;
 
         /** Should validate function be called when input loose focus */
         shouldValidateOnBlur?: boolean;
@@ -86,7 +86,7 @@ function FormProvider(
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
-    const [errors, setErrors] = useState<ErrorsList>({});
+    const [errors, setErrors] = useState<Errors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
 
     const onValidate = useCallback(
