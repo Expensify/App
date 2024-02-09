@@ -649,7 +649,6 @@ function ComposerWithSuggestions({
 
             <Suggestions
                 ref={suggestionsRef}
-                isComposerFullSize={isComposerFullSize}
                 isComposerFocused={textInputRef.current && textInputRef.current.isFocused()}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
