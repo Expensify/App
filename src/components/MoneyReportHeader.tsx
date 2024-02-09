@@ -2,8 +2,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import GoogleMeetIcon from '@assets/images/google-meet.svg';
-import ZoomIcon from '@assets/images/zoom-icon.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -13,8 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -97,22 +93,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (!ReportUtils.isArchivedRoom(chatReport)) {
-        threeDotsMenuItems.push({
-            icon: ZoomIcon,
-            text: translate('videoChatButtonAndMenu.zoom'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
-                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
-            }),
-        });
-        threeDotsMenuItems.push({
-            icon: GoogleMeetIcon,
-            text: translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
-                Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
-            }),
-        });
-    }
 
     return (
         <View style={[styles.pt0]}>
