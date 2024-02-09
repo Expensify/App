@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {getPullRequestsMergedBetween} from '../../.github/libs/GitUtils';
+import {getPullRequestsMergedBetween} from '.github/libs/GitUtils';
 
 const fromRef = process.argv[2];
 const toRef = process.argv[3];
