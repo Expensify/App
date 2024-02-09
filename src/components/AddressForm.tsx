@@ -77,7 +77,9 @@ function AddressForm({
         }
     }
 
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = ['common.zipCodeExampleFormat', {zipSampleFormat}];
+
+
     const isUSAForm = country === CONST.COUNTRY.US;
 
     /**
@@ -126,7 +128,7 @@ function AddressForm({
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
                 if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                    errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat ?? ''}];
+                    errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
                 } else {
                     errors.zipPostCode = 'common.error.fieldRequired';
                 }
