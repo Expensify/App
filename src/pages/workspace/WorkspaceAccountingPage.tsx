@@ -1,5 +1,4 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -12,12 +11,12 @@ import useLocalize from '@hooks/useLocalize';
 import useEnvironment from '@hooks/useEnvironment';
 import { removeWorkspaceIntegration } from '@libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type { OnyxEntry} from 'react-native-onyx';
 import { withOnyx } from 'react-native-onyx';
-import Lottie from '@components/Lottie';
 import { ActivityIndicator, View } from 'react-native';
-import DotLottieAnimations from '@components/LottieAnimations';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type { WithPolicyAndFullscreenLoadingProps } from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -105,32 +104,24 @@ function WorkspaceAccountingPage({
             )}
             {quickbooksOnlineSyncStatus != null && (
                 <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
-                    <Lottie
-                        source={DotLottieAnimations.Fireworks}
-                        autoPlay
-                        loop
-                        style={styles.confirmationAnimation}
-                    />
+                    <Text style={styles.textLarge}>{quickbooksOnlineSyncStatus.percentage} %</Text>
                     <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{quickbooksOnlineSyncStatus.status}</Text>
                     {quickbooksOnlineSyncStatus.stagesCompleted.map(stateCompleted => 
-                        <View>
+                        <View style={styles.flexRow}>
                             <Text>{stateCompleted}</Text>
                             <Icon 
-                                fill={theme.icon}
+                                fill={theme.success}
                                 src={Expensicons.Checkmark}
                             />
                         </View>
                     )}
-                    {quickbooksOnlineSyncStatus.stageInProgress !== null && (
-                        <View>
-                            <Text>{quickbooksOnlineSyncStatus.stageInProgress}</Text>
-                            <ActivityIndicator
-                                color={theme.spinner}
-                                size="small"
-                            />
-                        </View>
-                    )}
-                    <Text style={styles.textAlignCenter}>{quickbooksOnlineSyncStatus.status}</Text>
+                    <View style={styles.flexRow}>
+                        <Text style={styles.textAlignCenter}>{quickbooksOnlineSyncStatus.status}</Text>
+                        {quickbooksOnlineSyncStatus.status === 'progress' && <ActivityIndicator
+                            color={theme.success}
+                            size="small"
+                        />}
+                    </View>
                 </View>
             )}
         </ScreenWrapper>
