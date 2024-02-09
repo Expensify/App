@@ -22,8 +22,8 @@ module.exports = {
         doNotFake: ['nextTick'],
     },
     testEnvironment: 'jsdom',
-    setupFiles: ['<rootDir>/jest/setup.js', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
-    setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect', '<rootDir>/jest/setupAfterEnv.js', '<rootDir>/tests/perf-test/setupAfterEnv.js'],
+    setupFiles: ['<rootDir>/jest/setup.ts', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
+    setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect', '<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.js'],
     cacheDirectory: '<rootDir>/.jest-cache',
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.js',

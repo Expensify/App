@@ -14,6 +14,7 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
@@ -136,7 +137,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     error?: string;
 
     /** Error to display at the bottom of the component */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
@@ -565,7 +566,7 @@ function MenuItem(
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                {(subtitle ?? subtitle === 0) && (
+                                {(subtitle === 0 || subtitle) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                     </View>
