@@ -35,6 +35,8 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Icon from "@components/Icon";
+import * as Expensicons from '@components/Icon/Expensicons';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -442,8 +444,10 @@ function WorkspaceMembersPage(props) {
                         <Button
                             medium
                             success
-                            text={props.translate('common.invite')}
                             onPress={inviteUser}
+                            text={props.translate('workspace.invite.member')}
+                            icon={Expensicons.Plus}
+                            iconStyles={{transform: [{scale: 0.6}]}}
                         />
                         <Button
                             medium
