@@ -116,8 +116,8 @@ function Section({
                                 autoPlay
                                 loop
                             />
-                            {overlayContent?.()}
                         </View>
+                        {overlayContent?.()}
                     </View>
                 )}
                 <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
