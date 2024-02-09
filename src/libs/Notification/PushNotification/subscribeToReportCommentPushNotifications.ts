@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import backgroundRefresh from './backgroundRefresh';
 import PushNotification from './index';
 
 let lastVisitedPath: string | undefined;
@@ -50,6 +51,8 @@ export default function subscribeToReportCommentPushNotifications() {
         } else {
             Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         }
+
+        backgroundRefresh();
     });
 
     // Open correct report when push notification is clicked
