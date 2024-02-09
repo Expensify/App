@@ -483,7 +483,7 @@ function ComposerWithSuggestions({
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA', 'DIV'].includes(e.target.nodeName)) {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
                 return;
             }
 

@@ -1,78 +1,51 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import FormUtils from '@libs/FormUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
-const goToGetPhysicalCardName = (domain) => {
+const goToGetPhysicalCardName = (domain: string) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain), CONST.NAVIGATION.ACTION_TYPE.PUSH);
 };
 
-const goToGetPhysicalCardPhone = (domain) => {
+const goToGetPhysicalCardPhone = (domain: string) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain), CONST.NAVIGATION.ACTION_TYPE.PUSH);
 };
 
-const goToGetPhysicalCardAddress = (domain) => {
+const goToGetPhysicalCardAddress = (domain: string) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain), CONST.NAVIGATION.ACTION_TYPE.PUSH);
 };
 
-const propTypes = {
-    /* Onyx Props */
+type GetPhysicalCardConfirmOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: PropTypes.shape({
-        addressLine1: PropTypes.string,
-        addressLine2: PropTypes.string,
-        city: PropTypes.string,
-        state: PropTypes.string,
-        country: PropTypes.string,
-        zipPostCode: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-    }),
-
-    /* Navigation Props */
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** domain passed via route /settings/wallet/card/:domain */
-            domain: PropTypes.string,
-        }),
-    }).isRequired,
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
-const defaultProps = {
-    draftValues: {
-        addressLine1: '',
-        addressLine2: '',
-        city: '',
-        state: '',
-        country: '',
-        zipPostCode: '',
-        phoneNumber: '',
-        legalFirstName: '',
-        legalLastName: '',
-    },
-};
+type GetPhysicalCardConfirmProps = GetPhysicalCardConfirmOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM>;
 
 function GetPhysicalCardConfirm({
-    draftValues: {addressLine1, addressLine2, city, state, country, zipPostCode, legalFirstName, legalLastName, phoneNumber},
+    draftValues,
     route: {
         params: {domain},
     },
-}) {
+}: GetPhysicalCardConfirmProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const {addressLine1, addressLine2, city = '', state = '', zipPostCode = '', country = '', phoneNumber = '', legalFirstName = '', legalLastName = ''} = draftValues ?? {};
 
     return (
         <BaseGetPhysicalCard
@@ -83,7 +56,7 @@ function GetPhysicalCardConfirm({
             submitButtonText={translate('getPhysicalCard.shipCard')}
             title={translate('getPhysicalCard.header')}
         >
-            <Text style={[styles.baseFontStyle, styles.mb5, styles.mh5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
+            <Text style={[styles.mb5, styles.mh5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.legalName')}
                 iconRight={Expensicons.ArrowRight}
@@ -117,12 +90,10 @@ function GetPhysicalCardConfirm({
     );
 }
 
-GetPhysicalCardConfirm.defaultProps = defaultProps;
 GetPhysicalCardConfirm.displayName = 'GetPhysicalCardConfirm';
-GetPhysicalCardConfirm.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<GetPhysicalCardConfirmProps, GetPhysicalCardConfirmOnyxProps>({
     draftValues: {
-        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
+        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
     },
 })(GetPhysicalCardConfirm);

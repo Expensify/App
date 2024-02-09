@@ -5,6 +5,7 @@ import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
+import type {CardList} from './Card';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
@@ -14,6 +15,7 @@ import type {
     CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
+    GetPhysicalCardForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     NewRoomForm,
@@ -92,6 +94,7 @@ export type {
     Beta,
     BlockedFromConcierge,
     Card,
+    CardList,
     Credentials,
     Currency,
     CustomStatusDraft,
@@ -102,6 +105,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     FundList,
+    GetPhysicalCardForm,
     IntroSelected,
     IOU,
     Locale,
