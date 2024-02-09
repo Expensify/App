@@ -339,6 +339,16 @@ const runTests = async () => {
                 mockNetwork: true,
             });
 
+            const onError = (e) => {
+                testLog.done();
+                if (i === 0) {
+                    // If the error happened on the first test run, the test is broken
+                    // and we should not continue running it
+                    throw e;
+                }
+                console.error(e);
+            };
+
             // Wait for a test to finish by waiting on its done call to the http server
             try {
                 await withFailTimeout(
@@ -352,9 +362,7 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
 
             Logger.log('Killing main app');
@@ -378,9 +386,7 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
         }
         testLog.done();

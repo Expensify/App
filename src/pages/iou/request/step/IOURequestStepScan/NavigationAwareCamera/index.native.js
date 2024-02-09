@@ -18,6 +18,7 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, ...props}, ref)
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isActive={isCameraActive}
+            photo={isCameraActive}
         />
     );
 });
