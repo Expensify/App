@@ -263,6 +263,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     errorText={formError || ''}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
@@ -273,8 +274,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: closeAccount?.success ? [closeAccount.success, {isTranslated: true}] : account.message}}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
+                    messages={{0: closeAccount?.success ? [closeAccount.success, {isTranslated: true}] : account?.message || ''}}
                 />
             )}
             {
