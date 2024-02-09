@@ -220,7 +220,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     containerStyles={[styles.mt4]}
                     defaultValue={getDefaultStateForField('website', defaultWebsite)}
                     shouldSaveDraft
-                    hint={translate('common.websiteExample')}
+                    hint="common.websiteExample"
                     inputMode={CONST.INPUT_MODE.URL}
                 />
                 <InputWrapper

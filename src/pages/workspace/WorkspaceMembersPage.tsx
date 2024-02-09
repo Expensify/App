@@ -384,7 +384,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             <MessagesRow
                 type="success"
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                messages={{'0': translate('workspace.people.addedWithPrimary')}}
+                messages={{'0': 'workspace.people.addedWithPrimary'}}
                 containerStyles={[styles.pb5, styles.ph5]}
                 onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
             />
