@@ -27,9 +27,7 @@ declare module '*.lottie' {
     export default value;
 }
 
-// Global methods for Onyx key management for debugging purposes
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface Window {
-    enableMemoryOnlyKeys: () => void;
-    disableMemoryOnlyKeys: () => void;
+    setSupportToken: (token: string, email: string, accountID: number) => void;
 }

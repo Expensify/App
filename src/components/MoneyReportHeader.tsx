@@ -2,18 +2,15 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import GoogleMeetIcon from '@assets/images/google-meet.svg';
-import ZoomIcon from '@assets/images/zoom-icon.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -63,6 +60,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
+    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable],
@@ -71,8 +70,11 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (!isPaidGroupPolicy) {
             return false;
         }
+        if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+            return false;
+        }
         return isManager && !isDraft && !isApproved && !isSettled;
-    }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled]);
+    }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
@@ -89,22 +91,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (!ReportUtils.isArchivedRoom(chatReport)) {
-        threeDotsMenuItems.push({
-            icon: ZoomIcon,
-            text: translate('videoChatButtonAndMenu.zoom'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
-                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
-            }),
-        });
-        threeDotsMenuItems.push({
-            icon: GoogleMeetIcon,
-            text: translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
-                Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
-            }),
-        });
-    }
 
     return (
         <View style={[styles.pt0]}>
