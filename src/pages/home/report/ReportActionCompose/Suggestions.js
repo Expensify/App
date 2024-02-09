@@ -89,6 +89,7 @@ function Suggestions({
 
     const onSelectionChange = useCallback((e) => {
         const emojiHandler = suggestionEmojiRef.current.onSelectionChange(e);
+        suggestionMentionRef.current.onSelectionChange(e);
         return emojiHandler;
     }, []);
 
@@ -127,7 +128,6 @@ function Suggestions({
         setValue,
         setSelection,
         selection,
-        isComposerFullSize,
         updateComment,
         composerHeight,
         isAutoSuggestionPickerLarge,

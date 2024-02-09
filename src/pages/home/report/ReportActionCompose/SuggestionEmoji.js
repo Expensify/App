@@ -59,8 +59,8 @@ function SuggestionEmoji({
     forwardedRef,
     resetKeyboardInput,
     measureParentContainerAndReportCursor,
-    isComposerFocused,
 }) {
+    const prevValueRef = useRef(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowSuggestionMenu;
@@ -154,11 +154,13 @@ function SuggestionEmoji({
      */
     const calculateEmojiSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current || !value) {
+            if (shouldBlockCalc.current || !value || prevValueRef.current === value) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
+            prevValueRef.current = value;
+
             const leftString = value.substring(0, selectionEnd);
             const colonIndex = leftString.lastIndexOf(':');
             const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selectionEnd);
@@ -181,12 +183,6 @@ function SuggestionEmoji({
         [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
-    useEffect(() => {
-        if (!isComposerFocused) {
-            return;
-        }
-        calculateEmojiSuggestion(selection.end);
-    }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const onSelectionChange = useCallback(
         (e) => {

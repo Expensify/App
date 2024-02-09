@@ -41,9 +41,7 @@ const defaultProps = {
 function SuggestionMention({
     value,
     setValue,
-    selection,
     setSelection,
-    isComposerFullSize,
     updateComment,
     composerHeight,
     forwardedRef,
@@ -54,7 +52,7 @@ function SuggestionMention({
 }) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
-    const previousValue = usePrevious(value);
+    const prevValue = useRef(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
@@ -183,12 +181,13 @@ function SuggestionMention({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
+            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused || value === prevValue.current) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
 
+            prevValue.current = value;
             const valueAfterTheCursor = value.substring(selectionEnd);
             const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
 
@@ -248,17 +247,6 @@ function SuggestionMention({
         [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
     );
 
-    useEffect(() => {
-        if (value.length < previousValue.length) {
-            // A workaround to not show the suggestions list when the user deletes a character before the mention.
-            // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
-            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
-            return;
-        }
-
-        calculateMentionSuggestion(selection.end);
-    }, [selection, value, previousValue, calculateMentionSuggestion]);
-
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
             if (prevState.shouldShowSuggestionMenu) {
@@ -267,6 +255,18 @@ function SuggestionMention({
             return prevState;
         });
     }, []);
+
+    const onSelectionChange = useCallback(
+        (e) => {
+            /**
+             * we pass here e.nativeEvent.selection.end directly to calculateMentionSuggestion
+             * because in other case calculateMentionSuggestion will have an old calculation value
+             * of suggestion instead of current one
+             */
+            calculateMentionSuggestion(e.nativeEvent.selection.end);
+        },
+        [calculateMentionSuggestion],
+    );
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc) => {
@@ -285,12 +285,13 @@ function SuggestionMention({
         forwardedRef,
         () => ({
             resetSuggestions,
+            onSelectionChange,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, onSelectionChange, triggerHotkeyActions, setShouldBlockSuggestionCalc, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
@@ -307,7 +308,6 @@ function SuggestionMention({
             colonIndex={suggestionValues.colonIndex}
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
-            isComposerFullSize={isComposerFullSize}
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
             measureParentContainer={measureParentContainer}
