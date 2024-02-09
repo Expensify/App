@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import * as GitUtils from '../../.github/libs/GitUtils.ts';
+import * as GitUtils from '../../.github/libs/GitUtils';
 
 const fromRef = process.argv[2];
 const toRef = process.argv[3];
