@@ -93,7 +93,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                         childrenStyles={themeStyles.pt5}
                         titleStyles={themeStyles.accountSettingsSectionTitle}
                     >
-                        <View style={[themeStyles.qrShareSection]}>
+                        <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.qrShareSection]}>
                             <QRShareWithDownload
                                 ref={qrCodeRef}
                                 url={url}
