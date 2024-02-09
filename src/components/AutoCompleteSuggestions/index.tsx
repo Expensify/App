@@ -34,6 +34,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const containerRef = React.useRef<HTMLDivElement>(null);
     const isInitialRender = React.useRef<boolean>(true);
     const isSuggestionAboveRef = React.useRef<boolean>(false);
+    const leftValue = React.useRef<number>(0);
     const {windowHeight, windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
     const [containerState, setContainerState] = React.useState({
@@ -69,7 +70,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
                     : xCoordinatesOfCursor;
 
-            const leftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
             let bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue;
             const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
@@ -80,6 +80,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
             if (isInitialRender.current) {
                 isSuggestionAboveRef.current = isSuggestionRenderedAbove(isEnoughSpaceAboveForBig, isEnoughSpaceAboveForSmall);
+                leftValue.current = isSmallScreenWidth ? x : leftValueForBigScreen;
                 isInitialRender.current = false;
             }
 
@@ -98,7 +99,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
             setSuggestionHeight(measuredHeight);
             setContainerState({
-                left: leftValue,
+                left: leftValue.current,
                 bottom: bottomValue - keyboardHeight,
                 width: widthValue,
             });
