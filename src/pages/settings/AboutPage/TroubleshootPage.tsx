@@ -1,13 +1,16 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
+import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -15,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import * as Console from '@libs/actions/Console';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -44,7 +48,13 @@ type BaseMenuItem = {
     action: () => void | Promise<void>;
 };
 
-function TroubleshootPage() {
+type TroubleshootPageOnyxProps = {
+    shouldStoreLogs: OnyxEntry<boolean>;
+};
+
+type TroubleshootPageProps = TroubleshootPageOnyxProps;
+
+function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -66,13 +76,17 @@ function TroubleshootPage() {
             },
         ];
 
+        if (!shouldStoreLogs) {
+            baseMenuItems.splice(1);
+        }
+
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
             title: translate(item.translationKey),
             icon: item.icon,
             onPress: item.action,
         }));
-    }, [translate, waitForNavigate]);
+    }, [shouldStoreLogs, translate, waitForNavigate]);
 
     return (
         <IllustratedHeaderPageLayout
@@ -92,6 +106,13 @@ function TroubleshootPage() {
                         {translate('initialSettingsPage.troubleshoot.submitBug')}
                     </TextLink>
                 </Text>
+                <TestToolRow title="Client side logging">
+                    <Switch
+                        accessibilityLabel="Client side logging"
+                        isOn={!!shouldStoreLogs}
+                        onToggle={() => (shouldStoreLogs ? Console.disableLoggingAndFlushLogs() : Console.setShouldStoreLogs(true))}
+                    />
+                </TestToolRow>
             </View>
             <MenuItemList
                 menuItems={menuItems}
@@ -121,4 +142,8 @@ function TroubleshootPage() {
     );
 }
 
-export default TroubleshootPage;
+export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
+    shouldStoreLogs: {
+        key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+})(TroubleshootPage);

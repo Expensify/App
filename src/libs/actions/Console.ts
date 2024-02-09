@@ -12,8 +12,20 @@ function addLog(log: Log) {
     });
 }
 
+/**
+ * Set whether or not to store logs in Onyx
+ * @param store whether or not to store logs
+ */
 function setShouldStoreLogs(store: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_STORE_LOGS, store);
 }
 
-export {addLog, setShouldStoreLogs};
+/**
+ * Disable logging and flush the logs from Onyx
+ */
+function disableLoggingAndFlushLogs() {
+    setShouldStoreLogs(false);
+    Onyx.set(ONYXKEYS.LOGS, null);
+}
+
+export {addLog, setShouldStoreLogs, disableLoggingAndFlushLogs};

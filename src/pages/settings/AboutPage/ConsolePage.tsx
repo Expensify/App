@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FlatList, View} from 'react-native';
@@ -12,7 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addLog, setShouldStoreLogs} from '@libs/actions/Console';
+import {addLog} from '@libs/actions/Console';
 import {createLog, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
@@ -65,14 +66,6 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
-        if (shouldStoreLogs) {
-            return;
-        }
-
-        setShouldStoreLogs(true);
-    }, [shouldStoreLogs]);
-
-    useEffect(() => {
         if (!shouldStoreLogs) {
             return;
         }
@@ -107,11 +100,17 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     };
 
     const renderItem: ListRenderItem<Log> = useCallback(
-        ({item}: ListRenderItemInfo<Log>) => (
-            <View style={styles.mb2}>
-                <Text family="MONOSPACE">{`${item.time.toLocaleTimeString()} ${item.message}`}</Text>
-            </View>
-        ),
+        ({item}: ListRenderItemInfo<Log>) => {
+            if (!item) {
+                return null;
+            }
+
+            return (
+                <View style={styles.mb2}>
+                    <Text family="MONOSPACE">{`${format(item.time, 'Y/M/d ')} ${item.message}`}</Text>
+                </View>
+            );
+        },
         [styles.mb2],
     );
 
