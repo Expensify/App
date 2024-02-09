@@ -593,7 +593,7 @@ export default {
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
-        payElsewhere: 'Pagar de otra forma',
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,

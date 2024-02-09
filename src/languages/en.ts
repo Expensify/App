@@ -601,7 +601,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
-        payElsewhere: 'Pay elsewhere',
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
