@@ -102,7 +102,7 @@ function CompanyOwnersListUBO({
             style={[styles.pt0]}
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph0]}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
                 <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
                 <View>
                     <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>

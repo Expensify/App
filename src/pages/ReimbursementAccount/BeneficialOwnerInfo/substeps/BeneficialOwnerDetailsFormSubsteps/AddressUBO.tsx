@@ -73,7 +73,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mt5, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}</Text>
             <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
             <AddressForm
                 inputKeys={inputKeys}

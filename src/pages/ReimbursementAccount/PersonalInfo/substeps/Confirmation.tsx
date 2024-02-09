@@ -39,10 +39,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     return (
-        <ScreenWrapper
-            testID={Confirmation.displayName}
-            style={[styles.pt5]}
-        >
+        <ScreenWrapper testID={Confirmation.displayName}>
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription

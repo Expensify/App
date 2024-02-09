@@ -126,7 +126,7 @@ function AddressForm(props) {
                 containerStyles={[styles.mt6]}
             />
 
-            <View style={[styles.mt6, styles.mhn5]}>
+            <View style={[styles.mt3, styles.mhn5]}>
                 <InputWrapper
                     InputComponent={StatePicker}
                     inputID={props.inputKeys.state}
@@ -150,7 +150,7 @@ function AddressForm(props) {
                 onChangeText={(value) => props.onFieldChange({zipCode: value})}
                 errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                containerStyles={[styles.mt5]}
+                containerStyles={[styles.mt3]}
             />
         </>
     );
