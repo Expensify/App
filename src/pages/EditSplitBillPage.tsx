@@ -103,7 +103,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
                 onSubmit={(transactionChanges) => {
                     setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
                 }}
-                isPolicyExpenseChat={false}
             />
         );
     }
