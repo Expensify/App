@@ -280,5 +280,4 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
-    RotateLeft,
 };
