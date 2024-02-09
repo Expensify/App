@@ -16,6 +16,8 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import variables from "@styles/variables";
+import * as Expensicons from "@components/Icon/Expensicons";
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
@@ -38,6 +40,8 @@ type ReportActionItemImageProps = {
 
     /** Filename of attachment */
     filename?: string;
+
+    isSingleImage?: boolean;
 };
 
 /**
@@ -46,7 +50,7 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false, filename}: ReportActionItemImageProps) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false, filename, isSingleImage}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
@@ -67,6 +71,8 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                 previewSourceURL={thumbnailSource}
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired
+                fallbackIcon={Expensicons.Receipt}
+                fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
                 shouldDynamicallyResize={false}
             />
         );

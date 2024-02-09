@@ -14,6 +14,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
+import * as FileUtils from "@libs/fileDownload/FileUtils";
+import * as Expensicons from "@components/Icon/Expensicons";
 
 type ImageRendererWithOnyxProps = {
     /** Current user */
@@ -47,26 +49,33 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const isAttachmentOrReceipt = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
+    const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+    const isAttachmentOrReceipt = Boolean(attachmentSourceAttribute);
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
-    const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
+    const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
-    return imagePreviewModalDisabled ? (
+    const fileType = FileUtils.getFileType(attachmentSourceAttribute);
+    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.Gallery;
+    const thumbnailImageComponent = (
         <ThumbnailImage
             previewSourceURL={previewSource}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
+            fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
         />
-    ) : (
-        <ShowContextMenuContext.Consumer>
+    );
+
+    return imagePreviewModalDisabled
+        ? <>{thumbnailImageComponent}</>
+        : <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
@@ -78,17 +87,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 >
-                    <ThumbnailImage
-                        previewSourceURL={previewSource}
-                        style={styles.webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachmentOrReceipt}
-                        imageWidth={imageWidth}
-                        imageHeight={imageHeight}
-                    />
+                    {thumbnailImageComponent}
                 </PressableWithoutFocus>
             )}
-        </ShowContextMenuContext.Consumer>
-    );
+        </ShowContextMenuContext.Consumer>;
 }
 
 ImageRenderer.displayName = 'ImageRenderer';
