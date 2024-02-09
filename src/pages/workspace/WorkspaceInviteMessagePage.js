@@ -103,7 +103,7 @@ function WorkspaceInviteMessagePage(props) {
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, {});
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack();
         Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
     };
 
