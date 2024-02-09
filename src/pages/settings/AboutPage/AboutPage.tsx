@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -132,6 +133,7 @@ function AboutPage() {
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
             overlayContent={overlayContent}
             shouldShowOfflineIndicatorInWideScreen
+            icon={Illustrations.PalmTree}
             testID={AboutPage.displayName}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>

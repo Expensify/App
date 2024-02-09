@@ -22,6 +22,7 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import type {
@@ -1084,6 +1085,7 @@ const staticStyleUtils = {
     getCardStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
+    getSignInBgStyles,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1345,7 +1347,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns style object for the user mention component based on whether the mention is ours or not.
      */
-    getMentionStyle: (isOurMention: boolean): ViewStyle => {
+    getMentionStyle: (isOurMention: boolean): TextStyle => {
         const backgroundColor = isOurMention ? theme.ourMentionBG : theme.mentionBG;
         return {
             backgroundColor,

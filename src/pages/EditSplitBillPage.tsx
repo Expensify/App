@@ -18,7 +18,6 @@ import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestTagPage from './EditRequestTagPage';
 
@@ -46,7 +45,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
-        comment: transactionDescription,
         merchant: transactionMerchant,
         created: transactionCreated,
         category: transactionCategory,
@@ -65,19 +63,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         }
         navigateBackToSplitDetails();
     };
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
-        return (
-            <EditRequestDescriptionPage
-                defaultDescription={transactionDescription ?? ''}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({
-                        comment: transactionChanges.comment.trim(),
-                    });
-                }}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (

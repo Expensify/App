@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import sourcePropTypes from '@components/Image/sourcePropTypes';
+import {translatableTextPropTypes} from '@libs/Localize';
 
 const propTypes = {
     /** Input label */
@@ -18,7 +19,7 @@ const propTypes = {
     placeholder: PropTypes.string,
 
     /** Error text to display */
-    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
+    errorText: translatableTextPropTypes,
 
     /** Icon to display in right side of text input */
     icon: sourcePropTypes,
@@ -68,7 +69,7 @@ const propTypes = {
     maxLength: PropTypes.number,
 
     /** Hint text to display below the TextInput */
-    hint: PropTypes.string,
+    hint: translatableTextPropTypes,
 
     /** Prefix character */
     prefixCharacter: PropTypes.string,
