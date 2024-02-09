@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -69,7 +70,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Field errors in the form */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
     }),
 
     /** Session details for the user */
@@ -100,10 +101,28 @@ function WorkspaceNewRoomPage(props) {
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
-    const [policyID, setPolicyID] = useState(props.activePolicyID);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
+
+    const workspaceOptions = useMemo(
+        () =>
+            _.map(
+                _.filter(PolicyUtils.getActivePolicies(props.policies), (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL),
+                (policy) => ({
+                    label: policy.name,
+                    key: policy.id,
+                    value: policy.id,
+                }),
+            ),
+        [props.policies],
+    );
+    const [policyID, setPolicyID] = useState(() => {
+        if (_.some(workspaceOptions, (option) => option.value === props.activePolicyID)) {
+            return props.activePolicyID;
+        }
+        return '';
+    });
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
             return false;
@@ -118,7 +137,7 @@ function WorkspaceNewRoomPage(props) {
      */
     const submit = (values) => {
         const participants = [props.session.accountID];
-        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription);
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
@@ -132,7 +151,7 @@ function WorkspaceNewRoomPage(props) {
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             '',
             '',
-            parsedWelcomeMessage,
+            parsedDescription,
         );
         setNewRoomReportID(policyReport.reportID);
         Report.addPolicyReport(policyReport);
@@ -144,10 +163,17 @@ function WorkspaceNewRoomPage(props) {
 
     useEffect(() => {
         if (policyID) {
+            if (!_.some(workspaceOptions, (opt) => opt.value === policyID)) {
+                setPolicyID('');
+            }
             return;
         }
-        setPolicyID(props.activePolicyID);
-    }, [props.activePolicyID, policyID]);
+        if (_.some(workspaceOptions, (opt) => opt.value === props.activePolicyID)) {
+            setPolicyID(props.activePolicyID);
+        } else {
+            setPolicyID('');
+        }
+    }, [props.activePolicyID, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
@@ -194,16 +220,6 @@ function WorkspaceNewRoomPage(props) {
             return errors;
         },
         [props.reports],
-    );
-
-    const workspaceOptions = useMemo(
-        () =>
-            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
-                label: policy.name,
-                key: policy.id,
-                value: policy.id,
-            })),
-        [props.policies],
     );
 
     const writeCapabilityOptions = useMemo(
@@ -277,6 +293,7 @@ function WorkspaceNewRoomPage(props) {
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline
+                            disablePressOnEnter={false}
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
@@ -291,12 +308,12 @@ function WorkspaceNewRoomPage(props) {
                             <View style={styles.mb5}>
                                 <InputWrapper
                                     InputComponent={TextInput}
-                                    inputID="welcomeMessage"
-                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    inputID="reportDescription"
+                                    label={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                    accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
-                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />

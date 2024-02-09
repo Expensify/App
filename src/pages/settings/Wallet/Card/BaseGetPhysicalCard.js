@@ -12,6 +12,7 @@ import * as Wallet from '@libs/actions/Wallet';
 import * as CardUtils from '@libs/CardUtils';
 import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
 import CONST from '@src/CONST';
@@ -69,7 +70,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Field-specific pending states for offline UI status */
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -186,8 +187,8 @@ function BaseGetPhysicalCard({
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
-            const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
-            const cardID = virtualCard.cardID;
+            const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
+            const cardID = physicalCard.cardID;
             Wallet.requestPhysicalExpensifyCard(cardID, authToken, updatedPrivatePersonalDetails);
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx

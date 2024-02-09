@@ -40,7 +40,7 @@ type PressableProps = RNPressableProps &
         /**
          * onPress callback
          */
-        onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+        onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /**
          * Specifies keyboard shortcut to trigger onPressHandler

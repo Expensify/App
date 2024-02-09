@@ -14,6 +14,24 @@ inputs:
   MAPBOX_SDK_DOWNLOAD_TOKEN:
     description: The token to use to download the MapBox SDK
     required: true
+  PATH_ENV_FILE:
+    description: The path to the .env file to use for the build
+    required: true
+  EXPENSIFY_PARTNER_NAME:
+    description: The name of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_PASSWORD:
+    description: The password of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_USER_ID:
+    description: The user ID of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_USER_SECRET:
+    description: The user secret of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_PASSWORD_EMAIL:
+    description: The email address of the Expensify partner to use for the build
+    required: true
 
 runs:
   using: composite
@@ -36,6 +54,15 @@ runs:
         bundler-cache: true
 
     - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
+
+    - name: Append environment variables to env file
+      shell: bash
+      run: |
+        echo "EXPENSIFY_PARTNER_NAME=${{ inputs.EXPENSIFY_PARTNER_NAME }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_PASSWORD=${{ inputs.EXPENSIFY_PARTNER_PASSWORD }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_USER_ID=${{ inputs.EXPENSIFY_PARTNER_USER_ID }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_USER_SECRET=${{ inputs.EXPENSIFY_PARTNER_USER_SECRET }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_PASSWORD_EMAIL=${{ inputs.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}" >> ${{ inputs.PATH_ENV_FILE }}
 
     - name: Build APK
       run: npm run ${{ inputs.PACKAGE_SCRIPT_NAME }}
