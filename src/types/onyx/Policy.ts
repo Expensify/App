@@ -31,21 +31,12 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
-type ConnectionLastSync = {
-    successfulDate: string;
-    isSuccessful: boolean;
-    errorDate?: string;
-    source: string;
-};
-
-type ConnectionData = {
-    // TBD
-};
-
-type ConnectionConfig = {
-    // TBD
-};
-
+// These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
+// This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
+// Once the data is being used, these types should be defined appropriately.
+type ConnectionLastSync = Record<string, unknown>;
+type ConnectionData = Record<string, unknown>;
+type ConnectionConfig = Record<string, unknown>;
 type Connection = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
