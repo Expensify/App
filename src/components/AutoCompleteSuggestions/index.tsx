@@ -1,11 +1,28 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import {View} from 'react-native';
-import useStyleUtils from '@hooks/useStyleUtils';
+import React, {useEffect} from 'react';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
-import type {AutoCompleteSuggestionsProps} from './types';
+import CONST from '@src/CONST';
+import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
+import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
+
+const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean): number => {
+    if (canBeBig) {
+        if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
+            // On large screens, if there are more than 5 suggestions, we display a scrollable window with a height of 5 items, indicating that there are more items available
+            return CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+        }
+        return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+    }
+    if (numRows > 2) {
+        // On small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
+        return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+    }
+    return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+};
+function isSuggestionRenderedAbove(isEnoughSpaceAboveForBig: boolean, isEnoughSpaceAboveForSmall: boolean): boolean {
+    return isEnoughSpaceAboveForBig || (!isEnoughSpaceAboveForBig && isEnoughSpaceAboveForSmall);
+}
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -13,17 +30,20 @@ import type {AutoCompleteSuggestionsProps} from './types';
  * The desired pattern for all platforms is to do nothing on long-press.
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
-
-function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
-    const StyleUtils = useStyleUtils();
+function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCursor = () => {}, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
     const containerRef = React.useRef<HTMLDivElement>(null);
-    const {windowHeight, windowWidth} = useWindowDimensions();
-    const [{width, left, bottom}, setContainerState] = React.useState({
+    const isInitialRender = React.useRef<boolean>(true);
+    const isSuggestionAboveRef = React.useRef<boolean>(false);
+    const {windowHeight, windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const [suggestionHeight, setSuggestionHeight] = React.useState(0);
+    const [containerState, setContainerState] = React.useState({
         width: 0,
         left: 0,
         bottom: 0,
     });
-    React.useEffect(() => {
+    const {keyboardHeight} = useKeyboardState();
+
+    useEffect(() => {
         const container = containerRef.current;
         if (!container) {
             return () => {};
@@ -37,25 +57,66 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
         return () => (container.onpointerdown = null);
     }, []);
 
-    React.useEffect(() => {
-        if (!measureParentContainer) {
+    useEffect(() => {
+        if (!measureParentContainerAndReportCursor) {
             return;
         }
-        measureParentContainer((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
-    }, [measureParentContainer, windowHeight, windowWidth]);
 
-    const componentToRender = (
-        <BaseAutoCompleteSuggestions<TSuggestion>
+        measureParentContainerAndReportCursor(({x, y, width, scrollValue, cursorCoordinates}: MeasureParentContainerAndCursor) => {
+            const xCoordinatesOfCursor = x + cursorCoordinates.x;
+            const leftValueForBigScreen =
+                xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
+                    ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
+                    : xCoordinatesOfCursor;
+
+            const leftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
+            let bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue;
+            const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
+
+            const contentMaxHeight = measureHeightOfSuggestionRows(props.suggestions.length, true);
+            const contentMinHeight = measureHeightOfSuggestionRows(props.suggestions.length, false);
+            const isEnoughSpaceAboveForBig = windowHeight - bottomValue - contentMaxHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+            const isEnoughSpaceAboveForSmall = windowHeight - bottomValue - contentMinHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+
+            if (isInitialRender.current) {
+                isSuggestionAboveRef.current = isSuggestionRenderedAbove(isEnoughSpaceAboveForBig, isEnoughSpaceAboveForSmall);
+                isInitialRender.current = false;
+            }
+
+            let measuredHeight = 0;
+            if (isSuggestionAboveRef.current && isEnoughSpaceAboveForBig) {
+                // calculation for big suggestion box above the cursor
+                measuredHeight = measureHeightOfSuggestionRows(props.suggestions.length, true);
+            } else if (isSuggestionAboveRef.current && isEnoughSpaceAboveForSmall) {
+                // calculation for small suggestion box above the cursor
+                measuredHeight = measureHeightOfSuggestionRows(props.suggestions.length, false);
+            } else {
+                // calculation for big suggestion box below the cursor
+                measuredHeight = measureHeightOfSuggestionRows(props.suggestions.length, true);
+                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+            }
+
+            setSuggestionHeight(measuredHeight);
+            setContainerState({
+                left: leftValue,
+                bottom: bottomValue - keyboardHeight,
+                width: widthValue,
+            });
+        });
+    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, props.suggestions.length, suggestionHeight]);
+
+    if (containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) {
+        return null;
+    }
+    return (
+        <AutoCompleteSuggestionsPortal
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={containerRef}
+            left={containerState.left}
+            width={containerState.width}
+            bottom={containerState.bottom}
+            measuredHeightOfSuggestionRows={suggestionHeight}
         />
-    );
-
-    const bodyElement = document.querySelector('body');
-
-    return (
-        !!width && bodyElement && ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, bodyElement)
     );
 }
 
