@@ -697,17 +697,17 @@ function ReportActionItem(props) {
     ) {
         return null;
     }
+    
+    // We currently send whispers to all participants and hide them in the UI.
+    // This is a temporary solution needed for comment-linking.
+    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
+    if (ReportActionsUtils.isWhisperActionTargetedToOthers(props.action)) {
+        return null;
+    }
 
     const hasErrors = !_.isEmpty(props.action.errors);
     const whisperedToAccountIDs = props.action.whisperedToAccountIDs || [];
     const isWhisper = whisperedToAccountIDs.length > 0;
-
-    // We currently send whispers to all participants and hide them in the UI.
-    // This is a temporary solution needed for comment-linking.
-    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
-    if (isWhisper && ReportActionsUtils.isWhisperActionTargetedToOthers(props.reportAction)) {
-        return null;
-    }
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
     const whisperedToPersonalDetails = isWhisper ? _.filter(personalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
