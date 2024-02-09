@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Icon from '@components//Icon';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import * as ExitSurvey from '@userActions/ExitSurvey';
 import type {ExitReason} from '@userActions/ExitSurvey';
 import * as Link from '@userActions/Link';
@@ -39,7 +41,11 @@ function ExitSurveyConfirmPage({exitReason, isLoading}: ExitSurveyConfirmPageOny
             {isOffline && <ExitSurveyOffline />}
             {!isOffline && (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.p5]}>
-                    <MushroomTopHat />
+                    <Icon
+                        src={MushroomTopHat}
+                        width={variables.modalTopIconWidth}
+                        height={variables.modalTopIconHeight}
+                    />
                     <Text style={[styles.headerAnonymousFooter, styles.mt5]}>{translate('exitSurvey.thankYou')}</Text>
                     <Text style={[styles.mt2]}>{translate('exitSurvey.thankYouSubtitle')}</Text>
                 </View>
