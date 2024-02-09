@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 type Results = ValueOf<typeof RESULTS>;
 type ResultsCollection = Record<string, Results>;
 type NotificationSettings = Record<string, boolean>;
+type Notification = {status: Results; settings: typeof notificationSettings}
 
 const openLimitedPhotoLibraryPicker: jest.Mock<void> = jest.fn(() => {});
 const openSettings: jest.Mock<void> = jest.fn(() => {});
@@ -25,12 +26,12 @@ const notificationSettings: NotificationSettings = {
     notificationCenter: true,
 };
 
-const checkNotifications: jest.Mock<{status: Results; settings: typeof notificationSettings}> = jest.fn(() => ({
+const checkNotifications: jest.Mock<Notification> = jest.fn(() => ({
     status: RESULTS.GRANTED,
     settings: notificationSettings,
 }));
 
-const requestNotifications: jest.Mock<{status: Results; settings: typeof notificationSettings}> = jest.fn((options: Record<string, string>) => ({
+const requestNotifications: jest.Mock<Notification> = jest.fn((options: Record<string, string>) => ({
     status: RESULTS.GRANTED,
     settings: Object.keys(options)
         .filter((option: string) => notificationOptions.includes(option))
