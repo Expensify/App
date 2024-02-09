@@ -292,7 +292,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.RECOVERY_CODE_LENGTH}
                             label={translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError.recoveryCode ? translate(formError.recoveryCode) : ''}
+                            errorText={formError?.recoveryCode ?? ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
@@ -312,7 +312,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
                             onFulfill={validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={formError.twoFactorAuthCode ? translate(formError.twoFactorAuthCode) : ''}
+                            errorText={formError?.twoFactorAuthCode ?? ''}
                             hasError={hasError}
                             autoFocus
                             key="twoFactorAuthCode"
@@ -345,7 +345,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                         value={validateCode}
                         onChangeText={(text) => onTextInput(text, 'validateCode')}
                         onFulfill={validateAndSubmitForm}
-                        errorText={formError.validateCode ? translate(formError.validateCode) : ''}
+                        errorText={formError?.validateCode ?? ''}
                         hasError={hasError}
                         autoFocus
                         key="validateCode"
