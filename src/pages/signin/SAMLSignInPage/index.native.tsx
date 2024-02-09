@@ -32,8 +32,6 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
-     *
-     * @param {String} params.url
      */
     const handleNavigationStateChange = useCallback(
         ({url}: WebViewNativeEvent) => {
@@ -47,13 +45,15 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
             if (searchParams.has('shortLivedAuthToken') && !account?.isLoading) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
                 const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
-                Session.signInWithShortLivedAuthToken(credentials?.login ?? '', shortLivedAuthToken ?? '');
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Session.signInWithShortLivedAuthToken(credentials?.login || '', shortLivedAuthToken || '');
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
             if (searchParams.has('error')) {
                 Session.clearSignInData();
-                Session.setAccountError(searchParams.get('error') ?? '');
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Session.setAccountError(searchParams.get('error') || '');
                 Navigation.navigate(ROUTES.HOME);
             }
         },

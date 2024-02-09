@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Credentials} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
@@ -81,7 +82,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: Choos
                         setIsUsingMagicCode(true);
                     }}
                 />
-                {Boolean(account) && !!account?.errors && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
+                {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
                 <ChangeExpensifyLoginLink
                     // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
                     onPress={() => Session.clearSignInData()}

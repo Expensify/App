@@ -15,6 +15,7 @@ import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UnlinkLoginFormOnyxProps = {
     /** State for the account */
@@ -60,7 +61,7 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
                     messages={{0: account.message}}
                 />
             )}
-            {!!account?.errors && (
+            {account?.errors && !isEmptyObject(account?.errors) && (
                 <DotIndicatorMessage
                     style={[styles.mb5]}
                     type="error"
@@ -80,7 +81,7 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
                     text={translate('unlinkLoginForm.unlink')}
                     isLoading={!!account?.isLoading && account?.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => Session.requestUnlinkValidationLink()}
-                    isDisabled={isOffline ?? !!account?.message}
+                    isDisabled={!!isOffline || !!account?.message}
                 />
             </View>
         </>

@@ -180,8 +180,8 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
     } = getRenderOptions({
-        hasLogin: Boolean(credentials?.login),
-        hasValidateCode: Boolean(credentials?.validateCode),
+        hasLogin: !!credentials?.login,
+        hasValidateCode: !!credentials?.validateCode,
         account,
         isPrimaryLogin: !account?.primaryLogin || account?.primaryLogin === credentials?.login,
         isUsingMagicCode,
@@ -210,7 +210,8 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
             welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
-            const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const userLogin = Str.removeSMSDomain(credentials?.login || '');
 
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
@@ -269,7 +270,7 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
                 />
                 {shouldShowValidateCodeForm && (
                     <ValidateCodeForm
-                        // @ts-expect-error Will be handled in another PR
+                        // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
                         isVisible={isLoginPageActive}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}

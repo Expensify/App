@@ -30,7 +30,7 @@ function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) 
             return '';
         }
         return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
-    }, [credentials]);
+    }, [credentials?.login]);
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -42,7 +42,7 @@ function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) 
 
     return (
         <>
-            <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
+            <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
                     <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
                     <Text style={[styles.mt5]}>

@@ -22,7 +22,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -71,8 +70,6 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
     /**
      * Validate the input value and set the error for formError
-     *
-     * @param {String} value
      */
     const validate = useCallback(
         (value: string) => {
@@ -102,8 +99,6 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
     /**
      * Handle text input and validate the text input if it is blurred
-     *
-     * @param {String} text
      */
     const onTextInput = useCallback(
         (text: string) => {
@@ -112,7 +107,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 validate(text);
             }
 
-            if (account?.errors ?? account?.message) {
+            if (!!account?.errors || !!account?.message) {
                 Session.clearAccountMessages();
             }
 
@@ -132,7 +127,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (isOffline ?? account?.isLoading ?? isLoading.current) {
+        if (!!isOffline || !!account?.isLoading || isLoading.current) {
             return;
         }
         isLoading.current = true;
@@ -165,7 +160,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber?.number?.e164 ?? '' : loginTrim);
+        Session.beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
     }, [login, account, closeAccount, isOffline, validate]);
 
     useEffect(() => {
@@ -273,8 +268,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
-            {account?.success && <Text style={[styles.formSuccess]}>{account.success}</Text>}
-            {(closeAccount?.success ?? account?.message) && (
+            {!!account?.success && <Text style={[styles.formSuccess]}>{account.success}</Text>}
+            {(!!closeAccount?.success || !!account?.message) && (
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
