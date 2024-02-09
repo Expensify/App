@@ -717,6 +717,10 @@ export default {
         title: 'Opciones de seguridad',
         subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
     },
+    shareCodePage: {
+        title: 'Tu código',
+        subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
+    },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
         headline: 'La sala vip de Expensify está cerrada.',
@@ -2482,7 +2486,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copiar',
+        copy: 'Copiar URL',
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
@@ -2674,9 +2678,9 @@ export default {
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
         someTagLevelsRequired: 'Falta etiqueta',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName} ya no es válida`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName} ya no es válido`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },

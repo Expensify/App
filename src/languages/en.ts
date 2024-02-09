@@ -723,6 +723,10 @@ export default {
         title: 'Security options',
         subtitle: 'Enable two-factor authentication to keep your account safe.',
     },
+    shareCodePage: {
+        title: 'Your code',
+        subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
+    },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
         headline: 'The Expensify Lounge is closed.',
@@ -1996,7 +2000,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copy',
+        copy: 'Copy URL',
         copied: 'Copied!',
     },
     moderation: {
@@ -2186,9 +2190,9 @@ export default {
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
         someTagLevelsRequired: 'Missing tag',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? ''} no longer valid`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? ''} no longer valid`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
     },

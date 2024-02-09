@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
+import type {ReactNode} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,111 +10,73 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
 import * as Wallet from '@libs/actions/Wallet';
 import * as CardUtils from '@libs/CardUtils';
-import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
-import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {CardList, GetPhysicalCardForm, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const propTypes = {
-    /* Onyx Props */
-    /** List of available assigned cards */
-    cardList: PropTypes.objectOf(assignedCardPropTypes),
+type OnValidate = (values: OnyxEntry<GetPhysicalCardForm>) => Errors;
 
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
-    }),
-
-    /** Draft values used by the get physical card form */
-    draftValues: PropTypes.shape({
-        addressLine1: PropTypes.string,
-        addressLine2: PropTypes.string,
-        city: PropTypes.string,
-        country: PropTypes.string,
-        phoneNumber: PropTypes.string,
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-        state: PropTypes.string,
-        zipPostCode: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user authToken */
-        authToken: PropTypes.string,
-    }),
-
-    /** List of available login methods */
-    loginList: PropTypes.shape({
-        /** The partner creating the account. It depends on the source: website, mobile, integrations, ... */
-        partnerName: PropTypes.string,
-
-        /** Phone/Email associated with user */
-        partnerUserID: PropTypes.string,
-
-        /** The date when the login was validated, used to show the brickroad status */
-        validatedDate: PropTypes.string,
-
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
-
-        /** Field-specific pending states for offline UI status */
-        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
-
-    /* Base Props */
-    /** Text displayed below page title */
-    headline: PropTypes.string.isRequired,
-
-    /** Children components that will be rendered by renderContent */
-    children: PropTypes.node,
-
-    /** Current route from ROUTES */
-    currentRoute: PropTypes.string.isRequired,
-
-    /** Expensify card domain */
-    domain: PropTypes.string,
-
-    /** Whether or not the current step of the get physical card flow is the confirmation page */
-    isConfirmation: PropTypes.bool,
-
-    /** Render prop, used to render form content */
-    renderContent: PropTypes.func,
-
-    /** Text displayed on bottom submit button */
-    submitButtonText: PropTypes.string.isRequired,
-
-    /** Title displayed on top of the page */
-    title: PropTypes.string.isRequired,
-
-    /** Callback executed when validating get physical card form data */
-    onValidate: PropTypes.func,
+type RenderContentProps = ChildrenProps & {
+    onSubmit: () => void;
+    submitButtonText: string;
+    onValidate: OnValidate;
 };
 
-const defaultProps = {
-    cardList: {},
-    children: null,
-    domain: '',
-    draftValues: null,
-    privatePersonalDetails: null,
-    session: {},
-    loginList: {},
-    isConfirmation: false,
-    renderContent: (onSubmit, submitButtonText, styles, children = () => {}, onValidate = () => ({})) => (
+type BaseGetPhysicalCardOnyxProps = {
+    /** List of available assigned cards */
+    cardList: OnyxEntry<CardList>;
+
+    /** User's private personal details */
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+
+    /** Draft values used by the get physical card form */
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
+
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<Session>;
+
+    /** List of available login methods */
+    loginList: OnyxEntry<LoginList>;
+};
+
+type BaseGetPhysicalCardProps = BaseGetPhysicalCardOnyxProps & {
+    /** Text displayed below page title */
+    headline: string;
+
+    /** Children components that will be rendered by renderContent */
+    children?: ReactNode;
+
+    /** Current route from ROUTES */
+    currentRoute: string;
+
+    /** Expensify card domain */
+    domain: string;
+
+    /** Whether or not the current step of the get physical card flow is the confirmation page */
+    isConfirmation?: boolean;
+
+    /** Render prop, used to render form content */
+    renderContent?: (args: RenderContentProps) => React.ReactNode;
+
+    /** Text displayed on bottom submit button */
+    submitButtonText: string;
+
+    /** Title displayed on top of the page */
+    title: string;
+
+    /** Callback executed when validating get physical card form data */
+    onValidate?: OnValidate;
+};
+
+function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}: RenderContentProps) {
+    const styles = useThemeStyles();
+
+    return (
         <FormProvider
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
@@ -124,9 +86,8 @@ const defaultProps = {
         >
             {children}
         </FormProvider>
-    ),
-    onValidate: () => ({}),
-};
+    );
+}
 
 function BaseGetPhysicalCard({
     cardList,
@@ -136,14 +97,14 @@ function BaseGetPhysicalCard({
     draftValues,
     privatePersonalDetails,
     headline,
-    isConfirmation,
+    isConfirmation = false,
     loginList,
-    renderContent,
-    session: {authToken},
+    renderContent = DefaultRenderContent,
+    session,
     submitButtonText,
     title,
-    onValidate,
-}) {
+    onValidate = () => ({}),
+}: BaseGetPhysicalCardProps) {
     const styles = useThemeStyles();
     const isRouteSet = useRef(false);
 
@@ -153,7 +114,7 @@ function BaseGetPhysicalCard({
         }
 
         const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
-        const physicalCard = _.find(domainCards, (card) => !card.isVirtual);
+        const physicalCard = domainCards.find((card) => !card?.isVirtual);
 
         // When there are no cards for the specified domain, user is redirected to the wallet page
         if (domainCards.length === 0) {
@@ -169,7 +130,7 @@ function BaseGetPhysicalCard({
         }
 
         if (!draftValues) {
-            const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues({}, privatePersonalDetails, loginList);
+            const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(null, privatePersonalDetails, loginList);
             // Form draft data needs to be initialized with the private personal details
             // If no draft data exists
             FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
@@ -187,9 +148,10 @@ function BaseGetPhysicalCard({
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
-            const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
-            const cardID = physicalCard.cardID;
-            Wallet.requestPhysicalExpensifyCard(cardID, authToken, updatedPrivatePersonalDetails);
+            const physicalCard = domainCards.find((card) => !card?.isVirtual);
+            const cardID = physicalCard?.cardID ?? 0;
+
+            Wallet.requestPhysicalExpensifyCard(cardID, session?.authToken ?? '', updatedPrivatePersonalDetails);
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx
             FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
@@ -197,7 +159,7 @@ function BaseGetPhysicalCard({
             return;
         }
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails, loginList);
-    }, [authToken, cardList, domain, draftValues, isConfirmation, loginList]);
+    }, [cardList, domain, draftValues, isConfirmation, loginList, session?.authToken]);
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -209,16 +171,14 @@ function BaseGetPhysicalCard({
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             />
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
-            {renderContent(onSubmit, submitButtonText, styles, children, onValidate)}
+            {renderContent({onSubmit, submitButtonText, children, onValidate})}
         </ScreenWrapper>
     );
 }
 
-BaseGetPhysicalCard.defaultProps = defaultProps;
 BaseGetPhysicalCard.displayName = 'BaseGetPhysicalCard';
-BaseGetPhysicalCard.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<BaseGetPhysicalCardProps, BaseGetPhysicalCardOnyxProps>({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
     },
@@ -232,6 +192,8 @@ export default withOnyx({
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
     draftValues: {
-        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
+        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
     },
 })(BaseGetPhysicalCard);
+
+export type {RenderContentProps};
