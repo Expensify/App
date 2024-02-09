@@ -9,7 +9,7 @@ type AddWorkspaceRoomParams = {
     reportName?: string;
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
     writeCapability?: WriteCapability;
-    welcomeMessage?: string;
+    description?: string;
 };
 
 export default AddWorkspaceRoomParams;

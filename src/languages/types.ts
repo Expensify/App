@@ -113,7 +113,7 @@ type SplitAmountParams = {amount: number};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: number};
+type AmountEachParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string};
 
@@ -162,8 +162,6 @@ type NotYouParams = {user: string};
 type DateShouldBeBeforeParams = {dateString: string};
 
 type DateShouldBeAfterParams = {dateString: string};
-
-type IncorrectZipFormatParams = {zipFormat?: string};
 
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
@@ -315,7 +313,6 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,

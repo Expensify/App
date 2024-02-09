@@ -121,6 +121,9 @@ const propTypes = {
 
     /** All the report actions belonging to the report's parent */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Callback to be called on onPress */
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -132,6 +135,7 @@ const defaultProps = {
     shouldHideThreadDividerLine: false,
     userWallet: {},
     parentReportActions: {},
+    onPress: undefined,
 };
 
 function ReportActionItem(props) {
@@ -246,12 +250,12 @@ function ReportActionItem(props) {
         }
 
         setModerationDecision(latestDecision);
-        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision)) {
+        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision) && !ReportActionsUtils.isPendingRemove(props.action)) {
             setIsHidden(true);
             return;
         }
         setIsHidden(false);
-    }, [latestDecision, props.action.actionName]);
+    }, [latestDecision, props.action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -386,7 +390,6 @@ function ReportActionItem(props) {
                     <TaskPreview
                         taskReportID={props.action.originalMessage.taskReportID.toString()}
                         chatReportID={props.report.reportID}
-                        policyID={ReportUtils.getRootParentReport(props.report).policyID}
                         action={props.action}
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef}
@@ -452,7 +455,9 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else {
-            const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
+            const hasBeenFlagged =
+                !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
+                !ReportActionsUtils.isPendingRemove(props.action);
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     {_.isUndefined(props.draftMessage) ? (
@@ -594,7 +599,10 @@ function ReportActionItem(props) {
                     report={props.report}
                     iouReport={props.iouReport}
                     isHovered={hovered}
-                    hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
+                    hasBeenFlagged={
+                        !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
+                        !ReportActionsUtils.isPendingRemove(props.action)
+                    }
                 >
                     {content}
                 </ReportActionItemSingle>
@@ -619,7 +627,7 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -631,11 +639,11 @@ function ReportActionItem(props) {
                             </ReportActionItemSingle>
                             <View style={styles.reportHorizontalRule} />
                         </View>
-                    </>
+                    </View>
                 );
             }
             return (
-                <>
+                <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                         <TaskView
@@ -643,7 +651,7 @@ function ReportActionItem(props) {
                             shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                         />
                     </View>
-                </>
+                </View>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
@@ -700,6 +708,7 @@ function ReportActionItem(props) {
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
+            onPress={props.onPress}
             style={[props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
