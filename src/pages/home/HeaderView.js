@@ -71,7 +71,7 @@ const propTypes = {
         avatar: PropTypes.string,
 
         /** The id of the policy */
-        id: PropTypes.number,
+        id: PropTypes.string,
     }),
 
     /** The reportID of the request */
@@ -427,7 +427,7 @@ export default memo(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-            // selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction, description']),
+            selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction', 'description']),
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

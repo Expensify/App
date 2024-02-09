@@ -1691,7 +1691,6 @@ export default {
         },
         editor: {
             descriptionInputLabel: 'Descripción del espacio de trabajo',
-            descriptionInputHelpText: 'Esta es una breve descripción de su espacio de trabajo.',
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',

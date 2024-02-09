@@ -1668,7 +1668,6 @@ export default {
         },
         editor: {
             descriptionInputLabel: 'Workspace description',
-            descriptionInputHelpText: 'This is a brief description of your workspace.',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
