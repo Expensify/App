@@ -188,34 +188,11 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             const verb = isManager ? 'review' : 'approve';
 
-            // Self review & another reviewer
+            // Another owner
             optimisticNextStep = {
                 type,
                 title: 'Next Steps:',
                 message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: managerDisplayName,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: verb,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
-
-            // Another owner
-            if (!isOwner) {
-                optimisticNextStep.message = [
                     {
                         text: ownerLogin,
                         type: 'strong',
@@ -236,6 +213,29 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
                     },
                     {
                         text: ' these %expenses.',
+                    },
+                ],
+            };
+
+            // Self review & another reviewer
+            if (isOwner) {
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: managerDisplayName,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: verb,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
                     },
                 ];
             }
