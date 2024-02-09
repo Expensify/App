@@ -1,6 +1,6 @@
 import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
 
@@ -9,9 +9,9 @@ type StackState = StackNavigationState<ParamListBase> | PartialState<StackNaviga
 const isAtLeastOneInState = (state: StackState, screenName: string): boolean => !!state.routes.find((route) => route.name === screenName);
 
 function adaptStateIfNecessary(state: StackState) {
-    const isSmallScreenWidth = getIsSmallScreenWidth();
+    const isNarrowLayout = getIsNarrowLayout();
 
-    // There always should be SETTINGS.ROOT screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
+    // There should always be SETTINGS.ROOT screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
     if (!isAtLeastOneInState(state, SCREENS.SETTINGS.ROOT)) {
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
@@ -27,7 +27,7 @@ function adaptStateIfNecessary(state: StackState) {
     // If the screen is wide, there should be at least two screens inside:
     // - SETINGS.ROOT to cover left pane.
     // - SETTINGS_CENTRAL_PANE to cover central pane.
-    if (!isSmallScreenWidth) {
+    if (!isNarrowLayout) {
         if (!isAtLeastOneInState(state, SCREENS.SETTINGS_CENTRAL_PANE)) {
             // @ts-expect-error Updating read only property
             // noinspection JSConstantReassignment

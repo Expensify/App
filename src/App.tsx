@@ -1,5 +1,4 @@
 import {PortalProvider} from '@gorhom/portal';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -32,14 +31,11 @@ import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
+import type {Route} from './ROUTES';
 
-const propTypes = {
-    /** Initial url that may be passed as deeplink from Hybrid App */
-    url: PropTypes.string,
-};
-
-const defaultProps = {
-    url: undefined,
+type AppProps = {
+    /** If we have an authToken this is true */
+    url?: Route;
 };
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
@@ -57,7 +53,7 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-function App({url}) {
+function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (
@@ -88,6 +84,7 @@ function App({url}) {
                     <CustomStatusBarAndBackground />
                     <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                         <ColorSchemeWrapper>
+                            {/* @ts-expect-error TODO: Remove this once Expensify (https://github.com/Expensify/App/issues/25231) is migrated to TypeScript. */}
                             <Expensify />
                         </ColorSchemeWrapper>
                     </ErrorBoundary>
@@ -97,8 +94,6 @@ function App({url}) {
     );
 }
 
-App.propTypes = propTypes;
-App.defaultProps = defaultProps;
 App.displayName = 'App';
 
 export default App;

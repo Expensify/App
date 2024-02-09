@@ -139,7 +139,7 @@ function IOURequestStepDistance({
         }
 
         if (_.size(validatedWaypoints) < 2) {
-            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
+            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
     };
 
