@@ -106,11 +106,7 @@ function MoneyRequestView({
     } = ReportUtils.getTransactionDetails(transaction) ?? {};
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
-    if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
-        formattedTransactionAmount = translate('common.tbd');
-    }
+    const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -156,10 +152,11 @@ function MoneyRequestView({
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable);
+            // @ts-expect-error: the type used across the app for policyTags is not what is returned by Onyx, PolicyTagList represents that, but existing policy tag utils need a refactor to fix this
+            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transaction, report],
+        [transaction, report, policy, policyTags, policyCategories],
     );
 
     if (isCardTransaction) {
@@ -268,7 +265,17 @@ function MoneyRequestView({
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.REQUEST,
+                                    transaction?.transactionID ?? '',
+                                    report.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         numberOfLinesTitle={0}
@@ -279,7 +286,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={hasPendingWaypoints ? transactionMerchant?.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
+                            title={transactionMerchant}
                             interactive={canEditDistance}
                             shouldShowRightIcon={canEditDistance}
                             titleStyle={styles.flex1}
@@ -295,8 +302,12 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant && isPolicyExpenseChat) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={
+                                hasViolations('merchant') || (!isSettled && !isCancelled && hasErrors && isEmptyMerchant && isPolicyExpenseChat)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined
+                            }
+                            error={!isSettled && !isCancelled && hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
@@ -336,7 +347,9 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                            }
                             brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
