@@ -25,7 +25,6 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -382,8 +381,6 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Start a call',
-        zoom: 'Zoom',
-        googleMeet: 'Google Meet',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -603,7 +600,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
-        payElsewhere: 'Pay elsewhere',
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
@@ -906,6 +903,9 @@ export default {
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
         composerLabel: 'Notes',
         myNote: 'My note',
+        error: {
+            genericFailureMessage: "Private notes couldn't be saved",
+        },
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -1175,7 +1175,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
