@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as OnyxTypes from './types/onyx';
@@ -110,6 +110,12 @@ const ONYXKEYS = {
     /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
+    /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
+    NVP_HAS_DISMISSED_IDLE_PANEL: 'hasDismissedIdlePanel',
+
+    /** This NVP contains the choice that the user made on the engagement modal */
+    NVP_INTRO_SELECTED: 'introSelected',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -166,9 +172,6 @@ const ONYXKEYS = {
 
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
-
-    /** Stores draft information about the active reimbursement account being set up */
-    REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft',
 
     /** Store preferred skintone for emoji */
     PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
@@ -240,6 +243,15 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    // Stores last visited path
+    LAST_VISITED_PATH: 'lastVisitedPath',
+
+    // Stores the recently used report fields
+    RECENTLY_USED_REPORT_FIELDS: 'recentlyUsedReportFields',
+
+    /** Indicates whether an forced upgrade is required */
+    UPDATE_REQUIRED: 'updateRequired',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -253,7 +265,6 @@ const ONYXKEYS = {
         POLICY_TAX_RATE: 'policyTaxRates_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         POLICY_REPORT_FIELDS: 'policyReportFields_',
-        POLICY_RECENTLY_USED_REPORT_FIELDS: 'policyRecentlyUsedReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
@@ -302,8 +313,8 @@ const ONYXKEYS = {
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
-        WELCOME_MESSAGE_FORM: 'welcomeMessageForm',
-        WELCOME_MESSAGE_FORM_DRAFT: 'welcomeMessageFormDraft',
+        REPORT_DESCRIPTION_FORM: 'reportDescriptionForm',
+        REPORT_DESCRIPTION_FORM_DRAFT: 'reportDescriptionFormDraft',
         LEGAL_NAME_FORM: 'legalNameForm',
         LEGAL_NAME_FORM_DRAFT: 'legalNameFormDraft',
         WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
@@ -350,13 +361,19 @@ const ONYXKEYS = {
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
         GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
         GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
+        REPORT_FIELD_EDIT_FORM: 'reportFieldEditForm',
+        REPORT_FIELD_EDIT_FORM_DRAFT: 'reportFieldEditFormDraft',
+        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
+        PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
+        PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
     },
 } as const;
 
 type OnyxKeysMap = typeof ONYXKEYS;
 type OnyxCollectionKey = ValueOf<OnyxKeysMap['COLLECTION']>;
 type OnyxKey = DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>>;
-type OnyxFormKey = ValueOf<OnyxKeysMap['FORMS']> | OnyxKeysMap['REIMBURSEMENT_ACCOUNT'] | OnyxKeysMap['REIMBURSEMENT_ACCOUNT_DRAFT'];
+type OnyxFormKey = ValueOf<OnyxKeysMap['FORMS']>;
 
 type OnyxValues = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
@@ -391,8 +408,10 @@ type OnyxValues = {
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
-    [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
+    [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
+    [ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL]: boolean;
+    [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
@@ -409,7 +428,6 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
-    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT]: OnyxTypes.ReimbursementAccountDraft;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: string | number;
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
@@ -432,18 +450,20 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
+    [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
+    [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
+    [ONYXKEYS.UPDATE_REQUIRED]: boolean;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
-    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategory;
+    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportField;
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
+    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
@@ -459,29 +479,30 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
+    [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
-    [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM_DRAFT]: OnyxTypes.AddDebitCardForm;
-    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: OnyxTypes.WorkspaceSettingsForm;
+    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM_DRAFT]: OnyxTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: OnyxTypes.CloseAccountForm;
+    [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM_DRAFT]: OnyxTypes.CloseAccountForm;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.ROOM_NAME_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.ROOM_NAME_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: OnyxTypes.DisplayNameForm;
+    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.DisplayNameForm;
+    [ONYXKEYS.FORMS.ROOM_NAME_FORM]: OnyxTypes.RoomNameForm;
+    [ONYXKEYS.FORMS.ROOM_NAME_FORM_DRAFT]: OnyxTypes.RoomNameForm;
+    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: OnyxTypes.Form;
@@ -490,8 +511,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM_DRAFT]: OnyxTypes.DateOfBirthForm;
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.NEW_ROOM_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.NEW_ROOM_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.NEW_ROOM_FORM]: OnyxTypes.NewRoomForm;
+    [ONYXKEYS.FORMS.NEW_ROOM_FORM_DRAFT]: OnyxTypes.NewRoomForm;
     [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.NEW_TASK_FORM]: OnyxTypes.Form;
@@ -516,18 +537,25 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: OnyxTypes.PrivateNotesForm;
+    [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM_DRAFT]: OnyxTypes.PrivateNotesForm;
+    [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: OnyxTypes.IKnowATeacherForm;
+    [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM_DRAFT]: OnyxTypes.IKnowATeacherForm;
+    [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: OnyxTypes.IntroSchoolPrincipalForm;
+    [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM_DRAFT]: OnyxTypes.IntroSchoolPrincipalForm;
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form | undefined;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: OnyxTypes.ReportFieldEditForm;
+    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
+    // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
+    [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT]: OnyxTypes.PersonalBankAccount;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

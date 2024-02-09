@@ -132,9 +132,9 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
             return;
         }
         initializeAmount(amount);
-        // we want to re-initialize the state only when the selected tab changes
+        // we want to re-initialize the state only when the selected tab or amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab]);
+    }, [selectedTab, amount]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -228,12 +228,12 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         if (isAmountInvalid(currentAmount)) {
-            setFormError(translate('iou.error.invalidAmount'));
+            setFormError('iou.error.invalidAmount');
             return;
         }
 
         if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
-            setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+            setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
             return;
         }
 
@@ -243,7 +243,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
         initializeAmount(backendAmount);
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.

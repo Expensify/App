@@ -22,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
@@ -74,7 +73,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
-        comment: transactionDescription,
         merchant: transactionMerchant,
         category: transactionCategory,
         tag: transactionTag,
@@ -109,12 +107,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
             Navigation.dismissModal();
         });
     }, [parentReportAction, fieldToEdit]);
-
-    // Update the transaction object and close the modal
-    function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
-        Navigation.dismissModal(report.reportID);
-    }
 
     const saveAmountAndCurrency = useCallback(
         ({amount, currency: newCurrency}) => {
@@ -176,25 +168,15 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         [transactionTag, transaction.transactionID, report.reportID],
     );
 
-    const saveComment = useCallback(
-        ({comment: newComment}) => {
-            // Only update comment if it has changed
-            if (newComment.trim() !== transactionDescription) {
-                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
-            }
+    const saveCategory = useCallback(
+        ({category: newCategory}) => {
+            // In case the same category has been selected, reset the category.
+            const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
             Navigation.dismissModal();
         },
-        [transactionDescription, transaction.transactionID, report.reportID],
+        [transactionCategory, transaction.transactionID, report.reportID],
     );
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
-        return (
-            <EditRequestDescriptionPage
-                defaultDescription={transactionDescription}
-                onSubmit={saveComment}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
@@ -235,14 +217,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
             <EditRequestCategoryPage
                 defaultCategory={transactionCategory}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={(transactionChanges) => {
-                    let updatedCategory = transactionChanges.category;
-                    // In case the same category has been selected, do reset of the category.
-                    if (transactionCategory === updatedCategory) {
-                        updatedCategory = '';
-                    }
-                    editMoneyRequest({category: updatedCategory});
-                }}
+                onSubmit={saveCategory}
             />
         );
     }

@@ -13,9 +13,10 @@ export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidation
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  *
  * @param {String} subStep
+ * @returns {Promise<void>}
  */
 function setBankAccountSubStep(subStep) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 
 function hideBankAccountErrors() {
@@ -30,7 +31,7 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
  * @param {Object} bankAccountData
  */
 function updateReimbursementAccountDraft(bankAccountData) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
+    Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, bankAccountData);
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {draftStep: undefined});
 }
 

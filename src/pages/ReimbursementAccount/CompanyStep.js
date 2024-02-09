@@ -162,7 +162,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 onBackButtonPress={onBackButtonPress}
             />
             <FormProvider
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled
@@ -220,7 +220,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     containerStyles={[styles.mt4]}
                     defaultValue={getDefaultStateForField('website', defaultWebsite)}
                     shouldSaveDraft
-                    hint={translate('common.websiteExample')}
+                    hint="common.websiteExample"
                     inputMode={CONST.INPUT_MODE.URL}
                 />
                 <InputWrapper

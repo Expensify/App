@@ -18,6 +18,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
@@ -56,7 +57,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Field-specific pending states for offline UI status */
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -192,7 +193,7 @@ function ExpensifyCardPage({
                             <DotIndicatorMessage
                                 style={styles.pageWrapper}
                                 textStyles={styles.walletLockedMessage}
-                                messages={{0: translate('cardPage.cardLocked')}}
+                                messages={{0: 'cardPage.cardLocked'}}
                                 type="error"
                             />
                         ) : null}
@@ -226,7 +227,7 @@ function ExpensifyCardPage({
                                         {details.pan ? (
                                             <CardDetails
                                                 pan={details.pan}
-                                                expiration={details.expiration}
+                                                expiration={CardUtils.formatCardExpiration(details.expiration)}
                                                 cvv={details.cvv}
                                                 privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
@@ -235,7 +236,7 @@ function ExpensifyCardPage({
                                             <>
                                                 <MenuItemWithTopDescription
                                                     description={translate('cardPage.virtualCardNumber')}
-                                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                                    title={CardUtils.maskCard('')}
                                                     interactive={false}
                                                     titleStyle={styles.walletCardNumber}
                                                     shouldShowRightComponent
@@ -271,7 +272,7 @@ function ExpensifyCardPage({
                                             description={translate('cardPage.physicalCardNumber')}
                                             title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                             interactive={false}
-                                            titleStyle={styles.walletCardMenuItem}
+                                            titleStyle={styles.walletCardNumber}
                                         />
                                         <MenuItem
                                             title={translate('reportCardLostOrDamaged.report')}

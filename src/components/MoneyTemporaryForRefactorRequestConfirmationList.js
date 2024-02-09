@@ -36,6 +36,7 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
@@ -283,9 +284,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
-    const isDistanceRequestWithoutRoute = isDistanceRequest && !hasRoute;
-    const formattedAmount = isDistanceRequestWithoutRoute
-        ? translate('common.tbd')
+    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate);
+    const formattedAmount = isDistanceRequestWithPendingRoute
+        ? ''
         : CurrencyUtils.convertToDisplayString(
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
@@ -375,7 +376,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         let text;
         if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.split');
-        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
+        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
             if (iouAmount !== 0) {
                 text = translate('iou.requestAmount', {amount: formattedAmount});
@@ -390,7 +391,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeSplit, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate]);
+    }, [isTypeSplit, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(pickedParticipants, (participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails || currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
@@ -472,9 +473,17 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (!isDistanceRequest) {
             return;
         }
+
+        /*
+         Set pending waypoints based on the route status. We should handle this dynamically to cover cases such as:
+         When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
+         In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
+        */
+        IOU.setMoneyRequestPendingFields(transaction.transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
+
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant_temporaryForRefactor(transaction.transactionID, distanceMerchant);
-    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
     /**
      * @param {Object} option
@@ -529,7 +538,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             } else {
                 // validate the amount for distance requests
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
-                if (isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
+                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
@@ -554,7 +563,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            isDistanceRequestWithoutRoute,
+            isDistanceRequestWithPendingRoute,
             iouAmount,
             isEditingSplitBill,
             onConfirm,
@@ -588,6 +597,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
+                enterKeyEventListenerPriority={1}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -596,6 +606,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                enterKeyEventListenerPriority={1}
             />
         );
 
@@ -605,13 +616,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, translate]);
+    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
     return (
@@ -638,7 +649,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {(receiptImage || receiptThumbnail) && (
+            {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptThumbnail || receiptImage}}
@@ -647,6 +658,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
+            ) : (
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(policy) &&
+                !isDistanceRequest &&
+                iouType === CONST.IOU.TYPE.REQUEST && (
+                    <ReceiptEmptyState
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            )
+                        }
+                    />
+                )
             )}
             {shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
@@ -677,11 +701,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 title={iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    if (isEditingSplitBill) {
-                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                    );
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -799,16 +821,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={iouTag}
+                            title={PolicyUtils.getCleanedTagName(iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
                             }
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
+                            rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTax && (

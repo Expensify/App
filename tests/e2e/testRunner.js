@@ -335,7 +335,19 @@ const runTests = async () => {
             await killApp('android', config.MAIN_APP_PACKAGE);
 
             Logger.log('Starting main app');
-            await launchApp('android', config.MAIN_APP_PACKAGE);
+            await launchApp('android', config.MAIN_APP_PACKAGE, config.ACTIVITY_PATH, {
+                mockNetwork: true,
+            });
+
+            const onError = (e) => {
+                testLog.done();
+                if (i === 0) {
+                    // If the error happened on the first test run, the test is broken
+                    // and we should not continue running it
+                    throw e;
+                }
+                console.error(e);
+            };
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -350,16 +362,16 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
 
             Logger.log('Killing main app');
             await killApp('android', config.MAIN_APP_PACKAGE);
 
             Logger.log('Starting delta app');
-            await launchApp('android', config.DELTA_APP_PACKAGE);
+            await launchApp('android', config.DELTA_APP_PACKAGE, config.ACTIVITY_PATH, {
+                mockNetwork: true,
+            });
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -374,9 +386,7 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
         }
         testLog.done();

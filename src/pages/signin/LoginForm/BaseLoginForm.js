@@ -28,6 +28,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -90,6 +91,8 @@ const defaultProps = {
     innerRef: () => {},
     isInModal: false,
 };
+
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function LoginForm(props) {
     const styles = useThemeStyles();
@@ -256,9 +259,8 @@ function LoginForm(props) {
         },
     }));
 
-    const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
-    const shouldShowServerError = !_.isEmpty(serverErrorText) && _.isEmpty(formErrorText);
+    const shouldShowServerError = !_.isEmpty(serverErrorText) && _.isEmpty(formError);
 
     return (
         <>
@@ -276,30 +278,40 @@ function LoginForm(props) {
                     textContentType="username"
                     id="username"
                     name="username"
-                    onBlur={() => {
-                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                            return;
-                        }
-                        firstBlurred.current = true;
-                        validate(login);
-                    }}
+                    testID="username"
+                    onBlur={
+                        // As we have only two signin buttons (Apple/Google) other than the text input,
+                        // for natives onBlur is called only when the buttons are pressed and we don't need
+                        // to validate in those case as the user has opted for other signin flow.
+                        willBlurTextInputOnTapOutside
+                            ? () =>
+                                  // This delay is to avoid the validate being called before google iframe is rendered to
+                                  // avoid error message appearing after pressing google signin button.
+                                  setTimeout(() => {
+                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                          return;
+                                      }
+                                      firstBlurred.current = true;
+                                      validate(login);
+                                  }, 500)
+                            : undefined
+                    }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formErrorText}
+                    errorText={formError || ''}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
             {!_.isEmpty(props.closeAccount.success || props.account.message) && (
-                // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    messages={{0: props.closeAccount.success || props.account.message}}
+                    messages={{0: props.closeAccount.success ? [props.closeAccount.success, {isTranslated: true}] : props.account.message}}
                 />
             )}
             {
@@ -332,10 +344,10 @@ function LoginForm(props) {
                                     </Text>
 
                                     <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <AppleSignIn />
                                         </View>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <GoogleSignIn />
                                         </View>
                                     </View>

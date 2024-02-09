@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ForwardedRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -34,7 +35,7 @@ type AmountTextInputProps = {
 
 function AmountTextInput(
     {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress}: AmountTextInputProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     return (
@@ -42,6 +43,7 @@ function AmountTextInput(
             disableKeyboard
             autoGrow
             hideFocusedState
+            shouldInterceptSwipe
             inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, style]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={onChangeAmount}
