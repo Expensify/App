@@ -1681,15 +1681,11 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 
 /**
  * Navigates to the 1:1 report with Concierge
- *
- * @param ignoreConciergeReportID - Flag to ignore conciergeChatReportID during navigation. The default behavior is to not ignore.
  */
-function navigateToConciergeChat(ignoreConciergeReportID = false, shouldDismissModal = false) {
+function navigateToConciergeChat(shouldDismissModal = false) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
-    // Now, when user performs sign-out and a sign-in again, conciergeChatReportID may contain a stale value.
-    // In order to prevent navigation to a stale value, we use ignoreConciergeReportID to forcefully find and navigate to concierge chat.
-    if (!conciergeChatReportID || ignoreConciergeReportID) {
+    if (!conciergeChatReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
