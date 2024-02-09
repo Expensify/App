@@ -1826,6 +1826,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string) {
 }
 
 /**
+ * @param policyRoomReport The policy room report
  * @param policyRoomName The updated name for the policy room
  */
 function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomName: string) {
@@ -1837,6 +1838,8 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
+
+    const optimisticRenamedAction = ReportUtils.buildOptimisticRenamedRoomReportAction(policyRoomName, previousName ?? '');
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1852,6 +1855,13 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRenamedAction.reportActionID]: optimisticRenamedAction,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -1863,6 +1873,11 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticRenamedAction.reportActionID]: {pendingAction: null}},
+        },
     ];
     const failureData: OnyxUpdate[] = [
         {
@@ -1872,9 +1887,18 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
                 reportName: previousName,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticRenamedAction.reportActionID]: null},
+        },
     ];
 
-    const parameters: UpdatePolicyRoomNameParams = {reportID, policyRoomName};
+    const parameters: UpdatePolicyRoomNameParams = {
+        reportID,
+        policyRoomName,
+        renamedRoomReportActionID: optimisticRenamedAction.reportActionID,
+    };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
