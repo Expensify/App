@@ -351,7 +351,7 @@ function HeaderView(props) {
                                                         Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(props.report.policyID));
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.policy.id));
+                                                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));
                                                 }}
                                                 style={[styles.alignSelfStart, styles.mw100]}
                                                 accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
@@ -427,7 +427,6 @@ export default memo(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-            selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction', 'description']),
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
