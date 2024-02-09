@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import {Video} from 'expo-av';
+import {Video, VideoFullscreenUpdate} from 'expo-av';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -45,7 +45,7 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef(null);
     const videoPlayerElementRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
-    const [sourceURL] = useState(url.includes('blob:') ? url : addEncryptedAuthTokenToURL(url));
+    const [sourceURL] = useState(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -162,7 +162,6 @@ function BaseVideoPlayer({
                                         source={{
                                             uri: sourceURL,
                                         }}
-                                        togglePlayCurrentVideo={togglePlayCurrentVideo}
                                         shouldPlay={false}
                                         useNativeControls={false}
                                         resizeMode={resizeMode}
@@ -172,7 +171,7 @@ function BaseVideoPlayer({
                                         onFullscreenUpdate={(event) => {
                                             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
                                             // the fullscreen mode while playing, the video pauses
-                                            if (!event.status.isPlaying) {
+                                            if (event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                                                 return;
                                             }
                                             playVideo();
