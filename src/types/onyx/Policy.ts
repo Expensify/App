@@ -81,9 +81,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The scheduled submit frequency set up on this policy */
         autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-        /** @deprecated Whether the scheduled submit is enabled */
-        isHarvestingEnabled?: boolean;
-
         /** Whether the scheduled submit is enabled */
         harvesting?: {
             enabled: boolean;
