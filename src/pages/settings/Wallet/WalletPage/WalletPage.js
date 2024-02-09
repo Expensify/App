@@ -343,8 +343,6 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                         icon={Illustrations.MoneyIntoWallet}
                         shouldShowBackButton={isSmallScreenWidth}
-                        icon={Illustrations.MoneyIntoWallet}
-                        isCentralPaneSettings
                     />
                     <ScrollView>
                         <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -514,13 +512,13 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         anchorRef={paymentMethodButtonRef}
                     >
                         {!showConfirmDeleteModal && (
-                            <View style={[styles.mv3, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
+                            <View style={[styles.mv5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title || ''}
                                         icon={paymentMethod.formattedSelectedPaymentMethod.icon}
                                         description={paymentMethod.formattedSelectedPaymentMethod.description}
-                                        wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
+                                        wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
                                         interactive={false}
                                     />
                                 )}
@@ -532,14 +530,14 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                             makeDefaultPaymentMethod();
                                             setShouldShowDefaultDeleteMenu(false);
                                         }}
-                                        wrapperStyle={[styles.pv3, styles.ph5, styles.mh0, !isSmallScreenWidth ? styles.sidebarPopover : '']}
+                                        wrapperStyle={[styles.pv3, styles.ph5, !isSmallScreenWidth ? styles.sidebarPopover : '']}
                                     />
                                 )}
                                 <MenuItem
                                     title={translate('common.delete')}
                                     icon={Expensicons.Trashcan}
                                     onPress={() => setShowConfirmDeleteModal(true)}
-                                    wrapperStyle={[styles.pv3, styles.ph5, styles.mh0, !isSmallScreenWidth ? styles.sidebarPopover : '']}
+                                    wrapperStyle={[styles.pv3, styles.ph5, !isSmallScreenWidth ? styles.sidebarPopover : '']}
                                 />
                             </View>
                         )}

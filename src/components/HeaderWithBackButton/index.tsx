@@ -58,7 +58,6 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
-    isCentralPaneSettings = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
