@@ -76,9 +76,6 @@ type Policy = {
     /** The custom units data for this policy */
     customUnits?: Record<string, CustomUnit>;
 
-    /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    areChatRoomsEnabled: boolean;
-
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
 
@@ -87,9 +84,6 @@ type Policy = {
 
     /** The scheduled submit frequency set up on this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
-
-    /** @deprecated Whether the scheduled submit is enabled */
-    isHarvestingEnabled?: boolean;
 
     /** Whether the scheduled submit is enabled */
     harvesting?: {

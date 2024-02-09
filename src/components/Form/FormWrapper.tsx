@@ -5,7 +5,7 @@ import {Keyboard, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormSubmit from '@components/FormSubmit';
+import FormElement from '@components/FormElement';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
@@ -54,6 +54,7 @@ function FormWrapper({
     formID,
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
+    disablePressOnEnter = true,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<ScrollView>(null);
@@ -93,11 +94,10 @@ function FormWrapper({
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle: SafeAreaChildrenProps['safeAreaPaddingBottomStyle']) => (
-            <FormSubmit
+            <FormElement
                 key={formID}
                 ref={formContentRef}
                 style={[style, safeAreaPaddingBottomStyle]}
-                onSubmit={onSubmit}
             >
                 <View style={{flex: 1}}>{children}</View>
                 {isSubmitButtonVisible && (
@@ -112,10 +112,10 @@ function FormWrapper({
                         containerStyles={[styles.mh0, styles.mt5, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
-                        disablePressOnEnter
+                        disablePressOnEnter={disablePressOnEnter}
                     />
                 )}
-            </FormSubmit>
+            </FormElement>
         ),
         [
             children,
@@ -136,6 +136,7 @@ function FormWrapper({
             submitButtonText,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,
+            disablePressOnEnter,
         ],
     );
 
