@@ -2596,11 +2596,22 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        accountSettingsSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
             height: 56,
             alignItems: 'center',
+        },
+
+        sectionMenuItemTopDescription: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
         },
 
         selectCircle: {
@@ -3377,7 +3388,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            lineHeight: variables.lineHeightXXLarge,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         cardMenuItem: {

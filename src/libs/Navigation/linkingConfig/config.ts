@@ -190,24 +190,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS,
+                        [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: {
+                            path: ROUTES.SETTINGS_LEGAL_NAME,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
+                        [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: {
+                            path: ROUTES.SETTINGS_DATE_OF_BIRTH,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
+                            path: ROUTES.SETTINGS_ADDRESS,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
+                            path: ROUTES.SETTINGS_ADDRESS_COUNTRY.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
