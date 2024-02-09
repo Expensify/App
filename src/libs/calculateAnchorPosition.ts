@@ -15,7 +15,7 @@ type AnchorOrigin = {
  */
 export default function calculateAnchorPosition(anchorComponent: ContextMenuAnchor, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition> {
     return new Promise((resolve) => {
-        if (!anchorComponent || 'measureInWindow' in anchorComponent === false) {
+        if (!anchorComponent || !('measureInWindow' in anchorComponent)) {
             return resolve({horizontal: 0, vertical: 0});
         }
         anchorComponent.measureInWindow((x, y, width, height) => {
