@@ -19,6 +19,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -213,6 +214,8 @@ function ReportPreview({
         ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
+    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
+    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
         [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport],
@@ -221,8 +224,11 @@ function ReportPreview({
         if (!isPaidGroupPolicy) {
             return false;
         }
+        if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+            return false;
+        }
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
+    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     /*

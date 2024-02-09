@@ -1,25 +1,30 @@
 import React from 'react';
+import type {TextStyle} from 'react-native';
 import {splitBoxModelStyle} from 'react-native-render-html';
-import _ from 'underscore';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
 import useStyleUtils from '@hooks/useStyleUtils';
-import htmlRendererPropTypes from './htmlRendererPropTypes';
 
-function CodeRenderer(props) {
+type CodeRendererProps = CustomRendererProps<TText | TPhrasing> & {
+    /** Key of the element */
+    key?: string;
+};
+
+function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: CodeRendererProps) {
     const StyleUtils = useStyleUtils();
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
+    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style ?? {});
 
-    // Get the correct fontFamily variant based in the fontStyle and fontWeight
+    /** Get the default fontFamily variant */
     const font = StyleUtils.getFontFamilyMonospace({
-        fontStyle: textStyle.fontStyle,
-        fontWeight: textStyle.fontWeight,
+        fontStyle: undefined,
+        fontWeight: undefined,
     });
 
     // Determine the font size for the code based on whether it's inside an H1 element.
-    const isInsideH1 = HTMLEngineUtils.isChildOfH1(props.tnode);
+    const isInsideH1 = HTMLEngineUtils.isChildOfH1(defaultRendererProps.tnode);
 
     const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
 
@@ -34,20 +39,17 @@ function CodeRenderer(props) {
         fontStyle: undefined,
     };
 
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
-
     return (
         <InlineCodeBlock
-            defaultRendererProps={defaultRendererProps}
-            TDefaultRenderer={props.TDefaultRenderer}
+            defaultRendererProps={{...defaultRendererProps, style: style as TextStyle}}
+            TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}
-            key={props.key}
+            key={key}
         />
     );
 }
 
-CodeRenderer.propTypes = htmlRendererPropTypes;
 CodeRenderer.displayName = 'CodeRenderer';
 
 export default CodeRenderer;
