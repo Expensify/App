@@ -396,14 +396,14 @@ function WorkspaceMembersPage(props) {
     };
     const data = getMemberOptions();
 
-    const getHeaderMessage = () => {
+    const renderHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
             return props.translate('workspace.common.mustBeOnlineToViewMembers');
         }
         return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
-    const getHeaderContent = () => {
+    const renderHeaderContent = () => {
         if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
             return null;
         }
@@ -417,7 +417,7 @@ function WorkspaceMembersPage(props) {
         );
     };
 
-    const getHeaderButtons = () => (
+    const renderHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow]}>
             <Button
                 medium
@@ -461,11 +461,11 @@ function WorkspaceMembersPage(props) {
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!isSmallScreenWidth && renderHeaderButtons()}
                 </HeaderWithBackButton>
                 {isSmallScreenWidth && (
                     <View style={[styles.pl5, styles.pr5]}>
-                        {getHeaderButtons()}
+                        {renderHeaderButtons()}
                     </View>
                 )}
                 <ConfirmModal
@@ -497,8 +497,8 @@ function WorkspaceMembersPage(props) {
                             setSearchValue(value);
                         }}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        headerMessage={getHeaderMessage()}
-                        headerContent={getHeaderContent()}
+                        headerMessage={renderHeaderMessage()}
+                        headerContent={renderHeaderContent()}
                         onSelectRow={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
