@@ -128,6 +128,20 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    const defaultCategory = lodashGet(
+        _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
+        'defaultCategory',
+        '',
+    );
+    useEffect(() => {
+        if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
+            return;
+        }
+        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+        // Prevent resetting to default when unselect category
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactionID, requestType, defaultCategory]);
+
     const navigateBack = useCallback(() => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
@@ -289,26 +303,33 @@ function IOURequestStepConfirmation({
             }
 
             if (receiptFile) {
-                getCurrentPosition(
-                    (successData) => {
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile, {
-                            lat: successData.coords.latitude,
-                            long: successData.coords.longitude,
-                        });
-                    },
-                    (errorData) => {
-                        Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile);
-                    },
-                    {
-                        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                        maximumAge: 1000 * 60 * 60,
+                // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
+                if (transaction.amount === 0) {
+                    getCurrentPosition(
+                        (successData) => {
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile, {
+                                lat: successData.coords.latitude,
+                                long: successData.coords.longitude,
+                            });
+                        },
+                        (errorData) => {
+                            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile);
+                        },
+                        {
+                            // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                            maximumAge: 1000 * 60 * 60,
 
-                        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                        timeout: 15000,
-                    },
-                );
+                            // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+                            timeout: 15000,
+                        },
+                    );
+                    return;
+                }
+
+                // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
+                requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -419,7 +440,7 @@ function IOURequestStepConfirmation({
                             iouMerchant={transaction.merchant}
                             iouCreated={transaction.created}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                            shouldShowSmartScanFields={_.isEmpty(lodashGet(transaction, 'receipt.source', ''))}
+                            shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
                     )}
                 </View>
