@@ -183,7 +183,6 @@ function SuggestionEmoji({
         [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
-
     const onSelectionChange = useCallback(
         (e) => {
             /**

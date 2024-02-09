@@ -1,5 +1,5 @@
 import {Portal} from '@gorhom/portal';
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import BaseAutoCompleteSuggestions from '../BaseAutoCompleteSuggestions';
@@ -12,7 +12,6 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left, width, bottom, ...pro
     if (!width) {
         return null;
     }
-
 
     return (
         <Portal hostName="suggestions">

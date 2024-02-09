@@ -5,7 +5,6 @@ type WebSelection = {
     positionY: number;
 };
 function getCursorPosition(selection: WebSelection) {
-  console.log('get.measureCursorPosition.0.1', selection);
     return {
         x: selection.positionX,
         y: selection.positionY,

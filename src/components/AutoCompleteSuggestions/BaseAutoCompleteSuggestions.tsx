@@ -11,9 +11,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import viewForwardedRef from '@src/types/utils/viewForwardedRef';
+import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
 import type {RenderSuggestionMenuItemProps} from './types';
-import type { AutoCompleteSuggestionsPortalProps } from './AutoCompleteSuggestionsPortal';
-
 
 type ExternalProps<TSuggestion> = Omit<AutoCompleteSuggestionsPortalProps<TSuggestion>, 'left' | 'bottom'>;
 

@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import type { MeasureParentContainerAndCursorCallback } from './AutoCompleteSuggestions/types';
+import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
 import Text from './Text';
 
 type EmojiSuggestionsProps = {

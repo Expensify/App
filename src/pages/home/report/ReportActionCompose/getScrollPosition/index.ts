@@ -1,4 +1,4 @@
-import {TextInputScrollProps, getScrollPositionType} from './types';
+import {getScrollPositionType, TextInputScrollProps} from './types';
 
 function getScrollPosition({textInputRef}: TextInputScrollProps): getScrollPositionType {
     if (!textInputRef.current?.scrollTop) {

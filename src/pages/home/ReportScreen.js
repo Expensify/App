@@ -1,9 +1,9 @@
+import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {PortalHost} from '@gorhom/portal';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';

@@ -28,6 +28,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
+import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
@@ -36,8 +38,6 @@ import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
-import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 const {RNTextInputReset} = NativeModules;
@@ -428,13 +428,16 @@ function ComposerWithSuggestions({
         [suggestionsRef],
     );
 
-    const hideSuggestionMenu = useCallback((e) => {
-        mobileInputScrollPosition.current = e.nativeEvent?.contentOffset?.y;
-        if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
-            return;
-        }
-        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-    }, [suggestionsRef, isScrollLikelyLayoutTriggered]);
+    const hideSuggestionMenu = useCallback(
+        (e) => {
+            mobileInputScrollPosition.current = e.nativeEvent?.contentOffset?.y;
+            if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
+                return;
+            }
+            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+        },
+        [suggestionsRef, isScrollLikelyLayoutTriggered],
+    );
 
     const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
