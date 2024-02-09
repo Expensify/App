@@ -287,7 +287,7 @@ function ReportScreen({
     }, [shouldHideReport, report]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.HOME, false, true);
+        Navigation.goBack(undefined, false, true);
     }, []);
 
     let headerView = (
@@ -423,7 +423,7 @@ function ReportScreen({
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP();
-                Navigation.goBack(ROUTES.HOME, false, true);
+                Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
                 // Prevent navigation to the Money Request Report if it is pending deletion.
@@ -646,7 +646,7 @@ export default compose(
                     if (!parentReportActionID) {
                         return {};
                     }
-                    return lodashGet(parentReportActions, parentReportActionID);
+                    return lodashGet(parentReportActions, parentReportActionID, {});
                 },
                 canEvict: false,
             },
