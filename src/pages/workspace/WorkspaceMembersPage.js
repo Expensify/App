@@ -9,6 +9,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
@@ -19,8 +21,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -463,11 +463,7 @@ function WorkspaceMembersPage(props) {
                 >
                     {!isSmallScreenWidth && renderHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && (
-                    <View style={[styles.pl5, styles.pr5]}>
-                        {renderHeaderButtons()}
-                    </View>
-                )}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{renderHeaderButtons()}</View>}
                 <ConfirmModal
                     danger
                     title={props.translate('workspace.people.removeMembersTitle')}

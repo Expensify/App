@@ -55,6 +55,7 @@ import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__o
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QrCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
@@ -62,7 +63,6 @@ import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustrati
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
-import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 
 export {
     Abracadabra,
