@@ -14,7 +14,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type CountrySelectionPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY>;
+type CountrySelectionPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY>;
 
 function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
