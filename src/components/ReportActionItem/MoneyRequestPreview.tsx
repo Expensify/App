@@ -325,7 +325,11 @@ function MoneyRequestPreview({
                                     {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription && <RenderHTML html={parser.replace(merchantOrDescription)} />}
+                                    {shouldShowDescription && (
+                                        <View style={[styles.breakWord, styles.preWrap]}>
+                                            <RenderHTML html={parser.replace(merchantOrDescription)} />
+                                        </View>
+                                    )}
                                     {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
                                 {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
