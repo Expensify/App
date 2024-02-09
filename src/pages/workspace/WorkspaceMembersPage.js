@@ -487,28 +487,26 @@ function WorkspaceMembersPage(props) {
                     }
                 />
                 <View style={[styles.w100, styles.flex1]}>
-                    <View style={[styles.w100, styles.flex1]}>
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data, indexOffset: 0, isDisabled: false}]}
-                            textInputLabel={props.translate('optionsSelector.findMember')}
-                            textInputValue={searchValue}
-                            onChangeText={(value) => {
-                                SearchInputManager.searchInput = value;
-                                setSearchValue(value);
-                            }}
-                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                            headerMessage={getHeaderMessage()}
-                            headerContent={getHeaderContent()}
-                            onSelectRow={(item) => toggleUser(item.accountID)}
-                            onSelectAll={() => toggleAllUsers(data)}
-                            onDismissError={dismissError}
-                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
-                            showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            inputRef={textInputRef}
-                        />
-                    </View>
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        textInputLabel={props.translate('optionsSelector.findMember')}
+                        textInputValue={searchValue}
+                        onChangeText={(value) => {
+                            SearchInputManager.searchInput = value;
+                            setSearchValue(value);
+                        }}
+                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                        headerMessage={getHeaderMessage()}
+                        headerContent={getHeaderContent()}
+                        onSelectRow={(item) => toggleUser(item.accountID)}
+                        onSelectAll={() => toggleAllUsers(data)}
+                        onDismissError={dismissError}
+                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
+                        showScrollIndicator
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        inputRef={textInputRef}
+                    />
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
