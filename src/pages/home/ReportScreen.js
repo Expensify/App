@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {PortalHost} from '@gorhom/portal';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -582,6 +583,7 @@ function ReportScreen({
                                     <ReportFooter isReportReadyForDisplay={false} />
                                 )}
                             </View>
+                            <PortalHost name="suggestions" />
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
