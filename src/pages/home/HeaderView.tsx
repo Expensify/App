@@ -92,17 +92,15 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const title = ReportUtils.isGroupChat(report) ? getGroupChatName(report) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
-    const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
+    const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
-    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
-    const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const reportDescription = ReportUtils.getReportDescriptionText(report);
-    const policyName = ReportUtils.getPolicyName(report);
+    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
+    const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
+    const reportDescription = ReportUtils.getReportDescriptionText(props.report);
+    const policyName = ReportUtils.getPolicyName(props.report);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -180,21 +178,6 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
             text: translate('videoChatButtonAndMenu.tooltip'),
             onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(guideCalendarLink);
-            }),
-        });
-    } else if (!isAutomatedExpensifyAccount && !isTaskReport && !isArchivedRoom) {
-        threeDotMenuItems.push({
-            icon: ZoomIcon,
-            text: translate('videoChatButtonAndMenu.zoom'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
-                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
-            }),
-        });
-        threeDotMenuItems.push({
-            icon: GoogleMeetIcon,
-            text: translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
-                Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
             }),
         });
     }

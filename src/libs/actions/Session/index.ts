@@ -607,7 +607,7 @@ function clearAccountMessages() {
 }
 
 function setAccountError(error: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error)});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error, true)});
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
