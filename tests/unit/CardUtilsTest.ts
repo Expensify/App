@@ -1,4 +1,4 @@
-import * as cardUtils from '../../src/libs/CardUtils';
+import * as cardUtils from '@src/libs/CardUtils';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
