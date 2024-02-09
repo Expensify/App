@@ -110,6 +110,7 @@ function MoneyRequestView({
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
@@ -173,7 +174,7 @@ function MoneyRequestView({
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (ReportUtils.isReportApproved(report)) {
+        if (isApproved) {
             amountDescription += ` • ${translate('iou.approved')}`;
         } else if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
