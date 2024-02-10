@@ -92,7 +92,7 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                         )}
                         type={CONST.ICON_TYPE_WORKSPACE}
                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                        style={[styles.mb3, styles.mt5]}
+                        style={[styles.mb3, styles.mt5, styles.mh5]}
                         isUsingDefaultAvatar={!lodashGet(policy, 'avatar', null)}
                         onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(policy, 'id', ''), file)}
                         onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(policy, 'id', ''))}
