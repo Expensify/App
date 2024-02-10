@@ -298,12 +298,7 @@ function MoneyRequestView({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.REQUEST,
-                                        transaction?.transactionID ?? '',
-                                        report.reportID,
-                                    ),
+                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
                                 )
                             }
                             brickRoadIndicator={
