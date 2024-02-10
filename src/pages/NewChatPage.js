@@ -21,7 +21,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -235,10 +234,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         updateOptions();
     }, [didScreenTransitionEnd, updateOptions]);
 
-    const dismissCallToAction = (referralContentType) => {
-        User.dismissReferralBanner(referralContentType);
-    };
-
     const {inputCallbackRef} = useAutoFocusInput();
 
     return (
@@ -276,9 +271,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
-                            onCallToActionClosed={dismissCallToAction}
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
-                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                            textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
                             onConfirmSelection={createGroup}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}

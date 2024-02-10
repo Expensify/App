@@ -1,5 +1,5 @@
 import type {ComponentProps, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -40,12 +40,22 @@ type BaseInputProps = {
     isFocused?: boolean;
     measureLayout?: (ref: unknown, callback: MeasureLayoutOnSuccessCallback) => void;
     focus?: () => void;
+    multiline?: boolean;
+    autoGrowHeight?: boolean;
+    blurOnSubmit?: boolean;
+    onSubmitEditing?: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
 };
 
 type InputWrapperProps<TInput extends ValidInputs> = Omit<BaseInputProps, 'ref'> &
     ComponentProps<TInput> & {
         InputComponent: TInput;
         inputID: string;
+
+        /**
+         * Should the containing form be submitted when this input is submitted itself?
+         * Currently, meaningful only for text inputs.
+         */
+        shouldSubmitForm?: boolean;
     };
 
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
@@ -89,7 +99,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     disablePressOnEnter?: boolean;
 };
 
-type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps) => TInputProps;
+type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, shouldSubmitForm: boolean, inputProps: TInputProps) => TInputProps;
 
 type InputRefs = Record<string, MutableRefObject<BaseInputProps>>;
 
