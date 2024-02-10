@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Session from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
@@ -64,18 +65,17 @@ function UnlinkLoginForm(props) {
                 <Text>{props.translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}</Text>
             </View>
             {!_.isEmpty(props.account.message) && (
-                // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={{0: props.translate(props.account.message)}}
+                    messages={{0: props.account.message}}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
                 <DotIndicatorMessage
                     style={[styles.mb5]}
                     type="error"
-                    messages={props.account.errors}
+                    messages={ErrorUtils.getErrorsWithTranslationData(props.account.errors)}
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>

@@ -12,6 +12,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -44,6 +45,8 @@ function TaskTitlePage(props) {
 
         if (_.isEmpty(values.title)) {
             errors.title = 'newTaskPage.pleaseEnterTaskName';
+        } else if (values.title.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'title', ['common.error.characterLimitExceedCounter', {length: values.title.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
