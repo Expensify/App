@@ -1,11 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
+import {StyleProp, TextStyle, View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import TextLink, {LinkProps, PressProps} from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -22,7 +22,7 @@ type FooterProps = {
     shouldShowSmallScreen?: boolean;
 };
 
-type FooterColumnRow = ({onPress: () => void; link?: string} | {onPress?: () => void; link: string}) & {
+type FooterColumnRow = (LinkProps | PressProps) & {
     translationPath: TranslationPaths;
 };
 
@@ -36,39 +36,39 @@ const columns = ({navigateFocus}: Pick<FooterProps, 'navigateFocus'>): FooterCol
         translationPath: 'footer.features',
         rows: [
             {
-                link: CONST.FOOTER.EXPENSE_MANAGEMENT_URL,
+                href: CONST.FOOTER.EXPENSE_MANAGEMENT_URL,
                 translationPath: 'footer.expenseManagement',
             },
             {
-                link: CONST.FOOTER.SPEND_MANAGEMENT_URL,
+                href: CONST.FOOTER.SPEND_MANAGEMENT_URL,
                 translationPath: 'footer.spendManagement',
             },
             {
-                link: CONST.FOOTER.EXPENSE_REPORTS_URL,
+                href: CONST.FOOTER.EXPENSE_REPORTS_URL,
                 translationPath: 'footer.expenseReports',
             },
             {
-                link: CONST.FOOTER.COMPANY_CARD_URL,
+                href: CONST.FOOTER.COMPANY_CARD_URL,
                 translationPath: 'footer.companyCreditCard',
             },
             {
-                link: CONST.FOOTER.RECIEPT_SCANNING_URL,
+                href: CONST.FOOTER.RECIEPT_SCANNING_URL,
                 translationPath: 'footer.receiptScanningApp',
             },
             {
-                link: CONST.FOOTER.BILL_PAY_URL,
+                href: CONST.FOOTER.BILL_PAY_URL,
                 translationPath: 'footer.billPay',
             },
             {
-                link: CONST.FOOTER.INVOICES_URL,
+                href: CONST.FOOTER.INVOICES_URL,
                 translationPath: 'footer.invoicing',
             },
             {
-                link: CONST.FOOTER.PAYROLL_URL,
+                href: CONST.FOOTER.PAYROLL_URL,
                 translationPath: 'footer.payroll',
             },
             {
-                link: CONST.FOOTER.TRAVEL_URL,
+                href: CONST.FOOTER.TRAVEL_URL,
                 translationPath: 'footer.travel',
             },
         ],
@@ -77,27 +77,27 @@ const columns = ({navigateFocus}: Pick<FooterProps, 'navigateFocus'>): FooterCol
         translationPath: 'footer.resources',
         rows: [
             {
-                link: CONST.FOOTER.EXPENSIFY_APPROVED_URL,
+                href: CONST.FOOTER.EXPENSIFY_APPROVED_URL,
                 translationPath: 'footer.expensifyApproved',
             },
             {
-                link: CONST.FOOTER.PRESS_KIT_URL,
+                href: CONST.FOOTER.PRESS_KIT_URL,
                 translationPath: 'footer.pressKit',
             },
             {
-                link: CONST.FOOTER.SUPPORT_URL,
+                href: CONST.FOOTER.SUPPORT_URL,
                 translationPath: 'footer.support',
             },
             {
-                link: CONST.NEWHELP_URL,
+                href: CONST.NEWHELP_URL,
                 translationPath: 'footer.expensifyHelp',
             },
             {
-                link: CONST.FOOTER.COMMUNITY_URL,
+                href: CONST.FOOTER.COMMUNITY_URL,
                 translationPath: 'footer.community',
             },
             {
-                link: CONST.FOOTER.PRIVACY_URL,
+                href: CONST.FOOTER.PRIVACY_URL,
                 translationPath: 'footer.privacy',
             },
         ],
@@ -106,23 +106,23 @@ const columns = ({navigateFocus}: Pick<FooterProps, 'navigateFocus'>): FooterCol
         translationPath: 'footer.learnMore',
         rows: [
             {
-                link: CONST.FOOTER.ABOUT_URL,
+                href: CONST.FOOTER.ABOUT_URL,
                 translationPath: 'footer.aboutExpensify',
             },
             {
-                link: CONST.FOOTER.BLOG_URL,
+                href: CONST.FOOTER.BLOG_URL,
                 translationPath: 'footer.blog',
             },
             {
-                link: CONST.FOOTER.JOBS_URL,
+                href: CONST.FOOTER.JOBS_URL,
                 translationPath: 'footer.jobs',
             },
             {
-                link: CONST.FOOTER.ORG_URL,
+                href: CONST.FOOTER.ORG_URL,
                 translationPath: 'footer.expensifyOrg',
             },
             {
-                link: CONST.FOOTER.INVESTOR_RELATIONS_URL,
+                href: CONST.FOOTER.INVESTOR_RELATIONS_URL,
                 translationPath: 'footer.investorRelations',
             },
         ],
@@ -156,7 +156,7 @@ function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
-    const getTextLinkStyle: (hovered: boolean) => StyleProp<TextStyle> = (hovered) => [styles.footerRow, hovered && styles.textBlue];
+    const getTextLinkStyle: (hovered: boolean) => StyleProp<TextStyle> = (hovered) => [styles.footerRow, hovered ? styles.textBlue : {}];
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
@@ -177,26 +177,24 @@ function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
                             >
                                 <Text style={[styles.textHeadline, styles.footerTitle]}>{translate(column.translationPath)}</Text>
                                 <View style={[styles.footerRow]}>
-                                    {column.rows.map(({link, onPress, translationPath}) => (
+                                    {column.rows.map(({href, onPress, translationPath}) => (
                                         <Hoverable key={translationPath}>
                                             {(hovered) => (
                                                 <View>
-                                                    {link ? (
+                                                    {!!onPress ? (
                                                         <TextLink
                                                             style={getTextLinkStyle(hovered)}
-                                                            href={link}
+                                                            onPress={onPress}
                                                         >
                                                             {translate(translationPath)}
                                                         </TextLink>
                                                     ) : (
-                                                        onPress && (
-                                                            <TextLink
-                                                                style={getTextLinkStyle(hovered)}
-                                                                onPress={onPress}
-                                                            >
-                                                                {translate(translationPath)}
-                                                            </TextLink>
-                                                        )
+                                                        <TextLink
+                                                            style={getTextLinkStyle(hovered)}
+                                                            href={href}
+                                                        >
+                                                            {translate(translationPath)}
+                                                        </TextLink>
                                                     )}
                                                 </View>
                                             )}
