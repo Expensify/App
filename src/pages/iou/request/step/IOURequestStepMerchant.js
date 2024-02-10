@@ -17,14 +17,14 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import PropTypes from 'prop-types';
+import { policyPropTypes } from '@pages/workspace/withPolicy';
+import categoryPropTypes from '@components/categoryPropTypes';
+import tagPropTypes from '@components/tagPropTypes';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import { policyPropTypes } from '@pages/workspace/withPolicy';
-import categoryPropTypes from '@components/categoryPropTypes';
-import tagPropTypes from '@components/tagPropTypes';
-import propTypes from '@components/menuItemPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -41,7 +41,7 @@ const propTypes = {
     policy: policyPropTypes.policy,
 
     /** Collection of categories attached to a policy */
-    policyCategories: propTypes.objectOf(categoryPropTypes),
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
