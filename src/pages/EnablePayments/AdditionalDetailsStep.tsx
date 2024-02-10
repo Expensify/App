@@ -60,7 +60,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
-    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM>) => {
+    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
         const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn', 'addressState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
@@ -97,7 +97,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
         return errors;
     };
 
-    const activateWallet = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM>) => {
+    const activateWallet = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
         const personalDetails = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
             legalFirstName: values.legalFirstName ?? '',
@@ -147,7 +147,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                     </TextLink>
                 </View>
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.ADDITIONAL_DETAILS_FORM}
+                    formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
                     validate={validate}
                     onSubmit={activateWallet}
                     scrollContextEnabled
