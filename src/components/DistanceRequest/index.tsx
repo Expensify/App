@@ -184,7 +184,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 
         if (Object.keys(validatedWaypoints).length < 2) {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
+            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
         return {};
     };
@@ -196,17 +196,25 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             }
 
             const newWaypoints: WaypointCollection = {};
+            let emptyWaypointIndex = -1;
             data.forEach((waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = waypoints?.[waypoint] ?? {};
+                // Find waypoint that BECOMES empty after dragging
+                if (Object.keys(newWaypoints[`waypoint${index}`]).length === 0 && Object.keys(waypoints[`waypoint${index}`] ?? {}).length !== 0) {
+                    emptyWaypointIndex = index;
+                }
             });
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            TransactionUserActions.updateWaypoints(transactionID, newWaypoints).then(() => {
+            Promise.all([
+                TransactionUserActions.removeWaypoint(transaction as Transaction, emptyWaypointIndex.toString(), true),
+                TransactionUserActions.updateWaypoints(transactionID, newWaypoints, true),
+            ]).then(() => {
                 setOptimisticWaypoints(undefined);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {

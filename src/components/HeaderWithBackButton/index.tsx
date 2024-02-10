@@ -17,14 +17,16 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
+    icon,
     iconFill,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
+    onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
@@ -65,12 +67,21 @@ function HeaderWithBackButton({
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
 
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
+
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2, shouldOverlay && StyleSheet.absoluteFillObject]}
+            style={[
+                styles.headerBar,
+                isCentralPaneSettings && styles.headerBarDesktopHeight,
+                shouldShowBorderBottom && styles.borderBottom,
+                shouldShowBackButton && styles.pl2,
+                shouldOverlay && StyleSheet.absoluteFillObject,
+            ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
@@ -99,6 +110,14 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
+                {icon && (
+                    <Icon
+                        src={icon}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
+                    />
+                )}
                 {shouldShowAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
@@ -109,7 +128,7 @@ function HeaderWithBackButton({
                     <Header
                         title={title}
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                        textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
+                        textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH1]}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>

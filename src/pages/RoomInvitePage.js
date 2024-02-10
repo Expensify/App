@@ -86,7 +86,7 @@ function RoomInvitePage(props) {
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap = {};
-        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
+        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
         const newSelectedOptions = [];
         _.forEach(selectedOptions, (option) => {
             newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
@@ -142,7 +142,7 @@ function RoomInvitePage(props) {
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
         const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
-        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
+        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
         sectionsArr.push({
@@ -156,7 +156,7 @@ function RoomInvitePage(props) {
         if (hasUnselectedUserToInvite) {
             sectionsArr.push({
                 title: undefined,
-                data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
+                data: [OptionsListUtils.formatMemberForList(userToInvite)],
                 shouldShow: true,
                 indexOffset,
             });
