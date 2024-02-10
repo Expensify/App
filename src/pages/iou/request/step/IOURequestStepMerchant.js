@@ -68,21 +68,16 @@ function IOURequestStepMerchant({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-
+    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const {merchant} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
-
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-
     const isMerchantRequired = _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
-
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
-
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     /**
      * @param {Object} value
@@ -120,9 +115,7 @@ function IOURequestStepMerchant({
             navigateBack();
             return;
         }
-
         IOU.setMoneyRequestMerchant(transactionID, newMerchant, !isEditing);
-
         if (isEditing) {
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
