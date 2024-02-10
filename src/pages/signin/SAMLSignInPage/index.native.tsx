@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import type {WebViewNativeEvent} from 'react-native-webview/lib/WebViewTypes';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -14,19 +13,9 @@ import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account, Credentials} from '@src/types/onyx';
+import type {SAMLSignInPageNativeOnyxProps, SAMLSignInPageProps} from './types';
 
-type SAMLSignInPageOnyxProps = {
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-
-    /** State of the logging in user's account */
-    account: OnyxEntry<Account>;
-};
-
-type SAMLSignInPageProps = SAMLSignInPageOnyxProps;
-
-function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
+function SAMLSignInPage({credentials, account}: SAMLSignInPageProps<SAMLSignInPageNativeOnyxProps>) {
     const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}&platform=${getPlatform()}`;
     const [showNavigation, shouldShowNavigation] = useState(true);
 
@@ -90,7 +79,7 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
+export default withOnyx<SAMLSignInPageProps<SAMLSignInPageNativeOnyxProps>, SAMLSignInPageNativeOnyxProps>({
     credentials: {key: ONYXKEYS.CREDENTIALS},
     account: {key: ONYXKEYS.ACCOUNT},
 })(SAMLSignInPage);

@@ -1,19 +1,11 @@
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Credentials} from '@src/types/onyx';
+import type {SAMLSignInPageOnyxProps, SAMLSignInPageProps} from './types';
 
-type SAMLSignInPageOnyxProps = {
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-};
-
-type SAMLSignInPageProps = SAMLSignInPageOnyxProps;
-
-function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
+function SAMLSignInPage({credentials}: SAMLSignInPageProps<SAMLSignInPageOnyxProps>) {
     useEffect(() => {
         window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self');
     }, [credentials?.login]);
@@ -23,6 +15,6 @@ function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
+export default withOnyx<SAMLSignInPageProps<SAMLSignInPageOnyxProps>, SAMLSignInPageOnyxProps>({
     credentials: {key: ONYXKEYS.CREDENTIALS},
 })(SAMLSignInPage);
