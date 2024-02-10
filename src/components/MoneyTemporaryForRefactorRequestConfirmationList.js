@@ -841,6 +841,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
     ];
 
+    // An intermediate structure that helps us classify the fields as "primary" and "supplementary". 
+    // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
+
     const primaryFields = _.map(
         _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary),
         (primaryField) => primaryField.item,
