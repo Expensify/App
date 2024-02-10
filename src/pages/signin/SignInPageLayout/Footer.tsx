@@ -1,11 +1,13 @@
 import React from 'react';
-import {StyleProp, TextStyle, View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
-import TextLink, {LinkProps, PressProps} from '@components/TextLink';
+import type {LinkProps, PressProps} from '@components/TextLink';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -181,7 +183,7 @@ function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
                                         <Hoverable key={translationPath}>
                                             {(hovered) => (
                                                 <View>
-                                                    {!!onPress ? (
+                                                    {onPress ? (
                                                         <TextLink
                                                             style={getTextLinkStyle(hovered)}
                                                             onPress={onPress}

@@ -1,4 +1,3 @@
-import type {ImageStyle} from 'expo-image';
 import {Image} from 'expo-image';
 import React, {useMemo} from 'react';
 import type {ImageSourcePropType} from 'react-native';
@@ -16,7 +15,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     return (
         <Image
             source={src as ImageSourcePropType}
-            style={[styles.signInBackground, StyleUtils.getWidthStyle(width) as ImageStyle]}
+            style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
             transition={transitionDuration}
         />
     );

@@ -31,11 +31,10 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps<SAMLSignInPa
             }
 
             const searchParams = new URLSearchParams(new URL(url).search);
-            if (searchParams.has('shortLivedAuthToken') && !account?.isLoading) {
+            const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
+            if (!account?.isLoading && credentials?.login && !!shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Session.signInWithShortLivedAuthToken(credentials?.login || '', shortLivedAuthToken || '');
+                Session.signInWithShortLivedAuthToken(credentials.login, shortLivedAuthToken);
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
