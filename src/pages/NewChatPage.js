@@ -13,7 +13,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
@@ -38,8 +37,6 @@ const propTypes = {
 
     /** An object that holds data about which referral banners have been dismissed */
     dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
-
-    ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 

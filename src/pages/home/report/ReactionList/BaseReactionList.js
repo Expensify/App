@@ -5,6 +5,7 @@ import React from 'react';
 import {FlatList} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import participantPropTypes from '@components/participantPropTypes';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
@@ -58,6 +59,7 @@ const getItemLayout = (_, index) => ({
 
 function BaseReactionList(props) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     if (!props.isVisible) {
         return null;
     }

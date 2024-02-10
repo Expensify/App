@@ -10,6 +10,7 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -71,6 +72,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function FloatingActionButtonAndPopover(props) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);

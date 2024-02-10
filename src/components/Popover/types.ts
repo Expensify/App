@@ -37,4 +37,4 @@ type PopoverProps = BaseModalProps &
         fromSidebarMediumScreen?: boolean;
     };
 
-export type {PopoverProps};
+export default PopoverProps;

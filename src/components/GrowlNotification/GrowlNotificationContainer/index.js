@@ -6,7 +6,6 @@ import growlNotificationContainerPropTypes from './growlNotificationContainerPro
 
 const propTypes = {
     ...growlNotificationContainerPropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 function GrowlNotificationContainer(props) {

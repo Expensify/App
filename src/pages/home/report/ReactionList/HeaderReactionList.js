@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -11,7 +12,6 @@ import reactionPropTypes from './reactionPropTypes';
 const propTypes = {
     ...reactionPropTypes,
     ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 
     /**
      * Returns true if the current account has reacted to the report action (with the given skin tone).
@@ -26,6 +26,7 @@ const defaultProps = {
 function HeaderReactionList(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !shouldUseNarrowLayout && styles.pt4]}>
             <View style={styles.flexRow}>

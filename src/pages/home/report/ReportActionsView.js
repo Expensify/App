@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -64,7 +65,6 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -81,6 +81,7 @@ const defaultProps = {
 
 function ReportActionsView(props) {
     useCopySelectionHelper();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reactionListRef = useContext(ReactionListContext);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
@@ -294,10 +295,6 @@ function arePropsEqual(oldProps, newProps) {
     }
 
     if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
-        return false;
-    }
-
-    if (newshouldUseNarrowLayout !== oldshouldUseNarrowLayout) {
         return false;
     }
 
