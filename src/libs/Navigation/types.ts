@@ -53,7 +53,7 @@ type CentralPaneNavigatorParamList = {
     };
 
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.WORKSPACE.OVERVIEW]: {
+    [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CARD]: {
