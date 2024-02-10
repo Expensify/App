@@ -13,7 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
@@ -51,10 +50,6 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 }, 100);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 /**
  * This component holds the value and selection state.
@@ -131,7 +126,7 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const parentReportAction = lodashGet(parentReportActions, [parentReportActionID]);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
+    const shouldAutoFocus = !modal.isVisible && isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
