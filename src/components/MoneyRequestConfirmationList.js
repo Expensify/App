@@ -567,7 +567,7 @@ function MoneyRequestConfirmationList(props) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
                 {button}
@@ -586,7 +586,6 @@ function MoneyRequestConfirmationList(props) {
         formError,
         styles.ph1,
         styles.mb2,
-        translate,
     ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =

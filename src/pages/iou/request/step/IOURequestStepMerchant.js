@@ -17,11 +17,14 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { policyPropTypes } from '@pages/workspace/withPolicy';
+import categoryPropTypes from '@components/categoryPropTypes';
+import tagPropTypes from '@components/tagPropTypes';
+import propTypes from '@components/menuItemPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -33,11 +36,23 @@ const propTypes = {
 
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
+
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
+
+    /** Collection of categories attached to a policy */
+    policyCategories: propTypes.objectOf(categoryPropTypes),
+
+    /** Collection of tags attached to a policy */
+    policyTags: tagPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
     splitDraftTransaction: {},
+    policy: null,
+    policyTags: null,
+    policyCategories: null,
 };
 
 function IOURequestStepMerchant({
@@ -46,6 +61,9 @@ function IOURequestStepMerchant({
     },
     transaction,
     splitDraftTransaction,
+    policy,
+    policyTags,
+    policyCategories,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,7 +79,7 @@ function IOURequestStepMerchant({
     const isMerchantRequired = _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -106,7 +124,7 @@ function IOURequestStepMerchant({
         IOU.setMoneyRequestMerchant(transactionID, newMerchant, !isEditing);
 
         if (isEditing) {
-            IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+            IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
         navigateBack();
     };
@@ -157,6 +175,15 @@ export default compose(
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
             },
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepMerchant);

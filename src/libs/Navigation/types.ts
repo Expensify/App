@@ -53,7 +53,7 @@ type CentralPaneNavigatorParamList = {
     };
 
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.WORKSPACE.OVERVIEW]: {
+    [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CARD]: {
@@ -88,11 +88,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: undefined;
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: undefined;
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: undefined;
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: undefined;
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: undefined;
+    [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ADDRESS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: undefined;
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: undefined;
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: undefined;
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: undefined;
@@ -110,10 +109,26 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: undefined;
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
+        /** Currently selected country */
+        country: string;
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
+        /** Currently selected country */
+        country: string;
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;

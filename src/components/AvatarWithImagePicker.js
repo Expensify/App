@@ -421,7 +421,7 @@ function AvatarWithImagePicker({
             {errorData.validationError && (
                 <DotIndicatorMessage
                     style={[styles.mt6]}
-                    messages={{0: translate(errorData.validationError, errorData.phraseParam)}}
+                    messages={{0: [errorData.validationError, errorData.phraseParam]}}
                     type="error"
                 />
             )}
