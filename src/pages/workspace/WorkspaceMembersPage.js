@@ -19,6 +19,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -87,7 +88,7 @@ function WorkspaceMembersPage(props) {
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isFocusedScreen = useIsFocused();
 
@@ -433,7 +434,7 @@ function WorkspaceMembersPage(props) {
                         setSearchValue('');
                         Navigation.goBack();
                     }}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                 />
                 <ConfirmModal

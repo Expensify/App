@@ -5,6 +5,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -42,7 +43,7 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
     const styles = useThemeStyles();
     const {html = '', text} = fragment;
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // If the only difference between fragment.text and fragment.html is <br /> tags
     // we render it as text, not as html.
@@ -79,7 +80,7 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
                     styles.ltr,
                     style,
                     styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                    !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                    !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                 ]}
             >
                 {convertToLTR(message)}

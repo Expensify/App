@@ -22,6 +22,7 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -88,7 +89,8 @@ const defaultProps = {
 
 function HeaderView(props) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -225,7 +227,7 @@ function HeaderView(props) {
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
+    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     const isLoading = !props.report || !props.report.reportID || !title;
@@ -235,13 +237,13 @@ function HeaderView(props) {
             style={[shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
+            <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                     ) : (
                         <>
-                            {isSmallScreenWidth && (
+                            {shouldUseNarrowLayout && (
                                 <PressableWithoutFeedback
                                     onPress={props.onNavigationMenuButtonClicked}
                                     style={[styles.LHNToggle]}
@@ -338,8 +340,8 @@ function HeaderView(props) {
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
-                                    {canJoin && !isSmallScreenWidth && joinButton}
+                                    {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
+                                    {canJoin && !shouldUseNarrowLayout && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu
                                             anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -366,7 +368,7 @@ function HeaderView(props) {
                     )}
                 </View>
             </View>
-            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }

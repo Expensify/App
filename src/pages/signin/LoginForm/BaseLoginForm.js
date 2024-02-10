@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -96,6 +96,7 @@ function LoginForm(props) {
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
+    const route = useRoute();
     const isLoading = useRef(false);
     const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
 

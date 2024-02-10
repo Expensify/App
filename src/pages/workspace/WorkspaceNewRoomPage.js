@@ -19,8 +19,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -98,7 +98,7 @@ function WorkspaceNewRoomPage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious(props.formState.isLoading);
@@ -261,7 +261,7 @@ function WorkspaceNewRoomPage(props) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}
             />
-            {isSmallScreenWidth && <OfflineIndicator />}
+            {shouldUseNarrowLayout && <OfflineIndicator />}
         </>
     );
 
@@ -352,7 +352,7 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                         </FormProvider>
-                        {isSmallScreenWidth && <OfflineIndicator />}
+                        {shouldUseNarrowLayout && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )
             }

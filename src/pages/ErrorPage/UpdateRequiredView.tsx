@@ -7,6 +7,7 @@ import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,19 +19,19 @@ function UpdateRequiredView() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
             <HeaderGap />
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
                 <Header title={translate('updateRequiredView.updateRequired')} />
             </View>
-            <View style={[styles.flex1, StyleUtils.getUpdateRequiredViewStyles(isSmallScreenWidth)]}>
+            <View style={[styles.flex1, StyleUtils.getUpdateRequiredViewStyles(shouldUseNarrowLayout)]}>
                 <Lottie
                     source={LottieAnimations.Update}
                     // For small screens it looks better to have the arms from the animation come in from the edges of the screen.
-                    style={isSmallScreenWidth ? styles.w100 : styles.updateAnimation}
-                    webStyle={isSmallScreenWidth ? styles.w100 : styles.updateAnimation}
+                    style={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
+                    webStyle={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
                     autoPlay
                     loop
                 />

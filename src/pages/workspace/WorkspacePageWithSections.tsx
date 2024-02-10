@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
@@ -110,7 +111,7 @@ function WorkspacePageWithSections({
     const policyID = route.params?.policyID ?? '';
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = children(hasVBA, policyID, isUsingECard);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(true);
 
     const goBack = () => {
@@ -156,7 +157,7 @@ function WorkspacePageWithSections({
                 <HeaderWithBackButton
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
-                    shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
+                    shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (

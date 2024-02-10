@@ -145,13 +145,13 @@ function Footer(props) {
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
-    const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
-    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
+    const footerColumn = shouldUseNarrowLayout ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
+    const footerWrapper = shouldUseNarrowLayout ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
 
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
-                {isVertical ? (
+                {shouldUseNarrowLayout ? (
                     <View style={[styles.signInPageGradientMobile]}>
                         <ImageSVG
                             src={SignInGradient}
@@ -197,8 +197,8 @@ function Footer(props) {
                             </View>
                         ))}
                     </View>
-                    <View style={[!isVertical && styles.footerBottomLogo]}>
-                        {!isVertical ? (
+                    <View style={[!shouldUseNarrowLayout && styles.footerBottomLogo]}>
+                        {!shouldUseNarrowLayout ? (
                             <ImageSVG src={Expensicons.ExpensifyFooterLogo} />
                         ) : (
                             <ImageSVG

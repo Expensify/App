@@ -6,6 +6,7 @@ import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -20,7 +21,7 @@ function SecuritySettingsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const menuItems = useMemo(() => {
         const baseMenuItems = [
@@ -50,7 +51,7 @@ function SecuritySettingsPage() {
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.security')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            shouldShowBackButton={isSmallScreenWidth}
+            shouldShowBackButton={shouldUseNarrowLayout}
             illustration={LottieAnimations.Safe}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
             shouldShowOfflineIndicatorInWideScreen

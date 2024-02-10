@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -31,7 +32,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Retuns a list of menu items data for All workspaces settings
@@ -47,7 +48,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
                     })();
                 },
-                focused: !isSmallScreenWidth,
+                focused: !shouldUseNarrowLayout,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             ...(shouldShowSubscriptionsMenu
@@ -89,7 +90,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
             hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate, policies, policyMembers]);
+    }, [shouldUseNarrowLayout, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate, policies, policyMembers]);
 
     return (
         <ScreenWrapper

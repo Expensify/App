@@ -12,6 +12,7 @@ import TestToolMenu from '@components/TestToolMenu';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -47,14 +48,14 @@ function PreferencesPage(props) {
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.PreferencesDJ}
-            shouldShowBackButton={isSmallScreenWidth}
+            shouldShowBackButton={shouldUseNarrowLayout}
             shouldShowOfflineIndicatorInWideScreen
             icon={Illustrations.Gears}
             testID={PreferencesPage.displayName}

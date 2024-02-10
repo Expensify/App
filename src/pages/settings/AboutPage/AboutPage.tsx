@@ -11,6 +11,7 @@ import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -52,7 +53,7 @@ function AboutPage() {
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
     const waitForNavigate = useWaitForNavigation();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -128,7 +129,7 @@ function AboutPage() {
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.about')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            shouldShowBackButton={isSmallScreenWidth}
+            shouldShowBackButton={shouldUseNarrowLayout}
             illustration={LottieAnimations.Coin}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
             overlayContent={overlayContent}

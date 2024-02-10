@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -24,7 +25,7 @@ const propTypes = {
 
 function WorkspaceTravelPage(props) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <WorkspacePageWithSections
@@ -35,7 +36,7 @@ function WorkspaceTravelPage(props) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
                 </View>

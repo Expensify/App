@@ -17,10 +17,10 @@ import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLen
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -75,7 +75,7 @@ function ReportActionItemMessageEdit(
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const getInitialDraft = () => {
         if (draftMessage === action?.message?.[0].html) {
@@ -349,7 +349,7 @@ function ReportActionItemMessageEdit(
      */
     const triggerSaveOrCancel = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
             const keyEvent = e as KeyboardEvent;
@@ -361,7 +361,7 @@ function ReportActionItemMessageEdit(
                 deleteDraft();
             }
         },
-        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
+        [deleteDraft, isKeyboardShown, shouldUseNarrowLayout, publishDraft],
     );
 
     /**
@@ -421,7 +421,7 @@ function ReportActionItemMessageEdit(
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
-                            maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
+                            maxLines={shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);

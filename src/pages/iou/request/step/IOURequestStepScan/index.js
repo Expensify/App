@@ -15,9 +15,9 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -66,7 +66,7 @@ function IOURequestStepScan({
     const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
 
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
 
@@ -288,12 +288,12 @@ function IOURequestStepScan({
             >
                 <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
                 <Text style={[styles.subTextReceiptUpload]}>
-                    {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                    {shouldUseNarrowLayout ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
                         textStyles={[styles.textBlue]}
                     />
-                    {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                    {shouldUseNarrowLayout ? null : translate('receipt.dragReceiptAfterEmail')}
                 </Text>
             </View>
 
@@ -323,7 +323,7 @@ function IOURequestStepScan({
             shouldShowWrapper={Boolean(backTo)}
             testID={IOURequestStepScan.displayName}
         >
-            <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+            <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(shouldUseNarrowLayout)]}>
                 {!isDraggingOver && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
                 <ReceiptDropUI
                     onDrop={(e) => {

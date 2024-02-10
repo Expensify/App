@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
@@ -16,7 +17,7 @@ type WorkspaceBillsPageProps = StackScreenProps<CentralPaneNavigatorParamList, t
 function WorkspaceBillsPage({route}: WorkspaceBillsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <WorkspacePageWithSections
@@ -27,7 +28,7 @@ function WorkspaceBillsPage({route}: WorkspaceBillsPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA: boolean, policyID: string) => (
-                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
                 </View>

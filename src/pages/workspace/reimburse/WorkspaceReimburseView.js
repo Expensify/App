@@ -14,6 +14,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -69,7 +70,7 @@ const defaultProps = {
 function WorkspaceReimburseView(props) {
     const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
@@ -105,7 +106,7 @@ function WorkspaceReimburseView(props) {
     }, [props.policy.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+        <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}

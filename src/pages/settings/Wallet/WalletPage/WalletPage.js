@@ -20,6 +20,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,7 +42,8 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -325,7 +327,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
+    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
 
@@ -342,10 +344,10 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                         icon={Illustrations.MoneyIntoWallet}
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                     />
                     <ScrollView>
-                        <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <OfflineWithFeedback
                                 style={styles.flex1}
                                 contentContainerStyle={styles.flex1}
@@ -510,7 +512,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         anchorRef={paymentMethodButtonRef}
                     >
                         {!showConfirmDeleteModal && (
-                            <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
+                            <View style={[styles.m5, !shouldUseNarrowLayout ? styles.sidebarPopover : '']}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title || ''}

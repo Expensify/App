@@ -19,6 +19,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -114,7 +115,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -191,7 +192,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 ownerAccountID={item.ownerAccountID}
                                 workspaceType={item.type}
                                 rowStyles={hovered && styles.hoveredComponentBG}
-                                layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                layoutWidth={shouldUseNarrowLayout ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
                             />
                         )}
@@ -199,11 +200,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 </OfflineWithFeedback>
             );
         },
-        [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
+        [shouldUseNarrowLayout, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             return <View style={styles.mt5} />;
         }
 
@@ -236,7 +237,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 <View style={[styles.ml10, styles.mr2]} />
             </View>
         );
-    }, [isSmallScreenWidth, styles, translate]);
+    }, [shouldUseNarrowLayout, styles, translate]);
 
     const policyRooms = useMemo(() => {
         if (!reports || isEmptyObject(reports)) {
@@ -321,7 +322,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -333,7 +334,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     />
                 </HeaderWithBackButton>
                 <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <FeatureList
                             menuItems={workspaceFeatures}
                             title={translate('workspace.emptyWorkspace.title')}
@@ -362,7 +363,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button

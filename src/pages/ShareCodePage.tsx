@@ -15,6 +15,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
@@ -42,7 +43,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isReport = !!report?.reportID;
 
@@ -79,11 +80,11 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.SETTINGS)}
-                shouldShowBackButton={isReport || isSmallScreenWidth}
+                shouldShowBackButton={isReport || shouldUseNarrowLayout}
                 icon={Illustrations.QrCode}
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.mt3]}>
-                <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection, themeStyles.ph4]}>
+                <View style={[shouldUseNarrowLayout ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection, themeStyles.ph4]}>
                     <QRShareWithDownload
                         ref={qrCodeRef}
                         url={url}

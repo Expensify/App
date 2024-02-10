@@ -19,8 +19,8 @@ import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -157,7 +157,7 @@ function ReportScreen({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -516,7 +516,7 @@ function ReportScreen({
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowLink={false}
                     >
@@ -527,7 +527,7 @@ function ReportScreen({
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                            {ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>

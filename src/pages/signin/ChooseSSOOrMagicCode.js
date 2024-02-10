@@ -9,8 +9,8 @@ import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
@@ -58,7 +58,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -71,7 +71,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
     return (
         <>
             <View>
-                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
+                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>{translate('samlSignIn.welcomeSAMLEnabled')}</Text>
                 <Button
                     isDisabled={isOffline}
                     success
@@ -84,7 +84,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
                 />
 
                 <View style={[styles.mt5]}>
-                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>
+                    <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>
                         {translate('samlSignIn.orContinueWithMagicCode')}
                     </Text>
                 </View>

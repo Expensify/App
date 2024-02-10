@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -25,7 +26,7 @@ const propTypes = {
 
 function WorkspaceCardPage(props) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <WorkspacePageWithSections
@@ -36,7 +37,7 @@ function WorkspaceCardPage(props) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID, isUsingECard) => (
-                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}

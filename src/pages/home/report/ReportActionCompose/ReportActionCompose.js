@@ -16,6 +16,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -110,7 +111,8 @@ function ReportActionCompose({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -184,7 +186,7 @@ function ReportActionCompose({
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
-        () => _.random(translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1)),
+        () => _.random(translate('reportActionCompose.conciergePlaceholderOptions').length - (shouldUseNarrowLayout ? 4 : 1)),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
@@ -476,10 +478,10 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !network.isOffline)) && styles.chatItemComposeSecondaryRow,
+                            (!shouldUseNarrowLayout || (shouldUseNarrowLayout && !network.isOffline)) && styles.chatItemComposeSecondaryRow,
                         ]}
                     >
-                        {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
                         {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>
