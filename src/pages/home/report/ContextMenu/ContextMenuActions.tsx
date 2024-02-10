@@ -354,7 +354,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    const displayMessage = ReportUtils.getReportPreviewMessage(
+                        ReportUtils.getReport(ReportUtils.getOriginalReportID(reportID, reportAction)),
+                        reportAction,
+                        false,
+                        false,
+                        null,
+                        false,
+                        true,
+                    );
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
