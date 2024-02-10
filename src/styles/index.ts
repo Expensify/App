@@ -279,7 +279,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pr4,
         },
         emojiTooltipWrapper: {
-            backgroundColor: theme.appBG,
             ...spacing.p2,
             borderRadius: 8,
         },
