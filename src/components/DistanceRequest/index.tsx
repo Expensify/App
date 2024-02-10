@@ -208,6 +208,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
             Promise.all([
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                 TransactionUserActions.removeWaypoint(transaction as Transaction, emptyWaypointIndex.toString(), true),
                 TransactionUserActions.updateWaypoints(transactionID, newWaypoints, true),
             ]).then(() => {
