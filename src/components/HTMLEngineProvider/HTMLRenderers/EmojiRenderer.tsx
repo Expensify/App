@@ -1,11 +1,9 @@
 import React from 'react';
-import type {CustomRendererProps, TText} from 'react-native-render-html';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
 
-type EmojiRendererProps = CustomRendererProps<TText>;
-
-function EmojiRenderer({tnode}: EmojiRendererProps) {
-    return <EmojiWithTooltip emojiCode={tnode.data} />;
+function EmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
+    return <EmojiWithTooltip emojiCode={'data' in tnode ? tnode.data : ''} />;
 }
 
 EmojiRenderer.displayName = 'EmojiRenderer';
