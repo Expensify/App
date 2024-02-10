@@ -31,7 +31,7 @@ type FooterColumnData = {
     rows: FooterColumnRow[];
 };
 
-const columns = ({navigateFocus}: {navigateFocus: () => void}): FooterColumnData[] => [
+const columns = ({navigateFocus}: Pick<FooterProps, 'navigateFocus'>): FooterColumnData[] => [
     {
         translationPath: 'footer.features',
         rows: [
@@ -156,7 +156,7 @@ function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
-    const getTextLinkStyle = (hovered: boolean) => [styles.footerRow, hovered ? styles.textBlue : {}];
+    const getTextLinkStyle: (hovered: boolean) => StyleProp<TextStyle> = (hovered) => [styles.footerRow, hovered && styles.textBlue];
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>

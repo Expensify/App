@@ -263,8 +263,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    errorText={formError || ''}
+                    errorText={formError}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />

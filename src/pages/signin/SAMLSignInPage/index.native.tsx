@@ -52,8 +52,7 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
             if (searchParams.has('error')) {
                 Session.clearSignInData();
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Session.setAccountError(searchParams.get('error') || '');
+                Session.setAccountError(searchParams.get('error') ?? '');
                 Navigation.navigate(ROUTES.HOME);
             }
         },

@@ -9,8 +9,8 @@ function LoginForm({scrollPageToTop, ...rest}: LoginFormProps, ref: ForwardedRef
     const loginFormRef = useRef<InputHandle>();
 
     useImperativeHandle(ref, () => ({
-        isInputFocused: () => !!loginFormRef.current?.isInputFocused(),
-        clearDataAndFocus: (clearLogin = true) => loginFormRef.current?.clearDataAndFocus(clearLogin),
+        isInputFocused: loginFormRef.current ? loginFormRef.current.isInputFocused : () => false,
+        clearDataAndFocus: loginFormRef.current ? loginFormRef.current?.clearDataAndFocus : () => null,
     }));
 
     useEffect(() => {
