@@ -4,7 +4,6 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import navigationRef from '@libs/Navigation/navigationRef';
 import SCREENS from '@src/SCREENS';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
