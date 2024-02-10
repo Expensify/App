@@ -67,7 +67,8 @@ function IOURequestStepDate({
     const {translate} = useLocalize();
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getCreated(splitDraftTransaction) : TransactionUtils.getCreated(transaction);
 
     const navigateBack = () => {
@@ -96,7 +97,7 @@ function IOURequestStepDate({
 
         IOU.setMoneyRequestCreated(transaction.transactionID, newCreated, action === CONST.IOU.ACTION.CREATE);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (isEditing) {
             IOU.updateMoneyRequestDate(transaction.transactionID, reportID, newCreated, policy, policyTags, policyCategories);
         }
 
