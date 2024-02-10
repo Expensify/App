@@ -1565,7 +1565,7 @@ export default {
             travel: 'Viajes',
             members: 'Miembros',
             plan: 'Plan',
-            overview: 'Descripción',
+            profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
