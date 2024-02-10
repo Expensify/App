@@ -329,8 +329,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     if (announceReport?.participantAccountIDs) {
         // Everyone in special policy rooms is visible
         const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
-        const pendingAccountIDs = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}));
-        const pendingVisibleChatMembers = [...(announceReport?.pendingVisibleChatMembers ?? []), ...pendingAccountIDs];
+        const pendingVisibleChatMembers = ReportUtils.getPendingVisibleChatMembers(accountIDs, announceReport?.pendingVisibleChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -379,11 +378,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
 
     if (announceReport?.participantAccountIDs) {
         const remainUsers = announceReport.participantAccountIDs.filter((e) => !accountIDs.includes(e));
-        const pendingAccountIDs = accountIDs.map((accountID) => ({
-            accountID: accountID.toString(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        }));
-        const pendingVisibleChatMembers = [...(announceReport?.pendingVisibleChatMembers ?? []), ...pendingAccountIDs];
+        const pendingVisibleChatMembers = ReportUtils.getPendingVisibleChatMembers(accountIDs, announceReport?.pendingVisibleChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -469,7 +464,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         ...announceRoomMembers.onyxFailureData,
     ];
 
-    const pendingVisibleChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}));
+    const pendingVisibleChatMembers = ReportUtils.getPendingVisibleChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
         optimisticData.push({

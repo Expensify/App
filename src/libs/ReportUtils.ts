@@ -33,7 +33,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
-import type {NotificationPreference} from '@src/types/onyx/Report';
+import type {NotificationPreference, PendingChatMember} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -4768,6 +4768,11 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+function getPendingVisibleChatMembers(accountIDs: number[], previousPendingVisibleChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
+    const pendingVisibleChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
+    return [...previousPendingVisibleChatMembers, ...pendingVisibleChatMembers];
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4959,6 +4964,7 @@ export {
     isReportFieldDisabled,
     getAvailableReportFields,
     getAllAncestorReportActionIDs,
+    getPendingVisibleChatMembers
 };
 
 export type {
