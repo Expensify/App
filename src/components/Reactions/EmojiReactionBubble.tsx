@@ -5,7 +5,6 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 

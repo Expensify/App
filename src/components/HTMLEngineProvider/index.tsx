@@ -1,6 +1,5 @@
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
