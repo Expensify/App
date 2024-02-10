@@ -3,7 +3,7 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 import CustomRouter from './CustomRouter';
@@ -31,7 +31,7 @@ function reduceReportRoutes(routes: Routes): Routes {
 }
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
@@ -50,7 +50,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
             return;
         }
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     const stateToRender = useMemo(() => {
         const result = reduceReportRoutes(state.routes);

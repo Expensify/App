@@ -2,9 +2,9 @@ import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -152,8 +152,8 @@ const modalScreenListeners = {
 function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -262,8 +262,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
     }, []);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+        <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
+            <RootStack.Navigator shouldUseNarrowLayout={shouldUseNarrowLayout}>
                 <RootStack.Screen
                     name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                     options={screenOptions.bottomTab}

@@ -4,8 +4,8 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -65,7 +65,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const theme = useTheme();
 
     const currentReportIDValue = useCurrentReportID();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
 
     const initialState = useMemo(
@@ -108,11 +108,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             firstRenderRef.current = false;
             return;
         }
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             return;
         }
         Navigation.setShouldPopAllStateOnUP();
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {

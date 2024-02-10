@@ -3,8 +3,8 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -18,13 +18,13 @@ const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
 function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
     const isExecutingRef = useRef<boolean>(false);
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && (
+            {!shouldUseNarrowLayout && (
                 <Overlay
                     onPress={() => {
                         if (isExecutingRef.current) {
@@ -35,7 +35,7 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     }}
                 />
             )}
-            <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
+            <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS}

@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -15,11 +16,11 @@ const RootStack = createCustomFullScreenNavigator();
 function FullScreenNavigator() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+        <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
             <RootStack.Navigator>
                 <RootStack.Screen
                     name={SCREENS.SETTINGS.ROOT}
