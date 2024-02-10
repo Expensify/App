@@ -1,7 +1,7 @@
+import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import {useRoute} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -180,13 +180,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             shouldUseFullTitle
         />
     ) : null;
+
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
-                    shouldNavigateToTopMostReport={!!route.params?.backTo}
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldNavigateToTopMostReport={!(route.params && 'backTo' in route.params)}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
