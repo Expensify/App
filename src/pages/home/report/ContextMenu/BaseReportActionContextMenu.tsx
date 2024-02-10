@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';

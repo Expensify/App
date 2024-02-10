@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
