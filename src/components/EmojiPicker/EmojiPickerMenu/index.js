@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +39,8 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -251,7 +253,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
 
             if (item.header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(isSmallScreenWidth, windowWidth) : undefined]}>
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(shouldUseNarrowLayout, windowWidth) : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                     </View>
                 );
@@ -290,7 +292,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
             highlightFirstEmoji,
             singleExecution,
             styles,
-            isSmallScreenWidth,
+            shouldUseNarrowLayout,
             windowWidth,
             translate,
             onEmojiSelected,
@@ -303,7 +305,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
         <View
             style={[
                 styles.emojiPickerContainer,
-                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout),
                 // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
                 arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
             ]}

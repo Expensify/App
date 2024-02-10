@@ -16,6 +16,7 @@ import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -126,7 +127,8 @@ function MoneyRequestPreview({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const parser = new ExpensiMark();
 
     if (isEmptyObject(iouReport) && !isBillSplit) {
@@ -292,7 +294,8 @@ function MoneyRequestPreview({
                                     <Text
                                         style={[
                                             styles.textHeadline,
-                                            isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                            isBillSplit &&
+                                                StyleUtils.getAmountFontSizeAndLineHeight(shouldUseNarrowLayout, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}

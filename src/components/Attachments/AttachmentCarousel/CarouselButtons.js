@@ -7,9 +7,9 @@ import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const propTypes = {
     /** Where the arrows should be visible */
@@ -42,13 +42,13 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
     const isForwardDisabled = page === _.size(attachments) - 1;
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return shouldShowArrows ? (
         <>
             {!isBackDisabled && (
                 <Tooltip text={translate('common.previous')}>
-                    <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.l2 : styles.l8]}>
+                    <View style={[styles.attachmentArrow, shouldUseNarrowLayout ? styles.l2 : styles.l8]}>
                         <Button
                             small
                             innerStyles={[styles.arrowIcon]}
@@ -64,7 +64,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
             )}
             {!isForwardDisabled && (
                 <Tooltip text={translate('common.next')}>
-                    <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.r2 : styles.r8]}>
+                    <View style={[styles.attachmentArrow, shouldUseNarrowLayout ? styles.r2 : styles.r8]}>
                         <Button
                             small
                             innerStyles={[styles.arrowIcon]}

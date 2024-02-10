@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -87,7 +88,7 @@ function ConfirmModal({
     isVisible,
     onConfirm,
 }: ConfirmModalProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <Modal
@@ -96,7 +97,7 @@ function ConfirmModal({
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
         >
             <ConfirmContent
                 title={title}

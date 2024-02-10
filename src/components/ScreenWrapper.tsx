@@ -10,6 +10,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -127,7 +128,8 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldEnableMaxHeight);
+    const {windowHeight} = useWindowDimensions(shouldEnableMaxHeight);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -248,8 +250,8 @@ function ScreenWrapper(
                                               })
                                             : children
                                     }
-                                    {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                    {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
+                                    {shouldUseNarrowLayout && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
                                         <OfflineIndicator
                                             containerStyles={[]}
                                             style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}

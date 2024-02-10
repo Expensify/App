@@ -15,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,7 +65,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const isPressableEnabled = useSharedValue(true);
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
@@ -349,7 +350,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includeSafeAreaPaddingBottom={false}
                 testID={AvatarCropModal.displayName}
             >
-                {isSmallScreenWidth && <HeaderGap />}
+                {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
                     title={translate('avatarCropModal.title')}
                     onBackButtonPress={onClose}

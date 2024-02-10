@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -184,7 +185,8 @@ function AttachmentModal({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
 
     const [file, setFile] = useState<Partial<FileObject> | undefined>(
@@ -485,14 +487,14 @@ function AttachmentModal({
                 propagateSwipe
             >
                 <GestureHandlerRootView style={styles.flex1}>
-                    {isSmallScreenWidth && <HeaderGap />}
+                    {shouldUseNarrowLayout && <HeaderGap />}
                     <HeaderWithBackButton
                         title={headerTitleNew}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}
                         onDownloadButtonPress={() => downloadAttachment()}
-                        shouldShowCloseButton={!isSmallScreenWidth}
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowCloseButton={!shouldUseNarrowLayout}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={closeModal}
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
@@ -550,7 +552,7 @@ function AttachmentModal({
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
                                         success
-                                        style={[styles.buttonConfirm, isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
                                         textStyles={[styles.buttonConfirmText]}
                                         text={translate('common.send')}
                                         onPress={submitAndClose}

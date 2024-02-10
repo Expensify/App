@@ -7,6 +7,7 @@ import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import stylePropTypes from '@styles/stylePropTypes';
@@ -110,7 +111,8 @@ function ListEmptyComponent() {
 
 function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, forwardedRef, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
 
@@ -134,7 +136,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     ListEmptyComponent={ListEmptyComponent}
                     alwaysBounceVertical={alwaysBounceVertical}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    estimatedListSize={{height: flattenListWrapperStyle.height, width: isSmallScreenWidth ? windowWidth : CONST.EMOJI_PICKER_SIZE.WIDTH}}
+                    estimatedListSize={{height: flattenListWrapperStyle.height, width: shouldUseNarrowLayout ? windowWidth : CONST.EMOJI_PICKER_SIZE.WIDTH}}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}

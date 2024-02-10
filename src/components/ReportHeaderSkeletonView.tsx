@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
@@ -21,12 +21,12 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View style={[styles.appContentHeader, isSmallScreenWidth && styles.pl2]}>
-            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
-                {isSmallScreenWidth && (
+        <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2]}>
+            <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
+                {shouldUseNarrowLayout && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
                         style={[styles.touchableButtonImage]}

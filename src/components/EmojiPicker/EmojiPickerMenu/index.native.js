@@ -6,6 +6,7 @@ import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,8 @@ const propTypes = emojiPickerMenuPropTypes;
 
 function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -109,7 +111,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
     );
 
     return (
-        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}>
+        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
             <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}

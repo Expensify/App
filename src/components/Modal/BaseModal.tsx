@@ -4,6 +4,7 @@ import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -47,7 +48,8 @@ function BaseModal(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -142,13 +144,13 @@ function BaseModal(
                 {
                     windowWidth,
                     windowHeight,
-                    isSmallScreenWidth,
                 },
+                shouldUseNarrowLayout,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, shouldUseNarrowLayout, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {

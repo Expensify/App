@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,7 +87,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
@@ -197,9 +198,9 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout)]}>
             <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout)]}>
                 {hasReceipt && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}

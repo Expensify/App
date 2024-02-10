@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +41,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isSettled = ReportUtils.isSettled(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report);
 
@@ -64,9 +65,9 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     }, [policyReportFields, report]);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout, true)]}>
             <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout, true)]}>
                 {ReportUtils.reportFieldsEnabled(report) &&
                     sortedPolicyReportFields.map((reportField) => {
                         const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
