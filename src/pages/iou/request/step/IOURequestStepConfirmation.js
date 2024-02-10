@@ -242,7 +242,6 @@ function IOURequestStepConfirmation({
     const createTransaction = useCallback(
         (selectedParticipants) => {
             const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
-            const transactionCreated = TransactionUtils.getCreated(transaction);
 
             // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
             if (formHasBeenSubmitted.current) {
@@ -276,7 +275,6 @@ function IOURequestStepConfirmation({
                     currentUserPersonalDetails.accountID,
                     transaction.amount,
                     trimmedComment,
-                    transactionCreated,
                     transaction.currency,
                     transaction.merchant,
                     transaction.category,
@@ -295,7 +293,6 @@ function IOURequestStepConfirmation({
                     currentUserPersonalDetails.accountID,
                     transaction.amount,
                     trimmedComment,
-                    transactionCreated,
                     transaction.currency,
                     transaction.merchant,
                     transaction.category,
