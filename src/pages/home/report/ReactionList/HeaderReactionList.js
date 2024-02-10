@@ -3,10 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import reactionPropTypes from './reactionPropTypes';
 
@@ -29,7 +27,7 @@ function HeaderReactionList(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
+        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !shouldUseNarrowLayout && styles.pt4]}>
             <View style={styles.flexRow}>
                 <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
                     <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
@@ -45,4 +43,4 @@ HeaderReactionList.propTypes = propTypes;
 HeaderReactionList.defaultProps = defaultProps;
 HeaderReactionList.displayName = 'HeaderReactionList';
 
-export default compose(withWindowDimensions, withLocalize)(HeaderReactionList);
+export default withLocalize(HeaderReactionList);

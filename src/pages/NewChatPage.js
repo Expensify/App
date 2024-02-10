@@ -8,9 +8,9 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -65,7 +65,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -280,7 +280,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             autoFocus={false}
                         />
                     </View>
-                    {isSmallScreenWidth && <OfflineIndicator />}
+                    {shouldUseNarrowLayout && <OfflineIndicator />}
                 </KeyboardAvoidingView>
             )}
         </ScreenWrapper>
@@ -293,7 +293,6 @@ NewChatPage.displayName = 'NewChatPage';
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
     withOnyx({
         dismissedReferralBanners: {
             key: ONYXKEYS.ACCOUNT,

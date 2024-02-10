@@ -2,7 +2,6 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -38,6 +37,4 @@ type PopoverProps = BaseModalProps &
         fromSidebarMediumScreen?: boolean;
     };
 
-type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
-
-export type {PopoverProps, PopoverWithWindowDimensionsProps};
+export type {PopoverProps};

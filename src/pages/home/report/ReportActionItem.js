@@ -31,7 +31,6 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import withLocalize from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -627,9 +626,9 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout, true)]}>
                         <AnimatedEmptyStateBackground />
-                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout)]}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
                                 showHeader={_.isUndefined(props.draftMessage)}
@@ -643,9 +642,9 @@ function ReportActionItem(props) {
                 );
             }
             return (
-                <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+                <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout, true)]}>
                     <AnimatedEmptyStateBackground />
-                    <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                    <View style={[StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout)]}>
                         <TaskView
                             report={props.report}
                             shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
@@ -710,7 +709,7 @@ function ReportActionItem(props) {
             ref={popoverAnchorRef}
             onPress={props.onPress}
             style={[props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
-            onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+            onPressIn={() => shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
             preventDefaultContextMenu={_.isUndefined(props.draftMessage) && !hasErrors}
@@ -788,7 +787,6 @@ ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withNetwork(),
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),

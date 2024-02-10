@@ -5,9 +5,7 @@ import React, {useCallback, useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import withWindowDimensions from '@components/withWindowDimensions';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import compose from '@libs/compose';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -37,13 +35,15 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type ComponentProps = OnyxProps &
-    WindowDimensionsProps & {
-        route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
-    };
+type ComponentProps = OnyxProps & {
+    route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
+};
 
-export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
+export default function <TProps extends ComponentProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): ComponentType<Omit<TProps & RefAttributes<TRef>, keyof OnyxProps>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+        const {shouldUseNarrowLayout} = useResponsiveLayout();
         const getReportAction = useCallback(() => {
             let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
 
@@ -60,12 +60,12 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!props.isSmallScreenWidth || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
+            if (!shouldUseNarrowLayout || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [props.isSmallScreenWidth, props.route.params.reportID]);
+        }, [shouldUseNarrowLayout, props.route.params.reportID]);
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && !props.report?.reportID;
@@ -93,28 +93,25 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return compose(
-        withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
-            report: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-            },
-            reportMetadata: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
-            },
-            isLoadingReportData: {
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            },
-            betas: {
-                key: ONYXKEYS.BETAS,
-            },
-            policies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
-            reportActions: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-                canEvict: false,
-            },
-        }),
-        withWindowDimensions,
-    )(React.forwardRef(WithReportOrNotFound));
+    return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        reportMetadata: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+            canEvict: false,
+        },
+    })(React.forwardRef(WithReportOrNotFound));
 }

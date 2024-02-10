@@ -7,7 +7,6 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
@@ -91,7 +90,7 @@ function ReportActionsView(props) {
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
 
-    const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
+    const prevIsSmallScreenWidthRef = useRef(shouldUseNarrowLayout);
 
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
@@ -151,15 +150,15 @@ function ReportActionsView(props) {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didScreenSizeIncrease = prevIsSmallScreenWidth && !props.isSmallScreenWidth;
+        const didScreenSizeIncrease = prevIsSmallScreenWidth && !shouldUseNarrowLayout;
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             openReportIfNecessary();
         }
         // update ref with current state
-        prevIsSmallScreenWidthRef.current = props.isSmallScreenWidth;
+        prevIsSmallScreenWidthRef.current = shouldUseNarrowLayout;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isSmallScreenWidth, props.reportActions, isReportFullyVisible]);
+    }, [shouldUseNarrowLayout, props.reportActions, isReportFullyVisible]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -298,7 +297,7 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (newProps.isSmallScreenWidth !== oldProps.isSmallScreenWidth) {
+    if (newshouldUseNarrowLayout !== oldshouldUseNarrowLayout) {
         return false;
     }
 
@@ -321,7 +320,6 @@ const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
-    withWindowDimensions,
     withLocalize,
     withNetwork(),
     withOnyx({

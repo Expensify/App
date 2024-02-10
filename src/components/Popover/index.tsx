@@ -3,20 +3,19 @@ import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
-import withWindowDimensions from '@components/withWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
-import type {PopoverWithWindowDimensionsProps} from './types';
+import type {PopoverProps} from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 
-function Popover(props: PopoverWithWindowDimensionsProps) {
+function Popover(props: PopoverProps) {
     const {
         isVisible,
         onClose,
-        isSmallScreenWidth,
         fullscreen,
         animationInTiming = CONST.ANIMATED_TRANSITION,
         onLayout,
@@ -29,6 +28,7 @@ function Popover(props: PopoverWithWindowDimensionsProps) {
         animationOut = 'fadeOut',
     } = props;
 
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
 
@@ -55,7 +55,7 @@ function Popover(props: PopoverWithWindowDimensionsProps) {
         onClose();
     };
 
-    if (!fullscreen && !isSmallScreenWidth) {
+    if (!fullscreen && !shouldUseNarrowLayout) {
         return createPortal(
             <Modal
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -74,7 +74,7 @@ function Popover(props: PopoverWithWindowDimensionsProps) {
         );
     }
 
-    if (withoutOverlay && !isSmallScreenWidth) {
+    if (withoutOverlay && !shouldUseNarrowLayout) {
         return createPortal(
             <PopoverWithoutOverlay
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -92,11 +92,11 @@ function Popover(props: PopoverWithWindowDimensionsProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onClose={onCloseWithPopoverContext}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-            popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
-            fullscreen={isSmallScreenWidth ? true : fullscreen}
-            animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming}
-            animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming}
+            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+            popoverAnchorPosition={shouldUseNarrowLayout ? undefined : anchorPosition}
+            fullscreen={shouldUseNarrowLayout ? true : fullscreen}
+            animationInTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationInTiming}
+            animationOutTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationOutTiming}
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}
@@ -106,4 +106,4 @@ function Popover(props: PopoverWithWindowDimensionsProps) {
 
 Popover.displayName = 'Popover';
 
-export default withWindowDimensions(Popover);
+export default Popover;

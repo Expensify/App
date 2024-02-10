@@ -12,7 +12,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -164,7 +163,7 @@ function ProfilePage(props) {
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                shouldShowBackButton={props.isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 icon={Illustrations.Profile}
             />
             <ScrollView>
@@ -226,7 +225,6 @@ ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
         loginList: {

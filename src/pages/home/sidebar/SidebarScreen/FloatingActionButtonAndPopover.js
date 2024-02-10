@@ -97,14 +97,14 @@ function FloatingActionButtonAndPopover(props) {
      */
     const showCreateMenu = useCallback(
         () => {
-            if (!props.isFocused && props.isSmallScreenWidth) {
+            if (!props.isFocused && shouldUseNarrowLayout) {
                 return;
             }
             setIsCreateMenuActive(true);
             props.onShowCreateMenu();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.isFocused, props.isSmallScreenWidth],
+        [props.isFocused, shouldUseNarrowLayout],
     );
 
     /**
@@ -151,10 +151,10 @@ function FloatingActionButtonAndPopover(props) {
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!props.isSmallScreenWidth || props.isFocused)}
+                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || props.isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(props.windowHeight)}
                 onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!props.isSmallScreenWidth}
+                fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
