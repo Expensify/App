@@ -6,16 +6,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import SignInHeroCopy from './SignInHeroCopy';
 import SignInHeroImage from './SignInHeroImage';
+import type {SignInPageLayoutProps} from './types';
 
-type SignInPageHeroProps = {
-    /** Override the green headline copy */
-    customHeadline?: string;
+type SignInPageHeroProps = Pick<SignInPageLayoutProps, 'customHeadline' | 'customHeroBody'>;
 
-    /** Override the smaller hero body copy below the headline */
-    customHeroBody?: string;
-};
-
-function SignInPageHero({customHeadline = '', customHeroBody = ''}: SignInPageHeroProps) {
+function SignInPageHero({customHeadline, customHeroBody}: SignInPageHeroProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();

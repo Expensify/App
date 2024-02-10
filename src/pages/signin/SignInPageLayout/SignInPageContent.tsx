@@ -7,29 +7,13 @@ import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import variables from '@styles/variables';
+import SignInHeroImage from './SignInHeroImage';
+import type {SignInPageLayoutProps} from './types';
 
-type SignInPageContentProps = {
+type SignInPageContentProps = Pick<SignInPageLayoutProps, 'welcomeText' | 'welcomeHeader' | 'shouldShowWelcomeText' | 'shouldShowWelcomeHeader' | 'shouldShowSmallScreen'> & {
     /** The children to show inside the layout */
     children?: React.ReactNode;
-
-    /** Welcome text to show in the header of the form, changes depending
-     * on form type (for example, sign in) */
-    welcomeText: string;
-
-    /** Welcome header to show in the header of the form, changes depending
-     * on form type (for example. sign in) and small vs large screens */
-    welcomeHeader: string;
-
-    /** Whether to show welcome text on a particular page */
-    shouldShowWelcomeText: boolean;
-
-    /** Whether to show welcome header on a particular page */
-    shouldShowWelcomeHeader: boolean;
-
-    /** Whether to show signIn hero image on a particular page */
-    shouldShowSmallScreen: boolean;
 };
 
 function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText, shouldShowWelcomeText, shouldShowSmallScreen, children}: SignInPageContentProps) {

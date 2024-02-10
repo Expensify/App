@@ -4,10 +4,9 @@ import LottieAnimations from '@components/LottieAnimations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
+import type {SignInPageLayoutProps} from './types';
 
-type SignInHeroImageProps = {
-    shouldShowSmallScreen?: boolean;
-};
+type SignInHeroImageProps = Pick<SignInPageLayoutProps, 'shouldShowSmallScreen'>;
 
 function SignInHeroImage({shouldShowSmallScreen = false}: SignInHeroImageProps) {
     const styles = useThemeStyles();

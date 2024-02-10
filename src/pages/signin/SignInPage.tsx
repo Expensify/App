@@ -30,8 +30,8 @@ import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
 import type {InputHandle} from './LoginForm/types';
-import type {SignInPageLayoutRef} from './SignInPageLayout';
 import SignInPageLayout from './SignInPageLayout';
+import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 

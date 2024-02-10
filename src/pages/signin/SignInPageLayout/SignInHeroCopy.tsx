@@ -6,16 +6,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
+import type {SignInPageLayoutProps} from './types';
 
-type SignInHeroCopyProps = {
-    /** Override the green headline copy */
-    customHeadline?: string;
+type SignInHeroCopyProps = Pick<SignInPageLayoutProps, 'customHeadline' | 'customHeroBody'>;
 
-    /** Override the smaller hero body copy below the headline */
-    customHeroBody?: string;
-};
-
-function SignInHeroCopy({customHeadline = '', customHeroBody = ''}: SignInHeroCopyProps) {
+function SignInHeroCopy({customHeadline, customHeroBody}: SignInHeroCopyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
@@ -30,9 +25,13 @@ function SignInHeroCopy({customHeadline = '', customHeroBody = ''}: SignInHeroCo
                     isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
                 ]}
             >
+                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {customHeadline || translate('login.hero.header')}
             </Text>
-            <Text style={[styles.loginHeroBody]}>{customHeroBody || translate('login.hero.body')}</Text>
+            <Text style={[styles.loginHeroBody]}>
+                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                {customHeroBody || translate('login.hero.body')}
+            </Text>
         </View>
     );
 }

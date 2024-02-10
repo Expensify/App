@@ -18,11 +18,9 @@ import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {SignInPageLayoutProps} from './types';
 
-type FooterProps = {
-    navigateFocus: () => void;
-    shouldShowSmallScreen?: boolean;
-};
+type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus' | 'shouldShowSmallScreen'>;
 
 type FooterColumnRow = (LinkProps | PressProps) & {
     translationPath: TranslationPaths;
@@ -33,7 +31,7 @@ type FooterColumnData = {
     rows: FooterColumnRow[];
 };
 
-const columns = ({navigateFocus}: Pick<FooterProps, 'navigateFocus'>): FooterColumnData[] => [
+const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>): FooterColumnData[] => [
     {
         translationPath: 'footer.features',
         rows: [

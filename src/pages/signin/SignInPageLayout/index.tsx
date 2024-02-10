@@ -10,47 +10,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import SignInPageHero from '@pages/signin/SignInPageHero';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
+import SignInPageHero from './SignInPageHero';
 import scrollViewContentContainerStyles from './signInPageStyles';
-
-type SignInPageLayoutProps = {
-    /** The children to show inside the layout */
-    children?: React.ReactNode;
-
-    /** Welcome text to show in the header of the form, changes depending
-     * on form type (for example, sign in) */
-    welcomeText?: string;
-
-    /** Welcome header to show in the header of the form, changes depending
-     * on form type (for example, sign in) and small vs large screens */
-    welcomeHeader: string;
-
-    /** Whether to show welcome text on a particular page */
-    shouldShowWelcomeText?: boolean;
-
-    /** Whether to show welcome header on a particular page */
-    shouldShowWelcomeHeader?: boolean;
-
-    /** Whether the sign-in page is being rendered in the RHP modal */
-    shouldShowSmallScreen?: boolean;
-
-    /** Override the green headline copy */
-    customHeadline?: string;
-
-    /** Override the smaller hero body copy below the headline */
-    customHeroBody?: string;
-
-    navigateFocus?: () => void;
-};
-
-type SignInPageLayoutRef = {
-    scrollPageToTop: (animated?: boolean) => void;
-};
+import type {SignInPageLayoutProps, SignInPageLayoutRef} from './types';
 
 function SignInPageLayout(
     {
@@ -208,4 +175,3 @@ function SignInPageLayout(
 SignInPageLayout.displayName = 'SignInPageLayout';
 
 export default forwardRef(SignInPageLayout);
-export type {SignInPageLayoutRef};
