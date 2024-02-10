@@ -18,6 +18,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
@@ -56,7 +57,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Field-specific pending states for offline UI status */
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -192,7 +193,7 @@ function ExpensifyCardPage({
                             <DotIndicatorMessage
                                 style={styles.pageWrapper}
                                 textStyles={styles.walletLockedMessage}
-                                messages={{0: translate('cardPage.cardLocked')}}
+                                messages={{0: 'cardPage.cardLocked'}}
                                 type="error"
                             />
                         ) : null}

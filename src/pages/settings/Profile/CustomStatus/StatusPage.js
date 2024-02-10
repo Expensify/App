@@ -70,7 +70,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack('', false, true), []);
+    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
             const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
