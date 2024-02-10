@@ -98,8 +98,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001043904
-        versionName "1.4.39-4"
+        versionCode 1001043905
+        versionName "1.4.39-5"
     }
 
     flavorDimensions "default"
