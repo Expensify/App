@@ -6,19 +6,18 @@ import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 import type StyleUtilGenerator from './types';
 
-function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
-    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
+function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, shouldUseNarrowLayout: boolean, isFullScreenWhenSmall = false): ViewStyle {
+    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, isFullScreenWhenSmall);
 
     return {
         borderWidth: modalStyles.borderWidth,
-        width: isSmallScreenWidth ? '100%' : windowWidth - modalStyles.marginHorizontal * 2,
+        width: shouldUseNarrowLayout ? '100%' : windowWidth - modalStyles.marginHorizontal * 2,
     };
 }
 
 type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
-    isSmallScreenWidth: boolean;
 };
 
 type GetModalStyles = {
@@ -38,6 +37,7 @@ type GetModalStylesStyleUtil = {
     getModalStyles: (
         type: ModalType | undefined,
         windowDimensions: WindowDimensions,
+        shouldUseNarrowLayout: boolean,
         popoverAnchorPosition?: ViewStyle,
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
@@ -45,8 +45,8 @@ type GetModalStylesStyleUtil = {
 };
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
-    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
-        const {isSmallScreenWidth, windowWidth} = windowDimensions;
+    getModalStyles: (type, windowDimensions, shouldUseNarrowLayout, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
+        const {windowWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
@@ -100,20 +100,20 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalContainerStyle = {
                     boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                     flex: 1,
-                    marginTop: isSmallScreenWidth ? 0 : 20,
-                    marginBottom: isSmallScreenWidth ? 0 : 20,
-                    borderRadius: isSmallScreenWidth ? 0 : 12,
+                    marginTop: shouldUseNarrowLayout ? 0 : 20,
+                    marginBottom: shouldUseNarrowLayout ? 0 : 20,
+                    borderRadius: shouldUseNarrowLayout ? 0 : 12,
                     overflow: 'hidden',
-                    ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
+                    ...getCenteredModalStyles(styles, windowWidth, shouldUseNarrowLayout),
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
                 swipeDirection = ['down', 'right'];
-                animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
-                animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-                shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
-                shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
-                shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+                animationIn = shouldUseNarrowLayout ? 'slideInRight' : 'fadeIn';
+                animationOut = shouldUseNarrowLayout ? 'slideOutRight' : 'fadeOut';
+                shouldAddTopSafeAreaMargin = !shouldUseNarrowLayout;
+                shouldAddBottomSafeAreaMargin = !shouldUseNarrowLayout;
+                shouldAddTopSafeAreaPadding = shouldUseNarrowLayout;
                 shouldAddBottomSafeAreaPadding = false;
                 break;
             case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
@@ -127,18 +127,18 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalContainerStyle = {
                     boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                     flex: 1,
-                    marginTop: isSmallScreenWidth ? 0 : 20,
-                    marginBottom: isSmallScreenWidth ? 0 : 20,
-                    borderRadius: isSmallScreenWidth ? 0 : 12,
+                    marginTop: shouldUseNarrowLayout ? 0 : 20,
+                    marginBottom: shouldUseNarrowLayout ? 0 : 20,
+                    borderRadius: shouldUseNarrowLayout ? 0 : 12,
                     overflow: 'hidden',
-                    ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth, true),
+                    ...getCenteredModalStyles(styles, windowWidth, shouldUseNarrowLayout, true),
                 };
                 swipeDirection = undefined;
-                animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
-                animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-                shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
-                shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
-                shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+                animationIn = shouldUseNarrowLayout ? 'slideInRight' : 'fadeIn';
+                animationOut = shouldUseNarrowLayout ? 'slideOutRight' : 'fadeOut';
+                shouldAddTopSafeAreaMargin = !shouldUseNarrowLayout;
+                shouldAddBottomSafeAreaMargin = !shouldUseNarrowLayout;
+                shouldAddTopSafeAreaPadding = shouldUseNarrowLayout;
                 shouldAddBottomSafeAreaPadding = false;
                 break;
             case CONST.MODAL.MODAL_TYPE.CENTERED_SMALL:
@@ -214,21 +214,21 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalStyle = {
                     ...modalStyle,
                     ...{
-                        marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
-                        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                        marginLeft: shouldUseNarrowLayout ? 0 : windowWidth - variables.sideBarWidth,
+                        width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
                         flexDirection: 'row',
                         justifyContent: 'flex-end',
                     },
                 };
                 modalContainerStyle = {
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
                     height: '100%',
                     overflow: 'hidden',
                 };
 
                 animationIn = {
                     from: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        translateX: shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth,
                     },
                     to: {
                         translateX: 0,
@@ -239,7 +239,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                         translateX: 0,
                     },
                     to: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        translateX: shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth,
                     },
                 };
                 hideBackdrop = true;

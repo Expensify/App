@@ -425,17 +425,17 @@ function getBorderColorStyle(borderColor: string): ViewStyle {
 /**
  * Returns the width style for the wordmark logo on the sign in page
  */
-function getSignInWordmarkWidthStyle(isSmallScreenWidth: boolean, environment: ValueOf<typeof CONST.ENVIRONMENT>): ViewStyle {
+function getSignInWordmarkWidthStyle(shouldUseNarrowLayout: boolean, environment: ValueOf<typeof CONST.ENVIRONMENT>): ViewStyle {
     if (environment === CONST.ENVIRONMENT.DEV) {
-        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+        return shouldUseNarrowLayout ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
     if (environment === CONST.ENVIRONMENT.STAGING) {
-        return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+        return shouldUseNarrowLayout ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
     if (environment === CONST.ENVIRONMENT.PRODUCTION) {
-        return isSmallScreenWidth ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
+        return shouldUseNarrowLayout ? {width: variables.signInLogoWidth} : {width: variables.signInLogoWidthLargeScreen};
     }
-    return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
+    return shouldUseNarrowLayout ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
 }
 
 /**
@@ -538,8 +538,8 @@ function getCodeFontSize(isInsideH1: boolean) {
 /**
  * Gives the width for Emoji picker Widget
  */
-function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
-    if (isSmallScreenWidth) {
+function getEmojiPickerStyle(shouldUseNarrowLayout: boolean): ViewStyle {
+    if (shouldUseNarrowLayout) {
         return {
             width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
@@ -550,9 +550,9 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
     };
 }
 
-function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle {
+function getPaymentMethodMenuWidth(shouldUseNarrowLayout: boolean): ViewStyle {
     const margin = 20;
-    return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
+    return {width: !shouldUseNarrowLayout ? variables.sideBarWidth - margin * 2 : undefined};
 }
 
 /**
@@ -699,10 +699,10 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ImageStyle {
+function getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout: boolean, isMoneyOrTaskReport = false): ImageStyle {
     const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '200%',
@@ -720,9 +720,9 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
 /**
  * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+function getReportWelcomeTopMarginStyle(shouldUseNarrowLayout: boolean, isMoneyOrTaskReport = false): ViewStyle {
     const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return {
             marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
         };
@@ -754,9 +754,9 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+function getReportWelcomeContainerStyle(shouldUseNarrowLayout: boolean, isMoneyOrTaskReport = false): ViewStyle {
     const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return {
             minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
             display: 'flex',
@@ -944,7 +944,7 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
+function getAmountFontSizeAndLineHeight(shouldUseNarrowLayout: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
     let toSubtract = 0;
     const baseFontSize = variables.fontSizeXLarge;
     const baseLineHeight = variables.lineHeightXXLarge;
@@ -953,7 +953,7 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
     const differentWithMaxLength = 17 - displayAmountLength;
 
     // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
-    if (isSmallScreenWidth && windowWidth < 420) {
+    if (shouldUseNarrowLayout && windowWidth < 420) {
         // Based on width Difference we can see the max length of amount can be displayed with the number of avatars.
         // From there we can calculate subtract in accordance with the number of avatar and the length of amount text
         const widthDifference = 420 - windowWidth;
@@ -1448,11 +1448,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return containerStyles;
     },
 
-    getUpdateRequiredViewStyles: (isSmallScreenWidth: boolean): ViewStyle[] => [
+    getUpdateRequiredViewStyles: (shouldUseNarrowLayout: boolean): ViewStyle[] => [
         {
             alignItems: 'center',
             justifyContent: 'center',
-            ...(isSmallScreenWidth ? {} : styles.pb40),
+            ...(shouldUseNarrowLayout ? {} : styles.pb40),
         },
     ],
 

@@ -58,7 +58,7 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
 
-type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; shouldUseNarrowLayout: boolean};
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
@@ -122,10 +122,10 @@ const headlineFont = {
     fontWeight: '500',
 } satisfies TextStyle;
 
-const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
+const modalNavigatorContainer = (shouldUseNarrowLayout: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
         height: '100%',
     } satisfies ViewStyle);
 
@@ -836,10 +836,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        uploadReceiptView: (isSmallScreenWidth: boolean) =>
+        uploadReceiptView: (shouldUseNarrowLayout: boolean) =>
             ({
                 borderRadius: variables.componentBorderRadiusLarge,
-                borderWidth: isSmallScreenWidth ? 0 : 2,
+                borderWidth: shouldUseNarrowLayout ? 0 : 2,
                 borderColor: theme.borderFocus,
                 borderStyle: 'dotted',
                 marginBottom: 20,
@@ -1469,15 +1469,15 @@ const styles = (theme: ThemeColors) =>
             height: variables.lineHeightSizeh1,
         },
 
-        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+        LHPNavigatorContainer: (shouldUseNarrowLayout: boolean) =>
             ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
+                ...modalNavigatorContainer(shouldUseNarrowLayout),
                 left: 0,
             } satisfies ViewStyle),
 
-        RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+        RHPNavigatorContainer: (shouldUseNarrowLayout: boolean) =>
             ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
+                ...modalNavigatorContainer(shouldUseNarrowLayout),
                 right: 0,
             } satisfies ViewStyle),
 
@@ -2303,16 +2303,16 @@ const styles = (theme: ThemeColors) =>
             outline: 'none',
         },
 
-        getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
+        getPDFPasswordFormStyle: (shouldUseNarrowLayout: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : 350,
-                ...(isSmallScreenWidth && flex.flex1),
+                width: shouldUseNarrowLayout ? '100%' : 350,
+                ...(shouldUseNarrowLayout && flex.flex1),
             } satisfies ViewStyle),
 
-        centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
+        centeredModalStyles: (shouldUseNarrowLayout: boolean, isFullScreenWhenSmall: boolean) =>
             ({
-                borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
-                marginHorizontal: isSmallScreenWidth ? 0 : 20,
+                borderWidth: shouldUseNarrowLayout && !isFullScreenWhenSmall ? 1 : 0,
+                marginHorizontal: shouldUseNarrowLayout ? 0 : 20,
             } satisfies ViewStyle),
 
         imageModalImageCenterContainer: {
@@ -2409,10 +2409,10 @@ const styles = (theme: ThemeColors) =>
             padding: 0,
         },
 
-        twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
+        twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, shouldUseNarrowLayout}: TwoFactorAuthCodesBoxParams) => {
             let paddingHorizontal = spacing.ph9;
 
-            if (isSmallScreenWidth) {
+            if (shouldUseNarrowLayout) {
                 paddingHorizontal = spacing.ph4;
             }
 
@@ -2529,8 +2529,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
+        rootNavigatorContainerStyles: (shouldUseNarrowLayout: boolean) => ({marginLeft: shouldUseNarrowLayout ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
+        RHPNavigatorContainerNavigatorContainerStyles: (shouldUseNarrowLayout: boolean) => ({marginLeft: shouldUseNarrowLayout ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
             color: theme.text,
@@ -3480,10 +3480,10 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'middle',
         },
 
-        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
+        stickyHeaderEmoji: (shouldUseNarrowLayout: boolean, windowWidth: number) =>
             ({
                 position: 'absolute',
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+                width: shouldUseNarrowLayout ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
                 ...spacing.mh4,
             } satisfies ViewStyle),
 

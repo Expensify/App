@@ -25,17 +25,17 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
     },
 ];
 
-type GetReportActionContextMenuStylesStyleUtil = {getReportActionContextMenuStyles: (isMini: boolean, isSmallScreenWidth: boolean) => ViewStyle[]};
+type GetReportActionContextMenuStylesStyleUtil = {getReportActionContextMenuStyles: (isMini: boolean, shouldUseNarrowLayout: boolean) => ViewStyle[]};
 
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.
  *
  * @param isMini
- * @param isSmallScreenWidth
+ * @param shouldUseNarrowLayout
  * @param theme
  */
 const createReportActionContextMenuStyleUtils: StyleUtilGenerator<GetReportActionContextMenuStylesStyleUtil> = ({theme, styles}) => ({
-    getReportActionContextMenuStyles: (isMini, isSmallScreenWidth) => {
+    getReportActionContextMenuStyles: (isMini, shouldUseNarrowLayout) => {
         if (isMini) {
             return getMiniWrapperStyle(theme, styles);
         }
@@ -45,7 +45,7 @@ const createReportActionContextMenuStyleUtils: StyleUtilGenerator<GetReportActio
             getDefaultWrapperStyle(theme),
 
             // Small screens use a bottom-docked modal that already has vertical padding.
-            isSmallScreenWidth ? {} : styles.pv3,
+            shouldUseNarrowLayout ? {} : styles.pv3,
         ];
     },
 });
