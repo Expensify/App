@@ -129,7 +129,7 @@ const defaultProps = {
 function IdentityForm(props) {
     const styles = useThemeStyles();
     // dob field has multiple validations/errors, we are handling it temporarily like this.
-    const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
+    const dobErrorText = (props.errors.dob ? 'bankAccount.error.dob' : '') || (props.errors.dobAge ? 'bankAccount.error.age' : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
@@ -148,7 +148,7 @@ function IdentityForm(props) {
                         role={CONST.ROLE.PRESENTATION}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
-                        errorText={props.errors.firstName ? props.translate('bankAccount.error.firstName') : ''}
+                        errorText={props.errors.firstName ? 'bankAccount.error.firstName' : ''}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -161,7 +161,7 @@ function IdentityForm(props) {
                         role={CONST.ROLE.PRESENTATION}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
-                        errorText={props.errors.lastName ? props.translate('bankAccount.error.lastName') : ''}
+                        errorText={props.errors.lastName ? 'bankAccount.error.lastName' : ''}
                     />
                 </View>
             </View>
@@ -187,7 +187,7 @@ function IdentityForm(props) {
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 defaultValue={props.defaultValues.ssnLast4}
-                errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
+                errorText={props.errors.ssnLast4 ? 'bankAccount.error.ssnLast4' : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <AddressForm
