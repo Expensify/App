@@ -1,8 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
+import useDebouncedState from '@hooks/useDebouncedState';
 import * as Browser from '@libs/Browser';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type WindowDimensions from './types';
 
 const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -23,7 +25,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
 
-    const [cachedViewportHeight, setCachedViewportHeight] = useState(windowHeight);
+    const [, cachedViewportHeight, setCachedViewportHeight] = useDebouncedState(windowHeight, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
 
     const handleFocusIn = useRef((event: FocusEvent) => {
         const targetElement = event.target as HTMLElement;
@@ -66,6 +68,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
             return;
         }
         setCachedViewportHeight(windowHeight);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowHeight, isCachedViewportHeight]);
 
     useEffect(() => {
