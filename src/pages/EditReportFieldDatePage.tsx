@@ -23,38 +23,42 @@ type EditReportFieldDatePageProps = {
     /** ID of the policy report field */
     fieldID: string;
 
+    /** Flag to indicate if the field can be left blank */
+    isRequired: boolean;
+
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: () => void;
+    onSubmit: (form: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => void;
 };
 
-function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: EditReportFieldDatePageProps) {
+function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, fieldID}: EditReportFieldDatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<AnimatedTextInputRef>(null);
 
     const validate = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
+        (value: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
             const errors: Errors = {};
-            const value = values[fieldID];
-            if (typeof value === 'string' && value.trim() === '') {
+            if (isRequired && value[fieldID].trim() === '') {
                 errors[fieldID] = 'common.error.fieldRequired';
             }
             return errors;
         },
-        [fieldID],
+        [fieldID, isRequired],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => inputRef.current?.focus()}
+            onEntryTransitionEnd={() => {
+                inputRef.current?.focus();
+            }}
             testID={EditReportFieldDatePage.displayName}
         >
             <HeaderWithBackButton title={fieldName} />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM}
+                formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}
                 onSubmit={onSubmit}
                 validate={validate}
                 submitButtonText={translate('common.save')}
