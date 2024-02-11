@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -34,6 +34,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import newRoomDraftPropTypes from './newRoomDraftPropTypes';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -83,24 +84,8 @@ const propTypes = {
     /** policyID for main workspace */
     activePolicyID: PropTypes.string,
 
-    newRoomDraft: PropTypes.shape({
-        workspace: PropTypes.shape({
-            label: PropTypes.string,
-            key: PropTypes.string,
-            value: PropTypes.string,
-        }),
-
-        writeCapability: PropTypes.shape({
-            value: PropTypes.oneOfType(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
-            label: PropTypes.string,
-        }),
-
-        visibility: PropTypes.shape({
-            value: PropTypes.oneOfType(_.values(CONST.REPORT.VISIBILITY)),
-            label: PropTypes.string,
-            description: PropTypes.string,
-        }),
-    }),
+    /** New room draft data */
+    newRoomDraft: newRoomDraftPropTypes,
 };
 const defaultProps = {
     reports: {},
@@ -113,7 +98,7 @@ const defaultProps = {
         accountID: 0,
     },
     activePolicyID: null,
-    newRoomDraft: {},
+    // newRoomDraft: {},
 };
 
 function WorkspaceNewRoomPage(props) {
@@ -423,7 +408,7 @@ export default compose(
             initialValue: null,
         },
         newRoomDraft: {
-            key: ONYXKEYS.NEW_ROOM_DRAFT,
+            key: ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT,
         },
     }),
 )(WorkspaceNewRoomPage);

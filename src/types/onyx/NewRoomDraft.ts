@@ -2,9 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
 type Workspace = {
-    label: string;
-    key: string;
-    value: string;
+    id?: string;
+    name?: string;
 };
 
 type Visibility = {
@@ -21,7 +20,7 @@ type WriteCapabilities = {
 type NewRoomDraft = {
     workspace?: Workspace;
     writeCapability?: WriteCapabilities;
-    visibility: Visibility;
+    visibility?: Visibility;
 };
 
 export default NewRoomDraft;

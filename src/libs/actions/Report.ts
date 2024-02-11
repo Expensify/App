@@ -1826,6 +1826,15 @@ function navigateToConciergeChatAndDeleteReport(reportID: string) {
 }
 
 /**
+ * @param workspaceID The id of the workspace
+ * @param name The name of the workspace
+ */
+
+function updateRoomDraftWorkspace(workspaceID: string, name: string) {
+    Onyx.merge(ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT, {workspace: {id: workspaceID, name}});
+}
+
+/**
  * @param policyRoomReport The policy room report
  * @param policyRoomName The updated name for the policy room
  */
@@ -2916,4 +2925,5 @@ export {
     updateReportField,
     updateReportName,
     resolveActionableMentionWhisper,
+    updateRoomDraftWorkspace,
 };
