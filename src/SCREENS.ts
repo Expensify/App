@@ -194,7 +194,7 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        OVERVIEW: 'Workspace_Overview',
+        PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
@@ -204,8 +204,8 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Overview_Currency',
-        NAME: 'Workspace_Overview_Name',
+        CURRENCY: 'Workspace_Profile_Currency',
+        NAME: 'Workspace_Profile_Name',
     },
 
     EDIT_REQUEST: {
