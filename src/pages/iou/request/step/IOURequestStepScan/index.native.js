@@ -124,6 +124,8 @@ function IOURequestStepScan({
         const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
             CameraPermission.getCameraPermissionStatus()
                 .then((res) => {
+                    // In android device app data, the status is not set to blocked until denied twice,
+                    // due to that the app will ask for permission twice whenever users opens uses the scan tab
                     setCameraPermissionStatus(res);
                     if (shouldAskForPermission && !askedForPermission.current) {
                         askedForPermission.current = true;
