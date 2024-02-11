@@ -51,7 +51,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
         return [
             {
                 title: translate('common.recents'),
-                shouldShow: true,
+                shouldShow: !_.isEmpty(filteredRecentOptions),
                 data: filteredRecentOptions.map((option) => ({
                     text: option,
                     keyForList: option,
@@ -61,7 +61,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             },
             {
                 title: translate('common.all'),
-                shouldShow: true,
+                shouldShow: !_.isEmpty(filteredRestOfOptions),
                 data: filteredRestOfOptions.map((option) => ({
                     text: option,
                     keyForList: option,
