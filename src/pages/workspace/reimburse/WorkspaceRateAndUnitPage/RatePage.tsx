@@ -87,10 +87,10 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline
-                    style={[styles.flexGrow1, styles.mh5]}
+                    style={[styles.flexGrow1]}
                     shouldHideFixErrorsAlert
-                    // @ts-expect-error TODO: fix this
                     submitFlexEnabled={false}
+                    submitButtonStyles={[styles.mh5, styles.mt0]}
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
