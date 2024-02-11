@@ -1,13 +1,17 @@
 import {Portal} from '@gorhom/portal';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
 import useStyleUtils from '@hooks/useStyleUtils';
-import BaseAutoCompleteSuggestions from '../BaseAutoCompleteSuggestions';
-import type {AutoCompleteSuggestionsProps} from './types';
+import CONST from '@src/CONST';
+import type {AutoCompleteSuggestionsPortalProps} from './types';
 
-function AutoCompleteSuggestionsPortal<TSuggestion>({left, width, bottom, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
+function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
-    const styles = useMemo(() => StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom + 8}), [StyleUtils, left, width, bottom]);
+    const styles = useMemo(
+        () => StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom + CONST.AUTO_COMPLETE_SUGGESTER.DISTANCE_FROM_LINE_TO_SUGGESTION_BOX}),
+        [StyleUtils, left, width, bottom],
+    );
 
     if (!width) {
         return null;

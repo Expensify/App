@@ -2,12 +2,10 @@ import React from 'react';
 import type {ReactElement} from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
-// import BaseAutoCompleteSuggestions from '../BaseAutoCompleteSuggestions';
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
-// import type {AutoCompleteSuggestionsProps} from '../types';
-import type {AutoCompleteSuggestionsProps} from '@components/AutoCompleteSuggestions/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -15,15 +13,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
  * The desired pattern for all platforms is to do nothing on long-press.
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
-
-type ExternalProps<TSuggestion> = Omit<AutoCompleteSuggestionsProps<TSuggestion>, 'measureParentContainerAndReportCursor'>;
-
-type AutoCompleteSuggestionsPortalProps<TSuggestion> = ExternalProps<TSuggestion> & {
-    left: number;
-    width: number;
-    bottom: number;
-    measuredHeightOfSuggestionRows: number;
-};
 
 function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
