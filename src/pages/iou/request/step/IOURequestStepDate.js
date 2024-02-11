@@ -65,9 +65,8 @@ function IOURequestStepDate({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getCreated(splitDraftTransaction) : TransactionUtils.getCreated(transaction);
 
