@@ -808,7 +808,7 @@ function updateCustomStatus(status: Status) {
         },
     ];
 
-    const parameters: UpdateStatusParams = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
+    const parameters: UpdateStatusParams = {text: status.text, emojiCode: status.emojiCode, clearAfter: clearAfterInUtc};
 
     API.write(WRITE_COMMANDS.UPDATE_STATUS, parameters, {
         optimisticData,
