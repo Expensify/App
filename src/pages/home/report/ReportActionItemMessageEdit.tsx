@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
+import * as ComposerActions from '@userActions/Composer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -210,6 +211,9 @@ function ReportActionItemMessageEdit(
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
     }, [action.reportActionID]);
 
+    // show the composer quickly after done editing
+    useEffect(() => ()=>  ComposerActions.setShouldShowComposeInput(true), [])
+
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -288,7 +292,7 @@ function ReportActionItemMessageEdit(
             ReportActionComposeFocusManager.clear();
             ReportActionComposeFocusManager.focus();
         }
-
+        
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
