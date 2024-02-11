@@ -65,11 +65,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         {policy?.description ? (
                             <PressableWithoutFeedback
                                 onPress={() => {
-                                    if (ReportUtils.canEditPolicyDescription(policy)) {
-                                        Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id));
+                                    if (!ReportUtils.canEditPolicyDescription(policy)) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
+                                    Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id));
                                 }}
                                 style={styles.renderHTML}
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
