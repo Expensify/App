@@ -293,7 +293,7 @@ function AttachmentPickerWithMenuItems({
                                     style={styles.composerSizeButton}
                                     disabled={isBlockedFromConcierge || disabled}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('reportActionCompose.addAction')}
+                                    accessibilityLabel={translate('common.create')}
                                 >
                                     <Icon
                                         fill={theme.icon}

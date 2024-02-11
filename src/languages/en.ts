@@ -422,7 +422,6 @@ export default {
         oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
     },
     reportActionCompose: {
-        addAction: 'Actions',
         dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
