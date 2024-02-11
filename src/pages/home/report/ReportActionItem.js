@@ -297,6 +297,8 @@ function ReportActionItem(props) {
         [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
     );
 
+    // Handles manual scrolling to the bottom of the chat when the last message is an actionable mention whisper and it's resolved.
+    // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
     useEffect(() => {
         if (props.index !== 0 || !ReportActionsUtils.isActionableMentionWhisper(props.action)) {
             return;

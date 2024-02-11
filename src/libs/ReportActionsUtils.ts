@@ -819,7 +819,8 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const handleText = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
+        const displayName = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
+        const handleText = _.isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
     const preMentionsText = 'Heads up, ';
