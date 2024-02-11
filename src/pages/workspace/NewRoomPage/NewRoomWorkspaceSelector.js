@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,12 +58,13 @@ function NewRoomWorkspaceSelector(props) {
             _.map(
                 _.filter(PolicyUtils.getActivePolicies(props.policies), (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL),
                 (policy) => ({
-                    label: policy.name,
-                    key: policy.id,
                     value: policy.id,
+                    keyForList: policy.id,
+                    text: policy.name,
+                    isSelected: props.activePolicyID === policy.id,
                 }),
             ),
-        [props.policies],
+        [props.policies, props.activePolicyID],
     );
 
     const [policyID, setPolicyID] = useState(() => {
@@ -77,14 +79,14 @@ function NewRoomWorkspaceSelector(props) {
             style={[styles.pb0]}
             includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
-            testID="ValueSelectorModal"
+            testID={NewRoomWorkspaceSelector.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.workspace')}
-                onBackButtonPress={() => {}}
+                onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
-                sections={workspaceOptions}
+                sections={[{data: workspaceOptions}]}
                 value={policyID}
                 onSelectRow={setPolicyID}
                 initiallyFocusedOptionKey={policyID}

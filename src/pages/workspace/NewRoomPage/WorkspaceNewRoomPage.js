@@ -377,16 +377,14 @@ function WorkspaceNewRoomPage(props) {
                                     shouldShowTooltips={false}
                                 />
                             </View>
-                            <MenuItemWithTopDescription
-                                // shouldShowRightIcon={!isReadOnly}
-                                title={'taxRateTitle'}
-                                description={'policyTaxRates.name'}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_ROOM_WORKSPACE_SELECTOR)}
-                                // disabled={didConfirm}
-                                // interactive={!isReadOnly}
-                            />
+                            <View style={[styles.flex1]}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={`Workspace 77`}
+                                    description={'Description'}
+                                    onPress={() => Navigation.navigate(ROUTES.NEW_ROOM_WORKSPACE_SELECTOR)}
+                                />
+                            </View>
                         </FormProvider>
 
                         {isSmallScreenWidth && <OfflineIndicator />}
