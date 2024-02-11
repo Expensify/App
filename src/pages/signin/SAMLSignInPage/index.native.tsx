@@ -13,9 +13,9 @@ import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SAMLSignInPageNativeOnyxProps, SAMLSignInPageProps} from './types';
+import type {SAMLSignInPageOnyxProps, SAMLSignInPageProps} from './types';
 
-function SAMLSignInPage({credentials, account}: SAMLSignInPageProps<SAMLSignInPageNativeOnyxProps>) {
+function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
     const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}&platform=${getPlatform()}`;
     const [showNavigation, shouldShowNavigation] = useState(true);
 
@@ -78,7 +78,7 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps<SAMLSignInPa
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default withOnyx<SAMLSignInPageProps<SAMLSignInPageNativeOnyxProps>, SAMLSignInPageNativeOnyxProps>({
+export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
     credentials: {key: ONYXKEYS.CREDENTIALS},
     account: {key: ONYXKEYS.ACCOUNT},
 })(SAMLSignInPage);

@@ -37,13 +37,13 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
             return '';
         }
         return Str.isSMSLogin(account.primaryLogin) ? Str.removeSMSDomain(account.primaryLogin) : account.primaryLogin;
-    }, [account]);
+    }, [account?.primaryLogin]);
     const secondaryLogin = useMemo(() => {
         if (!credentials?.login) {
             return '';
         }
         return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
-    }, [credentials]);
+    }, [credentials?.login]);
 
     return (
         <>
@@ -62,7 +62,7 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
                     messages={{0: account.message}}
                 />
             )}
-            {account?.errors && !isEmptyObject(account?.errors) && (
+            {!!account?.errors && !isEmptyObject(account?.errors) && (
                 <DotIndicatorMessage
                     style={[styles.mb5]}
                     type="error"
@@ -80,7 +80,7 @@ function UnlinkLoginForm({account, credentials}: UnlinkLoginFormProps) {
                     medium
                     success
                     text={translate('unlinkLoginForm.unlink')}
-                    isLoading={!!account?.isLoading && account?.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
+                    isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => Session.requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}
                 />

@@ -4,13 +4,11 @@ import type {Account, Credentials} from '@src/types/onyx';
 type SAMLSignInPageOnyxProps = {
     /** The credentials of the logged in person */
     credentials: OnyxEntry<Credentials>;
-};
 
-type SAMLSignInPageNativeOnyxProps = SAMLSignInPageOnyxProps & {
     /** State of the logging in user's account */
     account: OnyxEntry<Account>;
 };
 
-type SAMLSignInPageProps<OnyxProps> = OnyxProps;
+type SAMLSignInPageProps = SAMLSignInPageOnyxProps;
 
-export type {SAMLSignInPageProps, SAMLSignInPageNativeOnyxProps, SAMLSignInPageOnyxProps};
+export type {SAMLSignInPageProps, SAMLSignInPageOnyxProps};

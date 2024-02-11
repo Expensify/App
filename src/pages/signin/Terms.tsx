@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -8,7 +9,7 @@ import CONST from '@src/CONST';
 function Terms() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [linkStyles, containerStyles] = useMemo(
+    const [linkStyles, containerStyles] = useMemo<Array<StyleProp<TextStyle>>>(
         () => [
             [styles.textExtraSmallSupporting, styles.link],
             [styles.textExtraSmallSupporting, styles.mb4],

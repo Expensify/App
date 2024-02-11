@@ -54,6 +54,27 @@ type SignInPageInnerProps = SignInPageInnerOnyxProps & {
     isInModal?: boolean;
 };
 
+type RenderOption = {
+    shouldShowLoginForm: boolean;
+    shouldShowEmailDeliveryFailurePage: boolean;
+    shouldShowUnlinkLoginForm: boolean;
+    shouldShowValidateCodeForm: boolean;
+    shouldShowChooseSSOOrMagicCode: boolean;
+    shouldInitiateSAMLLogin: boolean;
+    shouldShowWelcomeHeader: boolean;
+    shouldShowWelcomeText: boolean;
+};
+
+type GetRenderOptionsParams = {
+    hasLogin: boolean;
+    hasValidateCode: boolean;
+    account: OnyxEntry<Account>;
+    isPrimaryLogin: boolean;
+    isUsingMagicCode: boolean;
+    hasInitiatedSAMLLogin: boolean;
+    showLoginPageOpenedMessage: boolean;
+};
+
 /**
  * @param hasLogin
  * @param hasValidateCode
@@ -63,55 +84,30 @@ type SignInPageInnerProps = SignInPageInnerOnyxProps & {
  * @param hasInitiatedSAMLLogin
  * @param hasEmailDeliveryFailure
  */
-function getRenderOptions({
-    hasLogin,
-    hasValidateCode,
-    account,
-    isPrimaryLogin,
-    isUsingMagicCode,
-    hasInitiatedSAMLLogin,
-    shouldShowAnotherLoginPageOpenedMessage,
-}: {
-    hasLogin: boolean;
-    hasValidateCode: boolean;
-    account: OnyxEntry<Account>;
-    isPrimaryLogin: boolean;
-    isUsingMagicCode: boolean;
-    hasInitiatedSAMLLogin: boolean;
-    shouldShowAnotherLoginPageOpenedMessage: boolean;
-}): {
-    shouldShowLoginForm: boolean;
-    shouldShowEmailDeliveryFailurePage: boolean;
-    shouldShowUnlinkLoginForm: boolean;
-    shouldShowValidateCodeForm: boolean;
-    shouldShowChooseSSOOrMagicCode: boolean;
-    shouldInitiateSAMLLogin: boolean;
-    shouldShowWelcomeHeader: boolean;
-    shouldShowWelcomeText: boolean;
-} {
+function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, showLoginPageOpenedMessage}: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
-    const isSAMLEnabled = account?.isSAMLEnabled;
-    const isSAMLRequired = account?.isSAMLRequired;
-    const hasEmailDeliveryFailure = account?.hasEmailDeliveryFailure;
+    const isSAMLEnabled = !!account?.isSAMLEnabled;
+    const isSAMLRequired = !!account?.isSAMLRequired;
+    const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && !!isSAMLRequired && !hasInitiatedSAMLLogin && !!account?.isLoading;
-    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && !!isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
+    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account?.isLoading) {
+    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
         Session.clearSignInData();
     }
 
-    const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
-    const shouldShowEmailDeliveryFailurePage = hasLogin && !!hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
+    const shouldShowLoginForm = !showLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
         hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || showLoginPageOpenedMessage;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
@@ -147,14 +143,14 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
 
     const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
     // We need to show "Another login page is opened" message if the page isn't active and visible
-    const isLoginPageActive = Visibility.isVisible() && isClientTheLeader;
+    const showLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
         if (preferredLocale) {
             return;
         }
-        App.setLocale(Localize.getDevicePreferredLocale() as Locale);
+        App.setLocale(Localize.getDevicePreferredLocale());
     }, [preferredLocale]);
     useEffect(() => {
         if (credentials?.login) {
@@ -183,10 +179,10 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
         hasLogin: !!credentials?.login,
         hasValidateCode: !!credentials?.validateCode,
         account,
-        isPrimaryLogin: !account?.primaryLogin || account?.primaryLogin === credentials?.login,
+        isPrimaryLogin: !account?.primaryLogin || account.primaryLogin === credentials?.login,
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
-        shouldShowAnotherLoginPageOpenedMessage: !isLoginPageActive,
+        showLoginPageOpenedMessage,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -198,7 +194,7 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
     let welcomeText = '';
     const headerText = translate('login.hero.header');
 
-    if (!isLoginPageActive) {
+    if (showLoginPageOpenedMessage) {
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
         welcomeText = translate('welcomeText.anotherLoginPageIsOpenExplanation');
     } else if (shouldShowLoginForm) {
@@ -210,8 +206,7 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
             welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const userLogin = Str.removeSMSDomain(credentials?.login || '');
+            const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
 
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
@@ -271,12 +266,12 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
                 {shouldShowValidateCodeForm && (
                     <ValidateCodeForm
                         // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
-                        isVisible={isLoginPageActive}
+                        isVisible={!showLoginPageOpenedMessage}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
                     />
                 )}
-                {isLoginPageActive && (
+                {!showLoginPageOpenedMessage && (
                     <>
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                         {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}

@@ -25,13 +25,9 @@ function SignInHeroCopy({customHeadline, customHeroBody}: SignInHeroCopyProps) {
                     isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
                 ]}
             >
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                {customHeadline || translate('login.hero.header')}
+                {customHeadline ?? translate('login.hero.header')}
             </Text>
-            <Text style={[styles.loginHeroBody]}>
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                {customHeroBody || translate('login.hero.body')}
-            </Text>
+            <Text style={[styles.loginHeroBody]}>{customHeroBody ?? translate('login.hero.body')}</Text>
         </View>
     );
 }

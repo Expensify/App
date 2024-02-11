@@ -22,8 +22,8 @@ import type {SignInPageLayoutProps, SignInPageLayoutRef} from './types';
 function SignInPageLayout(
     {
         shouldShowSmallScreen = false,
-        customHeadline = '',
-        customHeroBody = '',
+        customHeadline,
+        customHeroBody,
         shouldShowWelcomeHeader = false,
         welcomeHeader,
         welcomeText = '',

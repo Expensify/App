@@ -15,7 +15,7 @@ type Social = {
     link: string;
 };
 
-const socialsList: Social[] = [
+const socialList: Social[] = [
     {
         iconURL: Expensicons.Podcast,
         link: CONST.SOCIALS.PODCAST,
@@ -41,17 +41,14 @@ const socialsList: Social[] = [
 function Socials() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const getColor = (hovered: boolean, pressed: boolean) => (hovered || pressed ? theme.link : theme.textLight);
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
-            {socialsList.map((social: Social) => (
+            {socialList.map((social: Social) => (
                 <PressableWithoutFeedback
                     key={social.link}
                     href={social.link}
                     onPress={(e) => {
-                        if (e) {
-                            e.preventDefault();
-                        }
+                        e?.preventDefault();
                         Link.openExternalLink(social.link);
                     }}
                     accessible={false}
@@ -63,7 +60,7 @@ function Socials() {
                             src={social.iconURL}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}
-                            fill={getColor(hovered, pressed)}
+                            fill={hovered || pressed ? theme.link : theme.textLight}
                         />
                     )}
                 </PressableWithoutFeedback>

@@ -22,8 +22,6 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
 type ChooseSSOOrMagicCodeOnyxProps = {
-    /* Onyx Props */
-
     /** The credentials of the logged in person */
     credentials: OnyxEntry<Credentials>;
 
