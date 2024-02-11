@@ -6,8 +6,8 @@ type WebSelection = {
 };
 function getCursorPosition(selection: WebSelection) {
     return {
-        x: selection.positionX,
-        y: selection.positionY,
+        x: selection.positionX ?? 0,
+        y: selection.positionY ?? 0,
     };
 }
 export default getCursorPosition;
