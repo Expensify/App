@@ -31,7 +31,7 @@ import type {
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated, OriginalMessageRenamed, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -172,8 +172,8 @@ type ReportRouteParams = {
 };
 
 type ReportOfflinePendingActionAndErrors = {
-    addWorkspaceRoomOrChatPendingAction: PendingAction | undefined;
-    addWorkspaceRoomOrChatErrors: Errors | null | undefined;
+    reportPendingAction: PendingAction | undefined;
+    reportErrors: Errors | null | undefined;
 };
 
 type OptimisticApprovedReportAction = Pick<
@@ -197,6 +197,9 @@ type OptimisticClosedReportAction = Pick<
 >;
 
 type OptimisticCreatedReportAction = OriginalMessageCreated &
+    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
+
+type OptimisticRenamedReportAction = OriginalMessageRenamed &
     Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
 
 type OptimisticChatReport = Pick<
@@ -1226,6 +1229,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
     const report = getReport(reportID);
 
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         // For now, users cannot delete split actions
@@ -1236,6 +1240,10 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         }
 
         if (isActionOwner) {
+            if (!isEmptyObject(report) && isPaidGroupPolicyExpenseReport(report)) {
+                // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
+                return isDraftExpenseReport(report) || PolicyUtils.isPolicyAdmin(policy);
+            }
             return true;
         }
     }
@@ -1249,7 +1257,6 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         return false;
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
 
     return isActionOwner || isAdmin;
@@ -1883,6 +1890,13 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 }
 
 /**
+ * Check if report fields are available to use in a report
+ */
+function reportFieldsEnabled(report: Report) {
+    return Permissions.canUseReportFields(allBetas ?? []) && isPaidGroupPolicyExpenseReport(report);
+}
+
+/**
  * Given a report field, check if the field can be edited or not.
  * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
  * For non title fields, its considered disabled if:
@@ -1939,7 +1953,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
-    if (titleReportField && report?.reportName && Permissions.canUseReportFields(allBetas ?? [])) {
+    if (titleReportField && report?.reportName && reportFieldsEnabled(report)) {
         return report.reportName;
     }
 
@@ -3330,6 +3344,10 @@ function buildOptimisticChatReport(
     };
 }
 
+function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
+    return allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
+}
+
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param [created] - Action created time
@@ -3360,8 +3378,50 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the room has been renamed
+ */
+function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string): OptimisticRenamedReportAction {
+    const now = DateUtils.getDBTime();
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: 'You',
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ` renamed this report. New title is '${newName}' (previously '${oldName}').`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        originalMessage: {
+            oldName,
+            newName,
+            html: `Room renamed to ${newName}`,
+            lastModified: now,
+        },
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: now,
         shouldShow: true,
     };
 }
@@ -3395,7 +3455,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string): Optimi
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -3411,7 +3471,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -4240,14 +4300,20 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
 }
 
 /**
- * Return the pendingAction and the errors we have when creating a chat or a workspace room offline
+ * Return the pendingAction and the errors resulting from either
+ *
+ * - creating a workspace room
+ * - starting a chat
+ * - paying the money request
+ *
+ * while being offline
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
-    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
-    // simply looking up the first truthy value for each case will get the relevant property if it's set.
-    const addWorkspaceRoomOrChatPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat;
-    const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
+    // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed;
+
+    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+    return {reportPendingAction, reportErrors};
 }
 
 function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null {
@@ -4636,7 +4702,7 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
-function navigateToPrivateNotes(report: Report, session: Session) {
+function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>) {
     if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
@@ -4853,6 +4919,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
+    buildOptimisticRenamedRoomReportAction,
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
@@ -4974,6 +5041,7 @@ export {
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
+    reportFieldsEnabled,
     getAllAncestorReportActionIDs,
 };
 
