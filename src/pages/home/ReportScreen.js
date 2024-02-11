@@ -200,6 +200,12 @@ function ReportScreen({
             iouReportID: reportProp.iouReportID,
             isOwnPolicyExpenseChat: reportProp.isOwnPolicyExpenseChat,
             notificationPreference: reportProp.notificationPreference,
+            isPinned: reportProp.isPinned,
+            chatReportID: reportProp.chatReportID,
+            visibility: reportProp.visibility,
+            oldPolicyName: reportProp.oldPolicyName,
+            policyName: reportProp.policyName,
+            isOptimisticReport: reportProp.isOptimisticReport,
         }),
         [
             reportProp.lastReadTime,
@@ -230,6 +236,12 @@ function ReportScreen({
             reportProp.iouReportID,
             reportProp.isOwnPolicyExpenseChat,
             reportProp.notificationPreference,
+            reportProp.isPinned,
+            reportProp.chatReportID,
+            reportProp.visibility,
+            reportProp.oldPolicyName,
+            reportProp.policyName,
+            reportProp.isOptimisticReport,
         ],
     );
 
@@ -246,7 +258,7 @@ function ReportScreen({
     }
 
     const reportID = getReportID(route);
-    const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
+    const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isEmptyChat = useMemo(() => _.isEmpty(reportActions), [reportActions]);
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
@@ -275,7 +287,7 @@ function ReportScreen({
     }, [shouldHideReport, report]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.HOME, false, true);
+        Navigation.goBack(undefined, false, true);
     }, []);
 
     let headerView = (
@@ -411,7 +423,7 @@ function ReportScreen({
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP();
-                Navigation.goBack(ROUTES.HOME, false, true);
+                Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
                 // Prevent navigation to the Money Request Report if it is pending deletion.
@@ -509,8 +521,8 @@ function ReportScreen({
                         shouldShowLink={false}
                     >
                         <OfflineWithFeedback
-                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                            errors={addWorkspaceRoomOrChatErrors}
+                            pendingAction={reportPendingAction}
+                            errors={reportErrors}
                             shouldShowErrorMessages={false}
                             needsOffscreenAlphaCompositing
                         >
@@ -560,7 +572,7 @@ function ReportScreen({
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         report={report}
-                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        pendingAction={reportPendingAction}
                                         isComposerFullSize={isComposerFullSize}
                                         listHeight={listHeight}
                                         isEmptyChat={isEmptyChat}
@@ -634,7 +646,7 @@ export default compose(
                     if (!parentReportActionID) {
                         return {};
                     }
-                    return lodashGet(parentReportActions, parentReportActionID);
+                    return lodashGet(parentReportActions, parentReportActionID, {});
                 },
                 canEvict: false,
             },
@@ -653,11 +665,8 @@ export default compose(
             _.isEqual(prevProps.policies, nextProps.policies) &&
             prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
-            prevProps.report.reportID === nextProps.report.reportID &&
-            prevProps.report.policyID === nextProps.report.policyID &&
-            prevProps.report.isOptimisticReport === nextProps.report.isOptimisticReport &&
-            prevProps.report.statusNum === nextProps.report.statusNum &&
-            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
-            prevProps.currentReportID === nextProps.currentReportID,
+            prevProps.currentReportID === nextProps.currentReportID &&
+            prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
+            _.isEqual(prevProps.report, nextProps.report),
     ),
 );

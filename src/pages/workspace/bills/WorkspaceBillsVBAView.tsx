@@ -27,6 +27,7 @@ function WorkspaceBillsVBAView({policyID}: WorkspaceBillsVBAViewProps) {
             <Section
                 title={translate('workspace.bills.hassleFreeBills')}
                 icon={Illustrations.MoneyBadge}
+                isCentralPane
                 menuItems={[
                     {
                         title: translate('workspace.common.bills'),

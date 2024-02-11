@@ -1,8 +1,7 @@
-import {act, fireEvent, screen} from '@testing-library/react-native';
+import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
-import _ from 'underscore';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
@@ -119,33 +118,6 @@ const personalDetails = createCollection(
     20,
 );
 
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
- *
- * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
- */
-const createAddListenerMock = () => {
-    const transitionEndListeners = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener = jest.fn().mockImplementation((listener, callback) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            _.filter(transitionEndListeners, (cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-};
-
 function ReportScreenWrapper(args) {
     return (
         <ComposeProviders
@@ -173,7 +145,7 @@ const reportActions = ReportTestUtils.getMockedReportActionsMap(500);
 const mockRoute = {params: {reportID: '1'}};
 
 test('[ReportScreen] should render ReportScreen with composer interactions', () => {
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
          * First make sure ReportScreen is mounted, so that we can trigger
@@ -183,8 +155,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
          * before the ReportScreen is mounted, and the test will fail.
          */
         await screen.findByTestId('ReportScreen');
-
-        await act(triggerTransitionEnd);
+        await waitFor(triggerTransitionEnd);
 
         // Query for the composer
         const composer = await screen.findByTestId('composer');
@@ -217,9 +188,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
-                [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
-                    isLoadingReportActions: false,
-                },
+                [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             }),
         )
         .then(() =>
@@ -234,7 +203,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
 });
 
 test('[ReportScreen] should press of the report item', () => {
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
          * First make sure ReportScreen is mounted, so that we can trigger
@@ -245,18 +214,17 @@ test('[ReportScreen] should press of the report item', () => {
          */
         await screen.findByTestId('ReportScreen');
 
-        await act(triggerTransitionEnd);
+        await waitFor(triggerTransitionEnd);
 
         // Query for the report list
         await screen.findByTestId('report-actions-list');
 
-        const hintReportPreviewText = Localize.translateLocal('iou.viewDetails');
+        const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
 
-        // Query for report preview buttons
-        const reportPreviewButtons = await screen.findAllByLabelText(hintReportPreviewText);
+        // Query for the list of items
+        const reportItems = await screen.findAllByLabelText(hintText);
 
-        // click on the report preview button
-        fireEvent.press(reportPreviewButtons[0]);
+        fireEvent.press(reportItems[0], 'onLongPress');
     };
 
     const navigation = {addListener};
@@ -270,9 +238,6 @@ test('[ReportScreen] should press of the report item', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
-                [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
-                    isLoadingReportActions: false,
-                },
             }),
         )
         .then(() =>

@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -69,7 +70,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Field errors in the form */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
     }),
 
     /** Session details for the user */
@@ -106,11 +107,14 @@ function WorkspaceNewRoomPage(props) {
 
     const workspaceOptions = useMemo(
         () =>
-            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
-                label: policy.name,
-                key: policy.id,
-                value: policy.id,
-            })),
+            _.map(
+                _.filter(PolicyUtils.getActivePolicies(props.policies), (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL),
+                (policy) => ({
+                    label: policy.name,
+                    key: policy.id,
+                    value: policy.id,
+                }),
+            ),
         [props.policies],
     );
     const [policyID, setPolicyID] = useState(() => {
@@ -133,7 +137,7 @@ function WorkspaceNewRoomPage(props) {
      */
     const submit = (values) => {
         const participants = [props.session.accountID];
-        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription);
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
@@ -147,7 +151,7 @@ function WorkspaceNewRoomPage(props) {
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             '',
             '',
-            parsedWelcomeMessage,
+            parsedDescription,
         );
         setNewRoomReportID(policyReport.reportID);
         Report.addPolicyReport(policyReport);
@@ -207,6 +211,8 @@ function WorkspaceNewRoomPage(props) {
             } else if (ValidationUtils.isExistingRoomName(values.roomName, props.reports, values.policyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+            } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
             if (!values.policyID) {
@@ -289,6 +295,7 @@ function WorkspaceNewRoomPage(props) {
                             validate={validate}
                             onSubmit={submit}
                             enabledWhenOffline
+                            disablePressOnEnter={false}
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
@@ -303,12 +310,12 @@ function WorkspaceNewRoomPage(props) {
                             <View style={styles.mb5}>
                                 <InputWrapper
                                     InputComponent={TextInput}
-                                    inputID="welcomeMessage"
-                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    inputID="reportDescription"
+                                    label={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                    accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
-                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />
