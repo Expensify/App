@@ -34,6 +34,9 @@ const propTypes = {
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
+
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
@@ -62,6 +65,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
     reports: {},
@@ -72,6 +76,7 @@ const defaultProps = {
 
 function MoneyRequestParticipantsSelector({
     betas,
+    dismissedReferralBanners,
     participants,
     reports,
     navigateToRequest,
@@ -85,14 +90,14 @@ function MoneyRequestParticipantsSelector({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(true);
+    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
-    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const newChatOptions = useMemo(() => {
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -252,13 +257,13 @@ function MoneyRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -276,17 +281,12 @@ function MoneyRequestParticipantsSelector({
         navigateToSplit();
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
-    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
-
     const footerContent = useMemo(
         () => (
             <View>
-                {shouldShowReferralCTA && (
+                {!dismissedReferralBanners[referralContentType] && (
                     <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA
-                            referralContentType={referralContentType}
-                            onCloseButtonPress={() => setShouldShowReferralCTA(false)}
-                        />
+                        <ReferralProgramCTA referralContentType={referralContentType} />
                     </View>
                 )}
 
@@ -309,7 +309,7 @@ function MoneyRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
@@ -368,6 +368,10 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data.dismissedReferralBanners || {},
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

@@ -27,7 +27,9 @@ function ValidateLoginPage({
     useEffect(() => {
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
-            Navigation.navigate();
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack();
+            });
             return;
         }
         Session.initAutoAuthState(autoAuthState);
@@ -47,7 +49,9 @@ function ValidateLoginPage({
         }
 
         // The user clicked the option to sign in the current tab
-        Navigation.navigate();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack();
+        });
     }, [login, cachedAccountID, is2FARequired]);
 
     return (

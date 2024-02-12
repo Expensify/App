@@ -9,8 +9,6 @@ import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Timing from '@libs/actions/Timing';
-import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
@@ -110,16 +108,6 @@ function BaseOptionsList(
         flattenedData.current = buildFlatSectionArray();
     });
 
-    useEffect(() => {
-        if (isLoading) {
-            return;
-        }
-
-        // Mark the end of the search page load time. This data is collected only for Search page.
-        Timing.end(CONST.TIMING.OPEN_SEARCH);
-        Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
-    }, [isLoading]);
-
     const onViewableItemsChanged = () => {
         if (didLayout.current || !onLayout) {
             return;
@@ -175,15 +163,7 @@ function BaseOptionsList(
     const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
         const isItemDisabled = isDisabled || !!section.isDisabled || !!item.isDisabled;
         const isSelected = selectedOptions?.some((option) => {
-            if (option.accountID && option.accountID === item.accountID) {
-                return true;
-            }
-
-            if (option.reportID && option.reportID === item.reportID) {
-                return true;
-            }
-
-            if (option.policyID && option.policyID === item.policyID) {
+            if (option.keyForList && option.keyForList === item.keyForList) {
                 return true;
             }
 

@@ -33,7 +33,7 @@ type DisplayNameForm = Form<{
 
 type NewRoomForm = Form<{
     roomName?: string;
-    welcomeMessage?: string;
+    reportDescription?: string;
     policyID?: string;
     writeCapability?: string;
     visibility?: string;
@@ -55,6 +55,35 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type GetPhysicalCardForm = Form<{
+    /** Address line 1 for delivery */
+    addressLine1?: string;
+
+    /** Address line 2 for delivery */
+    addressLine2?: string;
+
+    /** City for delivery */
+    city?: string;
+
+    /** Country for delivery */
+    country?: string;
+
+    /** First name for delivery */
+    legalFirstName?: string;
+
+    /** Last name  for delivery */
+    legalLastName?: string;
+
+    /** Phone number for delivery */
+    phoneNumber?: string;
+
+    /** State for delivery */
+    state?: string;
+
+    /** Zip code  for delivery */
+    zipPostCode?: string;
+}>;
+
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
 type WorkspaceSettingsForm = Form<{
@@ -62,6 +91,15 @@ type WorkspaceSettingsForm = Form<{
 }>;
 
 type ReportFieldEditForm = Form<Record<string, string>>;
+
+type CloseAccountForm = Form<{
+    reasonForLeaving: string;
+    phoneOrEmail: string;
+}>;
+
+type RoomNameForm = Form<{
+    roomName: string;
+}>;
 
 export default Form;
 
@@ -71,6 +109,7 @@ export type {
     PrivateNotesForm,
     DisplayNameForm,
     FormValueType,
+    GetPhysicalCardForm,
     NewRoomForm,
     BaseForm,
     IKnowATeacherForm,
@@ -78,4 +117,6 @@ export type {
     PersonalBankAccountForm,
     WorkspaceSettingsForm,
     ReportFieldEditForm,
+    CloseAccountForm,
+    RoomNameForm,
 };

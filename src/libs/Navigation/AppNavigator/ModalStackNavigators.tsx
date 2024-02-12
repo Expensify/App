@@ -12,14 +12,15 @@ import type {
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
+    OnboardEngagementNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
-    ReportWelcomeMessageNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
     SearchNavigatorParamList,
@@ -99,9 +100,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.CONFIRMATION]: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.DATE]: () => require('../../../pages/iou/MoneyRequestDatePage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.DESCRIPTION]: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.TAG]: () => require('../../../pages/iou/MoneyRequestTagPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.MERCHANT]: () => require('../../../pages/iou/MoneyRequestMerchantPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
@@ -139,12 +138,11 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
     [SCREENS.TASK.TITLE]: () => require('../../../pages/tasks/TaskTitlePage').default as React.ComponentType,
-    [SCREENS.TASK.DESCRIPTION]: () => require('../../../pages/tasks/TaskDescriptionPage').default as React.ComponentType,
     [SCREENS.TASK.ASSIGNEE]: () => require('../../../pages/tasks/TaskAssigneeSelectorModal').default as React.ComponentType,
 });
 
-const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator<ReportWelcomeMessageNavigatorParamList>({
-    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: () => require('../../../pages/ReportWelcomeMessagePage').default as React.ComponentType,
+const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDescriptionNavigatorParamList>({
+    [SCREENS.REPORT_DESCRIPTION_ROOT]: () => require('../../../pages/ReportDescriptionPage').default as React.ComponentType,
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
@@ -176,6 +174,12 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require('../../../pages/tasks/NewTaskDescriptionPage').default as React.ComponentType,
 });
 
+const OnboardEngagementModalStackNavigator = createModalStackNavigator<OnboardEngagementNavigatorParamList>({
+    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: () => require('../../../pages/OnboardEngagement/PurposeForUsingExpensifyPage').default as React.ComponentType,
+    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: () => require('../../../pages/OnboardEngagement/ManageTeamsExpensesPage').default as React.ComponentType,
+    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: () => require('../../../pages/OnboardEngagement/ExpensifyClassicPage').default as React.ComponentType,
+});
+
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
     [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../pages/TeachersUnite/KnowATeacherPage').default as React.ComponentType,
@@ -204,11 +208,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: () => require('../../../pages/settings/Profile/TimezoneSelectPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: () => require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
@@ -242,7 +245,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVITE]: () => require('../../../pages/workspace/WorkspaceInvitePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.NAME]: () => require('../../../pages/workspace/WorkspaceNamePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceOverviewCurrencyPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceProfileCurrencyPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
@@ -297,6 +300,7 @@ export {
     AccountSettingsModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
+    OnboardEngagementModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,
@@ -312,7 +316,7 @@ export {
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    ReportWelcomeMessageModalStackNavigator,
+    ReportDescriptionModalStackNavigator,
     RoomInviteModalStackNavigator,
     RoomMembersModalStackNavigator,
     SearchModalStackNavigator,
