@@ -41,9 +41,6 @@ const propTypes = {
     /** Whether referral CTA should be displayed */
     shouldShowReferralCTA: PropTypes.bool,
 
-    /** A method triggered when the user closes the call to action banner */
-    onCallToActionClosed: PropTypes.func,
-
     /** Referral content type */
     referralContentType: PropTypes.string,
 
@@ -56,7 +53,6 @@ const propTypes = {
 const defaultProps = {
     shouldDelayFocus: false,
     shouldShowReferralCTA: false,
-    onCallToActionClosed: () => {},
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
@@ -72,7 +68,6 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.closeReferralModal = this.closeReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -95,7 +90,6 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
             disableEnterShortCut: false,
@@ -259,16 +253,11 @@ class BaseOptionsSelector extends Component {
     updateSearchValue(value) {
         this.setState({
             paginationPage: 1,
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage: value.length > this.props.maxLength ? ['common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}] : '',
             value,
         });
 
         this.props.onChangeText(value);
-    }
-
-    closeReferralModal() {
-        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
-        this.props.onCallToActionClosed(this.props.referralContentType);
     }
 
     handleFocusIn() {
@@ -653,12 +642,9 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
+                {this.props.shouldShowReferralCTA && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA
-                            referralContentType={this.props.referralContentType}
-                            onCloseButtonPress={this.closeReferralModal}
-                        />
+                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
                     </View>
                 )}
 

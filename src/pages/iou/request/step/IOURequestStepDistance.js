@@ -95,7 +95,7 @@ function IOURequestStepDistance({
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
@@ -139,7 +139,7 @@ function IOURequestStepDistance({
         }
 
         if (_.size(validatedWaypoints) < 2) {
-            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
+            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
     };
 
@@ -150,17 +150,21 @@ function IOURequestStepDistance({
             }
 
             const newWaypoints = {};
+            let emptyWaypointIndex = -1;
             _.each(data, (waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
+                // Find waypoint that BECOMES empty after dragging
+                if (_.isEmpty(newWaypoints[`waypoint${index}`]) && !_.isEmpty(lodashGet(waypoints, `waypoint${index}`, {}))) {
+                    emptyWaypointIndex = index;
+                }
             });
 
             setOptimisticWaypoints(newWaypoints);
-            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Transaction.updateWaypoints(transactionID, newWaypoints, true).then(() => {
+            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {

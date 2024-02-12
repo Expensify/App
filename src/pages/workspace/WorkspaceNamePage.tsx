@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
@@ -41,10 +42,10 @@ function WorkspaceNamePage({policy}: Props) {
 
         if (!ValidationUtils.isRequiredFulfilled(name)) {
             errors.name = 'workspace.editor.nameIsRequiredError';
-        } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
-            errors.name = 'workspace.editor.nameIsTooLongError';
+            ErrorUtils.addErrorMessage(errors, 'name', ['common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
