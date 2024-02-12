@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addLog} from '@libs/actions/Console';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log} from '@src/types/onyx';
 
 /* store the original console.log function so we can call it */
@@ -7,7 +9,7 @@ import type {Log} from '@src/types/onyx';
 const originalConsoleLog = console.log;
 
 /* List of patterns to ignore in logs. "logs" key always needs to be ignored because otherwise it will cause infinite loop */
-const logPatternsToIgnore = [`merge() called for key: logs`];
+const logPatternsToIgnore = [`merge() called for key: ${ONYXKEYS.LOGS}`];
 
 /**
  * Check if the log should be attached to the console
@@ -36,7 +38,7 @@ function logMessage(args: unknown[]) {
             return String(arg);
         })
         .join(' ');
-    const newLog = {time: new Date(), level: 'LOG', message};
+    const newLog = {time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message};
     addLog(newLog);
 }
 
@@ -85,15 +87,15 @@ function createLog(text: string) {
 
         if (result !== undefined) {
             return [
-                {time, level: 'INFO', message: `> ${text}`},
-                {time, level: 'RESULT', message: String(result)},
+                {time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`},
+                {time, level: CONST.DEBUG_CONSOLE.LEVELS.RESULT, message: String(result)},
             ];
         }
-        return [{time, level: 'INFO', message: `> ${text}`}];
+        return [{time, level: CONST.DEBUG_CONSOLE.LEVELS.INFO, message: `> ${text}`}];
     } catch (error) {
         return [
-            {time, level: 'ERROR', message: `> ${text}`},
-            {time, level: 'ERROR', message: `Error: ${(error as Error).message}`},
+            {time, level: CONST.DEBUG_CONSOLE.LEVELS.ERROR, message: `> ${text}`},
+            {time, level: CONST.DEBUG_CONSOLE.LEVELS.ERROR, message: `Error: ${(error as Error).message}`},
         ];
     }
 }

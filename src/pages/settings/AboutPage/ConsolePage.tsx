@@ -19,6 +19,7 @@ import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -107,7 +108,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
 
             return (
                 <View style={styles.mb2}>
-                    <Text family="MONOSPACE">{`${format(item.time, 'Y/M/d pp')} ${item.message}`}</Text>
+                    <Text family="MONOSPACE">{`${format(item.time, CONST.DATE.FNS_DB_FORMAT_STRING)} ${item.message}`}</Text>
                 </View>
             );
         },

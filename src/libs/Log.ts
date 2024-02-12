@@ -5,6 +5,7 @@
 import Logger from 'expensify-common/lib/Logger';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
 import {addLog} from './actions/Console';
@@ -73,7 +74,7 @@ const Log = new Logger({
         console.debug(message);
 
         if (shouldCollectLogs) {
-            addLog({time: new Date(), level: 'DEBUG', message});
+            addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message});
         }
     },
     isDebug: true,

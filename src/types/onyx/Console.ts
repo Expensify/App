@@ -1,6 +1,8 @@
+import type CONST from '@src/CONST';
+
 type Log = {
     time: Date;
-    level: string;
+    level: keyof typeof CONST.DEBUG_CONSOLE.LEVELS;
     message: string;
 };
 
