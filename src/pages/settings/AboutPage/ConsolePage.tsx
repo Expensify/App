@@ -1,6 +1,6 @@
 import {format} from 'date-fns';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addLog} from '@libs/actions/Console';
@@ -40,12 +41,12 @@ type ConsolePageProps = ConsolePageOnyxProps;
  * @param logs Logs captured on the current device
  * @returns CapturedLogs with parsed messages
  */
-const parseStingifiedMessages = (logs: CapturedLogs | null) => {
+const parseStingifiedMessages = (logs: Log[]) => {
     if (isEmpty(logs)) {
         return;
     }
 
-    return Object.values(logs).map((log) => {
+    return logs.map((log) => {
         try {
             const parsedMessage = JSON.parse(log.message);
             return {
@@ -66,6 +67,8 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const logsList = useMemo(() => (logs ? Object.values(logs).reverse() : []), [logs]);
+
     useEffect(() => {
         if (!shouldStoreLogs) {
             return;
@@ -83,15 +86,17 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
         setInput('');
     };
 
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, executeArbitraryCode);
+
     const saveLogs = () => {
-        const logsWithParsedMessages = parseStingifiedMessages(logs);
+        const logsWithParsedMessages = parseStingifiedMessages(logsList);
 
         localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), 'File was saved in your Downloads folder.');
     };
 
     const shareLogs = () => {
         setIsGeneratingLogsFile(true);
-        const logsWithParsedMessages = parseStingifiedMessages(logs);
+        const logsWithParsedMessages = parseStingifiedMessages(logsList);
 
         // Generate a file with the logs and pass its path to the list of reports to share it with
         localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path}) => {
@@ -123,7 +128,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
                 <FlatList
-                    data={logs ? Object.values(logs).reverse() : []}
+                    data={logsList}
                     renderItem={renderItem}
                     contentContainerStyle={styles.p5}
                     inverted
