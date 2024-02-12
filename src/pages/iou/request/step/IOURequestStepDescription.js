@@ -17,7 +17,11 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+<<<<<<< HEAD
 import ROUTES from '@src/ROUTES';
+=======
+import {policyPropTypes} from '@src/pages/workspace/withPolicy';
+>>>>>>> 4c98589 (Merge pull request #36329 from Expensify/beaman-add-navigation-fix-back)
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -72,7 +76,7 @@ function IOURequestStepDescription({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
