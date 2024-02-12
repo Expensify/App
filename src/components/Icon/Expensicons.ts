@@ -96,6 +96,7 @@ import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
+import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
@@ -238,6 +239,7 @@ export {
     NewWorkspace,
     Offline,
     OfflineCloud,
+    OldDotWireframe,
     Paperclip,
     Paycheck,
     Pencil,

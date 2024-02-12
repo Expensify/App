@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -69,7 +70,7 @@ const propTypes = {
         isLoading: PropTypes.bool,
 
         /** Field errors in the form */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
     }),
 
     /** Session details for the user */
@@ -210,6 +211,8 @@ function WorkspaceNewRoomPage(props) {
             } else if (ValidationUtils.isExistingRoomName(values.roomName, props.reports, values.policyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+            } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
             if (!values.policyID) {
