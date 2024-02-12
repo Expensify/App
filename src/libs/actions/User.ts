@@ -479,7 +479,7 @@ const isChannelMuted = (reportId: string) =>
                 Onyx.disconnect(connectionId);
 
                 resolve(
-                    report?.notificationPreference === undefined ||
+                    !report?.notificationPreference ||
                         report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ||
                         report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                 );
