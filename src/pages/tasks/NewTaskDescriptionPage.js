@@ -11,8 +11,8 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Task from '@userActions/Task';
@@ -47,6 +47,20 @@ function NewTaskDescriptionPage(props) {
         Navigation.goBack(ROUTES.NEW_TASK);
     };
 
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    function validate(values) {
+        const errors = {};
+
+        if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        }
+
+        return errors;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -63,6 +77,7 @@ function NewTaskDescriptionPage(props) {
                     formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                     submitButtonText={props.translate('common.next')}
                     style={[styles.mh5, styles.flexGrow1]}
+                    validate={(values) => validate(values)}
                     onSubmit={(values) => onSubmit(values)}
                     enabledWhenOffline
                 >
@@ -79,7 +94,7 @@ function NewTaskDescriptionPage(props) {
                                 updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
-                            submitOnEnter={!Browser.isMobile()}
+                            shouldSubmitForm
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
