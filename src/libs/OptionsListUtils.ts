@@ -1458,7 +1458,7 @@ function getOptions(
             actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
             actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
             actionTypeForParticipants === CONST.IOU.TYPE.SPLIT);
-    const reportIDsForTaskReport: string[] = [];
+    const recentChatReportIDsForActionType: string[] = [];
     orderedReports.forEach((report) => {
         if (!report) {
             return;
@@ -1484,9 +1484,11 @@ function getOptions(
             return;
         }
 
-        // Save the task report ids in an array for finding out recent reports based on task action type
+        // Collect the parent report of the given task for consideration in recent list.
         if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
-            reportIDsForTaskReport.push(report.reportID);
+            if (report.parentReportID && ReportUtils.isValidReportIDFromPath(report.parentReportID) && recentChatReportIDsForActionType.indexOf(report.parentReportID) === -1) {
+                recentChatReportIDsForActionType.push(report.parentReportID);
+            }
             return;
         }
 
@@ -1554,42 +1556,19 @@ function getOptions(
     optionsToExcludeByActions.push(...optionsToExclude);
 
     if (includeRecentReports) {
-        const recentChatReportIDsForActionType: string[] = [];
-        // During money request generation, we collect chat report ids
-        // of the money request report's parent for display in the recent reports list
+        // Collect the highest context (i.e. DM/Workspace chat) of the money request report for consideration in recent list.
         if (isMoneyRequestActionTypeForParticipants) {
             TransactionUtils.getTransactionsByActionType(actionTypeForParticipants).every((recentTransaction) => {
                 const iouReport = ReportUtils.getReport(recentTransaction?.reportID);
-                if (!recentChatReportIDsForActionType.some((reportID: string) => iouReport?.parentReportID === reportID)) {
-                    if (iouReport?.parentReportID) {
-                        recentChatReportIDsForActionType.push(iouReport?.parentReportID);
-                    }
+                if (
+                    iouReport?.parentReportID &&
+                    ReportUtils.isValidReportIDFromPath(iouReport?.parentReportID) &&
+                    recentChatReportIDsForActionType.indexOf(iouReport?.parentReportID) === -1
+                ) {
+                    recentChatReportIDsForActionType.push(iouReport?.parentReportID);
                 }
                 return true;
             });
-        }
-
-        // During task assignment, we collect the top most chat report ids of the task reports
-        // for display in the recent reports list
-        if (isTaskActionTypeForParticipants) {
-            const parentReportIDs: string[] = [];
-            reportIDsForTaskReport.every((taskReportID) => {
-                const taskReport = ReportUtils.getReport(taskReportID);
-                let parentReportID = taskReport?.parentReportID;
-                let topmostChatReportID = taskReport?.parentReportID;
-                while (parentReportID) {
-                    const parentReport = ReportUtils.getReport(parentReportID);
-                    if (parentReport?.parentReportID) {
-                        topmostChatReportID = parentReport?.parentReportID;
-                    }
-                    parentReportID = parentReport?.parentReportID;
-                }
-                if (topmostChatReportID) {
-                    parentReportIDs.push(topmostChatReportID);
-                }
-                return true;
-            });
-            recentChatReportIDsForActionType.push(...parentReportIDs.filter((reportID, reportIDIndex) => parentReportIDs.indexOf(reportID) === reportIDIndex));
         }
 
         for (const reportOption of allReportOptions) {
