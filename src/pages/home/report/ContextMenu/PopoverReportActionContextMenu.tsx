@@ -250,7 +250,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID, reportAction);
+            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
         }

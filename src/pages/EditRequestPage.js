@@ -22,13 +22,13 @@ import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import reportPropTypes from './reportPropTypes';
+import {policyPropTypes} from './workspace/withPolicy';
 
 const propTypes = {
     /** Route from navigation */
@@ -47,6 +47,9 @@ const propTypes = {
     /** The report object for the thread report */
     report: reportPropTypes,
 
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
+
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
@@ -62,19 +65,19 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    policy: {},
     policyCategories: {},
     policyTags: {},
     parentReportActions: {},
     transaction: {},
 };
 
-function EditRequestPage({report, route, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
-        comment: transactionDescription,
         merchant: transactionMerchant,
         category: transactionCategory,
         tag: transactionTag,
@@ -120,10 +123,10 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                 return;
             }
 
-            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount);
+            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transaction, report],
+        [transaction, report, policy, policyTags, policyCategories],
     );
 
     const saveCreated = useCallback(
@@ -133,10 +136,10 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated);
+            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transaction, report],
+        [transaction, report, policy, policyTags, policyCategories],
     );
 
     const saveMerchant = useCallback(
@@ -151,10 +154,17 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
             }
 
             // An empty newTrimmedMerchant is only possible for the P2P IOU case
-            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+            IOU.updateMoneyRequestMerchant(
+                transaction.transactionID,
+                report.reportID,
+                newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                policy,
+                policyTags,
+                policyCategories,
+            );
             Navigation.dismissModal();
         },
-        [transactionMerchant, transaction, report],
+        [transactionMerchant, transaction, report, policy, policyTags, policyCategories],
     );
 
     const saveTag = useCallback(
@@ -164,41 +174,21 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                 // In case the same tag has been selected, reset the tag.
                 updatedTag = '';
             }
-            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag);
+            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transactionTag, transaction.transactionID, report.reportID],
+        [transactionTag, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
     );
 
     const saveCategory = useCallback(
         ({category: newCategory}) => {
             // In case the same category has been selected, reset the category.
             const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
-            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transactionCategory, transaction.transactionID, report.reportID],
+        [transactionCategory, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
     );
-
-    const saveComment = useCallback(
-        ({comment: newComment}) => {
-            // Only update comment if it has changed
-            if (newComment.trim() !== transactionDescription) {
-                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
-            }
-            Navigation.dismissModal();
-        },
-        [transactionDescription, transaction.transactionID, report.reportID],
-    );
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
-        return (
-            <EditRequestDescriptionPage
-                defaultDescription={transactionDescription}
-                onSubmit={saveComment}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
@@ -296,6 +286,9 @@ export default compose(
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
         },
