@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FeatureList from '@components/FeatureList';
+import type {FeatureListItem} from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -78,7 +79,7 @@ type WorkspaceListPageOnyxProps = {
 
 type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
 
-const workspaceFeatures = [
+const workspaceFeatures: FeatureListItem[] = [
     {
         icon: Illustrations.MoneyReceipts,
         translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
@@ -341,7 +342,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
                             onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                            // @ts-expect-error TODO: Remove once FeatureList (https://github.com/Expensify/App/issues/25039) is migrated to TS
                             illustration={LottieAnimations.WorkspacePlanet}
                             illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
