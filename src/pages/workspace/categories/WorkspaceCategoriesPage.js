@@ -9,7 +9,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,10 +16,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicyAccessOrNotFound from './withPolicyAccessOrNotFound';
-
-const propTypes = {
-    ...windowDimensionsPropTypes,
-};
 
 function WorkspaceCategoriesPage({policyCategories}) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -87,11 +82,8 @@ function WorkspaceCategoriesPage({policyCategories}) {
     );
 }
 
-WorkspaceCategoriesPage.propTypes = propTypes;
-
 export default compose(
     withPolicyAccessOrNotFound(),
-    withWindowDimensions,
     withOnyx({
         policyCategories: {
             key: ({
