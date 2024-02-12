@@ -167,20 +167,20 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
     const align = (options.align || []).concat();
     const stringLength = options.stringLength || defaultStringLength;
     /** Character codes as symbols for alignment per column. */
-    const alignments: Array<number> = [];
+    const alignments: number[] = [];
     /** Cells per row. */
     const cellMatrix: Array<Array<string>> = [];
     /** Sizes of each cell per row. */
     const sizeMatrix: Array<Array<number>> = [];
-    const longestCellByColumn: Array<number> = [];
+    const longestCellByColumn: number[] = [];
     let mostCellsPerRow = 0;
     let rowIndex = -1;
 
     // This is a superfluous loop if we don’t align delimiters, but otherwise we’d
     // do superfluous work when aligning, so optimize for aligning.
     while (++rowIndex < table.length) {
-        const row: Array<string> = [];
-        const sizes: Array<number> = [];
+        const row: string[] = [];
+        const sizes: number[] = [];
         let columnIndex = -1;
 
         if (table[rowIndex].length > mostCellsPerRow) {
@@ -223,8 +223,8 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
 
     // Inject the alignment row.
     columnIndex = -1;
-    const row: Array<string> = [];
-    const sizes: Array<number> = [];
+    const row: string[] = [];
+    const sizes: number[] = [];
 
     while (++columnIndex < mostCellsPerRow) {
         const code = alignments[columnIndex];
@@ -263,13 +263,13 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
     sizeMatrix.splice(1, 0, sizes);
 
     rowIndex = -1;
-    const lines: Array<string> = [];
+    const lines: string[] = [];
 
     while (++rowIndex < cellMatrix.length) {
         const row = cellMatrix[rowIndex];
         const sizes = sizeMatrix[rowIndex];
         columnIndex = -1;
-        const line: Array<string> = [];
+        const line: string[] = [];
 
         while (++columnIndex < mostCellsPerRow) {
             const cell = row[columnIndex] || '';
