@@ -2617,6 +2617,10 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        qrShareSection: {
+            width: 264,
+        },
+
         sectionMenuItemTopDescription: {
             ...spacing.ph8,
             ...spacing.mhn8,
