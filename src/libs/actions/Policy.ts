@@ -116,6 +116,13 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report> = null;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
 let allPolicyMembers: OnyxCollection<PolicyMember>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
@@ -218,7 +225,7 @@ function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, allReports: OnyxCollection<Report>, policyName: string) {
+function deleteWorkspace(policyID: string, policyName: string) {
     if (!allPolicies) {
         return;
     }
