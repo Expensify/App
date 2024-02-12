@@ -518,7 +518,7 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
  * That's the reason why autoAuthState initialization is skipped while the last state is SIGNING_IN.
  */
 function initAutoAuthState(cachedAutoAuthState: AutoAuthState) {
-    const signedInStates: AutoAuthState[] = [CONST.AUTO_AUTH_STATE.SIGNING_IN, CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN];
+    const signedInStates: AutoAuthState[] = [CONST.AUTO_AUTH_STATE.SIGNING_IN, CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN, CONST.AUTO_AUTH_STATE.ALREADY_SIGNED_IN];
 
     Onyx.merge(ONYXKEYS.SESSION, {
         autoAuthState: signedInStates.includes(cachedAutoAuthState) ? CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN : CONST.AUTO_AUTH_STATE.NOT_STARTED,

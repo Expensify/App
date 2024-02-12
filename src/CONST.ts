@@ -70,6 +70,7 @@ const CONST = {
         SIGNING_IN: 'signing-in',
         JUST_SIGNED_IN: 'just-signed-in',
         FAILED: 'failed',
+        ALREADY_SIGNED_IN: 'already-signed-in',
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,

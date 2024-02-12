@@ -20,8 +20,8 @@ function ValidateLoginPage({
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
     const login = credentials?.login;
-    const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const isSignedIn = !!session?.authToken;
+    const autoAuthState = isSignedIn ? CONST.AUTO_AUTH_STATE.ALREADY_SIGNED_IN : session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
 
@@ -33,7 +33,7 @@ function ValidateLoginPage({
             });
             return;
         }
-        Session.initAutoAuthState(autoAuthState);
+        // Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
             if (exitTo) {
@@ -41,6 +41,7 @@ function ValidateLoginPage({
                     const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                     Navigation.navigate(url);
                 });
+                return;
             }
             return;
         }
@@ -57,6 +58,7 @@ function ValidateLoginPage({
                     const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                     Navigation.navigate(url);
                 });
+                return;
             }
             return; 
         }
