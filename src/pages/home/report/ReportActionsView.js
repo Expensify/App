@@ -138,7 +138,7 @@ const usePaginatedReportActionList = (linkedID, allReportActions, fetchNewerRepo
         if (isFirstLinkedActionRender.current) {
             return allReportActions.slice(index, allReportActions.length);
         }
-        const paginationSize = getInitialPaginationSize(allReportActions.length - index);
+        const paginationSize = getInitialPaginationSize();
         const newStartIndex = index >= paginationSize ? index - paginationSize : 0;
         return newStartIndex ? allReportActions.slice(newStartIndex, allReportActions.length) : allReportActions;
         // currentReportActionID is needed to trigger batching once the report action has been positioned
@@ -270,7 +270,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         // update ref with current network state
         prevNetworkRef.current = props.network;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.network, props.report, isReportFullyVisible]);
+    }, [props.network, isReportFullyVisible]);
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
@@ -296,7 +296,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         // update ref with current state
         prevIsSmallScreenWidthRef.current = props.isSmallScreenWidth;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isSmallScreenWidth, props.report, reportActions, isReportFullyVisible]);
+    }, [props.isSmallScreenWidth, reportActions, isReportFullyVisible]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -308,7 +308,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             Report.subscribeToReportTypingEvents(reportID);
             didSubscribeToReportTypingEvents.current = true;
         }
-    }, [props.report, didSubscribeToReportTypingEvents, reportID]);
+    }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
     const onContentSizeChange = useCallback((w, h) => {
         contentListHeight.current = h;
@@ -493,14 +493,6 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (!_.isEqual(oldProps.report.pendingFields, newProps.report.pendingFields)) {
-        return false;
-    }
-
-    if (!_.isEqual(oldProps.report.errorFields, newProps.report.errorFields)) {
-        return false;
-    }
-
     if (lodashGet(oldProps.network, 'isOffline') !== lodashGet(newProps.network, 'isOffline')) {
         return false;
     }
@@ -521,23 +513,11 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
-        return false;
-    }
-
-    if (oldProps.report.lastReadTime !== newProps.report.lastReadTime) {
-        return false;
-    }
-
     if (newProps.isSmallScreenWidth !== oldProps.isSmallScreenWidth) {
         return false;
     }
 
     if (newProps.isComposerFullSize !== oldProps.isComposerFullSize) {
-        return false;
-    }
-
-    if (lodashGet(newProps.report, 'statusNum') !== lodashGet(oldProps.report, 'statusNum') || lodashGet(newProps.report, 'stateNum') !== lodashGet(oldProps.report, 'stateNum')) {
         return false;
     }
 
@@ -549,35 +529,7 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (lodashGet(newProps, 'report.reportName') !== lodashGet(oldProps, 'report.reportName')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'report.description') !== lodashGet(oldProps, 'report.description')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'report.managerID') !== lodashGet(oldProps, 'report.managerID')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'report.total') !== lodashGet(oldProps, 'report.total')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'report.nonReimbursableTotal') !== lodashGet(oldProps, 'report.nonReimbursableTotal')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'report.writeCapability') !== lodashGet(oldProps, 'report.writeCapability')) {
-        return false;
-    }
-
-    if (lodashGet(newProps, 'report.participantAccountIDs', 0) !== lodashGet(oldProps, 'report.participantAccountIDs', 0)) {
-        return false;
-    }
-
-    return _.isEqual(lodashGet(newProps.report, 'icons', []), lodashGet(oldProps.report, 'icons', []));
+    return _.isEqual(oldProps.report, newProps.report);
 }
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);

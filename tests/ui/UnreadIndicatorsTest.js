@@ -43,6 +43,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
+    useReducedMotion: jest.fn,
 }));
 
 /**
@@ -438,11 +439,11 @@ describe('Unread Indicators', () => {
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
                 expect(lodashGet(firstReportOption, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(firstReportOption, ['props', 'children'])).toBe('C User');
+                expect(lodashGet(firstReportOption, ['props', 'children', 0])).toBe('C User');
 
                 const secondReportOption = displayNameTexts[1];
                 expect(lodashGet(secondReportOption, ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(secondReportOption, ['props', 'children'])).toBe('B User');
+                expect(lodashGet(secondReportOption, ['props', 'children', 0])).toBe('B User');
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
@@ -455,9 +456,9 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
                 expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('C User');
+                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('C User');
                 expect(lodashGet(displayNameTexts[1], ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
+                expect(lodashGet(displayNameTexts[1], ['props', 'children', 0])).toBe('B User');
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -489,7 +490,7 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(FontUtils.fontWeight.bold);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
+                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('B User');
 
                 // Navigate to the report again and back to the sidebar
                 return navigateToSidebarOption(0);
@@ -501,7 +502,7 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect(lodashGet(displayNameTexts[0], ['props', 'style', 'fontWeight'])).toBe(undefined);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toBe('B User');
+                expect(lodashGet(displayNameTexts[0], ['props', 'children', 0])).toBe('B User');
 
                 // Navigate to the report again and verify the new line indicator is missing
                 return navigateToSidebarOption(0);
