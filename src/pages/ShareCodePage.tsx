@@ -6,10 +6,12 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -77,48 +79,64 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
         >
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : undefined)}
                 shouldShowBackButton={isReport || isSmallScreenWidth}
+                icon={Illustrations.QrCode}
             />
-            <ScrollView style={[themeStyles.flex1, themeStyles.mt3]}>
-                <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection, themeStyles.ph4]}>
-                    <QRShareWithDownload
-                        ref={qrCodeRef}
-                        url={url}
-                        title={title}
-                        subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
-                    />
-                </View>
+            <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
+                <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
+                    <Section
+                        title={translate('shareCodePage.title')}
+                        subtitle={translate('shareCodePage.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        childrenStyles={themeStyles.pt5}
+                        titleStyles={themeStyles.accountSettingsSectionTitle}
+                    >
+                        <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.qrShareSection]}>
+                            <QRShareWithDownload
+                                ref={qrCodeRef}
+                                url={url}
+                                title={title}
+                                subtitle={subtitle}
+                                logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                                logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                                logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                            />
+                        </View>
 
-                <View style={{marginTop: 36}}>
-                    <ContextMenuItem
-                        isAnonymousAction
-                        text={translate('qrCodes.copy')}
-                        icon={Expensicons.Copy}
-                        successIcon={Expensicons.Checkmark}
-                        successText={translate('qrCodes.copied')}
-                        onPress={() => Clipboard.setString(url)}
-                        shouldLimitWidth={false}
-                    />
+                        <View style={{marginTop: 36}}>
+                            <ContextMenuItem
+                                isAnonymousAction
+                                text={translate('qrCodes.copy')}
+                                icon={Expensicons.Copy}
+                                successIcon={Expensicons.Checkmark}
+                                successText={translate('qrCodes.copied')}
+                                onPress={() => Clipboard.setString(url)}
+                                shouldLimitWidth={false}
+                                wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                            />
 
-                    {isNative && (
-                        <MenuItem
-                            isAnonymousAction
-                            title={translate('common.download')}
-                            icon={Expensicons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onPress={() => qrCodeRef.current?.download?.()}
-                        />
-                    )}
+                            {isNative && (
+                                <MenuItem
+                                    isAnonymousAction
+                                    title={translate('common.download')}
+                                    icon={Expensicons.Download}
+                                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                    onPress={() => qrCodeRef.current?.download?.()}
+                                    wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                                />
+                            )}
 
-                    <MenuItem
-                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
-                        icon={Expensicons.Cash}
-                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
-                    />
+                            <MenuItem
+                                title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
+                                icon={Expensicons.Cash}
+                                onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
+                                wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                                shouldShowRightIcon
+                            />
+                        </View>
+                    </Section>
                 </View>
             </ScrollView>
         </ScreenWrapper>
