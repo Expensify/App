@@ -21,6 +21,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyPropTypes} from '@src/pages/workspace/withPolicy';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -108,7 +109,7 @@ function IOURequestStepDescription({
     }, []);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     /**
