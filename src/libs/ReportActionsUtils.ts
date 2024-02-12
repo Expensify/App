@@ -130,6 +130,9 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
 
+/**
+ * Checks whether the report action is a whisper targeting someone other than the current user.
+ */
 function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!isWhisperAction(reportAction)) {
         return false;
