@@ -8,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 
@@ -29,7 +28,7 @@ function ConciergePage({session}: ConciergePageProps) {
         if (session && 'authToken' in session) {
             // Pop the concierge loading page before opening the concierge report.
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack();
                 Report.navigateToConciergeChat();
             });
         } else {

@@ -172,6 +172,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '')) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+            } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
             if (!values.policyID) {
