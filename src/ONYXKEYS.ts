@@ -63,9 +63,9 @@ const ONYXKEYS = {
     /** Contains all the info for Tasks */
     TASK: 'task',
 
-    /** 
+    /**
      * Contains all the info for Workspace Rate and Unit while editing.
-     * 
+     *
      * Note: This is not under the COLLECTION key as we can edit rate and unit
      * for one workspace only at a time. And we don't need to store
      * rates and units for different workspaces at the same time. */
