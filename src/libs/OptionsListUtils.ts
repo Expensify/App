@@ -5,17 +5,31 @@ import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
+import type {ReactElement} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyTag,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -52,6 +66,7 @@ type PayeePersonalDetails = {
     descriptiveText: string;
     login: string;
     accountID: number;
+    keyForList: string;
 };
 
 type CategorySection = {
@@ -103,13 +118,13 @@ type GetOptionsConfig = {
 
 type MemberForList = {
     text: string;
-    alternateText: string | null;
-    keyForList: string | null;
+    alternateText: string;
+    keyForList: string;
     isSelected: boolean;
-    isDisabled: boolean | null;
-    accountID?: number | null;
-    login: string | null;
-    rightElement: React.ReactNode | null;
+    isDisabled: boolean;
+    accountID?: number;
+    login: string;
+    rightElement: ReactElement | null;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
 };
@@ -550,6 +565,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
+        lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
@@ -779,8 +796,8 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories): boolean {
-    return Object.values(options).some((option) => option.enabled);
+function hasEnabledOptions(options: PolicyCategory[] | PolicyTag[]): boolean {
+    return options.some((option) => option.enabled);
 }
 
 /**
@@ -984,7 +1001,7 @@ function getCategoryListSections(
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -1721,6 +1738,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
         descriptiveText: amountText,
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
+        keyForList: String(personalDetail.accountID),
     };
 }
 
@@ -1819,12 +1837,14 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
+function formatMemberForList(member: ReportUtils.OptionData, config?: Partial<MemberForList>): MemberForList;
+function formatMemberForList(member: null | undefined, config?: Partial<MemberForList>): undefined;
+function formatMemberForList(member: ReportUtils.OptionData | null | undefined, config: Partial<MemberForList> = {}): MemberForList | undefined {
     if (!member) {
         return undefined;
     }
 
-    const accountID = member.accountID;
+    const accountID = member.accountID ?? undefined;
 
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2004,3 +2024,5 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
 };
+
+export type {MemberForList};
