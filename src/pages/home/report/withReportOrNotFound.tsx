@@ -19,6 +19,9 @@ type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** Metadata of the report currently being looked at */
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
@@ -44,28 +47,29 @@ export default function (
     return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const contentShown = React.useRef(false);
+            const isReportIdInRoute = !!props.route.params.reportID?.length;
+            const isReportLoaded = !isEmptyObject(props.report) && !!props.report?.reportID;
 
-            const isReportIdInRoute = props.route.params.reportID?.length;
+            // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
+            const shouldFetchReport = isReportIdInRoute && props.reportMetadata?.isLoadingInitialReportActions !== false;
 
             // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
             // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
             useEffect(() => {
-                if (!isReportIdInRoute || !isEmptyObject(props.report)) {
+                if (isReportLoaded || !shouldFetchReport) {
                     // If the report is not required or is already loaded, we don't need to call the API
                     return;
                 }
 
                 Report.openReport(props.route.params.reportID);
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [isReportIdInRoute, props.route.params.reportID]);
+            }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
-                const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
+                const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (props.isLoadingReportData !== false || shouldFetchReport);
+                const shouldShowNotFoundPage = !isReportLoaded || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
 
-                const shouldShowNotFoundPage =
-                    !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
-
-                // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
+                // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
                 if (shouldShowNotFoundPage && contentShown.current) {
                     return null;
@@ -98,6 +102,9 @@ export default function (
         return withOnyx<TProps & RefAttributes<TRef>, WithReportOrNotFoundOnyxProps>({
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            },
+            reportMetadata: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
             },
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,

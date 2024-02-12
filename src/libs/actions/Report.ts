@@ -1820,12 +1820,13 @@ function deleteReport(reportID: string) {
  */
 function navigateToConciergeChatAndDeleteReport(reportID: string) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack();
     navigateToConciergeChat();
     deleteReport(reportID);
 }
 
 /**
+ * @param policyRoomReport The policy room report
  * @param policyRoomName The updated name for the policy room
  */
 function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomName: string) {
@@ -1837,6 +1838,8 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
         Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
         return;
     }
+
+    const optimisticRenamedAction = ReportUtils.buildOptimisticRenamedRoomReportAction(policyRoomName, previousName ?? '');
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1852,6 +1855,13 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRenamedAction.reportActionID]: optimisticRenamedAction,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -1863,6 +1873,11 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticRenamedAction.reportActionID]: {pendingAction: null}},
+        },
     ];
     const failureData: OnyxUpdate[] = [
         {
@@ -1872,9 +1887,18 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
                 reportName: previousName,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticRenamedAction.reportActionID]: null},
+        },
     ];
 
-    const parameters: UpdatePolicyRoomNameParams = {reportID, policyRoomName};
+    const parameters: UpdatePolicyRoomNameParams = {
+        reportID,
+        policyRoomName,
+        renamedRoomReportActionID: optimisticRenamedAction.reportActionID,
+    };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
@@ -2276,14 +2300,14 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     if (lastAccessedReportID) {
         // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
             // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.goBack();
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
         }
     }
@@ -2529,7 +2553,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
             value: {
                 privateNotes: {
                     [accountID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError("Private notes couldn't be saved"),
+                        errors: ErrorUtils.getMicroSecondOnyxError('privateNotes.error.genericFailureMessage'),
                     },
                 },
             },

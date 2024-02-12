@@ -16,9 +16,12 @@ type IllustratedHeaderPageLayoutProps = HeaderPageLayoutProps & {
 
     /** Overlay content to display on top of animation */
     overlayContent?: () => ReactNode;
+
+    /** TestID to apply to the whole section container */
+    testID: string;
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, testID, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const shouldLimitHeight = !rest.shouldShowBackButton;
@@ -38,6 +41,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, o
                     {overlayContent?.()}
                 </>
             }
+            testID={testID}
             headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldLimitHeight && styles.centralPaneAnimation]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
