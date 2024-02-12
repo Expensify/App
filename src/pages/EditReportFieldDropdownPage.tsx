@@ -48,7 +48,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
     const sections = useMemo(() => {
         const filteredRecentOptions = recentlyUsedOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
         const filteredRestOfOptions = fieldOptions.filter((option) => !filteredRecentOptions.includes(option) && option.toLowerCase().includes(searchValue.toLowerCase()));
-        setHeaderMessage((!filteredRecentOptions.length && !filteredRestOfOptions.length)  ? translate('common.noResultsFound') : '');
+        setHeaderMessage(!filteredRecentOptions.length && !filteredRestOfOptions.length ? translate('common.noResultsFound') : '');
 
         return [
             {
