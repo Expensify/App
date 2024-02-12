@@ -9,7 +9,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +20,6 @@ import withPolicyAccessOrNotFound from './withPolicyAccessOrNotFound';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 function WorkspaceCategoriesPage({policyCategories}) {
