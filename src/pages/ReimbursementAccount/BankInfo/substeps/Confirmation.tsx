@@ -76,7 +76,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         onPress={handleModifyAccountNumbers}
                     />
                 )}
-                <View style={[styles.ph5, styles.mtAuto]}>
+                <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
                     {error && error.length > 0 && (
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
@@ -88,7 +88,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         isLoading={isLoading}
                         isDisabled={isLoading}
                         success
-                        style={[styles.w100, styles.pb5, styles.mt2]}
+                        style={[styles.w100]}
                         onPress={onNext}
                         text={translate('common.confirm')}
                     />

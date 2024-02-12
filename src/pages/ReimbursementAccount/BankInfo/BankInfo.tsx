@@ -121,7 +121,12 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     };
 
     return (
-        <ScreenWrapper testID={BankInfo.displayName}>
+        <ScreenWrapper
+            testID={BankInfo.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 shouldShowBackButton
                 onBackButtonPress={handleBackButtonPress}

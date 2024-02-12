@@ -39,7 +39,10 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     return (
-        <ScreenWrapper testID={Confirmation.displayName}>
+        <ScreenWrapper
+            testID={Confirmation.displayName}
+            style={[styles.pt0]}
+        >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
@@ -100,7 +103,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         {translate('common.termsOfService')}
                     </TextLink>
                 </Text>
-                <View style={[styles.ph5, styles.mtAuto]}>
+                <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
                     {error && error.length > 0 && (
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
@@ -111,7 +114,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     <Button
                         success
                         isLoading={isLoading}
-                        style={[styles.w100, styles.mt2, styles.pb5]}
+                        style={[styles.w100]}
                         onPress={onNext}
                         text={translate('common.confirm')}
                     />

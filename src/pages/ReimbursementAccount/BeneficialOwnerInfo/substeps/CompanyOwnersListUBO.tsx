@@ -85,6 +85,7 @@ function CompanyOwnersListUBO({
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
                     wrapperStyle={[styles.ph5]}
                     icon={Expensicons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {
                         handleUBOEdit(ownerKey);
                     }}
