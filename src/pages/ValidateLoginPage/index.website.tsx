@@ -41,7 +41,6 @@ function ValidateLoginPage({
                     const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                     Navigation.navigate(url);
                 });
-                return;
             }
             return;
         }
@@ -58,7 +57,6 @@ function ValidateLoginPage({
                     const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                     Navigation.navigate(url);
                 });
-                return;
             }
             return; 
         }
