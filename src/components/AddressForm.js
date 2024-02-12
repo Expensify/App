@@ -67,7 +67,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [country, 'samples'], '');
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = ['common.zipCodeExampleFormat', {zipSampleFormat}];
     const isUSAForm = country === CONST.COUNTRY.US;
 
     /**
@@ -103,7 +103,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
                 if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                    errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat}];
+                    errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
                 } else {
                     errors.zipPostCode = 'common.error.fieldRequired';
                 }
