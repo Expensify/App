@@ -53,7 +53,7 @@ function TroubleshootPage() {
     const menuItems = useMemo(() => {
         const baseMenuItems: BaseMenuItem[] = [
             {
-                translationKey: 'initialSettingsPage.troubleshoot.resetAndRefreshStashed',
+                translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
                 icon: Expensicons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
@@ -73,6 +73,7 @@ function TroubleshootPage() {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
             illustration={LottieAnimations.Desk}
+            testID={TroubleshootPage.displayName}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
                 <Text style={[styles.textHeadline, styles.mb1]}>{translate('initialSettingsPage.aboutPage.troubleshoot')}</Text>
@@ -113,5 +114,7 @@ function TroubleshootPage() {
         </IllustratedHeaderPageLayout>
     );
 }
+
+TroubleshootPage.displayName = 'TroubleshootPage';
 
 export default TroubleshootPage;

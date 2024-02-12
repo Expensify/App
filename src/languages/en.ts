@@ -819,7 +819,7 @@ export default {
             },
         },
         troubleshoot: {
-            resetAndRefreshStashed: 'Reset and refresh stashed data',
+            clearCacheAndRestart: 'Clear cache and restart',
             viewConsole: 'View debug console',
             description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
             submitBug: 'submit a bug',
