@@ -1,7 +1,7 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-        "target": "ES2022",
-        "module": "ES2022"
+        "target": "esNext",
+        "module": "es2022"
     }
 }
