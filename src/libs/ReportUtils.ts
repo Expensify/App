@@ -4768,6 +4768,9 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+/**
+ * Get pending visible chat members for reports
+ */
 function getPendingVisibleChatMembers(accountIDs: number[], previousPendingVisibleChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
     const pendingVisibleChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
     return [...previousPendingVisibleChatMembers, ...pendingVisibleChatMembers];
