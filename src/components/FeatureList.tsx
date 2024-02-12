@@ -1,60 +1,61 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import stylePropTypes from '@styles/stylePropTypes';
 import variables from '@styles/variables';
+import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
-import menuItemPropTypes from './menuItemPropTypes';
 import Section from './Section';
 
-const propTypes = {
+type FeatureListItem = {
+    icon: IconAsset;
+    translationKey: TranslationPaths;
+};
+
+type FeatureListProps = {
     /** The text to display in the title of the section */
-    title: PropTypes.string.isRequired,
+    title: string;
 
     /** The text to display in the subtitle of the section */
-    subtitle: PropTypes.string,
+    subtitle?: string;
 
     /** Text of the call to action button */
-    ctaText: PropTypes.string,
+    ctaText?: string;
 
     /** Accessibility label for the call to action button */
-    ctaAccessibilityLabel: PropTypes.string,
+    ctaAccessibilityLabel?: string;
 
     /** Action to call on cta button press */
-    onCtaPress: PropTypes.func,
+    onCtaPress?: () => void;
 
     /** A list of menuItems representing the feature list. */
-    menuItems: PropTypes.arrayOf(PropTypes.shape({...menuItemPropTypes, translationKey: PropTypes.string})).isRequired,
+    menuItems: FeatureListItem[];
 
     /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration: PropTypes.shape({
-        file: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-        w: PropTypes.number.isRequired,
-        h: PropTypes.number.isRequired,
-    }),
+    illustration: DotLottieAnimation;
 
     /** The style passed to the illustration */
-    illustrationStyle: stylePropTypes,
+    illustrationStyle?: StyleProp<ViewStyle>;
 
     /** The background color to apply in the upper half of the screen. */
-    illustrationBackgroundColor: PropTypes.string,
+    illustrationBackgroundColor?: string;
 };
 
-const defaultProps = {
-    ctaText: '',
-    ctaAccessibilityLabel: '',
-    subtitle: '',
-    onCtaPress: () => {},
-    illustration: null,
-    illustrationBackgroundColor: '',
-    illustrationStyle: [],
-};
-
-function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCtaPress, menuItems, illustration, illustrationStyle, illustrationBackgroundColor}) {
+function FeatureList({
+    title,
+    subtitle = '',
+    ctaText = '',
+    ctaAccessibilityLabel = '',
+    onCtaPress,
+    menuItems,
+    illustration,
+    illustrationStyle,
+    illustrationBackgroundColor = '',
+}: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -70,7 +71,7 @@ function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCtaPres
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
-                    {_.map(menuItems, ({translationKey, icon}) => (
+                    {menuItems.map(({translationKey, icon}) => (
                         <View
                             key={translationKey}
                             style={styles.w100}
@@ -93,7 +94,7 @@ function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCtaPres
                     text={ctaText}
                     onPress={onCtaPress}
                     accessibilityLabel={ctaAccessibilityLabel}
-                    style={[styles.w100]}
+                    style={styles.w100}
                     success
                 />
             </View>
@@ -101,8 +102,7 @@ function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCtaPres
     );
 }
 
-FeatureList.propTypes = propTypes;
-FeatureList.defaultProps = defaultProps;
 FeatureList.displayName = 'FeatureList';
 
 export default FeatureList;
+export type {FeatureListItem};
