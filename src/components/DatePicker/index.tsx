@@ -58,7 +58,8 @@ function DatePicker(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? '');
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const onSelected = (newValue: string) => {

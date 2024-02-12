@@ -1,6 +1,6 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -30,6 +30,18 @@ type CalendarPickerProps = {
     onSelected?: (selectedDate: string) => void;
 };
 
+function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
+    let initialCurrentDateView = typeof value === 'string' ? parseISO(value) : new Date(value);
+
+    if (maxDate < initialCurrentDateView) {
+        initialCurrentDateView = maxDate;
+    } else if (minDate > initialCurrentDateView) {
+        initialCurrentDateView = minDate;
+    }
+
+    return initialCurrentDateView;
+}
+
 function CalendarPicker({
     value = new Date(),
     minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
@@ -39,7 +51,9 @@ function CalendarPicker({
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
-    const [currentDateView, setCurrentDateView] = useState(typeof value === 'string' ? parseISO(value) : new Date(value));
+
+    const [currentDateView, setCurrentDateView] = useState(getInitialCurrentDateView(value, minDate, maxDate));
+
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
 
     const minYear = getYear(new Date(minDate));
@@ -53,15 +67,6 @@ function CalendarPicker({
             isSelected: year === currentDateView.getFullYear(),
         })),
     );
-
-    useEffect(() => {
-        if (maxDate < currentDateView) {
-            setCurrentDateView(maxDate);
-        } else if (minDate > currentDateView) {
-            setCurrentDateView(minDate);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const onYearSelected = (year: number) => {
         setIsYearPickerVisible(false);
