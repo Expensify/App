@@ -396,14 +396,14 @@ function WorkspaceMembersPage(props) {
     };
     const data = getMemberOptions();
 
-    const renderHeaderMessage = () => {
+    const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
             return props.translate('workspace.common.mustBeOnlineToViewMembers');
         }
         return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
-    const renderHeaderContent = () => {
+    const getHeaderContent = () => {
         if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
             return null;
         }
@@ -417,7 +417,7 @@ function WorkspaceMembersPage(props) {
         );
     };
 
-    const renderHeaderButtons = () => (
+    const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow]}>
             <Button
                 medium
@@ -461,9 +461,9 @@ function WorkspaceMembersPage(props) {
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                 >
-                    {!isSmallScreenWidth && renderHeaderButtons()}
+                    {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{renderHeaderButtons()}</View>}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     danger
                     title={props.translate('workspace.people.removeMembersTitle')}
@@ -493,8 +493,8 @@ function WorkspaceMembersPage(props) {
                             setSearchValue(value);
                         }}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        headerMessage={renderHeaderMessage()}
-                        headerContent={renderHeaderContent()}
+                        headerMessage={getHeaderMessage()}
+                        headerContent={getHeaderContent()}
                         onSelectRow={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
