@@ -287,7 +287,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
-    OPEN_PERSONAL_DETAILS_PAGE: 'OpenPersonalDetailsPage',
+    OPEN_PERSONAL_DETAILS: 'OpenPersonalDetailsPage',
     OPEN_PUBLIC_PROFILE_PAGE: 'OpenPublicProfilePage',
     OPEN_PLAID_BANK_LOGIN: 'OpenPlaidBankLogin',
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
@@ -321,7 +321,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: EmptyObject;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: EmptyObject;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: EmptyObject;
-    [READ_COMMANDS.OPEN_PERSONAL_DETAILS_PAGE]: EmptyObject;
+    [READ_COMMANDS.OPEN_PERSONAL_DETAILS]: EmptyObject;
     [READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE]: Parameters.OpenPublicProfilePageParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_LOGIN]: Parameters.OpenPlaidBankLoginParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_ACCOUNT_SELECTOR]: Parameters.OpenPlaidBankAccountSelectorParams;
