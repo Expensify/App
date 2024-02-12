@@ -3050,7 +3050,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         autoGrowHeightMultilineInput: {
-            maxHeight: 115,
+            maxHeight: 200,
         },
 
         peopleRow: {
