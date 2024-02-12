@@ -136,6 +136,11 @@ describe('getViolationsOnyxData', () => {
                         Lunch: {name: 'Lunch', enabled: true},
                         Dinner: {name: 'Dinner', enabled: true},
                     },
+                    Tag: {
+                        name: 'Tag',
+                        required: true,
+                        tags: {Lunch: {enabled: true}, Dinner: {enabled: true}},
+                    },
                 },
             };
             transaction.tag = 'Lunch';

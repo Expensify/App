@@ -106,7 +106,7 @@ function isExpensifyGuideTeam(email: string): boolean {
  */
 const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-const isPolicyMember = (policyID: string, policies: Record<string, Policy>): boolean => Object.values(policies).some((policy) => policy?.id === policyID);
+const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
@@ -153,33 +153,33 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 /**
  * Gets a tag name of policy tags based on a tag index.
  */
-function getTagListName(policyTags: OnyxEntry<PolicyTags>, tagIndex: number) {
-    if (isEmptyObject(policyTags)) {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): string {
+    if (isEmptyObject(policyTagList)) {
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTags ?? {});
+    const policyTagKeys = Object.keys(policyTagList ?? {});
     const policyTagKey = policyTagKeys[tagIndex] ?? '';
 
-    return policyTags?.[policyTagKey]?.name ?? '';
+    return policyTagList?.[policyTagKey]?.name ?? '';
 }
 
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTags: OnyxCollection<PolicyTagList>): PolicyTagList[] {
-    if (isEmptyObject(policyTags)) {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagList[keyof PolicyTagList]> {
+    if (isEmptyObject(policyTagList)) {
         return [];
     }
 
-    return Object.values(policyTags).filter((policyTagList): policyTagList is PolicyTagList => policyTagList !== null);
+    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
 }
 
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTags: OnyxCollection<PolicyTagList>, tagIndex: number): PolicyTagList {
-    const tagLists = getTagLists(policyTags);
+function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): PolicyTagList[keyof PolicyTagList] {
+    const tagLists = getTagLists(policyTagList);
 
     return (
         tagLists[tagIndex] ?? {
@@ -200,8 +200,8 @@ function getCleanedTagName(tag: string) {
 /**
  * Gets a count of enabled tags of a policy
  */
-function getCountOfEnabledTagsOfList(policyTagList: PolicyTagList) {
-    return Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled).length;
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
+    return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
 }
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {

@@ -5,6 +5,7 @@ import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
+import type {CardList} from './Card';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
@@ -14,6 +15,7 @@ import type {
     CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
+    GetPhysicalCardForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     NewRoomForm,
@@ -27,6 +29,7 @@ import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
+import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type Locale from './Locale';
@@ -92,6 +95,7 @@ export type {
     Beta,
     BlockedFromConcierge,
     Card,
+    CardList,
     Credentials,
     Currency,
     CustomStatusDraft,
@@ -102,6 +106,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     FundList,
+    GetPhysicalCardForm,
     IntroSelected,
     IOU,
     Locale,
@@ -167,6 +172,7 @@ export type {
     NewRoomForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
+    InvitedEmailsToAccountIDs,
     PrivateNotesForm,
     ReportFieldEditForm,
     RoomNameForm,

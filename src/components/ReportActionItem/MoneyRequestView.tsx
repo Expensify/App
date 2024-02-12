@@ -53,7 +53,7 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -79,7 +79,7 @@ function MoneyRequestView({
     policyCategories,
     shouldShowHorizontalRule,
     transaction,
-    policyTags,
+    policyTagList,
     policy,
     transactionViolations,
 }: MoneyRequestViewProps) {
@@ -110,6 +110,7 @@ function MoneyRequestView({
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
@@ -127,7 +128,7 @@ function MoneyRequestView({
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
@@ -153,10 +154,10 @@ function MoneyRequestView({
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable);
+            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable, policy, policyTagList, policyCategories);
             Navigation.dismissModal();
         },
-        [transaction, report],
+        [transaction, report, policy, policyTagList, policyCategories],
     );
 
     if (isCardTransaction) {
@@ -173,7 +174,7 @@ function MoneyRequestView({
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (ReportUtils.isReportApproved(report)) {
+        if (isApproved) {
             amountDescription += ` • ${translate('iou.approved')}`;
         } else if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
@@ -267,13 +268,7 @@ function MoneyRequestView({
                         titleStyle={styles.flex1}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    CONST.IOU.TYPE.REQUEST,
-                                    transaction?.transactionID ?? '',
-                                    report.reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
                             )
                         }
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -418,7 +413,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     policyCategories: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}`,
     },
-    policyTags: {
+    policyTagList: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
     },
     parentReport: {

@@ -1,5 +1,7 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import categoryPropTypes from '@components/categoryPropTypes';
 import TagPicker from '@components/TagPicker';
 import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
@@ -12,10 +14,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -32,17 +34,27 @@ const propTypes = {
     /** The report currently being used */
     report: reportPropTypes,
 
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
+
+    /** The category configuration of the report's policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    policyTags: {},
+    policy: null,
+    policyTags: null,
+    policyCategories: null,
     transaction: {},
 };
 
 function IOURequestStepTag({
+    policy,
+    policyCategories,
     policyTags,
     report,
     route: {
@@ -61,7 +73,7 @@ function IOURequestStepTag({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
@@ -77,7 +89,7 @@ function IOURequestStepTag({
             return;
         }
         if (isEditing) {
-            IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag);
+            IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag, policy, policyTags, policyCategories);
             Navigation.dismissModal();
             return;
         }
@@ -118,6 +130,12 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },

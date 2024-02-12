@@ -5,7 +5,7 @@ import type {Phrase, PhraseParameters} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const ViolationsUtils = {
     /**
@@ -13,10 +13,10 @@ const ViolationsUtils = {
      * violations.
      */
     getViolationsOnyxData(
-        transaction: Transaction,
+        updatedTransaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
-        policyTags: PolicyTags,
+        policyTagList: PolicyTagList,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): OnyxUpdate {
@@ -25,15 +25,16 @@ const ViolationsUtils = {
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const isCategoryInPolicy = !!policyCategories[transaction.category ?? '']?.enabled;
+            const categoryKey = updatedTransaction.category;
+            const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryOutOfPolicyViolation && transaction.category && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
-            if (hasCategoryOutOfPolicyViolation && transaction.category && isCategoryInPolicy) {
+            if (hasCategoryOutOfPolicyViolation && updatedTransaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
 
@@ -43,14 +44,14 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !transaction.category) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
                 newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
 
         if (policyRequiresTags) {
-            const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
-            const policyTagKeys = Object.keys(policyTags);
+            const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
+            const policyTagKeys = Object.keys(policyTagList);
 
             if (policyTagKeys.length === 0) {
                 newTransactionViolations.push({
@@ -64,7 +65,7 @@ const ViolationsUtils = {
                 const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && violation.data?.tagName === key);
                 const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG && violation.data?.tagName === key);
                 const selectedTag = selectedTags[index];
-                const isTagInPolicy = Boolean(policyTags[key]?.tags[selectedTag]?.enabled);
+                const isTagInPolicy = Boolean(policyTagList[key]?.tags[selectedTag]?.enabled);
 
                 // Add 'tagOutOfPolicy' violation if tag is not in policy
                 if (!hasTagOutOfPolicyViolation && selectedTag && !isTagInPolicy) {
@@ -114,7 +115,7 @@ const ViolationsUtils = {
 
         return {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
             value: newTransactionViolations,
         };
     },
