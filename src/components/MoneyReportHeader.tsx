@@ -57,9 +57,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
+    const isReimburser = session?.email === policy?.reimburserEmail;
     const isPayer = isPaidGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isManager)
+          isReimburser && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
@@ -88,8 +89,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !(policy.harvesting?.enabled ?? policy.isHarvestingEnabled),
-        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled, policy.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !policy.harvesting?.enabled,
+        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled],
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
@@ -104,7 +105,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 policy={policy}
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
                 shouldShowThreeDotsButton
