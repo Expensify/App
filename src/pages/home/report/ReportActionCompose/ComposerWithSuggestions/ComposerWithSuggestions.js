@@ -491,7 +491,7 @@ function ComposerWithSuggestions({
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA', 'DIV'].includes(e.target.nodeName)) {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
                 return;
             }
 
@@ -644,12 +644,14 @@ function ComposerWithSuggestions({
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            <SilentCommentUpdater
-                reportID={reportID}
-                value={value}
-                updateComment={updateComment}
-                commentRef={commentRef}
-            />
+            {ReportUtils.isValidReportIDFromPath(reportID) && (
+                <SilentCommentUpdater
+                    reportID={reportID}
+                    value={value}
+                    updateComment={updateComment}
+                    commentRef={commentRef}
+                />
+            )}
 
             {/* Only used for testing so far */}
             {children}

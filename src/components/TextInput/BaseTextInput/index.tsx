@@ -51,7 +51,6 @@ function BaseTextInput(
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
-        submitOnEnter = false,
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
@@ -396,9 +395,6 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
-                                // FormSubmit Enter key handler does not have access to direct props.
-                                // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                dataSet={{submitOnEnter: isMultiline && submitOnEnter}}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator
