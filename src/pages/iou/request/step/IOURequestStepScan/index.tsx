@@ -280,6 +280,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
             </View>
 
             <AttachmentPicker>
+
                 {({openPicker}) => (
                     <Button
                         medium
@@ -294,6 +295,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
                         }}
                     />
                 )}
+                
             </AttachmentPicker>
         </>
     );
