@@ -1,4 +1,5 @@
 import React, {memo} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,9 +47,21 @@ type SubscriptAvatarProps = {
 
     /** Whether to show the tooltip */
     showTooltip?: boolean;
+
+    /** Additional style for container of subscription icon */
+    subscriptionContainerAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
-function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({
+    mainAvatar,
+    secondaryAvatar,
+    subscriptIcon,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    backgroundColor,
+    noMargin = false,
+    showTooltip = true,
+    subscriptionContainerAdditionalStyles = undefined,
+}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -113,6 +126,7 @@ function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CON
                         styles.subscriptIcon,
                         styles.dFlex,
                         styles.justifyContentCenter,
+                        subscriptionContainerAdditionalStyles,
                     ]}
                     // Hover on overflowed part of icon will not work on Electron if dragArea is true
                     // https://stackoverflow.com/questions/56338939/hover-in-css-is-not-working-with-electron

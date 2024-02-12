@@ -110,6 +110,7 @@ import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
 import Rotate from '@assets/images/rotate-image.svg';
+import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
@@ -252,6 +253,7 @@ export {
     Receipt,
     ReceiptSearch,
     Rotate,
+    RotateLeft,
     Scan,
     Send,
     Shield,

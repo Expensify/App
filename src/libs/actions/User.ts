@@ -460,7 +460,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
     onyxUpdates.forEach((update) => {
-        if (!update.shouldNotify) {
+        if (!update.shouldNotify && !update.shouldShowPushNotification) {
             return;
         }
 
