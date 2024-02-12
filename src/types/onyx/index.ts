@@ -50,6 +50,7 @@ import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type {PolicyTaxRate, PolicyTaxRates} from './PolicyTaxRates';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -169,8 +170,6 @@ export type {
     PolicyReportField,
     PolicyReportFields,
     RecentlyUsedReportFields,
-    PolicyTaxRate,
-    PolicyTaxRates,
     LastPaymentMethod,
     NewRoomForm,
     IKnowATeacherForm,
@@ -180,4 +179,6 @@ export type {
     ReportFieldEditForm,
     RoomNameForm,
     PaymentMethodType,
+    PolicyTaxRate,
+    PolicyTaxRates,
 };
