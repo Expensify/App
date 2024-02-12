@@ -57,7 +57,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
     const isScrollEnabled = useSharedValue(true);
 
     const activePage = useSharedValue(initialPage);
-    const [activePageState, setActivePageState] = useState(initialPage);
+    const [activePageIndex, setActivePageIndex] = useState(initialPage);
 
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
@@ -67,14 +67,14 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
     }, []);
 
     useEffect(() => {
-        setActivePageState(initialPage);
+        setActivePageIndex(initialPage);
         activePage.value = initialPage;
     }, [activePage, initialPage]);
 
     /**
      * The pager uses the source index and current active state to render the pages.
      */
-    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageState})), [activePageState, items]);
+    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageIndex})), [activePageIndex, items]);
 
     /**
      * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
@@ -115,14 +115,14 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
     const contextValue = useMemo(
         () => ({
             pagerItems,
-            activePage: activePageState,
+            activePage: activePageIndex,
             isPagerScrolling,
             isScrollEnabled,
             pagerRef,
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
         }),
-        [pagerItems, activePageState, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
+        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
     );
 
     const animatedProps = useAnimatedProps(() => ({
@@ -155,11 +155,11 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
                         item={item}
                         isSingleItem={items.length === 1}
                         index={index}
-                        isFocused={index === activePageState && activeSource === item.source}
+                        isFocused={index === activePageIndex && activeSource === item.source}
                     />
                 </View>
             )),
-        [activePageState, activeSource, items, styles.flex1],
+        [activePageIndex, activeSource, items, styles.flex1],
     );
 
     return (
