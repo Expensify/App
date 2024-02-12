@@ -4,7 +4,8 @@ import {ActivityIndicator, Alert, AppState, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import {useCameraDevices} from 'react-native-vision-camera';
+import { useCameraDevices} from 'react-native-vision-camera';
+import type {Camera, Point} from 'react-native-vision-camera'
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -44,7 +45,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
-    const camera = useRef<typeof NavigationAwareCamera>(null);
+    const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<typeof RESULTS | null>(null);
 
@@ -59,7 +60,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
         transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
     }));
 
-    const focusCamera = (point) => {
+    const focusCamera = (point: Point) => {
         if (!camera.current) {
             return;
         }
@@ -178,7 +179,6 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
-     * @param {Object} file
      */
     const setReceiptAndNavigate = (file: File) => {
         if (!validateReceipt(file)) {

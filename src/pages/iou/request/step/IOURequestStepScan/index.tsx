@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type Webcam from 'react-webcam';
 import type IOURequestStepPropTypes from './IOURequestStepScanProps';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -56,7 +57,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
-    const cameraRef = useRef(null);
+    const cameraRef = useRef<Webcam>(null)
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -149,7 +150,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
         }
         const imageBase64 = cameraRef?.current?.getScreenshot();
         const filename = `receipt_${Date.now()}.png`;
-        const file = FileUtils.base64ToFile(imageBase64, filename);
+        const file = FileUtils.base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(route.params.transactionID, source, file.name, route.params.action !== CONST.IOU.ACTION.EDIT);
 
