@@ -217,7 +217,7 @@ function HeaderView(props) {
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
+                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                     ) : (
