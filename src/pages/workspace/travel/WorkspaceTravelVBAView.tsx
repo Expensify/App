@@ -49,7 +49,7 @@ function WorkspaceTravelVBAView() {
                 },
             ]}
         >
-            <View style={[styles.mv3]}>
+            <View style={styles.mv3}>
                 <Text>{translate('workspace.travel.VBACopy')}</Text>
             </View>
         </Section>

@@ -26,7 +26,7 @@ function WorkspaceTravelPage({route}: WorkspaceTravelPageProps) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
             shouldShowOfflineIndicatorInWideScreen
         >
-            {(hasVBA = false, policyID = '') => (
+            {(hasVBA, policyID) => (
                 <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
