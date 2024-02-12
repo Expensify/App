@@ -1,6 +1,13 @@
-const _ = require('underscore');
+type Entries = number[];
 
-const filterOutliersViaIQR = (data) => {
+type Stats = {
+    mean: number;
+    stdev: number;
+    runs: number;
+    entries: Entries;
+};
+
+const filterOutliersViaIQR = (data: Entries): Entries => {
     let q1;
     let q3;
 
@@ -18,22 +25,17 @@ const filterOutliersViaIQR = (data) => {
     const maxValue = q3 + iqr * 1.5;
     const minValue = q1 - iqr * 1.5;
 
-    return _.filter(values, (x) => x >= minValue && x <= maxValue);
+    return values.filter((x) => x >= minValue && x <= maxValue);
 };
 
-const mean = (arr) => _.reduce(arr, (a, b) => a + b, 0) / arr.length;
+const mean = (arr: Entries): number => arr.reduce((a, b) => a + b, 0) / arr.length;
 
-const std = (arr) => {
+const std = (arr: Entries): number => {
     const avg = mean(arr);
-    return Math.sqrt(
-        _.reduce(
-            _.map(arr, (i) => (i - avg) ** 2),
-            (a, b) => a + b,
-        ) / arr.length,
-    );
+    return Math.sqrt(arr.map((i) => (i - avg) ** 2).reduce((a, b) => a + b) / arr.length);
 };
 
-const getStats = (entries) => {
+const getStats = (entries: Entries): Stats => {
     const cleanedEntries = filterOutliersViaIQR(entries);
     const meanDuration = mean(cleanedEntries);
     const stdevDuration = std(cleanedEntries);
@@ -46,6 +48,4 @@ const getStats = (entries) => {
     };
 };
 
-module.exports = {
-    getStats,
-};
+export default getStats;
