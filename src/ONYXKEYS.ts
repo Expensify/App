@@ -313,8 +313,8 @@ const ONYXKEYS = {
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
-        WELCOME_MESSAGE_FORM: 'welcomeMessageForm',
-        WELCOME_MESSAGE_FORM_DRAFT: 'welcomeMessageFormDraft',
+        REPORT_DESCRIPTION_FORM: 'reportDescriptionForm',
+        REPORT_DESCRIPTION_FORM_DRAFT: 'reportDescriptionFormDraft',
         LEGAL_NAME_FORM: 'legalNameForm',
         LEGAL_NAME_FORM_DRAFT: 'legalNameFormDraft',
         WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
@@ -408,7 +408,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
-    [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
+    [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL]: boolean;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
@@ -424,7 +424,7 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
-    [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
+    [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
@@ -465,7 +465,8 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
-    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs | undefined;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string | undefined;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
@@ -480,9 +481,9 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
+    [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
-    [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolation[];
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
 
@@ -501,8 +502,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: OnyxTypes.RoomNameForm;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM_DRAFT]: OnyxTypes.RoomNameForm;
-    [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: OnyxTypes.Form;
@@ -547,8 +548,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.GetPhysicalCardForm;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.GetPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: OnyxTypes.ReportFieldEditForm;
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm

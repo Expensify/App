@@ -409,7 +409,7 @@ function WorkspaceMembersPage(props) {
         return (
             <MessagesRow
                 type="success"
-                messages={{0: props.translate('workspace.people.addedWithPrimary')}}
+                messages={{0: 'workspace.people.addedWithPrimary'}}
                 containerStyles={[styles.pb5, styles.ph5]}
                 onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
             />

@@ -11,7 +11,7 @@ import type DisplayNamesProps from './types';
 
 type HTMLElementWithText = HTMLElement & RNText;
 
-function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1}: DisplayNamesProps) {
+function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
@@ -53,6 +53,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
+            testID={DisplayNamesWithToolTip.displayName}
         >
             {shouldUseFullTitle
                 ? ReportUtils.formatReportLastMessageText(fullTitle)
@@ -72,6 +73,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                       </Fragment>
                   ))}
+            {renderAdditionalText?.()}
             {Boolean(isEllipsisActive) && (
                 <View style={styles.displayNameTooltipEllipsis}>
                     <Tooltip text={fullTitle}>
