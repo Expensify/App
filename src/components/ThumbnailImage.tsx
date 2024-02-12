@@ -30,8 +30,10 @@ type ThumbnailImageProps = {
     /** Height of the thumbnail image */
     imageHeight?: number;
 
+    /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
+    /** The size of the fallback icon */
     fallbackIconSize?: number;
 
     /** Should the image be resized on load or just fit container */
