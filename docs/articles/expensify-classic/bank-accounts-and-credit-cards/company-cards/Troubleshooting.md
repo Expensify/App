@@ -58,7 +58,7 @@ Make sure you're importing your card in the correct spot in Expensify and select
 Please note there are some things that cannot be bypassed within Expensify, including two-factor authentication being enabled within your bank account. This will prevent the connection from remaining stable and will need to be turned off on the bank side. 
 
 ## What are the most reliable bank connections in Expensify?*
-The most reliable corporate card to use with Expensify is the Expensify Visa® Commercial Card. We offer daily settlement, unapproved expense limits, and real-time compliance for secure and efficient spending, as well as 2% cash back. Click here to learn more or apply.
+The most reliable corporate card to use with Expensify is the Expensify Visa® Commercial Card. We offer daily settlement, unapproved expense limits, and real-time compliance for secure and efficient spending, as well as 2% cash back (_Applies to USD purchases only._) Click here to learn more or apply.
 Additionally, we've teamed up with major banks worldwide to ensure a smooth import of credit card transactions into your accounts. Corporate cards from the following banks also offer the most dependable connections in Expensify:
 - American Express
 - Bank of America
