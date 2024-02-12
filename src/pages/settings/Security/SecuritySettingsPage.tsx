@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
@@ -48,11 +49,12 @@ function SecuritySettingsPage() {
     return (
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.security')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            onBackButtonPress={() => Navigation.goBack()}
             shouldShowBackButton={isSmallScreenWidth}
             illustration={LottieAnimations.Safe}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
             shouldShowOfflineIndicatorInWideScreen
+            icon={Illustrations.LockClosed}
             testID={SecuritySettingsPage.displayName}
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>

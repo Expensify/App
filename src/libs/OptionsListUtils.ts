@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
+import type {ReactElement} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -29,7 +30,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -118,13 +118,13 @@ type GetOptionsConfig = {
 
 type MemberForList = {
     text: string;
-    alternateText: string | null;
-    keyForList: string | null;
+    alternateText: string;
+    keyForList: string;
     isSelected: boolean;
-    isDisabled: boolean | null;
-    accountID?: number | null;
-    login: string | null;
-    rightElement: React.ReactNode | null;
+    isDisabled: boolean;
+    accountID?: number;
+    login: string;
+    rightElement: ReactElement | null;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
 };
@@ -1001,7 +1001,7 @@ function getCategoryListSections(
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -1837,12 +1837,14 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
+function formatMemberForList(member: ReportUtils.OptionData, config?: Partial<MemberForList>): MemberForList;
+function formatMemberForList(member: null | undefined, config?: Partial<MemberForList>): undefined;
+function formatMemberForList(member: ReportUtils.OptionData | null | undefined, config: Partial<MemberForList> = {}): MemberForList | undefined {
     if (!member) {
         return undefined;
     }
 
-    const accountID = member.accountID;
+    const accountID = member.accountID ?? undefined;
 
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2022,3 +2024,5 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
 };
+
+export type {MemberForList};
