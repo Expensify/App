@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
@@ -283,9 +283,11 @@ export type {
     ChangeLog,
     OriginalMessageIOU,
     OriginalMessageCreated,
+    OriginalMessageRenamed,
     OriginalMessageAddComment,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
+    DecisionName,
     PaymentMethodType,
 };

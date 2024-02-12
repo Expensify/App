@@ -1408,6 +1408,10 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
+  - RNLiveMarkdown (0.1.5):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - RNLocalize (2.2.6):
     - React-Core
   - rnmapbox-maps (10.0.11):
@@ -1449,7 +1453,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
-  - VisionCamera (2.16.2):
+  - VisionCamera (2.16.5):
     - React
     - React-callinvoker
     - React-Core
@@ -1569,6 +1573,7 @@ DEPENDENCIES:
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
+  - "RNLiveMarkdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - RNLocalize (from `../node_modules/react-native-localize`)
   - "rnmapbox-maps (from `../node_modules/@rnmapbox/maps`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
@@ -1808,6 +1813,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNGoogleSignin:
     :path: "../node_modules/@react-native-google-signin/google-signin"
+  RNLiveMarkdown:
+    :path: "../node_modules/@expensify/react-native-live-markdown"
   RNLocalize:
     :path: "../node_modules/react-native-localize"
   rnmapbox-maps:
@@ -1959,6 +1966,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 25b969a1ffc806b9f9ad2e170d4a3b049c6af85e
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
+  RNLiveMarkdown: 35eeecf7e57eb26fdc279d5d4815982a9a9f7beb
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
@@ -1972,7 +1980,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: 7d13aae043ffb38b224a0f725d1e23ca9c190fe7
+  VisionCamera: fda554d8751e395effcc87749f8b7c198c1031be
   Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 
 PODFILE CHECKSUM: 0ccbb4f2406893c6e9f266dc1e7470dcd72885d2

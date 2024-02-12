@@ -68,7 +68,6 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.handleReferralModal = this.handleReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -91,7 +90,6 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
             disableEnterShortCut: false,
@@ -255,15 +253,11 @@ class BaseOptionsSelector extends Component {
     updateSearchValue(value) {
         this.setState({
             paginationPage: 1,
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage: value.length > this.props.maxLength ? ['common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}] : '',
             value,
         });
 
         this.props.onChangeText(value);
-    }
-
-    handleReferralModal() {
-        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
     handleFocusIn() {
@@ -564,7 +558,7 @@ class BaseOptionsSelector extends Component {
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
                 bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
-                renderFooterContent={() =>
+                renderFooterContent={
                     shouldShowShowMoreButton && (
                         <ShowMoreButton
                             containerStyle={{...this.props.themeStyles.mt2, ...this.props.themeStyles.mb5}}
@@ -648,12 +642,9 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
+                {this.props.shouldShowReferralCTA && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA
-                            referralContentType={this.props.referralContentType}
-                            onCloseButtonPress={this.handleReferralModal}
-                        />
+                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
                     </View>
                 )}
 

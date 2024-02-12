@@ -415,6 +415,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        fontWeightNormal: {
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -864,6 +868,18 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             justifyItems: 'center',
+        },
+
+        cameraFocusIndicator: {
+            position: 'absolute',
+            left: -32,
+            top: -32,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            borderWidth: 2,
+            borderColor: theme.white,
+            pointerEvents: 'none',
         },
 
         permissionView: {
@@ -1425,6 +1441,10 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        breadcrumsContainer: {
+            height: 24,
+        },
+
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
@@ -1798,6 +1818,12 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        renderHTML: {
             maxWidth: '100%',
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
@@ -2242,6 +2268,10 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        headerBarDesktopHeight: {
+            height: variables.contentHeaderDesktopHeight,
+        },
+
         imageViewContainer: {
             width: '100%',
             height: '100%',
@@ -2566,11 +2596,26 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        accountSettingsSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
             height: 56,
             alignItems: 'center',
+        },
+
+        qrShareSection: {
+            width: 264,
+        },
+
+        sectionMenuItemTopDescription: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
         },
 
         selectCircle: {
@@ -2583,6 +2628,11 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.componentBG,
             marginLeft: 8,
+        },
+
+        optionSelectCircle: {
+            borderRadius: variables.componentSizeSmall / 2 + 1,
+            padding: 1,
         },
 
         unreadIndicatorContainer: {
@@ -3342,7 +3392,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            lineHeight: variables.lineHeightXXLarge,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         cardMenuItem: {
@@ -4046,8 +4097,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.appBG,
-            borderColor: theme.textSupporting,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         mapViewContainer: {

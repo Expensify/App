@@ -605,4 +605,70 @@ describe('ReportUtils', () => {
             expect(ReportUtils.sortReportsByLastRead(reports)).toEqual(sortedReports);
         });
     });
+
+    describe('getAllAncestorReportActions', () => {
+        const reports = [
+            {reportID: '1', lastReadTime: '2024-02-01 04:56:47.233', reportName: 'Report'},
+            {reportID: '2', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '1', parentReportID: '1', reportName: 'Report'},
+            {reportID: '3', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '2', parentReportID: '2', reportName: 'Report'},
+            {reportID: '4', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '3', parentReportID: '3', reportName: 'Report'},
+            {reportID: '5', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '4', parentReportID: '4', reportName: 'Report'},
+        ];
+
+        const reportActions = [
+            {reportActionID: '1', created: '2024-02-01 04:42:22.965'},
+            {reportActionID: '2', created: '2024-02-01 04:42:28.003'},
+            {reportActionID: '3', created: '2024-02-01 04:42:31.742'},
+            {reportActionID: '4', created: '2024-02-01 04:42:35.619'},
+        ];
+
+        beforeAll(() => {
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reports[0].reportID}`]: reports[0],
+                [`${ONYXKEYS.COLLECTION.REPORT}${reports[1].reportID}`]: reports[1],
+                [`${ONYXKEYS.COLLECTION.REPORT}${reports[2].reportID}`]: reports[2],
+                [`${ONYXKEYS.COLLECTION.REPORT}${reports[3].reportID}`]: reports[3],
+                [`${ONYXKEYS.COLLECTION.REPORT}${reports[4].reportID}`]: reports[4],
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[0].reportID}`]: {[reportActions[0].reportActionID]: reportActions[0]},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[1].reportID}`]: {[reportActions[1].reportActionID]: reportActions[1]},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[2].reportID}`]: {[reportActions[2].reportActionID]: reportActions[2]},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reports[3].reportID}`]: {[reportActions[3].reportActionID]: reportActions[3]},
+            });
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(() => Onyx.clear());
+
+        it('should return correctly all ancestors of a thread report', () => {
+            const resultAncestors = [
+                {report: reports[1], reportAction: reportActions[0], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
+                {report: reports[2], reportAction: reportActions[1], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
+                {report: reports[3], reportAction: reportActions[2], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
+                {report: reports[4], reportAction: reportActions[3], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
+            ];
+
+            expect(ReportUtils.getAllAncestorReportActions(reports[4], false)).toEqual(resultAncestors);
+        });
+
+        it('should hide thread divider line of the nearest ancestor if the first action of thread report is unread', () => {
+            const allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], true);
+            expect(allAncestors.reverse()[0].shouldHideThreadDividerLine).toBe(true);
+        });
+
+        it('should hide thread divider line of the previous ancestor and display unread marker of the current ancestor if the current ancestor action is unread', () => {
+            let allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], false);
+            expect(allAncestors[0].shouldHideThreadDividerLine).toBe(false);
+            expect(allAncestors[1].shouldDisplayNewMarker).toBe(false);
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+                lastReadTime: '2024-02-01 04:42:28.001',
+            })
+                .then(() => waitForBatchedUpdates())
+                .then(() => {
+                    allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], false);
+                    expect(allAncestors[0].shouldHideThreadDividerLine).toBe(true);
+                    expect(allAncestors[1].shouldDisplayNewMarker).toBe(true);
+                });
+        });
+    });
 });

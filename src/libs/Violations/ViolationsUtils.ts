@@ -1,9 +1,10 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const ViolationsUtils = {
     /**
@@ -11,31 +12,28 @@ const ViolationsUtils = {
      * violations.
      */
     getViolationsOnyxData(
-        transaction: Transaction,
+        updatedTransaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
-        policyTags: PolicyTags,
+        policyTagList: PolicyTagList,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
-    ): {
-        onyxMethod: string;
-        key: string;
-        value: TransactionViolation[];
-    } {
+    ): OnyxUpdate {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
+            const categoryKey = updatedTransaction.category;
+            const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryOutOfPolicyViolation && transaction.category && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
-            if (hasCategoryOutOfPolicyViolation && transaction.category && isCategoryInPolicy) {
+            if (hasCategoryOutOfPolicyViolation && updatedTransaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
 
@@ -45,23 +43,25 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !transaction.category) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
                 newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
 
         if (policyRequiresTags) {
+            const policyTagListName = Object.keys(policyTagList)[0];
+            const policyTags = policyTagList[policyTagListName]?.tags;
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
+            const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
-            if (!hasTagOutOfPolicyViolation && transaction.tag && !isTagInPolicy) {
+            if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
                 newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
             // Remove 'tagOutOfPolicy' violation if tag is in policy
-            if (hasTagOutOfPolicyViolation && transaction.tag && isTagInPolicy) {
+            if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'tagOutOfPolicy'});
             }
 
@@ -71,14 +71,14 @@ const ViolationsUtils = {
             }
 
             // Add 'missingTag violation' if tag is required and not set
-            if (!hasMissingTagViolation && !transaction.tag && policyRequiresTags) {
+            if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
                 newTransactionViolations.push({name: 'missingTag', type: 'violation', userMessage: ''});
             }
         }
 
         return {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
             value: newTransactionViolations,
         };
     },
@@ -155,7 +155,7 @@ const ViolationsUtils = {
                     brokenBankConnection: violation.data?.brokenBankConnection ?? false,
                     isAdmin: violation.data?.isAdmin ?? false,
                     email: violation.data?.email,
-                    isTransactionOlderThan7Days: Boolean(violation.data?.isTransactionOlderThan7Days),
+                    isTransactionOlderThan7Days: !!violation.data?.isTransactionOlderThan7Days,
                     member: violation.data?.member,
                 });
             case 'smartscanFailed':
