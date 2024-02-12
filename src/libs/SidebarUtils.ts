@@ -1,6 +1,5 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -94,22 +93,6 @@ function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
 
-// Define a cache object to store the memoized results
-const reportIDsCache = new Map<string, string[]>();
-
-// Function to set a key-value pair while maintaining the maximum key limit
-function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TValue) {
-    if (map.size >= 5) {
-        // If the map has reached its limit, remove the first (oldest) key-value pair
-        const firstKey = map.keys().next().value;
-        map.delete(firstKey);
-    }
-    map.set(key, value);
-}
-
-// Variable to verify if ONYX actions are loaded
-let hasInitialReportActions = false;
-
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -119,34 +102,7 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportAction[]>,
 ): string[] {
-    // Generate a unique cache key based on the function arguments
-    const cachedReportsKey = JSON.stringify(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
-        (key, value: unknown) => {
-            /**
-             *  Exclude some properties not to overwhelm a cached key value with huge data,
-             *  which we don't need to store in a cacheKey
-             */
-            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
-                return undefined;
-            }
-
-            return value;
-        },
-    );
-
-    // Check if the result is already in the cache
-    const cachedIDs = reportIDsCache.get(cachedReportsKey);
-    if (cachedIDs && hasInitialReportActions) {
-        return cachedIDs;
-    }
-
-    // This is needed to prevent caching when Onyx is empty for a second render
-    hasInitialReportActions = Object.values(lastReportActions).length > 0;
-
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
@@ -219,7 +175,6 @@ function getOrderedReportIDs(
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
     const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
-    setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
 

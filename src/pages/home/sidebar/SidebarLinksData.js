@@ -1,5 +1,4 @@
 import {deepEqual} from 'fast-equals';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -25,22 +24,6 @@ const propTypes = {
     /** List of reports */
     chatReports: PropTypes.objectOf(reportPropTypes),
 
-    /** All report actions for all reports */
-    allReportActions: PropTypes.objectOf(
-        PropTypes.arrayOf(
-            PropTypes.shape({
-                error: PropTypes.string,
-                message: PropTypes.arrayOf(
-                    PropTypes.shape({
-                        moderationDecision: PropTypes.shape({
-                            decision: PropTypes.string,
-                        }),
-                    }),
-                ),
-            }),
-        ),
-    ),
-
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: PropTypes.bool,
 
@@ -59,21 +42,20 @@ const propTypes = {
 
 const defaultProps = {
     chatReports: {},
-    allReportActions: {},
     isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network}) {
+function SidebarLinksData({isFocused, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode);
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -85,7 +67,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading, network.isOffline]);
+    }, [betas, chatReports, policies, priorityMode, isLoading, network.isOffline]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -94,10 +76,10 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     // case we re-generate the list a 2nd time with the current report included.
     const optionListItemsWithCurrentReport = useMemo(() => {
         if (currentReportID && !_.contains(optionListItems, currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode);
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions]);
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -172,21 +154,6 @@ const chatReportSelector = (report) =>
     };
 
 /**
- * @param {Object} [reportActions]
- * @returns {Object|undefined}
- */
-const reportActionsSelector = (reportActions) =>
-    reportActions &&
-    _.map(reportActions, (reportAction) => ({
-        errors: lodashGet(reportAction, 'errors', []),
-        message: [
-            {
-                moderationDecision: {decision: lodashGet(reportAction, 'message[0].moderationDecision.decision')},
-            },
-        ],
-    }));
-
-/**
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
@@ -217,11 +184,6 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
             initialValue: [],
-        },
-        allReportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            selector: reportActionsSelector,
-            initialValue: {},
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
