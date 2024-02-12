@@ -63,6 +63,14 @@ const ONYXKEYS = {
     /** Contains all the info for Tasks */
     TASK: 'task',
 
+    /**
+     * Contains all the info for Workspace Rate and Unit while editing.
+     *
+     * Note: This is not under the COLLECTION key as we can edit rate and unit
+     * for one workspace only at a time. And we don't need to store
+     * rates and units for different workspaces at the same time. */
+    WORKSPACE_RATE_AND_UNIT: 'workspaceRateAndUnit',
+
     /** Contains a list of all currencies available to the user - user can
      * select a currency based on the list */
     CURRENCY_LIST: 'currencyList',
@@ -393,6 +401,7 @@ type OnyxValues = {
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
+    [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
     [ONYXKEYS.CURRENCY_LIST]: Record<string, OnyxTypes.Currency>;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
@@ -424,7 +433,7 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
-    [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
+    [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
@@ -465,7 +474,8 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
-    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs | undefined;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string | undefined;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
@@ -547,8 +557,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.GetPhysicalCardForm;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.GetPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: OnyxTypes.ReportFieldEditForm;
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm

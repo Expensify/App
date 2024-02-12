@@ -24,7 +24,6 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -372,8 +371,6 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Iniciar una llamada',
-        zoom: 'Zoom',
-        googleMeet: 'Google Meet',
     },
     hello: 'Hola',
     phoneCountryCode: '34',
@@ -595,7 +592,7 @@ export default {
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
-        payElsewhere: 'Pagar de otra forma',
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
@@ -707,6 +704,18 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
         profileAvatar: 'Perfil avatar',
+        publicSection: {
+            title: 'Público',
+            subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',
+        },
+        privateSection: {
+            title: 'Privada',
+            subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
+        },
+    },
+    shareCodePage: {
+        title: 'Tu código',
+        subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
     },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
@@ -893,6 +902,9 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
+        error: {
+            genericFailureMessage: 'Las notas privadas no han podido ser guardadas',
+        },
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
@@ -1038,6 +1050,7 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
+        muteAllSounds: 'Silenciar todos los sonidos de Expensify',
     },
     priorityModePage: {
         priorityMode: 'Modo prioridad',
@@ -1164,7 +1177,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
             hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
@@ -1554,7 +1567,7 @@ export default {
             travel: 'Viajes',
             members: 'Miembros',
             plan: 'Plan',
-            overview: 'Descripción',
+            profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
@@ -1634,6 +1647,9 @@ export default {
             trackDistanceCopy: 'Configura la tarifa y unidad usadas para medir distancias.',
             trackDistanceRate: 'Tarifa',
             trackDistanceUnit: 'Unidad',
+            trackDistanceChooseUnit: 'Elija una unidad predeterminada para rastrear.',
+            kilometers: 'Kilómetros',
+            miles: 'Millas',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
             captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
@@ -1695,7 +1711,6 @@ export default {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
-            nameIsTooLongError: `El nombre de su espacio de trabajo no puede tener más de ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} caracteres.`,
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
@@ -2463,7 +2478,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copiar',
+        copy: 'Copiar URL',
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
@@ -2600,6 +2615,20 @@ export default {
         welcomeMessage: 'Bienvenido a Expensify',
         welcomeSubtitle: '¿Qué te gustaría hacer?',
     },
+    manageTeams: {
+        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
+        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación personalizada de gastos',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Seguimiento de tarjetas corporativas',
+        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Integraciones de contaduría',
+        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Aplicación de reglas',
+        title: '¿Necesitas alguna de las siguientes funciones?',
+    },
+    expensifyClassic: {
+        title: 'Expensify Classic tiene todo lo que necesitas',
+        firstDescription: 'Aunque estamos ocupados trabajando en el Nuevo Expensify, actualmente no soporta algunas de las funciones que estás buscando.',
+        secondDescription: 'No te preocupes, Expensify Classic tiene todo lo que necesitas.',
+        buttonText: 'Llévame a Expensify Classic',
+    },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
@@ -2641,9 +2670,9 @@ export default {
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
         someTagLevelsRequired: 'Falta etiqueta',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName} ya no es válida`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName} ya no es válido`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },
