@@ -12,7 +12,7 @@ function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
-    const IMAGE_OFFSET_X = 0;
+    const IMAGE_OFFSET_X = windowWidth * 1.1;
 
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
@@ -37,7 +37,7 @@ function AnimatedEmptyStateBackground() {
         xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
         yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         return {
-            transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
+            transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value)}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
 
