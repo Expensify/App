@@ -121,7 +121,7 @@ type MemberForList = {
     keyForList: string;
     isSelected: boolean;
     isDisabled: boolean;
-    accountID?: number;
+    accountID?: number | null;
     login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
@@ -1000,7 +1000,7 @@ function getCategoryListSections(
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -1837,7 +1837,7 @@ function getShareDestinationOptions(
  * @param config - keys to overwrite the default values
  */
 function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
-    const accountID = member.accountID ?? undefined;
+    const accountID = member.accountID;
 
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
