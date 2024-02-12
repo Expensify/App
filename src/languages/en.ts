@@ -2051,6 +2051,13 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
+    onboarding: {
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
+    },
     reportCardLostOrDamaged: {
         report: 'Report physical card loss / damage',
         screenTitle: 'Report card lost or damaged',

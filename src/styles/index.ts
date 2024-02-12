@@ -4052,6 +4052,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: 9,
         },
 
+        onboardingWelcomeVideo: {
+            backgroundColor: theme.onboardingVideoBG,
+            borderRadius: 10,
+        },
+
         sidebarStatusAvatarContainer: {
             height: 40,
             width: 40,

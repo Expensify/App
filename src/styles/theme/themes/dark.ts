@@ -71,6 +71,7 @@ const darkTheme = {
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
     reactionActiveText: colors.green100,
+    onboardingVideoBG: colors.green700,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     mentionText: colors.blue100,
