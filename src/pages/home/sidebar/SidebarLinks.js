@@ -1,7 +1,9 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Breadcrumbs from '@components/Breadcrumbs';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
@@ -42,7 +44,7 @@ const propTypes = {
     isActiveReport: PropTypes.func.isRequired,
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef({});
@@ -133,14 +135,19 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         <View style={[styles.flex1, styles.h100]}>
             <Breadcrumbs
                 breadcrumbs={[
-                    {
-                        type: CONST.BREADCRUMB_TYPE.ROOT,
-                    },
+                    activePolicy
+                        ? {
+                              type: CONST.BREADCRUMB_TYPE.STRONG,
+                              text: lodashGet(activePolicy, 'name', ''),
+                          }
+                        : {
+                              type: CONST.BREADCRUMB_TYPE.ROOT,
+                          },
                     {
                         text: translate('common.chats'),
                     },
                 ]}
-                style={[styles.pb5, styles.ph5]}
+                style={[styles.mb5, styles.ph5]}
             />
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
@@ -165,5 +172,9 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.displayName = 'SidebarLinks';
 
-export default SidebarLinks;
+export default withOnyx({
+    activePolicy: {
+        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
+    },
+})(SidebarLinks);
 export {basePropTypes};
