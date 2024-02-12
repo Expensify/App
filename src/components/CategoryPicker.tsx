@@ -1,21 +1,34 @@
-import lodashGet from 'lodash/get';
-import React, {useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import OptionsSelector from '@components/OptionsSelector';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultProps, propTypes} from './categoryPickerPropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import OptionsSelector from './OptionsSelector';
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
+type CategoryPickerOnyxProps = {
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+};
+
+type CategoryPickerProps = CategoryPickerOnyxProps & {
+    /** It's used by withOnyx HOC */
+    // eslint-disable-next-line react/no-unused-prop-types
+    policyID: string;
+    selectedCategory: string;
+    onSubmit: () => void; // TO DO: Check if optional
+};
+
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(_.values(policyCategories));
+    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(policyCategories ?? {});
     const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
 
     const selectedOptions = useMemo(() => {
@@ -33,7 +46,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     }, [selectedCategory]);
 
     const sections = useMemo(() => {
-        const validPolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (p) => !_.isEmpty(p));
+        const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter((p) => !isEmptyObject(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
             {},
             {},
@@ -44,7 +57,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
             false,
             true,
-            policyCategories,
+            policyCategories ?? {},
             validPolicyRecentlyUsedCategories,
             false,
         );
@@ -52,12 +65,14 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return categoryOptions;
     }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections?.[0]?.data?.length > 0, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
-    const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory)[0], 'keyForList');
+    const sectionsData = sections?.[0]?.data ?? [];
+    const selectedOptionKey = sectionsData.filter((category) => category.searchText === selectedCategory)[0]?.keyForList;
 
     return (
         <OptionsSelector
+            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
             optionHoveredStyle={styles.hoveredComponentBG}
             sectionHeaderStyle={styles.mt5}
             sections={sections}
@@ -79,10 +94,8 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
 }
 
 CategoryPicker.displayName = 'CategoryPicker';
-CategoryPicker.propTypes = propTypes;
-CategoryPicker.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<CategoryPickerProps, CategoryPickerOnyxProps>({
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
     },
