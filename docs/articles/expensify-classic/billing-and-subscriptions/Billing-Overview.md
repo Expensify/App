@@ -3,7 +3,7 @@ title: Billing Overview
 description: An overview of how billing works in Expensify.
 ---
 # Overview
-Expensify’s billing is based on monthly member activity. At the beginning of each month, you’ll be billed for the previous month’s activity. Your Expensify bill ultimately depends on your plan type, whether you're on an annual subscription or pay-per-use billing, and whether you’re using Expensify Cards. 
+Expensify’s billing is based on monthly member activity. At the beginning of each month, you’ll be billed for the previous month’s activity. Your Expensify bill ultimately depends on your plan type, whether you're on an annual subscription or pay-per-use billing, and whether you’re using the Expensify Visa® Commercial Card. 
 # How billing works in Expensify
 Expensify bills the owners of Group Workspaces on the first of each month for the previous month's usage. You can find billing receipts in **Settings > Account > Payments > Billing History**. We recommend that businesses have one billing owner for all of their Group Workspaces.
 ## Active members
