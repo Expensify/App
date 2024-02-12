@@ -137,8 +137,7 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>):
     if (!currentUserAccountID) {
         return true;
     }
-    const whisperedToAccountIDs = reportAction?.whisperedToAccountIDs ?? [];
-    return !whisperedToAccountIDs.includes(currentUserAccountID);
+    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
