@@ -6,8 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,8 +61,16 @@ function LHNOptionsList({
             const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
-            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport?.ownerAccountID, itemParentReportAction?.actorAccountID].filter(Boolean) as number[];
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
+            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
+            const lastReportAction = sortedReportActions[0];
+
+            // Get the transaction for the last report action
+            let lastReportActionTransactionID = '';
+
+            if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                lastReportActionTransactionID = lastReportAction.originalMessage?.IOUTransactionID ?? '';
+            }
+            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
 
             return (
                 <OptionRowLHNData
@@ -72,8 +79,9 @@ function LHNOptionsList({
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
-                    personalDetails={participantsPersonalDetails}
+                    personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
+                    lastReportActionTransaction={lastReportActionTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
