@@ -42,7 +42,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
 
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-                [SCREENS.WORKSPACE.OVERVIEW]: ROUTES.WORKSPACE_OVERVIEW.route,
+                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,
                 },
@@ -224,7 +224,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
-                            path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
+                            path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
@@ -245,7 +245,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
-                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {

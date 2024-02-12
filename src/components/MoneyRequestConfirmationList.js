@@ -286,12 +286,12 @@ function MoneyRequestConfirmationList(props) {
     const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -497,7 +497,6 @@ function MoneyRequestConfirmationList(props) {
 
                 if (props.isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
-                    setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
 
