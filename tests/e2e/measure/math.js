@@ -46,4 +46,5 @@ const getStats = (entries) => {
     };
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export {getStats};
