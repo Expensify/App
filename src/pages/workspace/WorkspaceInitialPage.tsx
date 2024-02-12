@@ -140,7 +140,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         {
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.CATEGORIES,
         },
         {
