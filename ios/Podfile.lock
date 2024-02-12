@@ -1343,25 +1343,6 @@ PODS:
     - Yoga
   - react-native-launch-arguments (4.0.2):
     - React
-  - react-native-live-markdown (0.1.0):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-netinfo (11.2.1):
     - glog
     - hermes-engine
@@ -1894,6 +1875,25 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
+  - RNLiveMarkdown (0.1.5):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNLocalize (2.2.6):
     - React-Core
   - rnmapbox-maps (10.1.5):
@@ -2055,7 +2055,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
-  - VisionCamera (2.16.5):
+  - VisionCamera (2.16.8):
     - React
     - React-callinvoker
     - React-Core
@@ -2131,7 +2131,6 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
-  - "react-native-live-markdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -2179,6 +2178,7 @@ DEPENDENCIES:
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
+  - "RNLiveMarkdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - RNLocalize (from `../node_modules/react-native-localize`)
   - "rnmapbox-maps (from `../node_modules/@rnmapbox/maps`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
@@ -2330,8 +2330,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-key-command"
   react-native-launch-arguments:
     :path: "../node_modules/react-native-launch-arguments"
-  react-native-live-markdown:
-    :path: "../node_modules/@expensify/react-native-live-markdown"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -2426,6 +2424,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNGoogleSignin:
     :path: "../node_modules/@react-native-google-signin/google-signin"
+  RNLiveMarkdown:
+    :path: "../node_modules/@expensify/react-native-live-markdown"
   RNLocalize:
     :path: "../node_modules/react-native-localize"
   rnmapbox-maps:
@@ -2533,7 +2533,6 @@ SPEC CHECKSUMS:
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 74d18ad516037536c2f671ef0914bcce7739b2f5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
-  react-native-live-markdown: 53109b3c11c0da51be1df916b05b366f83fa2a97
   react-native-netinfo: 6479e7e2198f936e5abc14a3ec4d469ccbaf81e2
   react-native-pager-view: 9ac6bc0fb3fa31c6d403b253ee361e62ff7ccf7f
   react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
@@ -2581,6 +2580,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 1190c218cdaaf029ee1437076a3fbbc3297d89fb
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
+  RNLiveMarkdown: 4ef783cb8c3c68f07b202abb017faedade1e5bea
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 9b2eade43eab9b1f208415795f39d7449d045b2b
   RNPermissions: 8990fc2c10da3640938e6db1647cb6416095b729
@@ -2594,7 +2594,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: fda554d8751e395effcc87749f8b7c198c1031be
+  VisionCamera: 0a6794d1974aed5d653d0d0cb900493e2583e35a
   Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: 2748a60cfcfb5c160d044e3e7700449d03902536
