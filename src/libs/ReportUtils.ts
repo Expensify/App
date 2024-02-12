@@ -2308,7 +2308,6 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-
     const lastActorID = reportAction?.actorAccountID;
     const comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
     let amount = originalMessage?.amount;
