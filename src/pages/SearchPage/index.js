@@ -46,7 +46,7 @@ const setPerformanceTimersEnd = () => {
 };
 
 const SearchPageFooterInstance = <SearchPageFooter />;
-
+// test
 function SearchPage({betas, reports, isSearchingForReports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
