@@ -101,6 +101,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const protectedMenuItems: WorkspaceMenuItem[] = [
         {
+            translationKey: 'workspace.common.workflows',
+            icon: Expensicons.Workflows,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.WORKFLOWS,
+        },
+        {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policyID)))),
