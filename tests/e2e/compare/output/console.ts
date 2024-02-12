@@ -1,4 +1,4 @@
-const {formatDurationDiffChange} = require('./format');
+import {formatDurationDiffChange} from './format';
 
 type Entry = {
     name: string;
@@ -16,7 +16,7 @@ const printRegularLine = (entry: Entry) => {
 /**
  * Prints the result simply to console.
  */
-module.exports = (data: Data) => {
+const consoleMock = (data: Data) => {
     // No need to log errors or warnings as these were be logged on the fly
     console.debug('');
     console.debug('❇️  Performance comparison results:');
@@ -29,3 +29,5 @@ module.exports = (data: Data) => {
 
     console.debug('');
 };
+
+export default consoleMock;
