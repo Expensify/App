@@ -21,9 +21,6 @@ type ReceiptImageProps = (
 
           /** Url of the receipt image */
           source?: string;
-
-          /** number of images displayed in the same parent container */
-          iconSize?: IconSize;
       }
     | {
           transactionID: string;
@@ -49,13 +46,26 @@ type ReceiptImageProps = (
 
     /** The file extension of the receipt file */
     fileExtension?: string;
+
+    /** number of images displayed in the same parent container */
+    iconSize?: IconSize;
 };
 
-function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumbnailImage = false, isEReceipt = false, source, isAuthTokenRequired, style, fileExtension}: ReceiptImageProps) {
+function ReceiptImage({
+    transactionID,
+    isThumbnail = false,
+    shouldUseThumbnailImage = false,
+    isEReceipt = false,
+    source,
+    isAuthTokenRequired,
+    style,
+    fileExtension,
+    iconSize,
+}: ReceiptImageProps) {
     const styles = useThemeStyles();
 
     if (isEReceipt || isThumbnail) {
-        const props = !isEReceipt && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
+        const props = isEReceipt ? {iconSize} : {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
