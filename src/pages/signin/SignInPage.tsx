@@ -18,7 +18,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
-import type navigationRef from '@navigation/navigationRef';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -72,7 +71,7 @@ type GetRenderOptionsParams = {
     isPrimaryLogin: boolean;
     isUsingMagicCode: boolean;
     hasInitiatedSAMLLogin: boolean;
-    showLoginPageOpenedMessage: boolean;
+    shouldShowAnotherLoginPageOpenedMessage: boolean;
 };
 
 /**
@@ -84,7 +83,15 @@ type GetRenderOptionsParams = {
  * @param hasInitiatedSAMLLogin
  * @param hasEmailDeliveryFailure
  */
-function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, showLoginPageOpenedMessage}: GetRenderOptionsParams): RenderOption {
+function getRenderOptions({
+    hasLogin,
+    hasValidateCode,
+    account,
+    isPrimaryLogin,
+    isUsingMagicCode,
+    hasInitiatedSAMLLogin,
+    shouldShowAnotherLoginPageOpenedMessage,
+}: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
     const isSAMLRequired = !!account?.isSAMLRequired;
@@ -101,13 +108,13 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
         Session.clearSignInData();
     }
 
-    const shouldShowLoginForm = !showLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
+    const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
         hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || showLoginPageOpenedMessage;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
@@ -143,7 +150,8 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
 
     const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
     // We need to show "Another login page is opened" message if the page isn't active and visible
-    const showLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -182,7 +190,7 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
         isPrimaryLogin: !account?.primaryLogin || account.primaryLogin === credentials?.login,
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
-        showLoginPageOpenedMessage,
+        shouldShowAnotherLoginPageOpenedMessage,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -194,7 +202,7 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
     let welcomeText = '';
     const headerText = translate('login.hero.header');
 
-    if (showLoginPageOpenedMessage) {
+    if (shouldShowAnotherLoginPageOpenedMessage) {
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
         welcomeText = translate('welcomeText.anotherLoginPageIsOpenExplanation');
     } else if (shouldShowLoginForm) {
@@ -266,12 +274,12 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
                 {shouldShowValidateCodeForm && (
                     <ValidateCodeForm
                         // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
-                        isVisible={!showLoginPageOpenedMessage}
+                        isVisible={!shouldShowAnotherLoginPageOpenedMessage}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
                     />
                 )}
-                {!showLoginPageOpenedMessage && (
+                {!shouldShowAnotherLoginPageOpenedMessage && (
                     <>
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                         {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
@@ -285,7 +293,7 @@ function SignInPageInner({credentials, account, isInModal = false, activeClients
 
 SignInPageInner.displayName = 'SignInPage';
 
-type SignInPageProps = SignInPageInnerProps & {navigation?: Partial<typeof navigationRef>};
+type SignInPageProps = SignInPageInnerProps;
 type SignInPageOnyxProps = SignInPageInnerOnyxProps;
 
 function SignInPage(props: SignInPageProps) {
