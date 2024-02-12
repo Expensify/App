@@ -108,7 +108,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
         return applyHTTPSOnyxUpdates(request, response);
     }
-    if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
+    if ((type === CONST.ONYX_UPDATE_TYPES.PUSHER || type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && updates) {
         return applyPusherOnyxUpdates(updates);
     }
 }

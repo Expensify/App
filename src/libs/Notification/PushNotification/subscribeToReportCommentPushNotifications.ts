@@ -37,7 +37,7 @@ export default function subscribeToReportCommentPushNotifications() {
             Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
 
             const updates: OnyxUpdatesFromServer = {
-                type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+                type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
                 lastUpdateID,
                 previousUpdateID,
                 updates: [
