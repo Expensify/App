@@ -103,7 +103,7 @@ function SearchPageWrapper(args) {
     );
 }
 
-test.skip('[Search Page] should interact when text input changes', async () => {
+test('[Search Page] should interact when text input changes', async () => {
     const {addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
