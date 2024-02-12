@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
@@ -71,7 +72,7 @@ const propTypes = {
             validatedDate: PropTypes.string,
 
             /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
 
@@ -327,7 +328,7 @@ function InitialSettingsPage(props) {
                 <>
                     <OfflineWithFeedback
                         pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                        style={styles.mb3}
+                        style={[styles.mb3, styles.w100]}
                     >
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
@@ -344,7 +345,6 @@ function InitialSettingsPage(props) {
                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                             originalFileName={currentUserDetails.originalFileName}
                             headerTitle={props.translate('profilePage.profileAvatar')}
-                            style={[styles.mh5]}
                             fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                         />
                     </OfflineWithFeedback>
