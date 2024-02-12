@@ -21,7 +21,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import playSound from '@libs/Sound';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -550,7 +550,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     return;
                 }
 
-                playSound('done');
+                playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm(selectedParticipants);
             }

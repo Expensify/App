@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import Sound from 'react-native-sound';
+import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import config from './config';
 
@@ -9,6 +10,13 @@ Onyx.connect({
     key: ONYXKEYS.USER,
     callback: (val) => (isMuted = !!val?.isMutedAllSounds),
 });
+
+const SOUNDS = {
+    DONE: 'done',
+    SUCCESS: 'success',
+    ATTENTION: 'attention',
+    RECEIVE: 'receive',
+} as const;
 
 /**
  * Creates a version of the given function that, when called, queues the execution and ensures that
@@ -49,7 +57,7 @@ function withMinimalExecutionTime<F extends (...args: Parameters<F>) => ReturnTy
     };
 }
 
-const playSound = (soundFile: string) => {
+const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
     const sound = new Sound(`${config.prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE, (error) => {
         if (error || isMuted) {
             return;
@@ -59,4 +67,5 @@ const playSound = (soundFile: string) => {
     });
 };
 
+export {SOUNDS};
 export default withMinimalExecutionTime(playSound, 300);

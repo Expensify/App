@@ -28,7 +28,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import playSound from '@libs/Sound';
+import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -513,7 +513,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 for (const data of flatten) {
                     // Someone completes a task
                     if (data.actionName === 'TASKCOMPLETED') {
-                        return playSound('success');
+                        return playSound(SOUNDS.SUCCESS);
                     }
                 }
 
@@ -522,37 +522,37 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 for (const message of types) {
                     // someone sent money
                     if ('IOUDetails' in message) {
-                        return playSound('success');
+                        return playSound(SOUNDS.SUCCESS);
                     }
 
                     // mention user
                     if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-user>')) {
-                        return playSound('attention');
+                        return playSound(SOUNDS.ATTENTION);
                     }
 
                     // mention @here
                     if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
-                        return playSound('attention');
+                        return playSound(SOUNDS.ATTENTION);
                     }
 
                     // assign a task
                     if ('taskReportID' in message) {
-                        return playSound('attention');
+                        return playSound(SOUNDS.ATTENTION);
                     }
 
                     // request money
                     if ('IOUTransactionID' in message) {
-                        return playSound('attention');
+                        return playSound(SOUNDS.ATTENTION);
                     }
 
                     // Someone completes a money request
                     if ('IOUReportID' in message) {
-                        return playSound('success');
+                        return playSound(SOUNDS.SUCCESS);
                     }
 
                     // plain message
                     if ('html' in message) {
-                        return playSound('receive');
+                        return playSound(SOUNDS.RECEIVE);
                     }
                 }
             } catch (e) {
