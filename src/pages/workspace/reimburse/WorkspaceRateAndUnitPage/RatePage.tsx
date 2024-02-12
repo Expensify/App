@@ -72,7 +72,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.reimburse.trackDistanceRateTitle')}
+            headerText={translate('workspace.reimburse.trackDistanceRate')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall

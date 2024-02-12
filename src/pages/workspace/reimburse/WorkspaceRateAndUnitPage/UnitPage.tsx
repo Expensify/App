@@ -76,7 +76,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.reimburse.trackDistanceUnitTitle')}
+            headerText={translate('workspace.reimburse.trackDistanceUnit')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
