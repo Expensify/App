@@ -49,7 +49,7 @@ function SecuritySettingsPage() {
     return (
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.security')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            onBackButtonPress={() => Navigation.goBack()}
             shouldShowBackButton={isSmallScreenWidth}
             illustration={LottieAnimations.Safe}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
