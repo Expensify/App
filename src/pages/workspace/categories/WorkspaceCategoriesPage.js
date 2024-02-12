@@ -81,7 +81,6 @@ function WorkspaceCategoriesPage({policyCategories}) {
                 sections={[{data, indexOffset: 0, isDisabled: false}]}
                 onSelectRow={toggleCategory}
                 onSelectAll={toggleAllCategories}
-                rightHandSideComponent={({key}) => <Text>{key}</Text>}
                 showScrollIndicator
             />
         </ScreenWrapper>
