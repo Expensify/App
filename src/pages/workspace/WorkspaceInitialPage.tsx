@@ -150,11 +150,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const menuItems: WorkspaceMenuItem[] = [
         {
-            translationKey: 'workspace.common.overview',
+            translationKey: 'workspace.common.profile',
             icon: Expensicons.Home,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.OVERVIEW,
+            routeName: SCREENS.WORKSPACE.PROFILE,
         },
         ...(shouldShowProtectedItems ? protectedMenuItems : []),
     ];

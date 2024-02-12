@@ -1,56 +1,50 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import FormUtils from '@libs/FormUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
+import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
-const propTypes = {
-    /* Onyx Props */
+type OnValidateResult = {
+    phoneNumber?: string;
+};
+
+type GetPhysicalCardPhoneOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: PropTypes.shape({
-        phoneNumber: PropTypes.string,
-    }),
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** domain passed via route /settings/wallet/card/:domain */
-            domain: PropTypes.string,
-        }),
-    }).isRequired,
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
-const defaultProps = {
-    draftValues: {
-        phoneNumber: '',
-    },
-};
+type GetPhysicalCardPhoneProps = GetPhysicalCardPhoneOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
 
 function GetPhysicalCardPhone({
-    draftValues: {phoneNumber},
     route: {
         params: {domain},
     },
-}) {
+    draftValues,
+}: GetPhysicalCardPhoneProps) {
     const {translate} = useLocalize();
 
-    const onValidate = (values) => {
-        const errors = {};
+    const {phoneNumber = ''} = draftValues ?? {};
 
-        if (!(parsePhoneNumber(values.phoneNumber).possible && Str.isValidPhone(values.phoneNumber))) {
+    const onValidate = (values: OnyxEntry<GetPhysicalCardForm>): OnValidateResult => {
+        const {phoneNumber: phoneNumberToValidate = ''} = values ?? {};
+
+        const errors: OnValidateResult = {};
+
+        if (!(parsePhoneNumber(phoneNumberToValidate).possible && Str.isValidPhone(phoneNumberToValidate))) {
             errors.phoneNumber = 'common.error.phoneNumber';
-        } else if (_.isEmpty(values.phoneNumber)) {
+        } else if (!phoneNumberToValidate) {
             errors.phoneNumber = 'common.error.fieldRequired';
         }
 
@@ -72,7 +66,7 @@ function GetPhysicalCardPhone({
                 name={INPUT_IDS.PHONE_NUMBER}
                 label={translate('getPhysicalCard.phoneNumber')}
                 aria-label={translate('getPhysicalCard.phoneNumber')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 defaultValue={phoneNumber}
                 shouldSaveDraft
             />
@@ -80,12 +74,10 @@ function GetPhysicalCardPhone({
     );
 }
 
-GetPhysicalCardPhone.defaultProps = defaultProps;
 GetPhysicalCardPhone.displayName = 'GetPhysicalCardPhone';
-GetPhysicalCardPhone.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<GetPhysicalCardPhoneProps, GetPhysicalCardPhoneOnyxProps>({
     draftValues: {
-        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
+        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
     },
 })(GetPhysicalCardPhone);

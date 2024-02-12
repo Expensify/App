@@ -402,7 +402,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: FormTypes.IntroSchoolPrincipalForm;
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: FormTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: FormTypes.Form;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: FormTypes.GetPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: FormTypes.ReportFieldEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.Form;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.Form;
@@ -496,7 +496,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
-    [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
+    [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;

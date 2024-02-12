@@ -29,7 +29,7 @@ function setDraftValues(formID: OnyxFormKey, draftValues: NullishDeep<OnyxValue<
 }
 
 function clearDraftValues(formID: OnyxFormKey) {
-    Onyx.set(FormUtils.getDraftKey(formID), {});
+    Onyx.set(FormUtils.getDraftKey(formID), null);
 }
 
 export {setDraftValues, setErrorFields, setErrors, clearErrors, clearErrorFields, setIsLoading, clearDraftValues};

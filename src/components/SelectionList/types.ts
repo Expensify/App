@@ -55,7 +55,7 @@ type User = {
     login?: string;
 
     /** Element to show on the right side of the item */
-    rightElement?: ReactElement;
+    rightElement?: ReactNode;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: Icon[];
@@ -129,6 +129,9 @@ type Section<TItem extends User | RadioItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean;
+
+    /** Whether this section should be shown or not */
+    shouldShow?: boolean;
 };
 
 type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {

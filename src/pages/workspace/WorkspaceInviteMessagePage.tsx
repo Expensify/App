@@ -1,131 +1,111 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
+import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withNavigationFocus from '@components/withNavigationFocus';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
+import type SCREENS from '@src/SCREENS';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
-import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-const personalDetailsPropTypes = PropTypes.shape({
-    /** The accountID of the person */
-    accountID: PropTypes.number.isRequired,
-
-    /** The login of the person (either email or phone number) */
-    login: PropTypes.string,
-
-    /** The URL of the person's avatar (there should already be a default avatar if
-  the person doesn't have their own avatar uploaded yet, except for anon users) */
-    avatar: PropTypes.string,
-
-    /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string,
-});
-
-const propTypes = {
+type WorkspaceInviteMessagePageOnyxProps = {
     /** All of the personal details for everyone */
-    allPersonalDetails: PropTypes.objectOf(personalDetailsPropTypes),
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
-    invitedEmailsToAccountIDsDraft: PropTypes.objectOf(PropTypes.number),
+    /** An object containing the accountID for every invited user email */
+    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs | undefined>;
 
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/invite-message */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
-
-    ...policyPropTypes,
+    /** Updated workspace invite message */
+    workspaceInviteMessageDraft: OnyxEntry<string | undefined>;
 };
 
-const defaultProps = {
-    ...policyDefaultProps,
-    allPersonalDetails: {},
-    invitedEmailsToAccountIDsDraft: {},
-};
+type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
+    WorkspaceInviteMessagePageOnyxProps &
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-function WorkspaceInviteMessagePage(props) {
+function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [welcomeNote, setWelcomeNote] = useState();
+    const [welcomeNote, setWelcomeNote] = useState<string>();
 
     const {inputCallbackRef} = useAutoFocusInput();
 
     const getDefaultWelcomeNote = () =>
-        props.workspaceInviteMessageDraft ||
+        // workspaceInviteMessageDraft can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        workspaceInviteMessageDraft ||
         translate('workspace.inviteMessage.welcomeNote', {
-            workspaceName: props.policy.name,
+            workspaceName: policy?.name ?? '',
         });
 
     useEffect(() => {
-        if (!_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
+        if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             setWelcomeNote(getDefaultWelcomeNote());
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID), true);
+        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const debouncedSaveDraft = _.debounce((newDraft) => {
-        Policy.setWorkspaceInviteMessageDraft(props.route.params.policyID, newDraft);
+    const debouncedSaveDraft = lodashDebounce((newDraft: string) => {
+        Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
     });
 
     const sendInvitation = () => {
         Keyboard.dismiss();
-        Policy.addMembersToWorkspace(props.invitedEmailsToAccountIDsDraft, welcomeNote, props.route.params.policyID);
-        Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, {});
+        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
+        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
     };
 
-    /**
-     * Opens privacy url as an external link
-     * @param {Object} event
-     */
-    const openPrivacyURL = (event) => {
-        event.preventDefault();
+    /** Opens privacy url as an external link */
+    const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        event?.preventDefault();
         Link.openExternalLink(CONST.PRIVACY_URL);
     };
 
-    const validate = () => {
-        const errorFields = {};
-        if (_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
+    const validate = (): Errors => {
+        const errorFields: Errors = {};
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
         }
         return errorFields;
     };
 
-    const policyName = lodashGet(props.policy, 'name');
+    const policyName = policy?.name;
 
     return (
         <ScreenWrapper
@@ -133,8 +113,8 @@ function WorkspaceInviteMessagePage(props) {
             testID={WorkspaceInviteMessagePage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
-                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
                 <HeaderWithBackButton
@@ -144,7 +124,7 @@ function WorkspaceInviteMessagePage(props) {
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
@@ -170,7 +150,11 @@ function WorkspaceInviteMessagePage(props) {
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <MultipleAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
-                            icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(props.invitedEmailsToAccountIDsDraft), props.allPersonalDetails, props.invitedEmailsToAccountIDsDraft)}
+                            icons={OptionsListUtils.getAvatarsForAccountIDs(
+                                Object.values(invitedEmailsToAccountIDsDraft ?? {}),
+                                allPersonalDetails ?? {},
+                                invitedEmailsToAccountIDsDraft ?? {},
+                            )}
                             shouldStackHorizontally
                             shouldDisplayAvatarsInRows
                             secondAvatarStyle={[styles.secondAvatarInline]}
@@ -192,16 +176,16 @@ function WorkspaceInviteMessagePage(props) {
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                             defaultValue={getDefaultWelcomeNote()}
                             value={welcomeNote}
-                            onChangeText={(text) => {
+                            onChangeText={(text: string) => {
                                 setWelcomeNote(text);
                                 debouncedSaveDraft(text);
                             }}
-                            ref={(el) => {
-                                if (!el) {
+                            ref={(element: AnimatedTextInputRef) => {
+                                if (!element) {
                                     return;
                                 }
-                                inputCallbackRef(el);
-                                updateMultilineInputRange(el);
+                                inputCallbackRef(element);
+                                updateMultilineInputRange(element);
                             }}
                         />
                     </View>
@@ -211,13 +195,10 @@ function WorkspaceInviteMessagePage(props) {
     );
 }
 
-WorkspaceInviteMessagePage.propTypes = propTypes;
-WorkspaceInviteMessagePage.defaultProps = defaultProps;
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
-export default compose(
-    withPolicyAndFullscreenLoading,
-    withOnyx({
+export default withPolicyAndFullscreenLoading(
+    withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
         allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
@@ -227,6 +208,5 @@ export default compose(
         workspaceInviteMessageDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
         },
-    }),
-    withNavigationFocus,
-)(WorkspaceInviteMessagePage);
+    })(WorkspaceInviteMessagePage),
+);
