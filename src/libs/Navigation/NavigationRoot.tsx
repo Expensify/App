@@ -41,8 +41,6 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    Log.info(`Current state ${JSON.stringify(state)}`);
-
     const currentPath = customGetPathFromState(state, linkingConfig.config);
 
     const focusedRoute = findFocusedRoute(state);
@@ -75,8 +73,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             if (!lastVisitedPath) {
                 return undefined;
             }
-
-            return undefined;
 
             const path = initialUrl ? getPathFromURL(initialUrl) : null;
 
@@ -122,8 +118,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!state) {
             return;
         }
-        Log.info('STATE');
-        Log.info(JSON.stringify(state));
         const activeWorkspaceID = getPolicyIDFromState(state as NavigationState<RootStackParamList>);
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {

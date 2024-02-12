@@ -23,7 +23,6 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItemList from './MenuItemList';
 import Modal from './Modal';
 import Text from './Text';
-import Navigation from '@libs/Navigation/Navigation';
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
@@ -93,7 +92,7 @@ function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingEx
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const navigation = useNavigation();
-    const [isModalOpen, setIsModalOpen] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const theme = useTheme();
 
     useEffect(() => {
@@ -111,13 +110,11 @@ function PurposeForUsingExpensifyModal({isLoadingApp = false}: PurposeForUsingEx
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
         setIsModalOpen(false);
-        Navigation.goBack();
     }, []);
 
     const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
         Report.completeEngagementModal(message, choice);
         setIsModalOpen(false);
-        Navigation.goBack();
         Report.navigateToConciergeChat();
     }, []);
 
