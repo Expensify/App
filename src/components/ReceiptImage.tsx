@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import EReceiptThumbnail from './EReceiptThumbnail';
+import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
 import ThumbnailImage from './ThumbnailImage';
 
@@ -20,6 +21,9 @@ type ReceiptImageProps = (
 
           /** Url of the receipt image */
           source?: string;
+
+          /** number of images displayed in the same parent container */
+          iconSize?: IconSize;
       }
     | {
           transactionID: string;
