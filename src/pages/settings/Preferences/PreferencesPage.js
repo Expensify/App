@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -55,6 +56,8 @@ function PreferencesPage(props) {
             illustration={LottieAnimations.PreferencesDJ}
             shouldShowBackButton={isSmallScreenWidth}
             shouldShowOfflineIndicatorInWideScreen
+            icon={Illustrations.Gears}
+            testID={PreferencesPage.displayName}
         >
             <View style={styles.mb6}>
                 <Text
@@ -72,6 +75,18 @@ function PreferencesPage(props) {
                             accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                             isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
                             onToggle={User.updateNewsletterSubscription}
+                        />
+                    </View>
+                </View>
+                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
+                    <View style={styles.flex4}>
+                        <Text>{translate('preferencesPage.muteAllSounds')}</Text>
+                    </View>
+                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <Switch
+                            accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                            isOn={lodashGet(props.user, 'isMutedAllSounds', false)}
+                            onToggle={User.setMuteAllSounds}
                         />
                     </View>
                 </View>
