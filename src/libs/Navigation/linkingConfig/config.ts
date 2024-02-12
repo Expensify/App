@@ -42,7 +42,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
 
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-                [SCREENS.WORKSPACE.OVERVIEW]: ROUTES.WORKSPACE_OVERVIEW.route,
+                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,
                 },
@@ -190,24 +190,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS,
+                        [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: {
+                            path: ROUTES.SETTINGS_LEGAL_NAME,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
+                        [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: {
+                            path: ROUTES.SETTINGS_DATE_OF_BIRTH,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
+                            path: ROUTES.SETTINGS_ADDRESS,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: {
-                            path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
+                            path: ROUTES.SETTINGS_ADDRESS_COUNTRY.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
@@ -228,7 +224,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
-                            path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
+                            path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
@@ -249,7 +245,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
-                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -311,6 +307,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.NEW_TASK.DETAILS]: ROUTES.NEW_TASK_DETAILS,
                         [SCREENS.NEW_TASK.TITLE]: ROUTES.NEW_TASK_TITLE,
                         [SCREENS.NEW_TASK.DESCRIPTION]: ROUTES.NEW_TASK_DESCRIPTION,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT]: {
+                    screens: {
+                        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: ROUTES.ONBOARD,
+                        [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: ROUTES.ONBOARD_MANAGE_EXPENSES,
+                        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: ROUTES.ONBOARD_EXPENSIFY_CLASSIC,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
@@ -404,7 +407,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.DATE]: ROUTES.MONEY_REQUEST_DATE.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
-                        [SCREENS.MONEY_REQUEST.DESCRIPTION]: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
                         [SCREENS.MONEY_REQUEST.CATEGORY]: ROUTES.MONEY_REQUEST_CATEGORY.route,
                         [SCREENS.MONEY_REQUEST.MERCHANT]: ROUTES.MONEY_REQUEST_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
