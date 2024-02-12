@@ -6,6 +6,9 @@ const propTypes = {
 
     /** The width of the image. */
     width: PropTypes.number.isRequired,
+
+    /** Transition duration in milliseconds */
+    transitionDuration: PropTypes.number,
 };
 
 export default propTypes;

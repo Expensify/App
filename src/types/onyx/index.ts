@@ -5,20 +5,24 @@ import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
+import type {CardList} from './Card';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {
     AddDebitCardForm,
+    CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
     EditTaskForm,
+    GetPhysicalCardForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     NewRoomForm,
     PrivateNotesForm,
     ReportFieldEditForm,
+    RoomNameForm,
     WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
@@ -26,7 +30,9 @@ import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
+import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
+import type LastPaymentMethod from './LastPaymentMethod';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -44,7 +50,7 @@ import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
-import type {PolicyTag, PolicyTags} from './PolicyTag';
+import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -91,9 +97,11 @@ export type {
     Beta,
     BlockedFromConcierge,
     Card,
+    CardList,
     Credentials,
     Currency,
     CustomStatusDraft,
+    CloseAccountForm,
     DateOfBirthForm,
     Download,
     EditTaskForm,
@@ -101,6 +109,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     FundList,
+    GetPhysicalCardForm,
     IntroSelected,
     IOU,
     Locale,
@@ -123,6 +132,7 @@ export type {
     PolicyMembers,
     PolicyTag,
     PolicyTags,
+    PolicyTagList,
     PrivatePersonalDetails,
     RecentWaypoint,
     RecentlyUsedCategories,
@@ -162,9 +172,12 @@ export type {
     PolicyReportField,
     PolicyReportFields,
     RecentlyUsedReportFields,
+    LastPaymentMethod,
     NewRoomForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
+    InvitedEmailsToAccountIDs,
     PrivateNotesForm,
     ReportFieldEditForm,
+    RoomNameForm,
 };

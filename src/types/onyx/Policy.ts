@@ -31,6 +31,18 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
+// These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
+// This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
+// Once the data is being used, these types should be defined appropriately.
+type ConnectionLastSync = Record<string, unknown>;
+type ConnectionData = Record<string, unknown>;
+type ConnectionConfig = Record<string, unknown>;
+type Connection = {
+    lastSync?: ConnectionLastSync;
+    data: ConnectionData;
+    config: ConnectionConfig;
+};
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type PolicyValue = ValueOf<typeof CONST.POLICY.ROLE>;
@@ -78,9 +90,6 @@ type Policy = {
     /** The custom units data for this policy */
     customUnits?: Record<string, CustomUnit>;
 
-    /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    areChatRoomsEnabled: boolean;
-
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
 
@@ -89,9 +98,6 @@ type Policy = {
 
     /** The scheduled submit frequency set up on this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
-
-    /** @deprecated Whether the scheduled submit is enabled */
-    isHarvestingEnabled?: boolean;
 
     /** Whether the scheduled submit is enabled */
     harvesting?: {
@@ -158,11 +164,17 @@ type Policy = {
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
 
+    /** The email of the reimburser set when reimbursement is direct */
+    reimburserEmail?: string;
+
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 
     /** ReportID of the announce room for this workspace */
     chatReportIDAnnounce?: number;
+
+    /** All the integration connections attached to the policy */
+    connections?: Record<string, Connection>;
 };
 
 type PolicyRole = {

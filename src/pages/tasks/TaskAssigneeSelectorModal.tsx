@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, PersonalDetails, Policy, PolicyRole, Report, Task} from '@src/types/onyx';
+import type {Beta, PersonalDetails, Report, Task} from '@src/types/onyx';
 
 type TaskAssigneeSelectorModalOnyxProps = {
     /** Beta features list */
@@ -34,16 +34,13 @@ type TaskAssigneeSelectorModalOnyxProps = {
 
     /** Grab the Share destination of the Task */
     task: OnyxEntry<Task>;
-
-    /** The policy of root parent report */
-    rootParentReportPolicy: PolicyRole;
 };
 
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps &
     WithCurrentUserPersonalDetailsProps &
     StackScreenProps<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>;
 
-function TaskAssigneeSelectorModal({betas, reports, session, route, task, rootParentReportPolicy, currentUserPersonalDetails}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal({betas, reports, session, route, task, currentUserPersonalDetails}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -178,7 +175,7 @@ function TaskAssigneeSelectorModal({betas, reports, session, route, task, rootPa
     );
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = TaskActions.canModifyTask(report, currentUserPersonalDetails.accountID, rootParentReportPolicy?.role);
+    const canModifyTask = TaskActions.canModifyTask(report, currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
@@ -224,15 +221,7 @@ const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProp
     },
     task: {
         key: ONYXKEYS.TASK,
-    },
-    rootParentReportPolicy: {
-        key: ({reports, route}) => {
-            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID || '0'}`];
-            const rootParentReport = ReportUtils.getRootParentReport(report);
-            return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-        },
-        selector: (policy: OnyxEntry<Policy>) => ({role: policy?.role}),
-    },
+    }
 })(TaskAssigneeSelectorModal);
 
 export default withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx);

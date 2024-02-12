@@ -7,30 +7,32 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
+
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
+
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportOrNotFoundRoute = {
-    route: RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
-};
+type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
+    route: RouteProp<{params: {reportID: string}}>;
 
-type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & WithReportOrNotFoundRoute;
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
+};
 
 export default function (
     shouldRequireReportID = true,

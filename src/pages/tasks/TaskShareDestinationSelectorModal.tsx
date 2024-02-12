@@ -138,7 +138,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports, pers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                            textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={inputCallbackRef}

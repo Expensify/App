@@ -58,6 +58,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        isLoadingNewOptions = false,
+        onLayout,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -319,6 +321,14 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
+    const onSectionListLayout = useCallback(
+        (nativeEvent: LayoutChangeEvent) => {
+            onLayout?.(nativeEvent);
+            scrollToFocusedIndexOnFirstRender(nativeEvent);
+        },
+        [onLayout, scrollToFocusedIndexOnFirstRender],
+    );
+
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex: number) => {
             setFocusedIndex(newFocusedIndex);
@@ -412,6 +422,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
+                                    isLoading={isLoadingNewOptions}
                                 />
                             </View>
                         )}
@@ -466,7 +477,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    onLayout={scrollToFocusedIndexOnFirstRender}
+                                    onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                 />
                                 {children}
