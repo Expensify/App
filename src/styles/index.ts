@@ -3415,11 +3415,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        walletSectionTitle: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: FontUtils.fontWeight.bold,
-        },
-
         paymentMethod: {
             paddingHorizontal: 20,
             height: variables.optionRowHeight,

@@ -358,7 +358,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                         subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
                                         isCentralPane
-                                        titleStyles={styles.walletSectionTitle}
+                                        titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <>
                                             {shouldShowLoadingSpinner ? (
@@ -460,7 +460,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
                                         isCentralPane
-                                        titleStyles={styles.walletSectionTitle}
+                                        titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <PaymentMethodList
                                             shouldShowAddBankAccount={false}
@@ -483,7 +483,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('walletPage.bankAccounts')}
                                     isCentralPane
-                                    titleStyles={styles.walletSectionTitle}
+                                    titleStyles={styles.accountSettingsSectionTitle}
                                 >
                                     <PaymentMethodList
                                         shouldShowAddPaymentMethodButton={false}
