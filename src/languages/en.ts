@@ -719,6 +719,10 @@ export default {
             subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
         },
     },
+    shareCodePage: {
+        title: 'Your code',
+        subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
+    },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
         headline: 'The Expensify Lounge is closed.',
@@ -1049,6 +1053,7 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+        muteAllSounds: 'Mute all sounds from Expensify',
     },
     priorityModePage: {
         priorityMode: 'Priority mode',
@@ -1539,7 +1544,7 @@ export default {
             travel: 'Travel',
             members: 'Members',
             plan: 'Plan',
-            overview: 'Overview',
+            profile: 'Profile',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
@@ -1679,7 +1684,6 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
-            nameIsTooLongError: `Your workspace name can be at most ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} characters long.`,
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
@@ -1984,7 +1988,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copy',
+        copy: 'Copy URL',
         copied: 'Copied!',
     },
     moderation: {
@@ -2174,9 +2178,9 @@ export default {
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
         someTagLevelsRequired: 'Missing tag',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? ''} no longer valid`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? ''} no longer valid`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
     },

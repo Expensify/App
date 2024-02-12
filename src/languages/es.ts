@@ -713,6 +713,10 @@ export default {
             subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         },
     },
+    shareCodePage: {
+        title: 'Tu código',
+        subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
+    },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
         headline: 'La sala vip de Expensify está cerrada.',
@@ -1046,6 +1050,7 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
+        muteAllSounds: 'Silenciar todos los sonidos de Expensify',
     },
     priorityModePage: {
         priorityMode: 'Modo prioridad',
@@ -1561,7 +1566,7 @@ export default {
             travel: 'Viajes',
             members: 'Miembros',
             plan: 'Plan',
-            overview: 'Descripción',
+            profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
@@ -1702,7 +1707,6 @@ export default {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
-            nameIsTooLongError: `El nombre de su espacio de trabajo no puede tener más de ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} caracteres.`,
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
@@ -2470,7 +2474,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copiar',
+        copy: 'Copiar URL',
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
@@ -2662,9 +2666,9 @@ export default {
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
         someTagLevelsRequired: 'Falta etiqueta',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName} ya no es válida`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName} ya no es válido`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },
