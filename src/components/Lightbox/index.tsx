@@ -43,7 +43,7 @@ type LightboxProps = {
 function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
 
-    /** 
+    /**
      * React hooks must be used in the render function of the component at top-level and unconditionally.
      * Therefore, in order to provide a default value for "isPagerScrolling" if the "AttachmentCarouselPagerContext" is not available,
      * we need to create a shared value that can be used in the render function.
