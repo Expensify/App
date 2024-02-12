@@ -11,12 +11,9 @@ import CONST from '@src/CONST';
 type ReceiptDropUIProps = {
     onDrop: () => void;
     receiptImageTopPosition: number;
-}
+};
 
-function ReceiptDropUI({
-    onDrop, 
-    receiptImageTopPosition=0,
-}: ReceiptDropUIProps) {
+function ReceiptDropUI({onDrop, receiptImageTopPosition = 0}: ReceiptDropUIProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (

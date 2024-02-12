@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -6,16 +7,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {StackScreenProps} from '@react-navigation/stack';
-import type SCREENS from '@src/SCREENS';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 import IOURequestStepScan from './iou/request/step/IOURequestStepScan';
 
-type EditRequestReceiptPageProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>
+type EditRequestReceiptPageProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
 
-function EditRequestReceiptPage({
-    route,
-}: EditRequestReceiptPageProps) {
+function EditRequestReceiptPage({route}: EditRequestReceiptPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);

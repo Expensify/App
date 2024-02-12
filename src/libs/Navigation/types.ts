@@ -289,7 +289,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Route;
-    }
+    };
 };
 
 type NewTaskNavigatorParamList = {

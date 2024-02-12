@@ -4,8 +4,8 @@ import {ActivityIndicator, Alert, AppState, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import { useCameraDevices} from 'react-native-vision-camera';
-import type {Camera, Point} from 'react-native-vision-camera'
+import {useCameraDevices} from 'react-native-vision-camera';
+import type {Camera, Point} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';

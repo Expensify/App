@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
+import type Webcam from 'react-webcam';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -31,7 +32,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type Webcam from 'react-webcam';
 import type IOURequestStepPropTypes from './IOURequestStepScanProps';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -57,7 +57,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
-    const cameraRef = useRef<Webcam>(null)
+    const cameraRef = useRef<Webcam>(null);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -280,7 +280,6 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
             </View>
 
             <AttachmentPicker>
-
                 {({openPicker}) => (
                     <Button
                         medium
@@ -295,7 +294,6 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
                         }}
                     />
                 )}
-                
             </AttachmentPicker>
         </>
     );
