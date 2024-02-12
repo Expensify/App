@@ -118,87 +118,89 @@ function BaseVideoPlayer({
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
     return (
         <>
-            <Hoverable>
-                {(isHovered) => (
-                    <View
-                        style={[styles.w100, styles.h100, style]}
-                        on
-                    >
-                        {shouldUseSharedVideoElement ? (
-                            <>
-                                <View
-                                    ref={sharedVideoPlayerParentRef}
-                                    style={[styles.flex1]}
-                                />
-                                {/* We are adding transparent absolute View between appended video component and control buttons to enable
+            <View style={[styles.w100, styles.h100]}>
+                <Hoverable>
+                    {(isHovered) => (
+                        <View
+                            style={[styles.w100, styles.h100, style]}
+                            on
+                        >
+                            {shouldUseSharedVideoElement ? (
+                                <>
+                                    <View
+                                        ref={sharedVideoPlayerParentRef}
+                                        style={[styles.flex1]}
+                                    />
+                                    {/* We are adding transparent absolute View between appended video component and control buttons to enable
                                     catching onMouse events from Attachment Carousel. Due to late appending React doesn't handle
                                     element's events properly. */}
-                                <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
-                            </>
-                        ) : (
-                            <View
-                                style={styles.flex1}
-                                ref={(el) => {
-                                    if (!el) {
-                                        return;
-                                    }
-                                    videoPlayerElementParentRef.current = el;
-                                    if (el.childNodes && el.childNodes[0]) {
-                                        videoPlayerElementRef.current = el.childNodes[0];
-                                    }
-                                }}
-                            >
-                                <PressableWithoutFeedback
-                                    accessibilityRole="button"
-                                    onPress={() => {
-                                        togglePlayCurrentVideo();
-                                    }}
+                                    <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
+                                </>
+                            ) : (
+                                <View
                                     style={styles.flex1}
+                                    ref={(el) => {
+                                        if (!el) {
+                                            return;
+                                        }
+                                        videoPlayerElementParentRef.current = el;
+                                        if (el.childNodes && el.childNodes[0]) {
+                                            videoPlayerElementRef.current = el.childNodes[0];
+                                        }
+                                    }}
                                 >
-                                    <Video
-                                        ref={videoPlayerRef}
-                                        style={videoPlayerStyle || [styles.w100, styles.h100]}
-                                        videoStyle={videoStyle || [styles.w100, styles.h100]}
-                                        source={{
-                                            uri: sourceURL,
+                                    <PressableWithoutFeedback
+                                        accessibilityRole="button"
+                                        onPress={() => {
+                                            togglePlayCurrentVideo();
                                         }}
-                                        shouldPlay={false}
-                                        useNativeControls={false}
-                                        resizeMode={resizeMode}
-                                        isLooping={isLooping}
-                                        onReadyForDisplay={onVideoLoaded}
-                                        onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-                                        onFullscreenUpdate={(event) => {
-                                            // fix for iOS native and mWeb: when switching to fullscreen and then exiting
-                                            // the fullscreen mode while playing, the video pauses
-                                            if (event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-                                                return;
-                                            }
-                                            playVideo();
-                                        }}
-                                    />
-                                </PressableWithoutFeedback>
-                            </View>
-                        )}
+                                        style={styles.flex1}
+                                    >
+                                        <Video
+                                            ref={videoPlayerRef}
+                                            style={videoPlayerStyle || [styles.w100, styles.h100]}
+                                            videoStyle={videoStyle || [styles.w100, styles.h100]}
+                                            source={{
+                                                uri: sourceURL,
+                                            }}
+                                            shouldPlay={false}
+                                            useNativeControls={false}
+                                            resizeMode={resizeMode}
+                                            isLooping={isLooping}
+                                            onReadyForDisplay={onVideoLoaded}
+                                            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+                                            onFullscreenUpdate={(event) => {
+                                                // fix for iOS native and mWeb: when switching to fullscreen and then exiting
+                                                // the fullscreen mode while playing, the video pauses
+                                                if (event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                                                    return;
+                                                }
+                                                playVideo();
+                                            }}
+                                        />
+                                    </PressableWithoutFeedback>
+                                </View>
+                            )}
 
-                        {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-                        {!isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
-                            <VideoPlayerControls
-                                duration={duration}
-                                position={position}
-                                url={url}
-                                videoPlayerRef={videoPlayerRef}
-                                isPlaying={isPlaying}
-                                small={shouldUseSmallVideoControls}
-                                style={videoControlsStyle}
-                                togglePlayCurrentVideo={togglePlayCurrentVideo}
-                                showPopoverMenu={showPopoverMenu}
-                            />
-                        )}
-                    </View>
-                )}
-            </Hoverable>
+                            {!isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                                <VideoPlayerControls
+                                    duration={duration}
+                                    position={position}
+                                    url={url}
+                                    videoPlayerRef={videoPlayerRef}
+                                    isPlaying={isPlaying}
+                                    small={shouldUseSmallVideoControls}
+                                    style={videoControlsStyle}
+                                    togglePlayCurrentVideo={togglePlayCurrentVideo}
+                                    showPopoverMenu={showPopoverMenu}
+                                />
+                            )}
+                        </View>
+                    )}
+                </Hoverable>
+            </View>
             <VideoPopoverMenu
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={hidePopoverMenu}
