@@ -33,7 +33,7 @@ function ValidateLoginPage({
             });
             return;
         }
-        // Session.initAutoAuthState(autoAuthState);
+        Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
             if (exitTo) {
