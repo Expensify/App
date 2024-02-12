@@ -76,7 +76,8 @@ function bump_version {
   info "Bumping version..."
   setup_git_as_osbotify
   git switch main
-  npm --no-git-tag-version version "$(tsx "$bumpVersion" "$(print_version)" "$1")"
+  npm install tsx
+  npm --no-git-tag-version version "$(./node_modules/.bin/tsx "$bumpVersion" "$(print_version)" "$1")"
   git add package.json package-lock.json
   git commit -m "Update version to $(print_version)"
   git push origin main
@@ -142,7 +143,8 @@ function cherry_pick_pr {
 
   checkout_repo
   setup_git_as_osbotify
-  PREVIOUS_PATCH_VERSION="$(tsx "$getPreviousVersion" "$(print_version)" "$SEMVER_LEVEL_PATCH")"
+  npm install tsx
+  PREVIOUS_PATCH_VERSION="$(./node_modules/.bin/tsx "$getPreviousVersion" "$(print_version)" "$SEMVER_LEVEL_PATCH")"
   git fetch origin main staging --no-tags --shallow-exclude="$PREVIOUS_PATCH_VERSION"
 
   git switch staging
@@ -201,7 +203,8 @@ function deploy_production {
 
 function assert_prs_merged_between {
   checkout_repo
-  output=$(tsx "$getPullRequestsMergedBetween" "$1" "$2")
+  npm install tsx
+  output=$(./node_modules/.bin/tsx "$getPullRequestsMergedBetween" "$1" "$2")
   info "Checking output of getPullRequestsMergedBetween $1 $2"
   assert_equal "$output" "$3"
 }
