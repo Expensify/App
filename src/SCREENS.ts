@@ -234,7 +234,7 @@ const SCREENS = {
     },
 
     ONBOARDING: {
-        WELCOME: 'Onboarding_Welcome',
+        PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
     },
 

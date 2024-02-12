@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
+import Log from '@libs/Log';
 import variables from '@styles/variables';
 import type WindowDimensions from './types';
 
@@ -14,6 +15,8 @@ export default function (): WindowDimensions {
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
+
+    Log.info(`WINDOW WIDTH ${windowWidth}`);
 
     return {
         windowWidth,

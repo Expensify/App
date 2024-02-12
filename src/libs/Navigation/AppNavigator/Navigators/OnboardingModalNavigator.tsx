@@ -1,43 +1,36 @@
-import React, { useMemo } from 'react';
+import {createStackNavigator} from '@react-navigation/stack';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import NoDropZone from "@components/DragAndDrop/NoDropZone";
-import type { OnboardingModalNavigatorParamList } from "@libs/Navigation/types";
-import { createStackNavigator  } from "@react-navigation/stack";
-import SCREENS from "@src/SCREENS";
-import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
+import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
-// import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import PurposeForUsingExpensifyModal from '@components/PurposeForUsingExpensifyModal';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import Overlay from './Overlay';
+import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
+import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
+import OnboardingPurpose from '@pages/OnboardingPurpose';
+import SCREENS from '@src/SCREENS';
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
-
     const styles = useThemeStyles();
     const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
-    const {isSmallScreenWidth} = useWindowDimensions();
 
-    return <NoDropZone>
-        <View>
-            {!isSmallScreenWidth && <Overlay onPress={() => {}}/>}
-            <Stack.Navigator screenOptions={{...screenOptions, cardStyle: {backgroundColor: 'transparent'}}}>
-                {/* <Stack.Screen
-                    name={SCREENS.ONBOARDING_MODAL.ONBOARDING}
-                    component={ModalStackNavigators.OnboardingModalStackNavigator} 
-                /> */}
-                <Stack.Screen
-                    name={SCREENS.ONBOARDING.WELCOME}
-                    component={PurposeForUsingExpensifyModal} 
-                />
-                <Stack.Screen
-                    name={SCREENS.ONBOARDING.PURPOSE}
-                    component={PurposeForUsingExpensifyModal} 
-                />
-            </Stack.Navigator>
-        </View>
-    </NoDropZone>
+    return (
+        <NoDropZone>
+            <View>
+                <Stack.Navigator screenOptions={{...screenOptions}}>
+                    <Stack.Screen
+                        name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                        component={OnboardingPersonalDetails}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.ONBOARDING.PURPOSE}
+                        component={OnboardingPurpose}
+                    />
+                </Stack.Navigator>
+            </View>
+        </NoDropZone>
+    );
 }
 
 OnboardingModalNavigator.displayName = 'OnboardingModalNavigator';

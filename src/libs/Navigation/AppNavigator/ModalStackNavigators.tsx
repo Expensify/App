@@ -289,9 +289,9 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 });
 
 const OnboardingModalStackNavigator = createModalStackNavigator({
-    [SCREENS.ONBOARDING.WELCOME]: () => require('../../../../src/components/PurposeForUsingExpensifyModal').default as React.ComponentType,
+    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: () => require('../../../../src/components/PurposeForUsingExpensifyModal').default as React.ComponentType,
     [SCREENS.ONBOARDING.PURPOSE]: () => require('../../../../src/components/PurposeForUsingExpensifyModal').default as React.ComponentType,
-})
+});
 
 export {
     AccountSettingsModalStackNavigator,

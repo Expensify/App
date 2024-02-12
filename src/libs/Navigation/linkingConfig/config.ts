@@ -82,27 +82,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             screens: {
-                // [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
-                //     screens: {
-                //         [SCREENS.ONBOARDING.WELCOME]: {
-                //             path: ROUTES.ONBOARDING_WELCOME,
-                //             exact: true,
-                //         },
-                //         [SCREENS.ONBOARDING.PURPOSE]: {
-                //             path: ROUTES.ONBOARDING_PURPOSE,
-                //             exact: true,
-                //         },
-                //     }
-                // },
-                [SCREENS.ONBOARDING.WELCOME]: {
-                    path: ROUTES.WELCOME,
+                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.PURPOSE]: {
-                    path: ROUTES.PURPOSE,
+                    path: ROUTES.ONBOARDING_PURPOSE,
                     exact: true,
-                }
-            }
+                },
+            },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {

@@ -15,6 +15,10 @@ function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmal
     };
 }
 
+function getOnboardingModalStyles(styles: ThemeStyles, windowWidth: number, shouldUseNarrowLayout: boolean, isFullScreenWhenSmall = false): ViewStyle {
+    return shouldUseNarrowLayout ? {width: 500, height: 712} : getCenteredModalStyles(styles, windowWidth, !shouldUseNarrowLayout, isFullScreenWhenSmall);
+}
+
 type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
@@ -41,11 +45,12 @@ type GetModalStylesStyleUtil = {
         popoverAnchorPosition?: ViewStyle,
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
+        shouldUseNarrowLayout?: boolean,
     ) => GetModalStyles;
 };
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
-    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
+    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}, shouldUseNarrowLayout = false): GetModalStyles => {
         const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
@@ -162,7 +167,33 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddTopSafeAreaMargin = false;
                 shouldAddBottomSafeAreaMargin = false;
                 shouldAddTopSafeAreaPadding = false;
-                shouldAddBottomSafeAreaPadding = false;
+                break;
+            case CONST.MODAL.MODAL_TYPE.ONBOARDING:
+                // Handles how onboarding modals should be rendered on different screens
+                modalStyle = {
+                    ...modalStyle,
+                    ...{
+                        alignItems: 'center',
+                    },
+                };
+                modalContainerStyle = {
+                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    borderWidth: 0,
+                    flex: !shouldUseNarrowLayout ? 1 : undefined,
+                    marginTop: 0,
+                    marginBottom: 0,
+                    borderRadius: !shouldUseNarrowLayout ? 0 : 16,
+                    overflow: 'hidden',
+                    ...getOnboardingModalStyles(styles, windowWidth, shouldUseNarrowLayout, true),
+                };
+
+                // Allow this modal to be dismissed with a swipe down or swipe right
+                // swipeDirection = ['down', 'right'];
+                animationIn = 'fadeIn';
+                animationOut = 'fadeOut';
+                shouldAddTopSafeAreaMargin = false;
+                shouldAddBottomSafeAreaMargin = false;
+                shouldAddTopSafeAreaPadding = false;
                 break;
             case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
                 modalStyle = {

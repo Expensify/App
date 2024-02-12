@@ -20,6 +20,9 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility?: boolean;
 
+    /** Should we hide backdrop no matter what value is set in modal styles */
+    shouldForceHideBackdrop?: boolean;
+
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 

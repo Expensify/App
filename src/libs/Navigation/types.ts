@@ -404,7 +404,7 @@ type FullScreenNavigatorParamList = {
 
 type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
-    [SCREENS.ONBOARDING.WELCOME]: undefined;
+    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
     [SCREENS.ONBOARDING.PURPOSE]: undefined;
 };
 

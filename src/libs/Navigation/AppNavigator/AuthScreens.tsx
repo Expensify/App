@@ -40,8 +40,8 @@ import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
-import RightModalNavigator from './Navigators/RightModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
+import RightModalNavigator from './Navigators/RightModalNavigator';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
