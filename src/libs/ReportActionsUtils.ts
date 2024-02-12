@@ -77,7 +77,7 @@ let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        // When signed out, val is undefined
+        // When signed out, value is undefined
         if (!value) {
             return;
         }
