@@ -412,7 +412,7 @@ function getOptionData({
                     .join(' ');
         }
 
-        result.alternateText = lastMessageText || formattedLogin;
+        result.alternateText = hasMultipleParticipants && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
