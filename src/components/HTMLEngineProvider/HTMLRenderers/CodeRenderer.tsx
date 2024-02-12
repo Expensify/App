@@ -41,7 +41,7 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
 
     return (
         <InlineCodeBlock
-            defaultRendererProps={{...defaultRendererProps, style: style as TextStyle}}
+            defaultRendererProps={{...defaultRendererProps, style: {}}}
             TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}
