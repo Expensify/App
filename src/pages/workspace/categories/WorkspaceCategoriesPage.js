@@ -1,7 +1,9 @@
+import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import categoryPropTypes from '@components/categoryPropTypes';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,6 +18,25 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicyAccessOrNotFound from './withPolicyAccessOrNotFound';
+
+const propTypes = {
+    /* Onyx Props */
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** policyID passed via route: /workspace/:policyID/categories */
+            policyID: PropTypes.string,
+        }),
+    }).isRequired,
+};
+
+const defaultProps = {
+    policyCategories: {},
+};
 
 function WorkspaceCategoriesPage({policyCategories}) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -81,6 +102,10 @@ function WorkspaceCategoriesPage({policyCategories}) {
         </ScreenWrapper>
     );
 }
+
+WorkspaceCategoriesPage.propTypes = propTypes;
+WorkspaceCategoriesPage.defaultProps = defaultProps;
+WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
 export default compose(
     withPolicyAccessOrNotFound(),
