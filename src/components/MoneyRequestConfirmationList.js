@@ -755,7 +755,7 @@ function MoneyRequestConfirmationList(props) {
                                     ? translate('common.error.enterMerchant')
                                     : ''
                             }
-                            rightLabel={canUseViolations && PolicyUtils.isPaidGroupPolicy(props.policy) ? translate('common.required') : ''}
+                            rightLabel={translate('common.required')}
                         />
                     )}
                     {shouldShowCategories && (
