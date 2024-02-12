@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -14,10 +15,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import variables from "@styles/variables";
-import * as Expensicons from "@components/Icon/Expensicons";
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
@@ -59,7 +59,7 @@ function ReportActionItemImage({
     canEditReceipt = false,
     isLocalFile = false,
     filename,
-    isSingleImage,
+    isSingleImage = true,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

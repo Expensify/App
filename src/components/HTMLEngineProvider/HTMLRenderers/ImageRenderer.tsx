@@ -2,11 +2,13 @@ import React, {memo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -14,8 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
-import * as FileUtils from "@libs/fileDownload/FileUtils";
-import * as Expensicons from "@components/Icon/Expensicons";
 
 type ImageRendererWithOnyxProps = {
     /** Current user */
@@ -73,9 +73,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         />
     );
 
-    return imagePreviewModalDisabled
-        ? <>{thumbnailImageComponent}</>
-        : <ShowContextMenuContext.Consumer>
+    return imagePreviewModalDisabled ? (
+        <>{thumbnailImageComponent}</>
+    ) : (
+        <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
@@ -90,7 +91,8 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                     {thumbnailImageComponent}
                 </PressableWithoutFocus>
             )}
-        </ShowContextMenuContext.Consumer>;
+        </ShowContextMenuContext.Consumer>
+    );
 }
 
 ImageRenderer.displayName = 'ImageRenderer';

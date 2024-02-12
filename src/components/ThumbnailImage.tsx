@@ -2,16 +2,16 @@ import lodashClamp from 'lodash/clamp';
 import React, {useCallback, useEffect, useState} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {Dimensions, View} from 'react-native';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import useTheme from "@hooks/useTheme";
-import variables from "@styles/variables";
-import useNetwork from "@hooks/useNetwork";
-import type IconAsset from "@src/types/utils/IconAsset";
-import * as Expensicons from "./Icon/Expensicons";
-import Icon from "./Icon";
+import variables from '@styles/variables';
+import type IconAsset from '@src/types/utils/IconAsset';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {
@@ -82,15 +82,15 @@ function calculateThumbnailImageSize(width: number, height: number, windowHeight
 }
 
 function ThumbnailImage({
-                            previewSourceURL,
-                            style,
-                            isAuthTokenRequired,
-                            imageWidth = 200,
-                            imageHeight = 200,
-                            shouldDynamicallyResize = true,
-                            fallbackIcon = Expensicons.Gallery,
-                            fallbackIconSize = variables.iconSizeSuperLarge,
-                        }: ThumbnailImageProps) {
+    previewSourceURL,
+    style,
+    isAuthTokenRequired,
+    imageWidth = 200,
+    imageHeight = 200,
+    shouldDynamicallyResize = true,
+    fallbackIcon = Expensicons.Gallery,
+    fallbackIconSize = variables.iconSizeSuperLarge,
+}: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -123,10 +123,7 @@ function ThumbnailImage({
 
     if (failedToLoad) {
         return (
-            <View style={[style, styles.overflowHidden, {
-                backgroundColor: theme.hoverComponentBG,
-                borderColor: theme.border,
-            }]}>
+            <View style={[style, styles.overflowHidden, styles.hoveredComponentBG]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
