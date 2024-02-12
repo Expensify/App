@@ -63,7 +63,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
         /** Should validate function be called when the value of the input is changed */
         shouldValidateOnChange?: boolean;
 
-        /** Submit button styles */
+        /** Styles that will be applied to the submit button only */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Whether to apply flex to the submit button */

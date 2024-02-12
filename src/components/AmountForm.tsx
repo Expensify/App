@@ -70,7 +70,7 @@ function AmountForm(
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
      */
-    const onMouseDown = (event: React.MouseEvent, ids: string[]) => {
+    const focusTextInput = (event: React.MouseEvent, ids: string[]) => {
         const relatedTargetId = (event.nativeEvent?.target as HTMLElement | null)?.id ?? '';
         if (!ids.includes(relatedTargetId)) {
             return;
@@ -183,7 +183,7 @@ function AmountForm(
         <>
             <View
                 id={AMOUNT_VIEW_ID}
-                onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
+                onMouseDown={(event) => focusTextInput(event, [AMOUNT_VIEW_ID])}
                 style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
@@ -221,7 +221,7 @@ function AmountForm(
             </View>
             {canUseTouchScreen ? (
                 <View
-                    onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
+                    onMouseDown={(event) => focusTextInput(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                     style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
                     id={NUM_PAD_CONTAINER_VIEW_ID}
                 >
