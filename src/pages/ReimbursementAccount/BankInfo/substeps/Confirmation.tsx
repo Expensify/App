@@ -49,7 +49,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
             style={[styles.pt0]}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt5]}>{translate('bankAccount.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('bankAccount.letsDoubleCheck')}</Text>
                 <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.thisBankAccount')}</Text>
                 {setupType === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL && (
                     <View style={[styles.mb5]}>
@@ -76,7 +76,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         onPress={handleModifyAccountNumbers}
                     />
                 )}
-                <View style={[styles.ph5, styles.mtAuto]}>
+                <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
                     {error && error.length > 0 && (
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
@@ -88,7 +88,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         isLoading={isLoading}
                         isDisabled={isLoading}
                         success
-                        style={[styles.w100, styles.pb5, styles.mt2]}
+                        style={[styles.w100]}
                         onPress={onNext}
                         text={translate('common.confirm')}
                     />

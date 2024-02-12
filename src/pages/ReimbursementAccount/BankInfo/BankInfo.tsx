@@ -121,13 +121,18 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     };
 
     return (
-        <ScreenWrapper testID={BankInfo.displayName}>
+        <ScreenWrapper
+            testID={BankInfo.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 shouldShowBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('bankAccount.bankInfo')}
             />
-            <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     startStepIndex={0}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
