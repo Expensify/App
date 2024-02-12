@@ -16,8 +16,9 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import variables from "@styles/variables";
 import * as Expensicons from "@components/Icon/Expensicons";
+
+type IconSize = 'small' | 'medium' | 'large';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
@@ -41,7 +42,8 @@ type ReportActionItemImageProps = {
     /** Filename of attachment */
     filename?: string;
 
-    isSingleImage?: boolean;
+    /** number of images displayed in the same parent container */
+    iconSize?: IconSize;
 };
 
 /**
@@ -50,7 +52,16 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false, filename, isSingleImage}: ReportActionItemImageProps) {
+function ReportActionItemImage({
+    thumbnail,
+    image,
+    enablePreviewModal = false,
+    transaction,
+    canEditReceipt = false,
+    isLocalFile = false,
+    filename,
+    iconSize = 'large',
+}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
@@ -62,7 +73,10 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
     if (isEReceipt) {
         receiptImageComponent = (
             <View style={[styles.w100, styles.h100]}>
-                <EReceiptThumbnail transactionID={transaction.transactionID} />
+                <EReceiptThumbnail
+                    transactionID={transaction.transactionID}
+                    iconSize={iconSize as IconSize}
+                />
             </View>
         );
     } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
@@ -72,7 +86,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired
                 fallbackIcon={Expensicons.Receipt}
-                fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
+                fallbackIconSize={iconSize as IconSize}
                 shouldDynamicallyResize={false}
             />
         );

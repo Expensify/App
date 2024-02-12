@@ -1178,10 +1178,6 @@ PODS:
     - React-Core
   - react-native-launch-arguments (4.0.2):
     - React
-  - react-native-live-markdown (0.1.0):
-    - glog
-    - RCT-Folly (= 2022.05.16.00)
-    - React-Core
   - react-native-netinfo (11.2.1):
     - React-Core
   - react-native-pager-view (6.2.2):
@@ -1412,6 +1408,10 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
+  - RNLiveMarkdown (0.1.5):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - RNLocalize (2.2.6):
     - React-Core
   - rnmapbox-maps (10.0.11):
@@ -1529,7 +1529,6 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
-  - "react-native-live-markdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -1574,6 +1573,7 @@ DEPENDENCIES:
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
+  - "RNLiveMarkdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - RNLocalize (from `../node_modules/react-native-localize`)
   - "rnmapbox-maps (from `../node_modules/@rnmapbox/maps`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
@@ -1725,8 +1725,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-key-command"
   react-native-launch-arguments:
     :path: "../node_modules/react-native-launch-arguments"
-  react-native-live-markdown:
-    :path: "../node_modules/@expensify/react-native-live-markdown"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -1815,6 +1813,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNGoogleSignin:
     :path: "../node_modules/@react-native-google-signin/google-signin"
+  RNLiveMarkdown:
+    :path: "../node_modules/@expensify/react-native-live-markdown"
   RNLocalize:
     :path: "../node_modules/react-native-localize"
   rnmapbox-maps:
@@ -1922,7 +1922,6 @@ SPEC CHECKSUMS:
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
-  react-native-live-markdown: 81ac491b913cb8541a06586adcdc159ab1b86fb5
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
   react-native-pdf: b4ca3d37a9a86d9165287741c8b2ef4d8940c00e
@@ -1967,6 +1966,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 25b969a1ffc806b9f9ad2e170d4a3b049c6af85e
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
+  RNLiveMarkdown: 35eeecf7e57eb26fdc279d5d4815982a9a9f7beb
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa

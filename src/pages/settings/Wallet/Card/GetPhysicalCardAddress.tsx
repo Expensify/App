@@ -1,57 +1,34 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
-import FormUtils from '@libs/FormUtils';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
+import type {RenderContentProps} from './BaseGetPhysicalCard';
 
-const propTypes = {
-    /* Onyx Props */
+type GetPhysicalCardAddressOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: PropTypes.shape({
-        // User home address
-        addressLine1: PropTypes.string,
-        addressLine2: PropTypes.string,
-        city: PropTypes.string,
-        country: PropTypes.string,
-        state: PropTypes.string,
-        zipPostCode: PropTypes.string,
-    }),
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** Currently selected country */
-            country: PropTypes.string,
-            /** domain passed via route /settings/wallet/card/:domain */
-            domain: PropTypes.string,
-        }),
-    }).isRequired,
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
-const defaultProps = {
-    draftValues: {
-        addressLine1: '',
-        addressLine2: '',
-        city: '',
-        country: '',
-        state: '',
-        zipPostCode: '',
-    },
-};
+type GetPhysicalCardAddressProps = GetPhysicalCardAddressOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
 
 function GetPhysicalCardAddress({
-    draftValues: {addressLine1, addressLine2, city, state, zipPostCode, country},
+    draftValues,
     route: {
         params: {country: countryFromUrl, domain},
     },
-}) {
+}: GetPhysicalCardAddressProps) {
     const {translate} = useLocalize();
+
+    const {addressLine1 = '', addressLine2 = '', city = '', state = '', zipPostCode = '', country = ''} = draftValues ?? {};
 
     useEffect(() => {
         if (!countryFromUrl) {
@@ -61,7 +38,7 @@ function GetPhysicalCardAddress({
     }, [countryFromUrl]);
 
     const renderContent = useCallback(
-        (onSubmit, submitButtonText) => (
+        ({onSubmit, submitButtonText}: RenderContentProps) => (
             <AddressForm
                 formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
                 onSubmit={onSubmit}
@@ -90,12 +67,10 @@ function GetPhysicalCardAddress({
     );
 }
 
-GetPhysicalCardAddress.defaultProps = defaultProps;
 GetPhysicalCardAddress.displayName = 'GetPhysicalCardAddress';
-GetPhysicalCardAddress.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<GetPhysicalCardAddressProps, GetPhysicalCardAddressOnyxProps>({
     draftValues: {
-        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
+        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
     },
 })(GetPhysicalCardAddress);
