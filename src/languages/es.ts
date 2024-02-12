@@ -982,6 +982,17 @@ export default {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
     },
+    workflowsPage:
+    {
+        workflowTitle: 'Flujo de trabajo de gastos',
+        workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago.',
+        delaySubmissionTitle: 'Retrasar las presentaciones',
+        delaySubmissionDescription: 'Establezca una cadencia más lenta para recibir los envíos de gastos.',
+        addApprovalsTitle: 'Añadir aprobación',
+        addApprovalsDescription: 'Establezca una cadencia más lenta para recibir los envíos de gastos en tiempo real.',
+        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
+        makeOrTrackPaymentsDescription: 'Añada un pagador autorizado para los pagos realizados en Expensify, o simplemente realice un seguimiento de los pagos realizados en otro lugar.',
+    },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
         description:
@@ -1556,6 +1567,7 @@ export default {
         common: {
             card: 'Tarjetas',
             workflows: 'Flujos de trabajo',
+            spendWorkflow: 'Flujo de trabajo de gastos',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
