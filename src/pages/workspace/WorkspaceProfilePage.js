@@ -61,7 +61,6 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
 
     const policyName = lodashGet(policy, 'name', '');
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
-    const pendingAction = lodashGet(policy, 'pendingFields.generalSettings') || lodashGet(policy, 'pendingFields.description');
 
     return (
         <WorkspacePageWithSections
@@ -107,7 +106,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                         disabled={readOnly}
                         disabledStyle={styles.cursorDefault}
                     />
-                    <OfflineWithFeedback pendingAction={pendingAction}>
+                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <MenuItemWithTopDescription
                             title={policy.name}
                             description={translate('workspace.editor.nameInputLabel')}
@@ -117,7 +116,8 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                             shouldGreyOutWhenDisabled={false}
                             shouldUseDefaultCursorWhenDisabled
                         />
-
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.description')}>
                         <MenuItemWithTopDescription
                             title={policy.description}
                             description={translate('workspace.editor.descriptionInputLabel')}
@@ -128,7 +128,8 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                             shouldUseDefaultCursorWhenDisabled
                             shouldRenderAsHTML
                         />
-
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <View>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
