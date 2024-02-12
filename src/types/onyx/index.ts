@@ -5,6 +5,7 @@ import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
+import type {CardList} from './Card';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
@@ -14,6 +15,7 @@ import type {
     CloseAccountForm,
     DateOfBirthForm,
     DisplayNameForm,
+    GetPhysicalCardForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     LegalNameForm,
@@ -28,6 +30,7 @@ import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
+import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type Locale from './Locale';
@@ -46,7 +49,7 @@ import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
-import type {PolicyTag, PolicyTags} from './PolicyTag';
+import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -93,6 +96,7 @@ export type {
     Beta,
     BlockedFromConcierge,
     Card,
+    CardList,
     Credentials,
     Currency,
     CustomStatusDraft,
@@ -103,6 +107,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     FundList,
+    GetPhysicalCardForm,
     IntroSelected,
     IOU,
     Locale,
@@ -124,6 +129,7 @@ export type {
     PolicyMembers,
     PolicyTag,
     PolicyTags,
+    PolicyTagList,
     PrivatePersonalDetails,
     RecentWaypoint,
     RecentlyUsedCategories,
@@ -167,6 +173,7 @@ export type {
     NewRoomForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
+    InvitedEmailsToAccountIDs,
     PrivateNotesForm,
     ReportFieldEditForm,
     LegalNameForm,
