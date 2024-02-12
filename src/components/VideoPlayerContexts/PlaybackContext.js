@@ -29,7 +29,13 @@ function PlaybackContextProvider({children}) {
         if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync)) {
             return;
         }
-        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
+        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
+            const newStatus = {shouldPlay: true};
+            if (status.durationMillis === status.positionMillis) {
+                newStatus.positionMillis = 0;
+            }
+            currentVideoPlayerRef.current.setStatusAsync(newStatus);
+        });
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
