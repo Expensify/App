@@ -49,14 +49,10 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-
-            PERSONAL_DETAILS: {
-                INITIAL: 'Settings_PersonalDetails_Initial',
-                LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
-                DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
-                ADDRESS: 'Settings_PersonalDetails_Address',
-                ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
-            },
+            LEGAL_NAME: 'Settings_LegalName',
+            DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            ADDRESS: 'Settings_Address',
+            ADDRESS_COUNTRY: 'Settings_Address_Country',
         },
 
         PREFERENCES: {
@@ -198,7 +194,7 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        OVERVIEW: 'Workspace_Overview',
+        PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
@@ -208,8 +204,8 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Overview_Currency',
-        NAME: 'Workspace_Overview_Name',
+        CURRENCY: 'Workspace_Profile_Currency',
+        NAME: 'Workspace_Profile_Name',
     },
 
     EDIT_REQUEST: {
