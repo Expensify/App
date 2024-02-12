@@ -63,29 +63,32 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const waitForNavigate = useWaitForNavigation();
 
     const menuItems = useMemo(() => {
+        const debugConsoleItem: BaseMenuItem = {
+            translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
+            icon: Expensicons.Gear,
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE)),
+        };
+
         const baseMenuItems: BaseMenuItem[] = [
             {
-                translationKey: 'initialSettingsPage.troubleshoot.resetAndRefreshStashed',
+                translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
                 icon: Expensicons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
-            {
-                translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
-                icon: Expensicons.Gear,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE)),
-            },
         ];
 
-        if (!shouldStoreLogs) {
-            baseMenuItems.splice(1);
+        if (shouldStoreLogs) {
+            baseMenuItems.push(debugConsoleItem);
         }
 
-        return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey),
-            icon: item.icon,
-            onPress: item.action,
-        }));
+        return baseMenuItems
+            .map((item) => ({
+                key: item.translationKey,
+                title: translate(item.translationKey),
+                icon: item.icon,
+                onPress: item.action,
+            }))
+            .reverse();
     }, [shouldStoreLogs, translate, waitForNavigate]);
 
     return (
@@ -106,6 +109,8 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         {translate('initialSettingsPage.troubleshoot.submitBug')}
                     </TextLink>
                 </Text>
+            </View>
+            <View style={[styles.ml5, styles.mr8]}>
                 <TestToolRow title="Client side logging">
                     <Switch
                         accessibilityLabel="Client side logging"

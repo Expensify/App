@@ -802,7 +802,7 @@ export default {
             },
         },
         troubleshoot: {
-            resetAndRefreshStashed: 'Restablecer y actualizar los datos almacenados',
+            clearCacheAndRestart: 'Borrar caché y reiniciar',
             viewConsole: 'Ver la consola de depuración',
             debugConsole: 'Consola de depuración',
             description: 'Utilice las herramientas que aparecen a continuación para solucionar los problemas de Expensify. Si tiene algún problema, por favor',
