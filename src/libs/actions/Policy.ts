@@ -116,6 +116,13 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report> = null;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
 let allPolicyMembers: OnyxCollection<PolicyMember>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
@@ -218,7 +225,7 @@ function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, reports: Report[], policyName: string) {
+function deleteWorkspace(policyID: string, policyName: string) {
     if (!allPolicies) {
         return;
     }
@@ -247,7 +254,9 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
             : []),
     ];
 
-    reports.forEach(({reportID, ownerAccountID}) => {
+    const reportsToArchive = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+    reportsToArchive.forEach((report) => {
+        const {reportID, ownerAccountID} = report ?? {};
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -292,7 +301,8 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
         },
     ];
 
-    reports.forEach(({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => {
+    reportsToArchive.forEach((report) => {
+        const {reportID, stateNum, statusNum, hasDraft, oldPolicyName} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
