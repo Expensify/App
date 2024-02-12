@@ -1050,6 +1050,7 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
+        muteAllSounds: 'Silenciar todos los sonidos de Expensify',
     },
     priorityModePage: {
         priorityMode: 'Modo prioridad',
