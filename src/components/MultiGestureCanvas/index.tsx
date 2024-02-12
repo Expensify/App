@@ -36,9 +36,7 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
 
-    /**
-     *  A shared value of type boolean, that indicates disabled the transformation gestures (pinch, pan, double tap)
-     */
+    /** A shared value of type boolean, that indicates disabled the transformation gestures (pinch, pan, double tap) */
     shouldDisableTransformationGestures?: SharedValue<boolean>;
 
     /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
