@@ -741,10 +741,10 @@ function formatUTCToLocal(dateString: string, dateFormat = 'yyyy-MM-dd HH:mm:ss'
         return '';
     }
 
+    const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const utcDate = zonedTimeToUtc(date, 'UTC');
-    const localDate = zonedTimeToUtc(utcDate, timezone.selected);
-    // the timezone.selected is the timezone that the user selected at profile/timezone
-    return tzFormat(localDate, dateFormat, {timeZone: timezone.selected});
+    const localDate = zonedTimeToUtc(utcDate, localTimezone);
+    return tzFormat(localDate, dateFormat, {timeZone: localTimezone});
 }
 
 /**
