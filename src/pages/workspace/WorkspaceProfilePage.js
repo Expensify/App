@@ -50,23 +50,23 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-function WorkspaceOverviewPage({policy, currencyList, route}) {
+function WorkspaceProfilePage({policy, currencyList, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id)), [policy.id]);
-    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policy.id)), [policy.id]);
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy.id)), [policy.id]);
+    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy.id)), [policy.id]);
 
     const policyName = lodashGet(policy, 'name', '');
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.common.overview')}
+            headerText={translate('workspace.common.profile')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_PROFILE}
             shouldShowLoading={false}
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
@@ -138,13 +138,13 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
     );
 }
 
-WorkspaceOverviewPage.propTypes = propTypes;
-WorkspaceOverviewPage.defaultProps = defaultProps;
-WorkspaceOverviewPage.displayName = 'WorkspaceOverviewPage';
+WorkspaceProfilePage.propTypes = propTypes;
+WorkspaceProfilePage.defaultProps = defaultProps;
+WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default compose(
     withPolicy,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
-)(WorkspaceOverviewPage);
+)(WorkspaceProfilePage);
