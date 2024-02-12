@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 
@@ -8,7 +9,7 @@ type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | 
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
-type Errors = Record<string, string | null>;
+type Errors = Record<string, MaybePhraseKey | null>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
