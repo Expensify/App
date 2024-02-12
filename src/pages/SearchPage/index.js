@@ -54,7 +54,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
-    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -146,7 +146,10 @@ function SearchPage({betas, reports, isSearchingForReports}) {
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')} />
+                    <HeaderWithBackButton
+                        title={translate('common.search')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
