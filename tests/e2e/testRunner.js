@@ -1,3 +1,6 @@
+// const launchApp = require('./utils/launchApp');
+import launchApp from './utils/launchApp';
+
 /**
  * Multifaceted script, its main function is running the e2e tests.
  *
@@ -20,7 +23,7 @@ const defaultConfig = require('./config');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
 const killApp = require('./utils/killApp');
-const launchApp = require('./utils/launchApp');
+
 const createServerInstance = require('./server');
 const installApp = require('./utils/installApp');
 const withFailTimeout = require('./utils/withFailTimeout');
