@@ -62,6 +62,9 @@ import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustrati
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
+import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
+import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
+import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 
 export {
     Abracadabra,
@@ -128,4 +131,7 @@ export {
     LockClosed,
     Gears,
     QrCode,
+    ReceiptEnvelope,
+    Approval,
+    WalletAlt,
 };
