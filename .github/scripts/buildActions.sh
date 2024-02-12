@@ -21,7 +21,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
     "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.js"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
-    "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.cjs"
+    "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.js"
     "$ACTIONS_DIR/authorChecklist/authorChecklist.ts"
     "$ACTIONS_DIR/reviewerChecklist/reviewerChecklist.js"
     "$ACTIONS_DIR/validateReassureOutput/validateReassureOutput.js"

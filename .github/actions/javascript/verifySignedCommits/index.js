@@ -1,17 +1,20 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
+/**
+ * NOTE: This is a compiled file. DO NOT directly edit this file.
+*/
 /******/ /* webpack/runtime/compat */
-/******/ 
-/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
-/******/ 
+/******/
+/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + '/';
+/******/
 /************************************************************************/
 var __webpack_exports__ = {};
-const _ = require('underscore');
-const core = require('@actions/core');
-const github = require('@actions/github');
-const CONST = require('../../../libs/CONST');
-const GitHubUtils = require('../../../libs/GithubUtils');
+import core from '@actions/core';
+import github from '@actions/github';
+import _ from 'underscore';
+import CONST from '../../../libs/CONST';
+import GitHubUtils from '../../../libs/GithubUtils';
 
 const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request.number;
 
