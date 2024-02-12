@@ -4337,6 +4337,27 @@ const styles = (theme: ThemeColors) =>
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
         },
+        workspaceWorkflowsIcon: {
+            height: 48,
+            width: 48,
+            marginRight: 12,
+        },
+        workspaceWorkflowsContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        workspaceWorkflowsHeading: {
+            fontSize: 15,
+            fontWeight: '700',
+        },
+        workspaceWorkflowsWrapperText: {
+            flexDirection: 'column',
+        },
+        workspaceWorkflowsSubtitle: {
+            fontSize: 13,
+            color: theme.textSupporting,
+            marginTop: 3,
+        }
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
