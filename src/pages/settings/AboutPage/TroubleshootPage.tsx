@@ -97,6 +97,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
             illustration={LottieAnimations.Desk}
+            testID={TroubleshootPage.displayName}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
                 <Text style={[styles.textHeadline, styles.mb1]}>{translate('initialSettingsPage.aboutPage.troubleshoot')}</Text>
@@ -146,6 +147,8 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
         </IllustratedHeaderPageLayout>
     );
 }
+
+TroubleshootPage.displayName = 'TroubleshootPage';
 
 export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldStoreLogs: {
