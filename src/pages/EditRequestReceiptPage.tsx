@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -7,23 +6,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {StackScreenProps} from '@react-navigation/stack';
+import type SCREENS from '@src/SCREENS';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import IOURequestStepScan from './iou/request/step/IOURequestStepScan';
 
-const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
+type EditRequestReceiptPageProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>
 
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
-};
-
-function EditRequestReceiptPage({route}) {
+function EditRequestReceiptPage({
+    route,
+}: EditRequestReceiptPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -50,7 +42,6 @@ function EditRequestReceiptPage({route}) {
     );
 }
 
-EditRequestReceiptPage.propTypes = propTypes;
 EditRequestReceiptPage.displayName = 'EditRequestReceiptPage';
 
 export default EditRequestReceiptPage;

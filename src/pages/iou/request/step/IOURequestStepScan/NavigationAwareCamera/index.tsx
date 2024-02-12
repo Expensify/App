@@ -1,37 +1,24 @@
-import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
+import type {FC} from 'react';
 import {View} from 'react-native';
 import Webcam from 'react-webcam';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 
-const propTypes = {
-    /** Flag to turn on/off the torch/flashlight - if available */
-    torchOn: PropTypes.bool,
-
-    /** The index of the tab that contains this camera */
-    cameraTabIndex: PropTypes.number.isRequired,
-
-    /** Callback function when media stream becomes available - user granted camera permissions and camera starts to work */
-    onUserMedia: PropTypes.func,
-
-    /** Callback function passing torch/flashlight capability as bool param of the browser */
-    onTorchAvailability: PropTypes.func,
-};
-
-const defaultProps = {
-    onUserMedia: undefined,
-    onTorchAvailability: undefined,
-    torchOn: false,
+type NavigationAwareCameraProps = {
+    torchOn: boolean;
+    onTorchAvailability?: (torchAvailable: boolean) => void;
+    cameraTabIndex: number;
+    onUserMedia?: (stream: MediaStream) => void;
 };
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, cameraTabIndex, ...props}, ref) => {
-    const trackRef = useRef(null);
+const NavigationAwareCamera = forwardRef(({torchOn, onTorchAvailability, cameraTabIndex, ...props}: NavigationAwareCameraProps, ref: React.Ref<Webcam>) => {
+    const trackRef = useRef<MediaStreamTrack | null>(null);
     const shouldShowCamera = useTabNavigatorFocus({
         tabIndex: cameraTabIndex,
     });
 
-    const handleOnUserMedia = (stream) => {
+    const handleOnUserMedia = (stream: MediaStream) => {
         if (props.onUserMedia) {
             props.onUserMedia(stream);
         }
@@ -73,8 +60,6 @@ const NavigationAwareCamera = React.forwardRef(({torchOn, onTorchAvailability, c
     );
 });
 
-NavigationAwareCamera.propTypes = propTypes;
-NavigationAwareCamera.displayName = 'NavigationAwareCamera';
-NavigationAwareCamera.defaultProps = defaultProps;
+(NavigationAwareCamera as FC).displayName = 'NavigationAwareCamera';
 
 export default NavigationAwareCamera;

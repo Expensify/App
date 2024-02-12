@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import Hand from '@assets/images/hand.svg';
@@ -13,7 +13,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,41 +21,25 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
-import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type IOURequestStepPropTypes from './IOURequestStepScanProps';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
+type IOURequestStepScanProps = IOURequestStepPropTypes &
+    StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE> & {
+        isFromGlobalCreate: boolean;
+    };
 
-    /* Onyx Props */
-    /** The report that the transaction belongs to */
-    report: reportPropTypes,
-
-    /** The transaction (or draft transaction) being changed */
-    transaction: transactionPropTypes,
-};
-
-const defaultProps = {
-    report: {},
-    transaction: {},
-};
-
-function IOURequestStepScan({
-    report,
-    route: {
-        params: {action, iouType, reportID, transactionID, backTo},
-    },
-    transaction: {isFromGlobalCreate},
-}) {
+function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -81,29 +64,28 @@ function IOURequestStepScan({
 
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
-     * @param {*} isInvalid
-     * @param {*} title
-     * @param {*} reason
      */
-    const setUploadReceiptError = (isInvalid, title, reason) => {
+    const setUploadReceiptError = (isInvalid: boolean, title: string, reason: string) => {
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);
     };
 
-    function validateReceipt(file) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
+    function validateReceipt(file: File) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        if (
+            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
+        ) {
             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
 
-        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
             return false;
         }
 
-        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
             return false;
         }
@@ -112,49 +94,48 @@ function IOURequestStepScan({
     }
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(route.params.backTo);
     };
 
     const navigateToConfirmationStep = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
+        if (route.params.backTo) {
+            Navigation.goBack(route.params.backTo);
             return;
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
         if (isFromGlobalCreate) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(route.params.iouType, route.params.transactionID, route.params.reportID));
             return;
         }
 
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+        IOU.setMoneyRequestParticipantsFromReport(route.params.transactionID, report);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(route.params.iouType, route.params.transactionID, route.params.reportID));
+    }, [route.params.iouType, report, route.params.reportID, route.params.transactionID, isFromGlobalCreate, route.params.backTo]);
 
     const updateScanAndNavigate = useCallback(
-        (file, source) => {
-            IOU.replaceReceipt(transactionID, file, source);
+        (file: File, source: string) => {
+            IOU.replaceReceipt(route.params.transactionID, file, source);
             Navigation.dismissModal();
         },
-        [transactionID],
+        [route.params.transactionID],
     );
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
-     * @param {Object} file
      */
-    const setReceiptAndNavigate = (file) => {
+    const setReceiptAndNavigate = (file: File) => {
         if (!validateReceipt(file)) {
             return;
         }
 
         // Store the receipt on the transaction object in Onyx
         const source = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(route.params.transactionID, source, file.name, route.params.action !== CONST.IOU.ACTION.EDIT);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (route.params.action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, source);
             return;
         }
@@ -163,22 +144,22 @@ function IOURequestStepScan({
     };
 
     const capturePhoto = useCallback(() => {
-        if (!cameraRef.current.getScreenshot) {
+        if (!cameraRef?.current?.getScreenshot) {
             return;
         }
-        const imageBase64 = cameraRef.current.getScreenshot();
+        const imageBase64 = cameraRef?.current?.getScreenshot();
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64, filename);
         const source = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(route.params.transactionID, source, file.name, route.params.action !== CONST.IOU.ACTION.EDIT);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (route.params.action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, source);
             return;
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [cameraRef, route.params.action, route.params.transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -320,24 +301,24 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={Boolean(route.params.backTo)}
             testID={IOURequestStepScan.displayName}
         >
             <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
                 {!isDraggingOver && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
                 <ReceiptDropUI
                     onDrop={(e) => {
-                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                        const file = e?.dataTransfer?.files?.[0];
                         setReceiptAndNavigate(file);
                     }}
                     receiptImageTopPosition={receiptImageTopPosition}
                 />
                 <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle as TranslationPaths) : ''}
                     onConfirm={hideRecieptModal}
                     onCancel={hideRecieptModal}
                     isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason as TranslationPaths) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                 />
@@ -346,8 +327,6 @@ function IOURequestStepScan({
     );
 }
 
-IOURequestStepScan.defaultProps = defaultProps;
-IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);

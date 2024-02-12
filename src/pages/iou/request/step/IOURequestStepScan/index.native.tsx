@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -14,7 +14,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,49 +21,32 @@ import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import * as CameraPermission from './CameraPermission';
+import type IOURequestStepPropTypes from './IOURequestStepScanProps';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
+type IOURequestStepScanProps = IOURequestStepPropTypes &
+    StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE> & {
+        isFromGlobalCreate: boolean;
+    };
 
-    /* Onyx Props */
-    /** The report that the transaction belongs to */
-    report: reportPropTypes,
-
-    /** The transaction (or draft transaction) being changed */
-    transaction: transactionPropTypes,
-};
-
-const defaultProps = {
-    report: {},
-    transaction: {},
-};
-
-function IOURequestStepScan({
-    report,
-    route: {
-        params: {action, iouType, reportID, transactionID, backTo},
-    },
-    transaction: {isFromGlobalCreate},
-}) {
+function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
-    const camera = useRef(null);
+    const camera = useRef<typeof NavigationAwareCamera>(null);
     const [flash, setFlash] = useState(false);
-    const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<typeof RESULTS | null>(null);
 
     const {translate} = useLocalize();
 
@@ -127,19 +109,21 @@ function IOURequestStepScan({
         };
     }, []);
 
-    const validateReceipt = (file) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
+    const validateReceipt = (file: File) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        if (
+            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
+        ) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
             return false;
         }
 
-        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
             return false;
         }
 
-        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
             return false;
         }
@@ -167,44 +151,44 @@ function IOURequestStepScan({
     };
 
     const navigateToConfirmationStep = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
+        if (route.params.backTo) {
+            Navigation.goBack(route.params.backTo);
             return;
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
         if (isFromGlobalCreate) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(route.params.iouType, route.params.transactionID, route.params.reportID));
             return;
         }
 
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+        IOU.setMoneyRequestParticipantsFromReport(route.params.transactionID, report);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(route.params.iouType, route.params.transactionID, route.params.reportID));
+    }, [route.params.iouType, report, route.params.reportID, route.params.transactionID, isFromGlobalCreate, route.params.backTo]);
 
     const updateScanAndNavigate = useCallback(
-        (file, source) => {
+        (file: File, source: string) => {
             Navigation.dismissModal();
-            IOU.replaceReceipt(transactionID, file, source);
+            IOU.replaceReceipt(route.params.transactionID, file, source);
         },
-        [transactionID],
+        [route.params.transactionID],
     );
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
      * @param {Object} file
      */
-    const setReceiptAndNavigate = (file) => {
+    const setReceiptAndNavigate = (file: File) => {
         if (!validateReceipt(file)) {
             return;
         }
 
         // Store the receipt on the transaction object in Onyx
-        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(route.params.transactionID, file.uri, file.name, route.params.action !== CONST.IOU.ACTION.EDIT);
 
-        if (action === CONST.IOU.ACTION.EDIT) {
+        if (route.params.action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, file.uri);
             return;
         }
@@ -230,9 +214,9 @@ function IOURequestStepScan({
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
                 const source = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
+                IOU.setMoneyRequestReceipt(route.params.transactionID, source, photo.path, route.params.action !== CONST.IOU.ACTION.EDIT);
 
-                if (action === CONST.IOU.ACTION.EDIT) {
+                if (route.params.action === CONST.IOU.ACTION.EDIT) {
                     FileUtils.readFileAsync(source, photo.path, (file) => {
                         updateScanAndNavigate(file, source);
                     });
@@ -245,7 +229,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [flash, route.params.action, translate, route.params.transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -257,7 +241,7 @@ function IOURequestStepScan({
             includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={Boolean(route.params.backTo)}
             testID={IOURequestStepScan.displayName}
         >
             {cameraPermissionStatus !== RESULTS.GRANTED && (
@@ -363,8 +347,6 @@ function IOURequestStepScan({
     );
 }
 
-IOURequestStepScan.defaultProps = defaultProps;
-IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
