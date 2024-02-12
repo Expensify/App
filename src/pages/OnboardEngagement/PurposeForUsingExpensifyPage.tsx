@@ -76,12 +76,12 @@ function PurposeForUsingExpensifyModal() {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const theme = useTheme();
-    const backgroundColorStyle = StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor);
+    const backgroundColorStyle = StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.ONBOARD_ENGAGEMENT.ROOT].backgroundColor);
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
 
     const navigateBack = useCallback(() => {
         Report.dismissEngagementModal();
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack();
     }, []);
 
     const completeEngagement = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
@@ -90,7 +90,7 @@ function PurposeForUsingExpensifyModal() {
         }
 
         Report.completeEngagementModal(message, choice);
-        Report.navigateToConciergeChat();
+        Report.navigateToConciergeChat(false, true);
     }, []);
 
     const menuItems: MenuItemProps[] = useMemo(

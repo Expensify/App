@@ -38,3 +38,11 @@ jest.mock('react-native-fs', () => ({
     unlink: jest.fn(() => new Promise<void>((res) => res())),
     CachesDirectoryPath: jest.fn(),
 }));
+
+jest.mock('react-native-sound', () => {
+    class SoundMock {
+        play = jest.fn();
+    }
+
+    return SoundMock;
+});
