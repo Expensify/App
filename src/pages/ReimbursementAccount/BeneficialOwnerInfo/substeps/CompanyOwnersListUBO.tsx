@@ -93,6 +93,7 @@ function CompanyOwnersListUBO({
                     iconHeight={40}
                     interactive
                     shouldShowRightIcon
+                    displayInDefaultIconColor
                 />
             );
         });
@@ -117,6 +118,7 @@ function CompanyOwnersListUBO({
                             iconHeight={40}
                             interactive={false}
                             shouldShowRightIcon={false}
+                            displayInDefaultIconColor
                         />
                     )}
                     {extraBeneficialOwners}
