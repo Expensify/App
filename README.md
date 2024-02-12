@@ -397,7 +397,27 @@ This application is built with the following principles.
 ----
 
 # Security
-Updated rules for managing members across all types of chats in New Expensify
+Updated rules for managing members across all types of chats in New Expensify.
+
+- **Nobody can leave or be removed from something they were automatically added to. For example:**
+
+    - DM members can't leave or be removed from their DMs
+    - Members can't leave or be removed from their own workspace chats
+    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from the #announce room
+    - Admins can't leave or be removed from #admins
+    - Domain members can't leave or be removed from their domain chat
+    - Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
+    - Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
+    - Group owners cannot be removed from their groups - they need to transfer ownership first
+- **Excepting the above, admins can remove anyone. For example:**
+    - Group admins can remove other group admins, as well as group members
+    - Workspace admins can remove other workspace admins, as well as workspace members, and invited guests
+- **Excepting the above, members can remove guests. For example:**
+    - Workspace members can remove non-workspace guests.
+- **Excepting the above, anybody can remove themselves from any object**
+
+
 
 
 1. ### DM
