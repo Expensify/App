@@ -8,21 +8,24 @@ function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: Rad
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flex1, styles.alignItemsStart]}>
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
-                text={item.text}
-                textStyles={textStyles}
-            />
-
-            {!!item.alternateText && (
+        <>
+            <View style={[styles.flex1, styles.alignItemsStart]}>
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
-                    text={item.alternateText}
-                    textStyles={alternateTextStyles}
+                    text={item.text}
+                    textStyles={textStyles}
                 />
-            )}
-        </View>
+
+                {!!item.alternateText && (
+                    <TextWithTooltip
+                        shouldShowTooltip={showTooltip}
+                        text={item.alternateText}
+                        textStyles={alternateTextStyles}
+                    />
+                )}
+            </View>
+            {!!item.rightElement && item.rightElement}
+        </>
     );
 }
 

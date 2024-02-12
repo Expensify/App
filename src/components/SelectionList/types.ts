@@ -104,6 +104,9 @@ type RadioItem = {
 
     /** Represents the index of the option within the section it came from */
     index?: number;
+
+    /** Element to show on the right side of the item */
+    rightElement?: ReactNode;
 };
 
 type RadioListItemProps = CommonListItemProps<RadioItem> & {
