@@ -4,6 +4,7 @@ import React from 'react';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import type {IconSize} from '@components/EReceiptThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
@@ -42,6 +43,9 @@ type ReportActionItemImageProps = {
 
     /** Filename of attachment */
     filename?: string;
+
+    /** number of images displayed in the same parent container */
+    iconSize?: IconSize;
 };
 
 /**
@@ -60,6 +64,7 @@ function ReportActionItemImage({
     isLocalFile = false,
     fileExtension,
     filename,
+    iconSize = 'large',
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -70,7 +75,7 @@ function ReportActionItemImage({
     let propsObj: ReceiptImageProps;
 
     if (isEReceipt) {
-        propsObj = {isEReceipt: true, transactionID: transaction.transactionID};
+        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: iconSize as IconSize};
     } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource)) {
         propsObj = {shouldUseThumbnailImage: true, source: thumbnailSource};
     } else {
@@ -87,7 +92,7 @@ function ReportActionItemImage({
                         report={report}
                         isReceiptAttachment
                         canEditReceipt={canEditReceipt}
-                        allowDownload
+                        allowDownload={!isEReceipt}
                         originalFileName={filename}
                     >
                         {({show}) => (
