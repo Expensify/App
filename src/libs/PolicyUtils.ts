@@ -104,9 +104,9 @@ function isExpensifyGuideTeam(email: string): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy>): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-const isPolicyMember = (policyID: string, policies: Record<string, Policy>): boolean => Object.values(policies).some((policy) => policy?.id === policyID);
+const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
@@ -200,8 +200,23 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
+function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * Checks if policy's scheduled submit / auto reporting frequency is "instant".
+ * Note: Free policies have "instant" submit always enabled.
+ */
+function isInstantSubmitEnabled(policy: OnyxEntry<Policy>): boolean {
+    return policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || policy?.type === CONST.POLICY.TYPE.FREE;
+}
+
+/**
+ * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
+ */
+function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function extractPolicyIDFromPath(path: string) {
@@ -232,7 +247,9 @@ export {
     shouldShowPolicy,
     isExpensifyTeam,
     isExpensifyGuideTeam,
+    isInstantSubmitEnabled,
     isPolicyAdmin,
+    isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
     getTag,

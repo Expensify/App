@@ -208,7 +208,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap5, styles.mh5, styles.mv5, styles.pl5]}>
+            <View style={[styles.flexRow, styles.gap5, styles.p5, styles.pl10, styles.appBG]}>
                 <View style={[styles.flexRow, styles.flex1]}>
                     <Text
                         numberOfLines={1}
@@ -377,6 +377,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     data={workspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
+                    stickyHeaderIndices={[0]}
                 />
             </View>
             <ConfirmModal
