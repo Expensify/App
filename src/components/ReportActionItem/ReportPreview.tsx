@@ -318,7 +318,6 @@ function ReportPreview({
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
                                         shouldShowApproveButton={shouldShowApproveButton}
-                                        style={[styles.mt3]}
                                         kycWallAnchorAlignment={{
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -335,7 +334,6 @@ function ReportPreview({
                                         medium
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}
-                                        style={styles.mt3}
                                         onPress={() => iouReport && IOU.submitReport(iouReport)}
                                     />
                                 )}
