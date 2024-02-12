@@ -15,16 +15,16 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
+type DownloadMenuItem = MenuItemProps & {
+    translationKey: TranslationPaths;
+    openAppDownloadLink: () => void;
+    downloadLink: string;
+};
+
 function AppDownloadLinksPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
-
-    type DownloadMenuItem = MenuItemProps & {
-        translationKey: TranslationPaths;
-        openAppDownloadLink: () => void;
-        downloadLink: string;
-    };
 
     const menuItems: DownloadMenuItem[] = [
         {
