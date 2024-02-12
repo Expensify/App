@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import categoryPropTypes from '@components/categoryPropTypes';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,38 +15,38 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import withPolicyAccessOrNotFound from './withPolicyAccessOrNotFound';
+import type {WithWorkspaceAccessProps} from './withPolicyAccessOrNotFound';
 
-const propTypes = {
-    /* Onyx Props */
+type PolicyForList = {
+    value: string;
+    text: string;
+    keyForList: string;
+    isSelected: boolean;
+    rightElement: React.ReactNode;
+};
+
+type WorkspaceCategoriesOnyxProps = {
     /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/categories */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-const defaultProps = {
-    policyCategories: {},
-};
+type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & WithWorkspaceAccessProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
-function WorkspaceCategoriesPage({policyCategories}) {
+function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
     const data = useMemo(
         () =>
-            _.map(_.values(policyCategories), (value) => ({
+            Object.values(policyCategories ?? {}).map((value) => ({
                 value: value.name,
                 text: value.name,
                 keyForList: value.name,
@@ -67,26 +66,31 @@ function WorkspaceCategoriesPage({policyCategories}) {
         [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, theme.icon, translate],
     );
 
-    const toggleCategory = (category) => {
+    const toggleCategory = (category: PolicyForList) => {
         setSelectedCategories((prev) => {
             if (prev.includes(category.value)) {
-                return _.filter(prev, (item) => item !== category.value);
+                return prev.filter((item) => item !== category.value);
             }
             return [...prev, category.value];
         });
     };
 
     const toggleAllCategories = () => {
-        const isAllSelected = _.every(data, (category) => category.isSelected);
+        const isAllSelected = data.every((category) => category.isSelected);
         if (isAllSelected) {
             setSelectedCategories([]);
         } else {
-            setSelectedCategories(_.map(data, (item) => item.value));
+            setSelectedCategories(data.map((item) => item.value));
         }
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            style={[styles.defaultModalContainer]}
+            testID={WorkspaceCategoriesPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <HeaderWithBackButton
                 icon={Illustrations.FolderOpen}
                 title={translate('workspace.common.categories')}
@@ -103,19 +107,13 @@ function WorkspaceCategoriesPage({policyCategories}) {
     );
 }
 
-WorkspaceCategoriesPage.propTypes = propTypes;
-WorkspaceCategoriesPage.defaultProps = defaultProps;
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
 export default compose(
     withPolicyAccessOrNotFound(),
-    withOnyx({
+    withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
         policyCategories: {
-            key: ({
-                route: {
-                    params: {policyID},
-                },
-            }) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
         },
     }),
 )(WorkspaceCategoriesPage);
