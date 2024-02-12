@@ -7,15 +7,15 @@ import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
-const AnimatedTextInput = Animated.createAnimatedComponent(MarkdownTextInput);
+const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextInput);
 
-type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
+type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & TextInput & HTMLInputElement;
 
-function RNMarkdownTextInput(props: MarkdownTextInputProps, ref: ForwardedRef<AnimatedTextInputRef>) {
+function RNMarkdownTextInputWithRef(props: MarkdownTextInputProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
 
     return (
-        <AnimatedTextInput
+        <AnimatedMarkdownTextInput
             allowFontScaling={false}
             textBreakStrategy="simple"
             keyboardAppearance={theme.colorScheme}
@@ -23,7 +23,7 @@ function RNMarkdownTextInput(props: MarkdownTextInputProps, ref: ForwardedRef<An
                 if (typeof ref !== 'function') {
                     return;
                 }
-                ref(refHandle as AnimatedTextInputRef);
+                ref(refHandle as AnimatedMarkdownTextInputRef);
             }}
             // eslint-disable-next-line
             {...props}
@@ -31,7 +31,7 @@ function RNMarkdownTextInput(props: MarkdownTextInputProps, ref: ForwardedRef<An
     );
 }
 
-RNMarkdownTextInput.displayName = 'RNTextInputWithRef';
+RNMarkdownTextInputWithRef.displayName = 'RNTextInputWithRef';
 
-export default React.forwardRef(RNMarkdownTextInput);
-export type {AnimatedTextInputRef};
+export default React.forwardRef(RNMarkdownTextInputWithRef);
+export type {AnimatedMarkdownTextInputRef};
