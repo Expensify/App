@@ -20,7 +20,7 @@ PODS:
     - Airship (= 16.12.1)
     - Airship/MessageCenter (= 16.12.1)
     - Airship/PreferenceCenter (= 16.12.1)
-  - AirshipServiceExtension (17.7.1)
+  - AirshipServiceExtension (17.7.3)
   - AppAuth (1.6.2):
     - AppAuth/Core (= 1.6.2)
     - AppAuth/ExternalUserAgent (= 1.6.2)
@@ -239,7 +239,7 @@ PODS:
   - GTMAppAuth (2.0.0):
     - AppAuth/Core (~> 1.6)
     - GTMSessionFetcher/Core (< 4.0, >= 1.5)
-  - GTMSessionFetcher/Core (3.2.0)
+  - GTMSessionFetcher/Core (3.3.1)
   - hermes-engine (0.73.2):
     - hermes-engine/Pre-built (= 0.73.2)
   - hermes-engine/Pre-built (0.73.2)
@@ -2054,11 +2054,17 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.6.1)
-  - Turf (2.7.0)
+  - Turf (2.8.0)
   - VisionCamera (2.16.8):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
     - React
     - React-callinvoker
+    - React-Codegen
     - React-Core
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -2448,7 +2454,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Airship: 2f4510b497a8200780752a5e0304a9072bfffb6d
   AirshipFrameworkProxy: ea1b6c665c798637b93c465b5e505be3011f1d9d
-  AirshipServiceExtension: fd370570a346d27e40423b550a6979e66f4992a5
+  AirshipServiceExtension: 55730cc24d595847c1550b8d3cf62b807742d560
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
@@ -2482,7 +2488,7 @@ SPEC CHECKSUMS:
   GoogleSignIn: b232380cf495a429b8095d3178a8d5855b42e842
   GoogleUtilities: 0759d1a57ebb953965c2dfe0ba4c82e95ccc2e34
   GTMAppAuth: 99fb010047ba3973b7026e45393f51f27ab965ae
-  GTMSessionFetcher: 41b9ef0b4c08a6db4b7eb51a21ae5183ec99a2c8
+  GTMSessionFetcher: 8a1b34ad97ebe6f909fb8b9b77fba99943007556
   hermes-engine: b361c9ef5ef3cda53f66e195599b47e1f84ffa35
   libaom: 144606b1da4b5915a1054383c3a4459ccdb3c661
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
@@ -2593,8 +2599,8 @@ SPEC CHECKSUMS:
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: 0a6794d1974aed5d653d0d0cb900493e2583e35a
+  Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
+  VisionCamera: 1bbffda27669e2a81d721b071151cb6f39da93f2
   Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: 2748a60cfcfb5c160d044e3e7700449d03902536
