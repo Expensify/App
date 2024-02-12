@@ -713,6 +713,10 @@ export default {
             subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         },
     },
+    shareCodePage: {
+        title: 'Tu código',
+        subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
+    },
     loungeAccessPage: {
         loungeAccess: 'Acceso a la sala vip',
         headline: 'La sala vip de Expensify está cerrada.',
@@ -2470,7 +2474,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copiar',
+        copy: 'Copiar URL',
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
