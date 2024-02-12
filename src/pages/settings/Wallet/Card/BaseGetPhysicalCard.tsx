@@ -15,7 +15,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardList, GetPhysicalCardForm, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import type {CardList, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 

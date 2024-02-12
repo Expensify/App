@@ -86,7 +86,6 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     FundList,
-    GetPhysicalCardForm,
     IntroSelected,
     IOU,
     Locale,

@@ -12,8 +12,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {GetPhysicalCardForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
-import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 type OnValidateResult = {
