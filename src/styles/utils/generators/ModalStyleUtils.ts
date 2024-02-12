@@ -191,7 +191,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // swipeDirection = ['down', 'right'];
                 animationIn = 'fadeIn';
                 animationOut = 'fadeOut';
-                shouldAddTopSafeAreaMargin = false;
+                shouldAddTopSafeAreaMargin = !shouldUseNarrowLayout;
                 shouldAddBottomSafeAreaMargin = false;
                 shouldAddTopSafeAreaPadding = false;
                 break;
