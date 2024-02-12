@@ -1533,6 +1533,7 @@ export default {
     workspace: {
         common: {
             card: 'Cards',
+            workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
             delete: 'Delete workspace',

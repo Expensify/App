@@ -1555,6 +1555,7 @@ export default {
     workspace: {
         common: {
             card: 'Tarjetas',
+            workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
