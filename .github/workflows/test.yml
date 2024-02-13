@@ -63,7 +63,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Install ts-node
-        run: npm i ts-node
+        run: npm i -g ts-node
 
       - name: Test CI git logic
         run: tests/unit/CIGitLogicTest.sh
