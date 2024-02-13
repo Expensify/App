@@ -14,12 +14,14 @@ const lightTheme = {
     icon: colors.productLight700,
     iconMenu: colors.green400,
     iconHovered: colors.productLight900,
+    iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
     iconReversed: colors.productLight100,
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
+    syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
     buttonDefaultBG: colors.productLight400,
@@ -44,7 +46,7 @@ const lightTheme = {
     hoverComponentBG: colors.productLight300,
     activeComponentBG: colors.productLight400,
     signInSidebar: colors.green800,
-    sidebar: colors.productLight200,
+    sidebar: colors.productLight100,
     sidebarHover: colors.productLight300,
     heading: colors.productLight900,
     textLight: colors.white,
@@ -107,7 +109,7 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.WORKSPACES]: {
-            backgroundColor: colors.pink800,
+            backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
@@ -123,7 +125,11 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productLight200,
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+            backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.ABOUT]: {
@@ -136,6 +142,14 @@ const lightTheme = {
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: {
+            backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: {
+            backgroundColor: colors.green600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },

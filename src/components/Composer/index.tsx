@@ -1,5 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
@@ -9,6 +7,7 @@ import {StyleSheet, View} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -82,7 +81,6 @@ function Composer(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const navigation = useNavigation();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedTextInputRef | null>(null);
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
@@ -153,41 +151,6 @@ function Composer(
     };
 
     /**
-     * Set pasted text to clipboard
-     */
-    const paste = useCallback((text?: string) => {
-        try {
-            document.execCommand('insertText', false, text);
-            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            textInput.current?.blur();
-            textInput.current?.focus();
-            // eslint-disable-next-line no-empty
-        } catch (e) {}
-    }, []);
-
-    /**
-     * Manually place the pasted HTML into Composer
-     */
-    const handlePastedHTML = useCallback(
-        (html: string) => {
-            const parser = new ExpensiMark();
-            paste(parser.htmlToMarkdown(html));
-        },
-        [paste],
-    );
-
-    /**
-     * Paste the plaintext content into Composer.
-     */
-    const handlePastePlainText = useCallback(
-        (event: ClipboardEvent) => {
-            const plainText = event.clipboardData?.getData('text/plain');
-            paste(plainText);
-        },
-        [paste],
-    );
-
-    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      */
@@ -197,7 +160,7 @@ function Composer(
             const isFocused = textInput.current?.isFocused();
 
             if (!(isVisible || isFocused)) {
-                return;
+                return true;
             }
 
             if (textInput.current !== event.target) {
@@ -207,7 +170,7 @@ function Composer(
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
                 const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
                 if (isTargetInput) {
-                    return;
+                    return true;
                 }
 
                 textInput.current?.focus();
@@ -218,13 +181,12 @@ function Composer(
             const TEXT_HTML = 'text/html';
 
             const clipboardDataHtml = event.clipboardData?.getData(TEXT_HTML) ?? '';
-            const clipboardDataTypesHtml = event.clipboardData?.types.includes(TEXT_HTML) ?? false;
 
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                onPasteFile(event.clipboardData?.files[0]);
-                return;
+                onPasteFile(event.clipboardData.files[0]);
+                return true;
             }
 
             // If paste contains base64 image
@@ -237,7 +199,7 @@ function Composer(
                     const src = embeddedImages[0].src;
                     const file = FileUtils.base64ToFile(src, 'image.png');
                     onPasteFile(file);
-                    return;
+                    return true;
                 }
             }
 
@@ -256,32 +218,13 @@ function Composer(
                                 const file = new File([blob], 'image.jpg', {type: 'image/jpeg'});
                                 onPasteFile(file);
                             });
-                        return;
+                        return true;
                     }
                 }
             }
-
-            // If paste contains HTML
-            if (clipboardDataTypesHtml) {
-                const pastedHTML = clipboardDataHtml;
-
-                const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
-
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                        handlePastePlainText(event);
-                        return;
-                    }
-                }
-                handlePastedHTML(pastedHTML);
-                return;
-            }
-            handlePastePlainText(event);
+            return false;
         },
-        [onPasteFile, handlePastedHTML, checkComposerVisibility, handlePastePlainText],
+        [onPasteFile, checkComposerVisibility],
     );
 
     /**
@@ -313,27 +256,18 @@ function Composer(
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
-    useEffect(() => {
-        // we need to handle listeners on navigation focus/blur as Composer is not unmounting
-        // when navigating away to different report
-        const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
-        const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+    useHtmlPaste(textInput, handlePaste, true);
 
+    useEffect(() => {
         if (typeof ref === 'function') {
             ref(textInput.current);
         }
 
-        if (textInput.current) {
-            document.addEventListener('paste', handlePaste);
-        }
-
         return () => {
-            if (!isReportActionCompose) {
-                ReportActionComposeFocusManager.clear();
+            if (isReportActionCompose) {
+                return;
             }
-            unsubscribeFocus();
-            unsubscribeBlur();
-            document.removeEventListener('paste', handlePaste);
+            ReportActionComposeFocusManager.clear();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

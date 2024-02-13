@@ -13,6 +13,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
@@ -97,6 +98,8 @@ function SignInPageLayout(props) {
 
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
+    const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
+
     return (
         <View style={containerStyles}>
             {!props.shouldShowSmallScreen ? (
@@ -127,6 +130,7 @@ function SignInPageLayout(props) {
                                     isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
+                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                                 />
                             </View>
                             <View>
@@ -161,12 +165,15 @@ function SignInPageLayout(props) {
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
-                        <BackgroundImage
-                            isSmallScreen
-                            pointerEvents="none"
-                            width={variables.signInHeroBackgroundWidthMobile}
-                        />
+                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(backgroundImageHeight), StyleUtils.getSignInBgStyles(theme)]}>
+                        <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
+                            <BackgroundImage
+                                isSmallScreen
+                                pointerEvents="none"
+                                width={variables.signInHeroBackgroundWidthMobile}
+                                transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
+                            />
+                        </View>
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
                             welcomeText={props.welcomeText}
