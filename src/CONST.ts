@@ -226,7 +226,6 @@ const CONST = {
                 EXIT: 'EXIT',
             },
         },
-
         ERROR: {
             MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',

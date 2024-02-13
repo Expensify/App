@@ -20,6 +20,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/WorkspaceRateAndUnitForm';
 import type {WorkspaceRateAndUnit} from '@src/types/onyx';
 
 type WorkspaceRatePageBaseProps = WithPolicyProps;
@@ -94,7 +95,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
-                        inputID="rate"
+                        inputID={INPUT_IDS.RATE}
                         currency={props.policy?.outputCurrency ?? CONST.CURRENCY.USD}
                         extraDecimals={1}
                         defaultValue={(
