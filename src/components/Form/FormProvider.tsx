@@ -173,6 +173,7 @@ function FormProvider(
         // Validate in order to make sure the correct error translations are displayed,
         // making sure to not clear server errors if they exist
         onValidate(trimmedStringValues, !hasServerError);
+
         // Only run when locales change
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [preferredLocale]);
