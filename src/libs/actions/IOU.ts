@@ -760,8 +760,11 @@ function getMoneyRequestInformation(
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
         needsToBeManuallySubmitted = isFromPaidPolicy && !policy?.harvesting?.enabled;
 
-        // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
-        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
+        const isProcessingReportOnInstantSubmitPolicy =
+            isFromPaidPolicy && ReportUtils.isProcessingReport(iouReport) && PolicyUtils.isInstantSubmitEnabled(policy ?? ({} as OnyxEntry<OnyxTypes.Policy>));
+
+        // If the linked expense report on paid policy is not draft, or is not processing in a policy with Instant Submit enabled, we need to create a new draft expense report
+        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !isProcessingReportOnInstantSubmitPolicy) {
             iouReport = null;
         }
     }
