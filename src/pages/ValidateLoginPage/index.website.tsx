@@ -79,7 +79,7 @@ function ValidateLoginPage({
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
         });
-    }, [login, cachedAccountID, is2FARequired]);
+    }, [login, cachedAccountID, is2FARequired, exitTo]);
 
     return (
         <>
