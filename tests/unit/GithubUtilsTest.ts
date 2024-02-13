@@ -1,11 +1,64 @@
 /**
  * @jest-environment node
  */
-const core = require('@actions/core');
-const GithubUtils = require('../../.github/libs/GithubUtils');
+import core from '@actions/core';
+import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
+
+type DeployBlockers = {
+    url: string;
+    number: number;
+    isResolved: boolean;
+};
+
+type ExpectedReponse = {
+    PRList: Array<{
+        url: string;
+        number: number;
+        isVerified: boolean;
+    }>;
+    labels: Array<{
+        color: string;
+        default: boolean;
+        description: string;
+        id: number;
+        name: string;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        node_id: string;
+        url: string;
+    }>;
+    tag: string;
+    title: string;
+    url: string;
+    number: number;
+    deployBlockers: DeployBlockers[] | null;
+    internalQAPRList: string[];
+    isTimingDashboardChecked: boolean;
+    isFirebaseChecked: boolean;
+    isGHStatusChecked: boolean;
+};
+
+type Issue = {
+    url: string;
+    title: string;
+    labels: Array<{
+        id: number;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        node_id: string;
+        url: string;
+        name: string;
+        color: string;
+        default: boolean;
+        description: string;
+    }>;
+    body: string;
+};
+
+type ObjectMethodData<T> = {
+    data: T;
+};
 
 beforeAll(() => {
     // Mock core module
@@ -19,6 +72,7 @@ beforeAll(() => {
                     Promise.resolve({
                         data: {
                             ...arg,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             html_url: 'https://github.com/Expensify/App/issues/29',
                         },
                     }),
@@ -26,8 +80,10 @@ beforeAll(() => {
                 listForRepo: mockListIssues,
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
+        paginate: jest.fn().mockImplementation((objectMethod: <T>() => Promise<{data: Record<string, T>}>) => objectMethod().then(({data}) => data)),
     };
+
+    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
 });
 
@@ -38,12 +94,13 @@ afterEach(() => {
 
 describe('GithubUtils', () => {
     describe('getStagingDeployCash', () => {
-        const baseIssue = {
+        const baseIssue: Issue = {
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             title: 'Andrew Test Issue',
             labels: [
                 {
                     id: 2783847782,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                     name: 'StagingDeployCash',
@@ -60,7 +117,7 @@ describe('GithubUtils', () => {
         issueWithDeployBlockers.body +=
             '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/issues/1\r\n- [x] https://github.com/Expensify/App/issues/2\r\n- [ ] https://github.com/Expensify/App/pull/1234\r\n';
 
-        const baseExpectedResponse = {
+        const baseExpectedResponse: ExpectedReponse = {
             PRList: [
                 {
                     url: 'https://github.com/Expensify/App/pull/21',
@@ -85,6 +142,7 @@ describe('GithubUtils', () => {
                     description: '',
                     id: 2783847782,
                     name: 'StagingDeployCash',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                 },
@@ -93,7 +151,7 @@ describe('GithubUtils', () => {
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,
-            deployBlockers: [],
+            deployBlockers: null,
             internalQAPRList: [],
             isTimingDashboardChecked: false,
             isFirebaseChecked: false,
@@ -119,13 +177,13 @@ describe('GithubUtils', () => {
         ];
 
         test('Test finding an open issue with no PRs successfully', () => {
-            const bareIssue = {
+            const bareIssue: Issue = {
                 ...baseIssue,
                 // eslint-disable-next-line max-len
                 body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
             };
 
-            const bareExpectedResponse = {
+            const bareExpectedResponse: ExpectedReponse = {
                 ...baseExpectedResponse,
                 PRList: [],
             };
@@ -259,6 +317,7 @@ describe('GithubUtils', () => {
             {
                 number: 1,
                 title: 'Test PR 1',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/1',
                 user: {login: 'testUser'},
                 labels: [],
@@ -266,6 +325,7 @@ describe('GithubUtils', () => {
             {
                 number: 2,
                 title: 'Test PR 2',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/2',
                 user: {login: 'testUser'},
                 labels: [],
@@ -273,6 +333,7 @@ describe('GithubUtils', () => {
             {
                 number: 3,
                 title: 'Test PR 3',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/3',
                 user: {login: 'testUser'},
                 labels: [],
@@ -280,6 +341,7 @@ describe('GithubUtils', () => {
             {
                 number: 4,
                 title: '[NO QA] Test No QA PR uppercase',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/4',
                 user: {login: 'testUser'},
                 labels: [],
@@ -287,6 +349,7 @@ describe('GithubUtils', () => {
             {
                 number: 5,
                 title: '[NoQa] Test No QA PR Title Case',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/5',
                 user: {login: 'testUser'},
                 labels: [],
@@ -294,11 +357,13 @@ describe('GithubUtils', () => {
             {
                 number: 6,
                 title: '[Internal QA] Test Internal QA PR',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/6',
                 user: {login: 'testUser'},
                 labels: [
                     {
                         id: 1234,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
                         url: 'https://api.github.com/Expensify/App/labels/InternalQA',
                         name: 'InternalQA',
@@ -318,11 +383,13 @@ describe('GithubUtils', () => {
             {
                 number: 7,
                 title: '[Internal QA] Another Test Internal QA PR',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/7',
                 user: {login: 'testUser'},
                 labels: [
                     {
                         id: 1234,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
                         url: 'https://api.github.com/Expensify/App/labels/InternalQA',
                         name: 'InternalQA',
@@ -350,12 +417,13 @@ describe('GithubUtils', () => {
                         list: jest.fn().mockResolvedValue({data: mockPRs}),
                     },
                 },
-                paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
+                paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
             }),
         }));
 
         const octokit = mockGithub().getOctokit();
         const githubUtils = class extends GithubUtils {};
+        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
         githubUtils.internalOctokit = octokit;
         const tag = '1.0.2-12';
         const basePRList = [
