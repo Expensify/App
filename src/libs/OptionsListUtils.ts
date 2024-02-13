@@ -2025,4 +2025,4 @@ export {
     transformedTaxRates,
 };
 
-export type {MemberForList};
+export type {Category, MemberForList};

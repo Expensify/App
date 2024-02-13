@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Category } from '@libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 
 type CategoryPickerOnyxProps = {
@@ -20,7 +21,7 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
     selectedCategory: string;
-    onSubmit: () => void; // TO DO: Check if optional
+    onSubmit: (category: Category) => void;
 };
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}: CategoryPickerProps) {
@@ -40,7 +41,6 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             {
                 name: selectedCategory,
                 enabled: true,
-                accountID: null,
             },
         ];
     }, [selectedCategory]);
