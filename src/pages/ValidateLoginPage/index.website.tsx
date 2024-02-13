@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import {InteractionManager, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
@@ -14,7 +15,7 @@ function ValidateLoginPage({
     account,
     credentials,
     route: {
-        params: {accountID, validateCode},
+        params: {accountID, validateCode, exitTo},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
@@ -25,16 +26,30 @@ function ValidateLoginPage({
     const cachedAccountID = credentials?.accountID;
 
     useEffect(() => {
+
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
+
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack();
             });
             return;
         }
+
         Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
+
+            if (exitTo) {
+                InteractionManager.runAfterInteractions(() => {
+                    Session.waitForUserSignIn().then(() => {
+                        Navigation.waitForProtectedRoutes().then(() => {
+                            const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                            Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+                        });
+                    });
+                });
+            }
             return;
         }
 
@@ -45,6 +60,18 @@ function ValidateLoginPage({
 
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
+
+            if (exitTo) {
+
+                InteractionManager.runAfterInteractions(() => {
+                    Session.waitForUserSignIn().then(() => {
+                        Navigation.waitForProtectedRoutes().then(() => {
+                            const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                            Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+                        });
+                    });
+                });
+            }
             return;
         }
 

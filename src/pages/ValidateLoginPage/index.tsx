@@ -1,15 +1,17 @@
 import React, {useEffect} from 'react';
+import {InteractionManager, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
     route: {
-        params: {accountID, validateCode},
+        params: {accountID, validateCode, exitTo},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
@@ -19,9 +21,32 @@ function ValidateLoginPage({
             if (session?.authToken) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
-                Navigation.goBack();
+                if (exitTo) {
+                    InteractionManager.runAfterInteractions(() => {
+                        Session.waitForUserSignIn().then(() => {
+                            Navigation.waitForProtectedRoutes().then(() => {
+                                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+                            });
+                        });
+                    });
+                } else {
+                    Navigation.goBack();
+                }
             } else {
-                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode);
+                Session.signInWithValidateCode(Number(accountID), validateCode);
+                if (exitTo) {
+                    InteractionManager.runAfterInteractions(() => {
+                        Session.waitForUserSignIn().then(() => {
+                            Navigation.waitForProtectedRoutes().then(() => {
+                                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+                            });
+                        });
+                    });
+                } else {
+                    Navigation.navigate(ROUTES.HOME);
+                }
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -504,11 +504,6 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '') {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
-    Navigation.navigate(ROUTES.HOME);
-}
-
 /**
  * Initializes the state of the automatic authentication when the user clicks on a magic link.
  *
@@ -890,7 +885,6 @@ export {
     checkIfActionIsAllowed,
     signIn,
     signInWithValidateCode,
-    signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,
