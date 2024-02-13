@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useIsSplashHidden from '@hooks/useIsSplashHidden';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
@@ -34,6 +36,14 @@ function SignInHeroImage(props) {
             height: variables.signInHeroImageDesktopHeight,
             width: variables.signInHeroImageDesktopWidth,
         };
+    }
+
+    const isSplashHidden = useIsSplashHidden();
+    // Prevents rendering of the Lottie animation until the splash screen is hidden
+    // by returning an empty view of the same size as the animation.
+    // See issue: https://github.com/Expensify/App/issues/34696
+    if (!isSplashHidden) {
+        return <View style={[styles.alignSelfCenter, imageSize]} />;
     }
 
     return (

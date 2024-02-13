@@ -1,22 +1,23 @@
 import {useNavigation} from '@react-navigation/native';
+import type {StackNavigationProp} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import type {Section} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -26,77 +27,60 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import personalDetailsPropType from './personalDetailsPropType';
-import reportPropTypes from './reportPropTypes';
-import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
 
-const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
+type RoomInvitePageOnyxProps = {
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/invite */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
-
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** ID of the policy */
-        id: PropTypes.string,
-    }).isRequired,
-
-    ...policyPropTypes,
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-const defaultProps = {
-    personalDetails: {},
-    betas: [],
-    ...policyDefaultProps,
-};
+type RoomInvitePageProps = RoomInvitePageOnyxProps & WithReportOrNotFoundProps;
 
-function RoomInvitePage(props) {
+type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
+
+function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedOptions, setSelectedOptions] = useState([]);
-    const [personalDetails, setPersonalDetails] = useState([]);
-    const [userToInvite, setUserToInvite] = useState(null);
+    const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
+    const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
+    const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const navigation = useNavigation();
+    const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'visibleChatMemberAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS],
-        [props.report],
+        () =>
+            [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
+                OptionsListUtils.addSMSDomainIfPhoneNumber(participant),
+            ),
+        [report],
     );
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
-        const detailsMap = {};
-        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
-        const newSelectedOptions = [];
-        _.forEach(selectedOptions, (option) => {
-            newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
+        const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
+        inviteOptions.personalDetails.forEach((detail) => {
+            if (!detail.login) {
+                return;
+            }
+            detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail);
+        });
+        const newSelectedOptions: ReportUtils.OptionData[] = [];
+        selectedOptions.forEach((option) => {
+            newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
         });
 
         setUserToInvite(inviteOptions.userToInvite);
-        setPersonalDetails(inviteOptions.personalDetails);
+        setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.betas, searchTerm, excludedUsers]);
+    }, [personalDetails, betas, searchTerm, excludedUsers]);
 
     useEffect(() => {
         const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
@@ -111,7 +95,7 @@ function RoomInvitePage(props) {
     }, []);
 
     const sections = useMemo(() => {
-        const sectionsArr = [];
+        const sectionsArr: Sections = [];
         let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
@@ -121,34 +105,33 @@ function RoomInvitePage(props) {
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
         if (searchTerm !== '') {
-            filterSelectedOptions = _.filter(selectedOptions, (option) => {
-                const accountID = lodashGet(option, 'accountID', null);
-                const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+            filterSelectedOptions = selectedOptions.filter((option) => {
+                const accountID = option?.accountID;
+                const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
                 const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
-                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchValue) || option.login.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
+                const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
+                const isPartOfSearchTerm = option.text?.toLowerCase().includes(searchValue) ?? option.login?.toLowerCase().includes(searchValue);
+                return isPartOfSearchTerm ?? isOptionInPersonalDetails;
             });
         }
+        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => OptionsListUtils.formatMemberForList(selectedOption));
 
         sectionsArr.push({
             title: undefined,
-            data: filterSelectedOptions,
-            shouldShow: true,
+            data: filterSelectedOptionsFormatted,
             indexOffset,
         });
         indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
-        const selectedLogins = _.map(selectedOptions, ({login}) => login);
-        const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
-        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
-        const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
+        const selectedLogins = selectedOptions.map(({login}) => login);
+        const personalDetailsWithoutSelected = invitePersonalDetails.filter(({login}) => !selectedLogins.includes(login));
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
+        const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
         sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
-            shouldShow: !_.isEmpty(personalDetailsFormatted),
             indexOffset,
         });
         indexOffset += personalDetailsFormatted.length;
@@ -157,21 +140,20 @@ function RoomInvitePage(props) {
             sectionsArr.push({
                 title: undefined,
                 data: [OptionsListUtils.formatMemberForList(userToInvite)],
-                shouldShow: true,
                 indexOffset,
             });
         }
 
         return sectionsArr;
-    }, [personalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
+    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
 
     const toggleOption = useCallback(
-        (option) => {
-            const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+        (option: OptionsListUtils.MemberForList) => {
+            const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-            let newSelectedOptions;
+            let newSelectedOptions: ReportUtils.OptionData[];
             if (isOptionInList) {
-                newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+                newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
             } else {
                 newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
             }
@@ -181,40 +163,36 @@ function RoomInvitePage(props) {
         [selectedOptions],
     );
 
-    const validate = useCallback(() => {
-        const errors = {};
-        if (selectedOptions.length <= 0) {
-            errors.noUserSelected = true;
-        }
-
-        return _.size(errors) <= 0;
-    }, [selectedOptions]);
+    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
 
     // Non policy members should not be able to view the participants of a room
-    const reportID = props.report.reportID;
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
-    const backRoute = useMemo(() => (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
-    const reportName = useMemo(() => ReportUtils.getReportName(props.report), [props.report]);
+    const reportID = report?.reportID;
+    const isPolicyMember = useMemo(() => (report?.policyID ? PolicyUtils.isPolicyMember(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
+    const backRoute = useMemo(() => reportID && (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
+    const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
         }
-        const invitedEmailsToAccountIDs = {};
-        _.each(selectedOptions, (option) => {
-            const login = option.login || '';
-            const accountID = lodashGet(option, 'accountID', '');
+        const invitedEmailsToAccountIDs: PolicyUtils.MemberEmailsToAccountIDs = {};
+        selectedOptions.forEach((option) => {
+            const login = option.login ?? '';
+            const accountID = option.accountID;
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
-        Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
+        if (reportID) {
+            Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
+        }
         Navigation.navigate(backRoute);
-    }, [selectedOptions, backRoute, props.report.reportID, validate]);
+    }, [selectedOptions, backRoute, reportID, validate]);
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
-        if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+        const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
+        if (!userToInvite && expensifyEmails.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
@@ -225,16 +203,16 @@ function RoomInvitePage(props) {
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
-        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails, reportName]);
+        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
+    }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={RoomInvitePage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.report)}
-                subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
+                shouldShow={isEmptyObject(report)}
+                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(backRoute)}
             >
                 <HeaderWithBackButton
@@ -255,7 +233,7 @@ function RoomInvitePage(props) {
                     onConfirm={inviteUsers}
                     showScrollIndicator
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
+                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
@@ -273,21 +251,12 @@ function RoomInvitePage(props) {
     );
 }
 
-RoomInvitePage.propTypes = propTypes;
-RoomInvitePage.defaultProps = defaultProps;
 RoomInvitePage.displayName = 'RoomInvitePage';
 
-export default compose(
-    withReportOrNotFound(),
-    withOnyx({
+export default withReportOrNotFound()(
+    withOnyx<RoomInvitePageProps, RoomInvitePageOnyxProps>({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
-)(RoomInvitePage);
+    })(RoomInvitePage),
+);

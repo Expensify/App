@@ -212,7 +212,9 @@ type RoomMembersNavigatorParamList = {
 };
 
 type RoomInviteNavigatorParamList = {
-    [SCREENS.ROOM_INVITE_ROOT]: undefined;
+    [SCREENS.ROOM_INVITE_ROOT]: {
+        reportID: string;
+    };
 };
 
 type MoneyRequestNavigatorParamList = {
