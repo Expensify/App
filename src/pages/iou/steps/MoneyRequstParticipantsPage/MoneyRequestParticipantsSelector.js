@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -92,14 +91,13 @@ function MoneyRequestParticipantsSelector({
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
-    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(!dismissedReferralBanners[referralContentType]);
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
-    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const newChatOptions = useMemo(() => {
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -283,20 +281,12 @@ function MoneyRequestParticipantsSelector({
         navigateToSplit();
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
-    const closeCallToActionBanner = useCallback(() => {
-        setShouldShowReferralCTA(false);
-        User.dismissReferralBanner(referralContentType);
-    }, [referralContentType]);
-
     const footerContent = useMemo(
         () => (
             <View>
-                {shouldShowReferralCTA && (
+                {!dismissedReferralBanners[referralContentType] && (
                     <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA
-                            referralContentType={referralContentType}
-                            onCloseButtonPress={closeCallToActionBanner}
-                        />
+                        <ReferralProgramCTA referralContentType={referralContentType} />
                     </View>
                 )}
 
@@ -319,7 +309,7 @@ function MoneyRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate, closeCallToActionBanner],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
