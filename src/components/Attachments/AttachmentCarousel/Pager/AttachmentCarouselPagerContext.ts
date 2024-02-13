@@ -12,6 +12,7 @@ type AttachmentCarouselPagerItems = {
 
     /** The index of the pager item determines the order of the images in the pager */
     index: number;
+
     /**
      * The active state of the pager item determines whether the image is currently transformable with pinch, pan and tap gestures
      */
@@ -21,6 +22,7 @@ type AttachmentCarouselPagerItems = {
 type AttachmentCarouselPagerContextValue = {
     /** The list of items that are shown in the pager */
     pagerItems: AttachmentCarouselPagerItems[];
+
     /** The index of the active page */
     activePage: number;
     pagerRef: ForwardedRef<PagerView>;

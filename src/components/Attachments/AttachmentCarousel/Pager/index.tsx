@@ -29,18 +29,22 @@ type AttachmentCarouselPagerProps = {
      * The attachments to be rendered in the pager.
      */
     items: Attachment[];
+
     /**
      * The source (URL) of the currently active attachment.
      */
     activeSource: string;
+
     /**
      * The index of the initial page to be rendered.
      */
     initialPage: number;
+
     /**
      * A callback to be called when the page is changed.
      */
     onPageSelected: () => void;
+
     /**
      * A callback that can be used to toggle the attachment carousel arrows, when the scale of the image changes.
      * @param showArrows If set, it will show/hide the arrows. If not set, it will toggle the arrows.
