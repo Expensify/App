@@ -21,7 +21,7 @@ const lightTheme = {
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
-    syntax: colors.productLight600,
+    syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
     buttonDefaultBG: colors.productLight400,
@@ -142,6 +142,10 @@ const lightTheme = {
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: {
+            backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: {
