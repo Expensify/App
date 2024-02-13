@@ -1,4 +1,5 @@
-import {useMemo, useState} from 'react';
+import react, {useMemo, useState} from 'react';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -65,9 +66,9 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return categoryOptions;
     }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections?.[0]?.data?.length > 0, searchValue);
-    const shouldShowTextInput = !isCategoriesCountBelowThreshold;
     const sectionsData = sections?.[0]?.data ?? [];
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sectionsData.length > 0, searchValue);
+    const shouldShowTextInput = !isCategoriesCountBelowThreshold;
     const selectedOptionKey = sectionsData.filter((category) => category.searchText === selectedCategory)[0]?.keyForList;
 
     return (
