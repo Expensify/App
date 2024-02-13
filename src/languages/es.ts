@@ -1646,7 +1646,7 @@ export default {
             trackDistanceCopy: 'Configura la tarifa y unidad usadas para medir distancias.',
             trackDistanceRate: 'Tarifa',
             trackDistanceUnit: 'Unidad',
-            trackDistanceChooseUnit: 'Elija una unidad predeterminada para rastrear.',
+            trackDistanceChooseUnit: 'Elige una unidad predeterminada de medida.',
             kilometers: 'Kilómetros',
             miles: 'Millas',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
