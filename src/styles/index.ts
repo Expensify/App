@@ -813,6 +813,13 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.dangerPressed,
         },
 
+        badgeBordered: {
+            backgroundColor: theme.transparent,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
