@@ -384,15 +384,15 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             }
 
             didLayout.current = true;
-            Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
-
             // Capture the init measurement only once not per each chat switch as the value gets overwritten
             if (!ReportActionsView.initMeasured) {
                 Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
+                Timing.end(CONST.TIMING.REPORT_INITIAL_RENDER);
                 ReportActionsView.initMeasured = true;
             } else {
                 Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
             }
+            Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
         },
         [hasCachedActions],
     );

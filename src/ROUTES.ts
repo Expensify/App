@@ -169,6 +169,10 @@ const ROUTES = {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
     },
+    REPORT_WITH_ID_AND_ACTION_ID: {
+        route: 'r/:reportID?/:reportActionID?',
+        getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/${reportActionID}` as const,
+    },
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field',
         getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}` as const,
