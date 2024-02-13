@@ -130,7 +130,7 @@ function WorkspacePageWithSections({
     }, [shouldSkipVBBACall]);
 
     const shouldShow = useMemo(() => {
-        // If the policy object doesn't exists or contains only errors, we shouldn't display it.
+        // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if ((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) {
             return true;
         }
