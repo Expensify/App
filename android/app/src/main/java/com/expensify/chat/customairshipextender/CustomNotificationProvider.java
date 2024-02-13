@@ -177,9 +177,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             return;
         }
 
+        Log.i(TAG, "julessss -- ");
+        Log.i(TAG, "julessss -- payload: " + payload);
+
         // Retrieve and check for existing notifications
         StatusBarNotification existingReportNotification = getActiveNotificationByReportId(context, reportID);
-        boolean hasExistingNotification = existingReportNotification != null;
+        boolean hasExistingNotification = existingReportNotification != null; // BOOL BROKE THE CONDITION?
+        Log.i(TAG, "julessss -- hasExistingNotification: " + hasExistingNotification);
         try {
             JsonMap reportMap = payload.get(ONYX_DATA_KEY).getList().get(1).getMap().get("value").getMap();
             String reportId = reportMap.keySet().iterator().next();
@@ -192,6 +196,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
             String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            Log.i(TAG, "julessss -- conversationName: " + conversationName);
 
             // create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
@@ -205,6 +210,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
             if (!conversationName.isEmpty() || hasExistingNotification) {
+                Log.i(TAG, "julessss -- Conversational styling should be applied");
                 // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
                 NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
                         .setGroupConversation(true)
