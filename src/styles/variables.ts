@@ -192,7 +192,7 @@ export default {
     workspaceSectionMaxWidth: 680,
     oldDotWireframeIconWidth: 263.38,
     oldDotWireframeIconHeight: 143.28,
-    sectionIllustrationHeight: 240,
+    sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)

@@ -2566,7 +2566,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 };
 
 /** Fetches all the private notes for a given report */
-function getReportPrivateNote(reportID: string) {
+function getReportPrivateNote(reportID: string | undefined) {
     if (Session.isAnonymousUser()) {
         return;
     }
