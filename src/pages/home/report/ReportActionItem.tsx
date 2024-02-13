@@ -711,6 +711,13 @@ function ReportActionItem({
         return null;
     }
 
+    // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
+    // This is a temporary solution needed for comment-linking.
+    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
+    if (ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
+        return null;
+    }
+
     const hasErrors = !isEmptyObject(action.errors);
     const whisperedToAccountIDs = action.whisperedToAccountIDs ?? [];
     const isWhisper = whisperedToAccountIDs.length > 0;
