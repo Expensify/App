@@ -1,6 +1,9 @@
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalBankAccount from './PersonalBankAccount';
+import type {OnfidoData} from './ReimbursementAccountDraft';
+import type ReimbursementAccountDraft from './ReimbursementAccountDraft';
 
-type FormValueType = string | boolean | Date;
+type FormValueType = string | boolean | Date | OnyxCommon.Errors | OnfidoData | string[] | number;
 
 type BaseForm = {
     /** Controls the loading state of the form */
@@ -32,7 +35,7 @@ type DisplayNameForm = Form<{
 
 type NewRoomForm = Form<{
     roomName?: string;
-    welcomeMessage?: string;
+    reportDescription?: string;
     policyID?: string;
     writeCapability?: string;
     visibility?: string;
@@ -54,6 +57,71 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type GetPhysicalCardForm = Form<{
+    /** Address line 1 for delivery */
+    addressLine1?: string;
+
+    /** Address line 2 for delivery */
+    addressLine2?: string;
+
+    /** City for delivery */
+    city?: string;
+
+    /** Country for delivery */
+    country?: string;
+
+    /** First name for delivery */
+    legalFirstName?: string;
+
+    /** Last name  for delivery */
+    legalLastName?: string;
+
+    /** Phone number for delivery */
+    phoneNumber?: string;
+
+    /** State for delivery */
+    state?: string;
+
+    /** Zip code  for delivery */
+    zipPostCode?: string;
+}>;
+
+type PersonalBankAccountForm = Form<PersonalBankAccount>;
+
+type WorkspaceSettingsForm = Form<{
+    name: string;
+}>;
+
+type ReportFieldEditForm = Form<Record<string, string>>;
+
+type CloseAccountForm = Form<{
+    reasonForLeaving: string;
+    phoneOrEmail: string;
+}>;
+
+type RoomNameForm = Form<{
+    roomName: string;
+}>;
+
+type ReimbursementAccountForm = Form<ReimbursementAccountDraft>;
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
+export type {
+    AddDebitCardForm,
+    DateOfBirthForm,
+    PrivateNotesForm,
+    DisplayNameForm,
+    FormValueType,
+    GetPhysicalCardForm,
+    NewRoomForm,
+    BaseForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    PersonalBankAccountForm,
+    WorkspaceSettingsForm,
+    ReportFieldEditForm,
+    CloseAccountForm,
+    RoomNameForm,
+    ReimbursementAccountForm,
+};

@@ -58,6 +58,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        isLoadingNewOptions = false,
+        onLayout,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -178,9 +180,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
      * @param item - the list item
-     * @param shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
      */
-    const selectRow = (item: TItem, shouldUnfocusRow = false) => {
+    const selectRow = (item: TItem) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -189,19 +190,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 // we focus the first one after all the selected (selected items are always at the top).
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
 
-                if (!shouldUnfocusRow) {
-                    setFocusedIndex(selectedOptionsCount);
-                }
-
                 if (!item.isSelected) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
-            }
-
-            if (shouldUnfocusRow) {
-                // Unfocus all rows when selecting row with click/press
-                setFocusedIndex(-1);
             }
         }
 
@@ -273,7 +265,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
     };
@@ -293,7 +285,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                onSelectRow={() => selectRow(item, true)}
+                onSelectRow={() => selectRow(item)}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
@@ -317,6 +309,14 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             setIsInitialSectionListRender(false);
         },
         [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+    );
+
+    const onSectionListLayout = useCallback(
+        (nativeEvent: LayoutChangeEvent) => {
+            onLayout?.(nativeEvent);
+            scrollToFocusedIndexOnFirstRender(nativeEvent);
+        },
+        [onLayout, scrollToFocusedIndexOnFirstRender],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
@@ -386,7 +386,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pb3]}>
+                            <View style={[styles.ph4, styles.pb3]}>
                                 <TextInput
                                     ref={(element) => {
                                         textInputRef.current = element as RNTextInput;
@@ -412,6 +412,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
+                                    isLoading={isLoadingNewOptions}
                                 />
                             </View>
                         )}
@@ -427,7 +428,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                                     <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
+                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         role="button"
@@ -466,7 +467,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    onLayout={scrollToFocusedIndexOnFirstRender}
+                                    onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                 />
                                 {children}
