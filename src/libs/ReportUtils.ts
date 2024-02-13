@@ -2444,7 +2444,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return getTransactionReportName(parentReportAction);
+            formattedName = getTransactionReportName(parentReportAction);
+            if (isArchivedRoom(report)) {
+                formattedName += ` (${Localize.translateLocal('common.archived')})`;
+            }        
+            return formattedName;
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
@@ -2462,6 +2466,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
+        if (parentReportActionMessage && isArchivedRoom(report)) {
+            return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
+        }      
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
 
@@ -3615,7 +3622,7 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequ
         getTransactionReportName(reportAction),
         undefined,
         getReport(moneyRequestReportID)?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        getReport(moneyRequestReportID)?.ownerAccountID ?? CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
         undefined,

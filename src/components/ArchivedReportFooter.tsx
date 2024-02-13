@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import Banner from './Banner';
+import { getCurrentUserAccountID } from '@libs/actions/Report';
 
 type ArchivedReportFooterOnyxProps = {
     /** The reason this report was archived */
@@ -31,8 +32,9 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     const originalMessage = reportClosedAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ? reportClosedAction.originalMessage : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[report?.ownerAccountID ?? 0]);
-
+    const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? 0];
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails);
+    
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
@@ -56,6 +58,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
               displayName: `<strong>${displayName}</strong>`,
               oldDisplayName: `<strong>${oldDisplayName}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
+              shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
           })
         : translate(`reportArchiveReasons.${archiveReason}`);
 
