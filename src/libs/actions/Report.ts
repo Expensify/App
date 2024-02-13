@@ -2151,7 +2151,7 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
-function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
+function openReportFromDeepLink(url: string, isAuthenticated: boolean, blockNavigate: boolean) {
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -2189,6 +2189,10 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                 }
 
                 if (shouldSkipDeepLinkNavigation(route)) {
+                    return;
+                }
+
+                if (blockNavigate) {
                     return;
                 }
 

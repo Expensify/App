@@ -167,6 +167,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
+    useEffect(() => {
+        if (!shouldShowNotFoundPage) {
+            return;
+        }
+        Navigation.dismissModal();
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+        Navigation.navigate(ROUTES.NOT_FOUND, CONST.NAVIGATION.TYPE.FORCED_UP);
+    }, [shouldShowNotFoundPage]);
+
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
