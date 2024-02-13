@@ -98,6 +98,9 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
+    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+        return NotificationsAvatar;
+    }
 
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
