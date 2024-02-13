@@ -119,7 +119,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if ((report?.type === CONST.REPORT.TYPE.CHAT && report?.parentReportID) ?? isUserCreatedPolicyRoom) {
+                    if (isUserCreatedPolicyRoom || ReportUtils.isChatThread(report)) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
