@@ -1,61 +1,41 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemePreference from '@hooks/useThemePreference';
-import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import fileDownload from '@libs/fileDownload';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
+import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type {WalletStatement} from '@src/types/onyx';
 
-const propTypes = {
-    /** The route object passed to this page from the navigator */
-    route: PropTypes.shape({
-        /** Each parameter passed via the URL */
-        params: PropTypes.shape({
-            /** The statement year and month as one string, i.e. 202110 */
-            yearMonth: PropTypes.string.isRequired,
-        }).isRequired,
-    }).isRequired,
-
-    walletStatement: PropTypes.shape({
-        /** Whether we are currently generating a PDF version of the statement */
-        isGenerating: PropTypes.bool,
-    }),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
-
-    ...withLocalizePropTypes,
+type WalletStatementOnyxProps = {
+    walletStatement: OnyxEntry<WalletStatement>;
 };
 
-const defaultProps = {
-    walletStatement: {
-        isGenerating: false,
-    },
-    preferredLocale: CONST.LOCALES.DEFAULT,
-};
+type WalletStatementPageProps = WalletStatementOnyxProps & StackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
-function WalletStatementPage(props) {
+function WalletStatementPage({walletStatement, route}: WalletStatementPageProps) {
     const themePreference = useThemePreference();
-    const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
+    const yearMonth = route.params.yearMonth ?? null;
+    const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
+
+    const {translate, preferredLocale} = useLocalize();
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         const currentYearMonth = format(new Date(), CONST.DATE.YEAR_MONTH_FORMAT);
@@ -66,31 +46,31 @@ function WalletStatementPage(props) {
     }, []);
 
     useEffect(() => {
-        DateUtils.setLocale(props.preferredLocale);
-    }, [props.preferredLocale]);
+        DateUtils.setLocale(preferredLocale);
+    }, [preferredLocale]);
 
     const processDownload = () => {
-        if (props.walletStatement.isGenerating) {
+        if (isWalletStatementGenerating) {
             return;
         }
 
-        if (props.walletStatement[yearMonth]) {
+        if (walletStatement?.[yearMonth]) {
             // We already have a file URL for this statement, so we can download it immediately
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
-            const fileName = props.walletStatement[yearMonth];
+            const fileName = walletStatement[yearMonth];
             const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
             fileDownload(pdfURL, downloadFileName);
             return;
         }
 
-        Growl.show(props.translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
         User.generateStatementPDF(yearMonth);
     };
 
-    const year = yearMonth.substring(0, 4) || getYear(new Date());
-    const month = yearMonth.substring(4) || getMonth(new Date());
-    const monthName = format(new Date(year, month - 1), CONST.DATE.MONTH_FORMAT);
-    const title = props.translate('statementPage.title', year, monthName);
+    const year = yearMonth?.substring(0, 4) || getYear(new Date());
+    const month = yearMonth?.substring(4) || getMonth(new Date());
+    const monthName = format(new Date(Number(year), Number(month) - 1), CONST.DATE.MONTH_FORMAT);
+    const title = translate('statementPage.title', year, monthName);
     const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
 
     return (
@@ -101,7 +81,7 @@ function WalletStatementPage(props) {
         >
             <HeaderWithBackButton
                 title={Str.recapitalize(title)}
-                shouldShowDownloadButton={!props.network.isOffline || props.walletStatement.isGenerating}
+                shouldShowDownloadButton={!isOffline || isWalletStatementGenerating}
                 onDownloadButtonPress={processDownload}
             />
             <FullPageOfflineBlockingView>
@@ -111,19 +91,10 @@ function WalletStatementPage(props) {
     );
 }
 
-WalletStatementPage.propTypes = propTypes;
-WalletStatementPage.defaultProps = defaultProps;
 WalletStatementPage.displayName = 'WalletStatementPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        walletStatement: {
-            key: ONYXKEYS.WALLET_STATEMENT,
-        },
-    }),
-    withNetwork(),
-)(WalletStatementPage);
+export default withOnyx<WalletStatementPageProps, WalletStatementOnyxProps>({
+    walletStatement: {
+        key: ONYXKEYS.WALLET_STATEMENT,
+    },
+})(WalletStatementPage);

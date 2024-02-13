@@ -347,7 +347,10 @@ type ReimbursementAccountNavigatorParamList = {
 };
 
 type WalletStatementNavigatorParamList = {
-    [SCREENS.WALLET_STATEMENT_ROOT]: undefined;
+    [SCREENS.WALLET_STATEMENT_ROOT]: {
+        /** The statement year and month as one string, i.e. 202110 */
+        yearMonth: string;
+    };
 };
 
 type FlagCommentNavigatorParamList = {
