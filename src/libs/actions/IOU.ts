@@ -744,7 +744,7 @@ function getMoneyRequestInformation(
     // STEP 2: Get the money request report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic money request report.
     let iouReport: OnyxEntry<OnyxTypes.Report> = null;
-    const shouldCreateNewMoneyRequestReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
+    let shouldCreateNewMoneyRequestReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
     if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!shouldCreateNewMoneyRequestReport) {
@@ -766,6 +766,10 @@ function getMoneyRequestInformation(
         // If the linked expense report on paid policy is not draft, or is not processing in a policy with Instant Submit enabled, we need to create a new draft expense report
         if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !isProcessingReportOnInstantSubmitPolicy) {
             iouReport = null;
+        }
+
+        if (isProcessingReportOnInstantSubmitPolicy) {
+            shouldCreateNewMoneyRequestReport = false;
         }
     }
 
