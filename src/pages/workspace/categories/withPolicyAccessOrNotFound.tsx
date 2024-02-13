@@ -5,10 +5,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -17,7 +19,7 @@ type WithWorkspaceAccessOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Indicated whether the report data is loading */
-    isLoadingWorkspaceData: OnyxEntry<boolean>;
+    isLoadingReportData: OnyxEntry<boolean>;
 };
 
 type WithWorkspaceAccessProps = WithWorkspaceAccessOnyxProps & {
@@ -45,7 +47,7 @@ export default function (): <TProps extends WithWorkspaceAccessProps, TRef>(
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [isPolicyIDInRoute, props.route.params.policyID]);
 
-            const shouldShowFullScreenLoadingIndicator = props.isLoadingWorkspaceData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
+            const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
             const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyAdmin(props.policy);
 
@@ -54,7 +56,7 @@ export default function (): <TProps extends WithWorkspaceAccessProps, TRef>(
             }
 
             if (shouldShowNotFoundPage) {
-                return <NotFoundPage />;
+                return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)} />;
             }
 
             return (
@@ -72,7 +74,7 @@ export default function (): <TProps extends WithWorkspaceAccessProps, TRef>(
             policy: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? ''}`,
             },
-            isLoadingWorkspaceData: {
+            isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
         })(React.forwardRef(WithWorkspaceAccess));
