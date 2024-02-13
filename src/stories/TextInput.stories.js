@@ -140,7 +140,7 @@ AutoGrowHeightInput.args = {
     autoGrowHeight: true,
     textInputContainerStyles: [
         {
-            maxHeight: 200,
+            maxHeight: 115,
         },
     ],
 };
