@@ -11,7 +11,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 import IOURequestStepScan from './iou/request/step/IOURequestStepScan';
 
-type EditRequestReceiptPageProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
+type EditRequestReceiptPageProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.SCAN_TAB>;
 
 function EditRequestReceiptPage({route}: EditRequestReceiptPageProps) {
     const styles = useThemeStyles();

@@ -9,11 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type ReceiptDropUIProps = {
-    onDrop: () => void;
+    /** Function to execute when an item is dropped in the drop zone. */
+    onDrop: (event: DragEvent) => void;
+
     receiptImageTopPosition: number;
 };
 
-function ReceiptDropUI({onDrop, receiptImageTopPosition = 0}: ReceiptDropUIProps) {
+function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (

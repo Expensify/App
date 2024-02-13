@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -22,24 +21,24 @@ import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import type {Route} from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
-import type IOURequestStepPropTypes from './IOURequestStepScanProps';
+import type IOURequestStepProps from './IOURequestStepProps';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
-type IOURequestStepScanProps = IOURequestStepPropTypes &
-    StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE> & {
-        isFromGlobalCreate: boolean;
-    };
-
-function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepScanProps) {
+function IOURequestStepScan({
+    report,
+    route: {
+        params: {action, iouType, reportID, transactionID, backTo},
+    },
+    transaction: {isFromGlobalCreate},
+}: IOURequestStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
@@ -47,25 +46,9 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
 
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<typeof RESULTS | null>(null);
+    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
 
     const {translate} = useLocalize();
-
-    const askForPermissions = (showPermissionsAlert = true) => {
-        // There's no way we can check for the BLOCKED status without requesting the permission first
-        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission()
-            .then((status) => {
-                setCameraPermissionStatus(status);
-
-                if (status === RESULTS.BLOCKED && showPermissionsAlert) {
-                    FileUtils.showCameraPermissionsAlert();
-                }
-            })
-            .catch(() => {
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
-    };
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
@@ -90,7 +73,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
     };
 
     const tapGesture = Gesture.Tap()
-        .enabled(device && device.supportsFocus)
+        .enabled(device?.supportsFocus ?? false)
         .onStart((ev) => {
             const point = {x: ev.x, y: ev.y};
 
@@ -103,22 +86,14 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
         });
 
     useEffect(() => {
-        const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
+        const refreshCameraPermissionStatus = () => {
             CameraPermission.getCameraPermissionStatus()
-                .then((res) => {
-                    // In android device app data, the status is not set to blocked until denied twice,
-                    // due to that the app will ask for permission twice whenever users opens uses the scan tab
-                    setCameraPermissionStatus(res);
-                    if (shouldAskForPermission && !askedForPermission.current) {
-                        askedForPermission.current = true;
-                        askForPermissions(false);
-                    }
-                })
+                .then(setCameraPermissionStatus)
                 .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
         };
 
         // Check initial camera permission status
-        refreshCameraPermissionStatus(true);
+        refreshCameraPermissionStatus();
 
         // Refresh permission status when app gain focus
         const subscription = AppState.addEventListener('change', (appState) => {
@@ -155,38 +130,55 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
         return true;
     };
 
+    const askForPermissions = () => {
+        // There's no way we can check for the BLOCKED status without requesting the permission first
+        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
+        CameraPermission.requestCameraPermission()
+            .then((status: string) => {
+                setCameraPermissionStatus(status);
+
+                if (status === RESULTS.BLOCKED) {
+                    FileUtils.showCameraPermissionsAlert();
+                }
+            })
+            .catch(() => {
+                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
+            });
+    };
+
     const navigateBack = () => {
         Navigation.goBack();
     };
 
     const navigateToConfirmationStep = useCallback(() => {
-        if (route.params.backTo) {
-            Navigation.goBack(route.params.backTo);
+        if (backTo) {
+            Navigation.goBack(backTo as Route);
             return;
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
         if (isFromGlobalCreate) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(route.params.iouType, route.params.transactionID, route.params.reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-        IOU.setMoneyRequestParticipantsFromReport(route.params.transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(route.params.iouType, route.params.transactionID, route.params.reportID));
-    }, [route.params.iouType, report, route.params.reportID, route.params.transactionID, isFromGlobalCreate, route.params.backTo]);
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
         (file: File, source: string) => {
             Navigation.dismissModal();
-            IOU.replaceReceipt(route.params.transactionID, file, source);
+            IOU.replaceReceipt(transactionID, file, source);
         },
-        [route.params.transactionID],
+        [transactionID],
     );
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
+     * @param {Object} file
      */
     const setReceiptAndNavigate = (file: File) => {
         if (!validateReceipt(file)) {
@@ -194,9 +186,9 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
         }
 
         // Store the receipt on the transaction object in Onyx
-        IOU.setMoneyRequestReceipt(route.params.transactionID, file.uri, file.name, route.params.action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT);
 
-        if (route.params.action === CONST.IOU.ACTION.EDIT) {
+        if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, file.uri);
             return;
         }
@@ -205,11 +197,6 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
     };
 
     const capturePhoto = useCallback(() => {
-        if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
-            askForPermissions(cameraPermissionStatus !== RESULTS.DENIED);
-            return;
-        }
-
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         };
@@ -227,9 +214,9 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
                 const source = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt(route.params.transactionID, source, photo.path, route.params.action !== CONST.IOU.ACTION.EDIT);
+                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
-                if (route.params.action === CONST.IOU.ACTION.EDIT) {
+                if (action === CONST.IOU.ACTION.EDIT) {
                     FileUtils.readFileAsync(source, photo.path, (file) => {
                         updateScanAndNavigate(file, source);
                     });
@@ -242,7 +229,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, route.params.action, translate, route.params.transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -254,7 +241,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
             includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(route.params.backTo)}
+            shouldShowWrapper={Boolean(backTo)}
             testID={IOURequestStepScan.displayName}
         >
             {cameraPermissionStatus !== RESULTS.GRANTED && (
@@ -275,7 +262,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
                         text={translate('common.continue')}
                         accessibilityLabel={translate('common.continue')}
                         style={[styles.p9, styles.pt5]}
-                        onPress={capturePhoto}
+                        onPress={askForPermissions}
                     />
                 </View>
             )}
@@ -308,6 +295,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker shouldHideCameraOption>
+                    {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
                     {({openPicker}) => (
                         <PressableWithFeedback
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
