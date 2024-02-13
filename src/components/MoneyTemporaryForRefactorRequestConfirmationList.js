@@ -21,6 +21,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -552,6 +553,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     return;
                 }
 
+                playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm(selectedParticipants);
             }
@@ -627,7 +629,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         );
     }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
-    // All fields that a request can have
+    // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
+    // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
         {
             item: (
@@ -732,11 +735,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        if (isEditingSplitBill) {
-                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -760,7 +761,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                    rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
@@ -782,7 +783,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isTagRequired ? translate('common.required') : ''}
+                    rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowTags,
@@ -824,10 +825,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
         {
             item: (
-                <View
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
-                    key={translate('common.billable')}
-                >
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                     <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                     <Switch
                         accessibilityLabel={translate('common.billable')}
@@ -840,9 +838,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             isSupplementary: true,
         },
     ];
-
-    // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
-    // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
 
     const primaryFields = _.map(
         _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary),
