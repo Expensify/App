@@ -18,7 +18,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -69,7 +68,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
         >
             <HeaderWithBackButton
                 title={translate('common.dob')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
