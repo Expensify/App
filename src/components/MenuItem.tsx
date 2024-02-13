@@ -57,7 +57,7 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
+type MenuItemBaseProps = {
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -232,6 +232,8 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     /** Is this in the Pane */
     isPaneMenu?: boolean;
 };
+
+type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
 
 function MenuItem(
     {
@@ -625,5 +627,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {MenuItemProps};
+export type {IconProps, AvatarProps, NoIcon, MenuItemBaseProps, MenuItemProps};
 export default forwardRef(MenuItem);
