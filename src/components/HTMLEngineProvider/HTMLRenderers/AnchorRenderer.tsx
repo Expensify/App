@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import VideoRenderer from './VideoRenderer';
 
 type AnchorRendererProps = CustomRendererProps<TBlock> & {
     /** Key of the element */
@@ -47,13 +46,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
-    if (isAttachment) {
-        if (isVideo) {
-            // Support for video attachments sent before video player feture was implemented.
-            // Previously the video was just a link so AnchorRenderer catches it
-            return <VideoRenderer tnode={tnode} />;
-        }
-
+    if (isAttachment && !isVideo) {
         return (
             <AnchorForAttachmentsOnly
                 source={tryResolveUrlFromApiRoot(attrHref)}
