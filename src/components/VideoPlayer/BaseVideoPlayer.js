@@ -50,6 +50,7 @@ function BaseVideoPlayer({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
+    const [isExitingFullscreen, setIsExitingFullscreen] = useState(false);
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -73,12 +74,16 @@ function BaseVideoPlayer({
     const onPlaybackStatusUpdate = useCallback(
         (e) => {
             const isVideoPlaying = e.isPlaying || false;
+            if (isExitingFullscreen && !isVideoPlaying) {
+                playVideo();
+                setIsExitingFullscreen(false);
+            }
             setIsPlaying(isVideoPlaying);
             setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setDuration(e.durationMillis || videoDuration * 1000);
             setPosition(e.positionMillis || 0);
         },
-        [videoDuration],
+        [isExitingFullscreen, playVideo, videoDuration],
     );
 
     const bindFunctions = useCallback(() => {
@@ -116,6 +121,7 @@ function BaseVideoPlayer({
             originalParent.appendChild(sharedElement);
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+
     return (
         <>
             <View style={[styles.w100, styles.h100]}>
@@ -172,10 +178,11 @@ function BaseVideoPlayer({
                                             onFullscreenUpdate={(event) => {
                                                 // fix for iOS native and mWeb: when switching to fullscreen and then exiting
                                                 // the fullscreen mode while playing, the video pauses
-                                                if (event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                                                if (!isPlaying || event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                                                     return;
                                                 }
                                                 playVideo();
+                                                setIsExitingFullscreen(true);
                                             }}
                                         />
                                     </PressableWithoutFeedback>
