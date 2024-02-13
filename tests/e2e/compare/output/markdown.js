@@ -1,9 +1,9 @@
 // From: https://raw.githubusercontent.com/callstack/reassure/main/packages/reassure-compare/src/output/markdown.ts
+import markdownTable from './markdownTable';
 
 const fs = require('node:fs/promises');
 const path = require('path');
 const _ = require('underscore');
-const markdownTable = require('./markdownTable');
 const {formatDuration, formatPercent, formatDurationDiffChange} = require('./format');
 const Logger = require('../../utils/logger');
 
