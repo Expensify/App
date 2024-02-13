@@ -43,6 +43,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type InitialSettingsPageOnyxProps = {
+    /** The user's session */
+    session: OnyxEntry<OnyxTypes.Session>;
+
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
@@ -74,6 +77,8 @@ type MenuData = {
     avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
     floatRightAvatars?: Icon[];
     title?: string;
+    shouldShowRightIcon?: boolean;
+    iconRight?: IconAsset;
 };
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
@@ -403,6 +408,9 @@ export default withCurrentUserPersonalDetails(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     })(InitialSettingsPage),
 );
