@@ -162,9 +162,6 @@ type Policy = {
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
 
-    /** The email of the reimburser set when reimbursement is direct */
-    reimburserEmail?: string;
-
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 
