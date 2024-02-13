@@ -19,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -37,7 +38,7 @@ const propTypes = {
             validatedDate: PropTypes.string,
 
             /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
 
@@ -163,11 +164,11 @@ function ProfilePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                shouldShowBackButton={props.shouldUseNarrowLayout}
+                onBackButtonPress={() => Navigation.goBack()}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 icon={Illustrations.Profile}
             />
-            <ScrollView>
+            <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={props.translate('profilePage.publicSection.title')}

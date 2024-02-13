@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -212,7 +212,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             root.dispatch(actionForBottomTabNavigator);
 
             // If the layout is wide we need to push matching central pane route to the stack.
-            if (!getIsSmallScreenWidth()) {
+            if (!getIsNarrowLayout()) {
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath)!;
