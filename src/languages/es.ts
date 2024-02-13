@@ -1635,6 +1635,7 @@ export default {
             },
             addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
+            membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

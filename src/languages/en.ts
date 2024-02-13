@@ -1612,6 +1612,7 @@ export default {
             },
             addedWithPrimary: 'Some users were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
+            membersListTitle: 'Directory of all workspace members.',
         },
         card: {
             header: 'Unlock free Expensify Cards',

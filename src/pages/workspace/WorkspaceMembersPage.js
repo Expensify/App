@@ -459,6 +459,7 @@ function WorkspaceMembersPage(props) {
                     }
                 />
                 <View style={[styles.w100, styles.flex1]}>
+                    <Text style={[styles.pl5, styles.mb5, styles.mt3]}>{props.translate('workspace.people.membersListTitle')}</Text>
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
