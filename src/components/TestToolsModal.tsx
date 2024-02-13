@@ -3,7 +3,8 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +21,8 @@ type TestToolsModalProps = TestToolsModalOnyxProps;
 
 function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
     const {isDevelopment} = useEnvironment();
-    const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
+    const StyleUtils = useStyleUtils();
 
     return (
         <Modal
@@ -28,7 +30,7 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
             type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={toggleTestToolsModal}
         >
-            <View style={[styles.settingsPageBody, styles.p5]}>
+            <View style={[StyleUtils.getTestToolsModalStyle(windowWidth)]}>
                 {isDevelopment && <TestToolMenu />}
                 <ProfilingToolMenu />
             </View>
