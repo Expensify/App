@@ -26,7 +26,7 @@ function OnboardingWelcomeVideoModal() {
             isVisible={isModalOpen}
             onClose={closeModal}
             innerContainerStyle={styles.pt0}
-            shouldUseCustomBackdrop
+            fullscreen
         >
             <View style={{maxHeight: windowHeight}}>
                 <View style={[styles.w100, styles.p2, styles.pb5]}>
