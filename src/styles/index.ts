@@ -4341,6 +4341,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             flexDirection: 'column',
             overflow: 'visible',
+            zIndex: 9000,
         },
 
         videoPlayerControlsButtonContainer: {

@@ -41,6 +41,7 @@ function BaseVideoPlayer({
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isBuffering, setIsBuffering] = useState(true);
     const videoPlayerRef = useRef(null);
     const videoPlayerElementParentRef = useRef(null);
     const videoPlayerElementRef = useRef(null);
@@ -80,6 +81,7 @@ function BaseVideoPlayer({
             }
             setIsPlaying(isVideoPlaying);
             setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
+            setIsBuffering(e.isBuffering || false);
             setDuration(e.durationMillis || videoDuration * 1000);
             setPosition(e.positionMillis || 0);
         },
@@ -189,7 +191,7 @@ function BaseVideoPlayer({
                                 </View>
                             )}
 
-                            {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
                             {!isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
