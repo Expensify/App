@@ -324,7 +324,19 @@ function WorkspaceMembersPage(props) {
                 }
             }
 
+            const isOwner = props.policy.owner === details.login;
             const isAdmin = props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+
+            let roleBadge = null;
+            if (isOwner || isAdmin) {
+                roleBadge = (
+                    <View style={[styles.badge, styles.peopleBadge]}>
+                        <Text style={styles.peopleBadgeText}>
+                            {isOwner ? props.translate('common.owner') : props.translate('common.admin')}
+                        </Text>
+                    </View>
+                );
+            }
 
             result.push({
                 keyForList: accountIDKey,
@@ -337,11 +349,7 @@ function WorkspaceMembersPage(props) {
                     !_.isEmpty(policyMember.errors),
                 text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
-                rightElement: isAdmin ? (
-                    <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
-                    </View>
-                ) : null,
+                rightElement: roleBadge,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),

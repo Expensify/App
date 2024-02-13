@@ -199,6 +199,7 @@ export default {
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
         admin: 'Admin',
+        owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
