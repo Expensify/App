@@ -65,6 +65,8 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID ?? '')) {
                 // The room name can't be set to one that already exists on the policy
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+            } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
             return errors;
