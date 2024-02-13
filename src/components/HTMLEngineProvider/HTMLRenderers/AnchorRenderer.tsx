@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -10,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import VideoRenderer from './VideoRenderer';
 
 type AnchorRendererProps = CustomRendererProps<TBlock> & {
     /** Key of the element */
@@ -28,6 +30,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = Link.getInternalExpensifyPath(attrHref);
+    const isVideo = attrHref && Str.isVideo(attrHref);
 
     if (!HTMLEngineUtils.isChildOfComment(tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -45,6 +48,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     }
 
     if (isAttachment) {
+        if (isVideo) {
+            // Support for video attachments sent before video player feture was implemented.
+            // Previously the video was just a link so AnchorRenderer catches it
+            return <VideoRenderer tnode={tnode} />;
+        }
+
         return (
             <AnchorForAttachmentsOnly
                 source={tryResolveUrlFromApiRoot(attrHref)}
