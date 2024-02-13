@@ -61,7 +61,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         onScaleChanged: onScaleChangedContext,
         pagerRef,
     } = useMemo(() => {
-        if (attachmentCarouselPagerContext == null) {
+        if (attachmentCarouselPagerContext === null) {
             return {
                 isUsedInCarousel: false,
                 isSingleCarouselItem: true,
