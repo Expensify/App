@@ -2,11 +2,13 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Modal from './Modal';
+import ProfilingToolMenu from './ProfilingToolMenu';
 import TestToolMenu from './TestToolMenu';
 
 type TestToolsModalOnyxProps = {
@@ -17,6 +19,7 @@ type TestToolsModalOnyxProps = {
 type TestToolsModalProps = TestToolsModalOnyxProps;
 
 function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
+    const {isDevelopment} = useEnvironment();
     const styles = useThemeStyles();
 
     return (
@@ -26,7 +29,8 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
             onClose={toggleTestToolsModal}
         >
             <View style={[styles.settingsPageBody, styles.p5]}>
-                <TestToolMenu />
+                {isDevelopment && <TestToolMenu />}
+                <ProfilingToolMenu />
             </View>
         </Modal>
     );

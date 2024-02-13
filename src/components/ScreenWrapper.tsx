@@ -218,7 +218,7 @@ function ScreenWrapper(
                         ref={ref}
                         style={[styles.flex1, {minHeight}]}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(isDevelopment ? panResponder.panHandlers : {})}
+                        {...panResponder.panHandlers}
                         testID={testID}
                     >
                         <View
@@ -236,7 +236,7 @@ function ScreenWrapper(
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap styles={headerGapStyles} />
-                                    {isDevelopment && <TestToolsModal />}
+                                    <TestToolsModal />
                                     {isDevelopment && <CustomDevMenu />}
                                     {
                                         // If props.children is a function, call it to provide the insets to the children.
