@@ -45,6 +45,11 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.ONFIDO_APPLICANT_ID,
+                    value: '',
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.PLAID_DATA,
                     value: PlaidDataProps.plaidDataDefaultProps,
                 },
