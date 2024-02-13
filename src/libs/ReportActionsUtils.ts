@@ -73,6 +73,19 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        // When signed out, value is undefined
+        if (!value) {
+            return;
+        }
+
+        currentUserAccountID = value.accountID;
+    },
+});
+
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
@@ -115,6 +128,16 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
 
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+}
+
+/**
+ * Checks whether the report action is a whisper targeting someone other than the current user.
+ */
+function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (!isWhisperAction(reportAction)) {
+        return false;
+    }
+    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID ?? 0);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -367,6 +390,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return false;
+    }
+
+    if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
 
@@ -864,6 +891,7 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isWhisperActionTargetedToOthers,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldHideNewMarker,
