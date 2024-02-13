@@ -201,7 +201,9 @@ const ONYXKEYS = {
 
     /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
-    IS_APP_PROFILING: 'isAppProfiling',
+
+    /** Is app in profiling mode */
+    APP_PROFILING_IN_PROGRESS: 'isProfilingInProgress',
 
     /** Stores information about active wallet transfer amount, selectedAccountID, status, etc */
     WALLET_TRANSFER: 'walletTransfer',
@@ -444,7 +446,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
-    [ONYXKEYS.IS_APP_PROFILING]: boolean;
+    [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;

@@ -1,5 +1,5 @@
 function ProfilingToolMenu() {
-  return null;
+    return null;
 }
 
 ProfilingToolMenu.displayName = 'ProfilingToolMenu';

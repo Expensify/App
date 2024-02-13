@@ -2,20 +2,20 @@ import React, {useCallback, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {startProfiling, stopProfiling} from 'react-native-release-profiler';
-import useThemeStyles from '@hooks/useThemeStyles';
-import toggleProfileToolsModal from '@libs/actions/ProfilingTool';
-import ONYXKEYS from '@src/ONYXKEYS';
 import Switch from '@components/Switch';
-import Text from '@components/Text';
 import TestToolRow from '@components/TestToolRow';
+import Text from '@components/Text';
+import useThemeStyles from '@hooks/useThemeStyles';
+import toggleProfileTool from '@libs/actions/ProfilingTool';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type ProfilingToolMenuOnyxProps = {
-    isAppProfiling: OnyxEntry<boolean>;
+    isProfilingInProgress: OnyxEntry<boolean>;
 };
 
 type ProfilingToolMenuProps = ProfilingToolMenuOnyxProps;
 
-function ProfilingToolMenu({isAppProfiling = false}: ProfilingToolMenuProps) {
+function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuProps) {
     const styles = useThemeStyles();
     const [pathIOS, setPathIOS] = useState('');
 
@@ -29,17 +29,17 @@ function ProfilingToolMenu({isAppProfiling = false}: ProfilingToolMenuProps) {
     }, []);
 
     const onToggleProfiling = useCallback(() => {
-        const shouldProfiling = !isAppProfiling;
+        const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
             startProfiling();
         } else {
             stop();
         }
-        toggleProfileToolsModal();
+        toggleProfileTool();
         return () => {
             stop();
         };
-    }, [isAppProfiling, stop]);
+    }, [isProfilingInProgress, stop]);
 
     return (
         <>
@@ -50,10 +50,10 @@ function ProfilingToolMenu({isAppProfiling = false}: ProfilingToolMenuProps) {
                 Release options
             </Text>
 
-            <TestToolRow title="Use release Profiling">
+            <TestToolRow title="Use Profiling">
                 <Switch
-                    accessibilityLabel="Use release Profiling"
-                    isOn={!!isAppProfiling}
+                    accessibilityLabel="Use Profiling"
+                    isOn={!!isProfilingInProgress}
                     onToggle={onToggleProfiling}
                 />
             </TestToolRow>
@@ -65,7 +65,7 @@ function ProfilingToolMenu({isAppProfiling = false}: ProfilingToolMenuProps) {
 ProfilingToolMenu.displayName = 'ProfilingToolMenu';
 
 export default withOnyx<ProfilingToolMenuProps, ProfilingToolMenuOnyxProps>({
-    isAppProfiling: {
-        key: ONYXKEYS.IS_APP_PROFILING,
+    isProfilingInProgress: {
+        key: ONYXKEYS.APP_PROFILING_IN_PROGRESS,
     },
 })(ProfilingToolMenu);
