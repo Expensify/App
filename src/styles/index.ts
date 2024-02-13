@@ -415,6 +415,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        fontWeightNormal: {
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -439,8 +443,12 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
-        textIvoryLight: {
+        textVersion: {
             color: theme.iconColorfulBackground,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightNormal,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+            textAlign: 'center',
         },
 
         textNoWrap: {
@@ -527,6 +535,14 @@ const styles = (theme: ThemeColors) =>
 
             // Add 1px to the Button text to give optical vertical alignment.
             paddingBottom: 1,
+        },
+
+        testRowContainer: {
+            ...flex.flexRow,
+            ...flex.justifyContentBetween,
+            ...flex.alignItemsCenter,
+            ...sizing.mnw120,
+            height: 64,
         },
 
         buttonSmall: {
@@ -1360,11 +1376,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarFooter: {
-            alignItems: 'center',
             display: 'flex',
             justifyContent: 'center',
-            paddingVertical: variables.lineHeightXLarge,
             width: '100%',
+            paddingLeft: 20,
         },
 
         sidebarAvatar: {
@@ -1435,6 +1450,10 @@ const styles = (theme: ThemeColors) =>
         sidebarListItem: {
             justifyContent: 'center',
             textDecorationLine: 'none',
+        },
+
+        breadcrumsContainer: {
+            height: 24,
         },
 
         breadcrumb: {
@@ -1810,6 +1829,12 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        renderHTML: {
             maxWidth: '100%',
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
@@ -2254,6 +2279,10 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        headerBarDesktopHeight: {
+            height: variables.contentHeaderDesktopHeight,
+        },
+
         imageViewContainer: {
             width: '100%',
             height: '100%',
@@ -2578,11 +2607,26 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        accountSettingsSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
             height: 56,
             alignItems: 'center',
+        },
+
+        qrShareSection: {
+            width: 264,
+        },
+
+        sectionMenuItemTopDescription: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
         },
 
         selectCircle: {
@@ -3359,7 +3403,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            lineHeight: variables.lineHeightXXLarge,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         cardMenuItem: {
@@ -4063,8 +4108,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceipt: {
-            backgroundColor: theme.appBG,
-            borderColor: theme.textSupporting,
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         mapViewContainer: {
