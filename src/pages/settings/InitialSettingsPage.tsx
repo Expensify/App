@@ -159,6 +159,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
                     link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',
@@ -205,6 +207,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     action: () => {
                         Link.openExternalLink(CONST.NEWHELP_URL);
                     },
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
                 },
                 {
@@ -275,6 +279,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={!!activeRoute && !!item.routeName && !!(activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))}
                                 isPaneMenu
+                                iconRight={item.iconRight}
+                                shouldShowRightIcon={item.shouldShowRightIcon}
                             />
                         );
                     })}

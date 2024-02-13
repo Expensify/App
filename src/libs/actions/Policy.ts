@@ -418,6 +418,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
 
 /**
  * Remove the passed members from the policy employeeList
+ * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function removeMembers(accountIDs: number[], policyID: string) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
@@ -635,6 +636,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
 
 /**
  * Adds members to the specified workspace/policyID
+ * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
