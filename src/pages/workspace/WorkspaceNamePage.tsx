@@ -79,7 +79,6 @@ function WorkspaceNamePage({policy}: Props) {
                         label={translate('workspace.editor.nameInputLabel')}
                         accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                         defaultValue={policy?.name}
-                        maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         spellCheck={false}
                         autoFocus
                     />
