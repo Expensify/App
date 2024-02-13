@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -147,7 +148,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere'),
+                text: translate('iou.payElsewhere', {formattedAmount}),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
@@ -201,6 +202,7 @@ function SettlementButton({
             return;
         }
 
+        playSound(SOUNDS.DONE);
         onPress(iouPaymentType);
     };
 
