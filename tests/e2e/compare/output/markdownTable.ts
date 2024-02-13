@@ -1,4 +1,3 @@
-/* eslint-disable */
 // copied from https://raw.githubusercontent.com/wooorm/markdown-table/main/index.js, turned into cmjs
 
 type MarkdownTableOptions = {
@@ -154,24 +153,42 @@ type MarkdownTableOptions = {
     stringLength?: (value: string) => number;
 };
 
-/**
- * Generate a markdown ([GFM](https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/organizing-information-with-tables)) table..
- *
- * @param {Array<Array<string|null|undefined>>} table
- *   Table data (matrix of strings).
- * @param {Options} [options]
- *   Configuration (optional).
- * @returns {string}
- */
+function serialize(value: string | null | undefined): string {
+    return value === null || value === undefined ? '' : String(value);
+}
+
+function defaultStringLength(value: string): number {
+    return value.length;
+}
+
+function toAlignment(value: string | null | undefined): number {
+    const code = typeof value === 'string' ? value.codePointAt(0) : 0;
+
+    if (code === 67 /* `C` */ || code === 99 /* `c` */) {
+        return 99; /* `c` */
+    }
+
+    if (code === 76 /* `L` */ || code === 108 /* `l` */) {
+        return 108; /* `l` */
+    }
+
+    if (code === 82 /* `R` */ || code === 114 /* `r` */) {
+        return 114; /* `r` */
+    }
+
+    return 0;
+}
+
+/** Generate a markdown ([GFM](https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/organizing-information-with-tables)) table.. */
 function markdownTable(table: Array<Array<string | null | undefined>>, options: MarkdownTableOptions = {}) {
-    const align = (options.align || []).concat();
-    const stringLength = options.stringLength || defaultStringLength;
+    const align = (options.align ?? []).concat();
+    const stringLength = options.stringLength ?? defaultStringLength;
     /** Character codes as symbols for alignment per column. */
     const alignments: number[] = [];
     /** Cells per row. */
-    const cellMatrix: Array<Array<string>> = [];
+    const cellMatrix: string[][] = [];
     /** Sizes of each cell per row. */
-    const sizeMatrix: Array<Array<number>> = [];
+    const sizeMatrix: number[][] = [];
     const longestCellByColumn: number[] = [];
     let mostCellsPerRow = 0;
     let rowIndex = -1;
@@ -266,18 +283,18 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
     const lines: string[] = [];
 
     while (++rowIndex < cellMatrix.length) {
-        const row = cellMatrix[rowIndex];
-        const sizes = sizeMatrix[rowIndex];
+        const matrixRow = cellMatrix[rowIndex];
+        const matrixSizes = sizeMatrix[rowIndex];
         columnIndex = -1;
         const line: string[] = [];
 
         while (++columnIndex < mostCellsPerRow) {
-            const cell = row[columnIndex] || '';
+            const cell = matrixRow[columnIndex] || '';
             let before = '';
             let after = '';
 
             if (options.alignDelimiters !== false) {
-                const size = longestCellByColumn[columnIndex] - (sizes[columnIndex] || 0);
+                const size = longestCellByColumn[columnIndex] - (matrixSizes[columnIndex] || 0);
                 const code = alignments[columnIndex];
 
                 if (code === 114 /* `r` */) {
@@ -332,26 +349,6 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
     }
 
     return lines.join('\n');
-}
-
-function serialize(value: string | null | undefined): string {
-    return value === null || value === undefined ? '' : String(value);
-}
-
-function defaultStringLength(value: string): number {
-    return value.length;
-}
-
-function toAlignment(value: string | null | undefined): number {
-    const code = typeof value === 'string' ? value.codePointAt(0) : 0;
-
-    return code === 67 /* `C` */ || code === 99 /* `c` */
-        ? 99 /* `c` */
-        : code === 76 /* `L` */ || code === 108 /* `l` */
-        ? 108 /* `l` */
-        : code === 82 /* `R` */ || code === 114 /* `r` */
-        ? 114 /* `r` */
-        : 0;
 }
 
 export default markdownTable;
