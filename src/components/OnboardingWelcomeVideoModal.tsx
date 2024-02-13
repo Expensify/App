@@ -38,7 +38,6 @@ function OnboardingWelcomeVideoModal() {
                             autoPlay
                             loop
                         />
-                        ;
                     </View>
                     <View style={[styles.pt5, isSmallScreenWidth ? styles.ph3 : styles.ph6]}>
                         <Text style={[styles.textHeadline]}>{translate('onboarding.welcomeVideo.title')}</Text>
