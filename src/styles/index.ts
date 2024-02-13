@@ -443,8 +443,12 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
-        textIvoryLight: {
+        textVersion: {
             color: theme.iconColorfulBackground,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightNormal,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+            textAlign: 'center',
         },
 
         textNoWrap: {
@@ -531,6 +535,14 @@ const styles = (theme: ThemeColors) =>
 
             // Add 1px to the Button text to give optical vertical alignment.
             paddingBottom: 1,
+        },
+
+        testRowContainer: {
+            ...flex.flexRow,
+            ...flex.justifyContentBetween,
+            ...flex.alignItemsCenter,
+            ...sizing.mnw120,
+            height: 64,
         },
 
         buttonSmall: {
@@ -692,11 +704,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         loadingVBAAnimation: {
-            width: '100%',
+            width: 140,
+            height: 140,
         },
 
         loadingVBAAnimationWeb: {
-            width: '100%',
+            width: 140,
+            height: 140,
         },
 
         pickerSmall: (backgroundColor = theme.highlightBG) =>
@@ -797,6 +811,13 @@ const styles = (theme: ThemeColors) =>
 
         badgeDangerPressed: {
             backgroundColor: theme.dangerPressed,
+        },
+
+        badgeBordered: {
+            backgroundColor: theme.transparent,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
         },
 
         badgeText: {
@@ -1364,11 +1385,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarFooter: {
-            alignItems: 'center',
             display: 'flex',
             justifyContent: 'center',
-            paddingVertical: variables.lineHeightXLarge,
             width: '100%',
+            paddingLeft: 20,
         },
 
         sidebarAvatar: {
@@ -4321,6 +4341,94 @@ const styles = (theme: ThemeColors) =>
 
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
+        },
+
+        interactiveStepHeaderContainer: {
+            flex: 1,
+            alignSelf: 'center',
+            flexDirection: 'row',
+        },
+
+        interactiveStepHeaderStepContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        interactiveStepHeaderStepButton: {
+            width: 40,
+            height: 40,
+            borderWidth: 2,
+            borderRadius: 20,
+            borderColor: theme.borderFocus,
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: theme.white,
+        },
+
+        interactiveStepHeaderLockedStepButton: {
+            borderColor: theme.borderLighter,
+        },
+
+        interactiveStepHeaderStepText: {
+            fontSize: variables.fontSizeLabel,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        interactiveStepHeaderCompletedStepButton: {
+            backgroundColor: theme.iconSuccessFill,
+        },
+
+        interactiveStepHeaderStepLine: {
+            height: 1,
+            flexGrow: 1,
+            backgroundColor: theme.iconSuccessFill,
+        },
+
+        interactiveStepHeaderLockedStepLine: {
+            backgroundColor: theme.activeComponentBG,
+        },
+        confirmBankInfoCard: {
+            backgroundColor: colors.green800,
+            borderRadius: variables.componentBorderRadiusCard,
+            marginBottom: 20,
+            marginHorizontal: 16,
+            padding: 20,
+            width: 'auto',
+            textAlign: 'left',
+        },
+        confirmBankInfoText: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            color: theme.text,
+        },
+        confirmBankInfoCompanyIcon: {
+            height: 40,
+            width: 40,
+            backgroundColor: colors.darkIcons,
+            borderRadius: 50,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        confirmBankInfoBankIcon: {
+            height: 40,
+            width: 40,
+            borderRadius: 50,
+        },
+        confirmBankInfoNumber: {
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.text,
+            textAlignVertical: 'center',
+        },
+
+        textHeadlineLineHeightXXL: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
         },
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),

@@ -1,9 +1,10 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
-import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputSubmitEditingEventData} from 'react-native';
+import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
@@ -62,6 +63,12 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
 
         /** Should validate function be called when the value of the input is changed */
         shouldValidateOnChange?: boolean;
+
+        /** Styles that will be applied to the submit button only */
+        submitButtonStyles?: StyleProp<ViewStyle>;
+
+        /** Whether to apply flex to the submit button */
+        submitFlexEnabled?: boolean;
     };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
@@ -84,6 +91,7 @@ function FormProvider(
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
+    const {preferredLocale} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
@@ -150,6 +158,25 @@ function FormProvider(
         },
         [errors, formID, validate],
     );
+
+    // When locales change from another session of the same account,
+    // validate the form in order to update the error translations
+    useEffect(() => {
+        // Return since we only have issues with error translations
+        if (Object.keys(errors).length === 0) {
+            return;
+        }
+
+        // Prepare validation values
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
+        // Validate in order to make sure the correct error translations are displayed,
+        // making sure to not clear server errors if they exist
+        onValidate(trimmedStringValues, !hasServerError);
+
+        // Only run when locales change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferredLocale]);
 
     /** @param inputID - The inputID of the input being touched */
     const setTouchedInput = useCallback(
