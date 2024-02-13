@@ -2649,7 +2649,7 @@ function editRegularMoneyRequest(
         },
     ];
 
-    // Add transaction violations if there is a policy and updated transaaction
+    // Add transaction violations if we have a paid policy and an updated transaction
     if (PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
