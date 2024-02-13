@@ -333,7 +333,12 @@ type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
         reportActionID: string;
     };
-    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: undefined;
+    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
+        field: string;
+        reportID: string;
+        reportActionID: string;
+        currency: string;
+    };
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
 
