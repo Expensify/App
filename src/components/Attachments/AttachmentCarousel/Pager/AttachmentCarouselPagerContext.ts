@@ -19,7 +19,9 @@ type AttachmentCarouselPagerItems = {
 };
 
 type AttachmentCarouselPagerContextValue = {
+    /** The list of items that are shown in the pager */
     pagerItems: AttachmentCarouselPagerItems[];
+    /** The index of the active page */
     activePage: number;
     pagerRef: ForwardedRef<PagerView>;
     isPagerScrolling: SharedValue<boolean>;
