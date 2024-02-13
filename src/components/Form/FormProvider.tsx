@@ -161,7 +161,6 @@ function FormProvider(
 
     // When locales change from another session of the same account,
     // validate the form in order to update the error translations
-    // See issue: https://github.com/Expensify/App/issues/34684
     useEffect(() => {
         // Return since we only have issues with error translations
         if (Object.keys(errors).length === 0) {
