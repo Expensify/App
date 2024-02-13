@@ -2,12 +2,12 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useRef} from 'react';
 import type {ViewProps} from 'react-native';
 import {View} from 'react-native';
-import usePreventFormDefault from '@hooks/usePreventFormDefault';
+import useFormSetup from '@hooks/useFormSetup';
 import * as ComponentUtils from '@libs/ComponentUtils';
 
 function FormElement(props: ViewProps, outerRef: ForwardedRef<View>) {
     const formRef = useRef<View | null>(null);
-    usePreventFormDefault(formRef.current);
+    useFormSetup(formRef.current);
     return (
         <View
             role={ComponentUtils.ACCESSIBILITY_ROLE_FORM}

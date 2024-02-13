@@ -7,7 +7,7 @@ const preventFormDefault = (event: SubmitEvent) => {
     event.preventDefault();
 };
 
-const usePreventFormDefault = (form: View | null) => {
+const useFormSetup = (form: View | null) => {
     useEffect(() => {
         if (!form) {
             return;
@@ -30,4 +30,4 @@ const usePreventFormDefault = (form: View | null) => {
     }, [form]);
 };
 
-export default usePreventFormDefault;
+export default useFormSetup;
