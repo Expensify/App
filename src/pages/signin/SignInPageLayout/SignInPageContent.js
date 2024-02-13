@@ -7,7 +7,6 @@ import FormElement from '@components/FormElement';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import usePreventFormDefault from '@hooks/usePreventFormDefault';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -43,9 +42,6 @@ function SignInPageContent(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const formRef = React.useRef(null);
-
-    usePreventFormDefault(formRef.current);
 
     return (
         <View style={[styles.flex1, styles.signInPageLeftContainer]}>
@@ -53,10 +49,7 @@ function SignInPageContent(props) {
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
                 <View style={[styles.flexGrow1, isSmallScreenWidth ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
                 <View style={[styles.flexGrow2, styles.mb8]}>
-                    <FormElement
-                        ref={formRef}
-                        style={[styles.alignSelfStretch]}
-                    >
+                    <FormElement style={[styles.alignSelfStretch]}>
                         <View style={[isSmallScreenWidth ? styles.mb8 : styles.mb15, isSmallScreenWidth ? styles.alignItemsCenter : styles.alignSelfStart]}>
                             <ExpensifyWordmark />
                         </View>
