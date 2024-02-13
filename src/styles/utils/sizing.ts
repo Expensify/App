@@ -38,6 +38,14 @@ export default {
         minWidth: '25%',
     },
 
+    mnw60: {
+        minWidth: '60%',
+    },
+
+    mnw100: {
+        minWidth: '100%',
+    },
+
     mnw120: {
         minWidth: 120,
     },
@@ -73,7 +81,6 @@ export default {
     mw100: {
         maxWidth: '100%',
     },
-
     wAuto: {
         width: 'auto',
     },

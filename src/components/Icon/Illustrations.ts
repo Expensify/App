@@ -55,7 +55,8 @@ import MoneyWings from '@assets/images/simple-illustrations/simple-illustration_
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
-import QrCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
@@ -90,6 +91,7 @@ export {
     MoneyMousePink,
     ReceiptsSearchYellow,
     ReceiptYellow,
+    ReceiptWrangler,
     RocketBlue,
     RocketOrange,
     SanFrancisco,

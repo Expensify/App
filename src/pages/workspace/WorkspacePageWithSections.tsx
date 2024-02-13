@@ -22,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {PolicyRoute} from './withPolicy';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -41,9 +40,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** The text to display in the header */
         headerText: string;
-
-        /** The route object passed to this page from the navigator */
-        route: PolicyRoute;
 
         /** Main content of the page */
         children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
@@ -92,7 +88,7 @@ function fetchData(skipVBBACal?: boolean) {
 }
 
 function WorkspacePageWithSections({
-    backButtonRoute = '',
+    backButtonRoute,
     children = () => null,
     footer = null,
     guidesCallTaskID = '',
