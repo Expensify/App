@@ -45,18 +45,23 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     const filename = errors?.filename ?? transaction?.filename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);
     const hasEReceipt = transaction?.hasEReceipt;
+    const isReceiptPDF = Str.isPDF(filename);
 
     if (hasEReceipt) {
         return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction, filename};
     }
 
     // For local files, we won't have a thumbnail yet
-    if (isReceiptImage && typeof path === 'string' && (path.startsWith('blob:') || path.startsWith('file:'))) {
+    if ((isReceiptImage || isReceiptPDF) && typeof path === 'string' && (path.startsWith('blob:') || path.startsWith('file:'))) {
         return {thumbnail: null, image: path, isLocalFile: true, filename};
     }
 
     if (isReceiptImage) {
         return {thumbnail: `${path}.1024.jpg`, image: path, filename};
+    }
+
+    if (isReceiptPDF && typeof path === 'string') {
+        return {thumbnail: `${path.substring(0, path.length - 4)}.jpg.1024.jpg`, image: path, filename};
     }
 
     const {fileExtension} = FileUtils.splitExtensionFromFileName(filename) as FileNameAndExtension;

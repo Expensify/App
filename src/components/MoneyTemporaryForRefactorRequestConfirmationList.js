@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
@@ -37,6 +38,7 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';

@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
@@ -78,13 +79,21 @@ function ReportActionItemImage({
                 />
             </View>
         );
-    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
+    } else if (thumbnail && !isLocalFile) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired
                 shouldDynamicallyResize={false}
+            />
+        );
+    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof imageSource === 'string') {
+        receiptImageComponent = (
+            <PDFThumbnail
+                previewSourceURL={imageSource}
+                style={[styles.w100, styles.h100]}
+                isAuthTokenRequired={!isLocalFile}
             />
         );
     } else {
