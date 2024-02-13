@@ -26,6 +26,8 @@ function BaseVideoPlayer({
     videoDuration,
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
+    onPlaybackStatusUpdate,
+    onFullscreenUpdate,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
@@ -72,7 +74,7 @@ function BaseVideoPlayer({
         setIsPopoverVisible(false);
     };
 
-    const onPlaybackStatusUpdate = useCallback(
+    const handlePlaybackStatusUpdate = useCallback(
         (e) => {
             const isVideoPlaying = e.isPlaying || false;
             if (isExitingFullscreen && !isVideoPlaying) {
@@ -84,17 +86,34 @@ function BaseVideoPlayer({
             setIsBuffering(e.isBuffering || false);
             setDuration(e.durationMillis || videoDuration * 1000);
             setPosition(e.positionMillis || 0);
+
+            onPlaybackStatusUpdate(e);
         },
-        [isExitingFullscreen, playVideo, videoDuration],
+        [isExitingFullscreen, onPlaybackStatusUpdate, playVideo, videoDuration],
+    );
+
+    const handleFullscreenUpdate = useCallback(
+        (e) => {
+            onFullscreenUpdate(e);
+            // fix for iOS native and mWeb: when switching to fullscreen and then exiting
+            // the fullscreen mode while playing, the video pauses
+            if (!isPlaying || e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                return;
+            }
+            playVideo();
+            setIsExitingFullscreen(true);
+        },
+        [isPlaying, onFullscreenUpdate, playVideo],
     );
 
     const bindFunctions = useCallback(() => {
-        currentVideoPlayerRef.current._onPlaybackStatusUpdate = onPlaybackStatusUpdate;
+        currentVideoPlayerRef.current._onPlaybackStatusUpdate = handlePlaybackStatusUpdate;
+        currentVideoPlayerRef.current._onFullscreenUpdate = handleFullscreenUpdate;
         // update states after binding
         currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-            onPlaybackStatusUpdate(status);
+            handlePlaybackStatusUpdate(status);
         });
-    }, [currentVideoPlayerRef, onPlaybackStatusUpdate]);
+    }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
     // update shared video elements
     useEffect(() => {
@@ -129,10 +148,7 @@ function BaseVideoPlayer({
             <View style={[styles.w100, styles.h100]}>
                 <Hoverable>
                     {(isHovered) => (
-                        <View
-                            style={[styles.w100, styles.h100, style]}
-                            on
-                        >
+                        <View style={[styles.w100, styles.h100, style]}>
                             {shouldUseSharedVideoElement ? (
                                 <>
                                     <View
@@ -176,16 +192,8 @@ function BaseVideoPlayer({
                                             resizeMode={resizeMode}
                                             isLooping={isLooping}
                                             onReadyForDisplay={onVideoLoaded}
-                                            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-                                            onFullscreenUpdate={(event) => {
-                                                // fix for iOS native and mWeb: when switching to fullscreen and then exiting
-                                                // the fullscreen mode while playing, the video pauses
-                                                if (!isPlaying || event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-                                                    return;
-                                                }
-                                                playVideo();
-                                                setIsExitingFullscreen(true);
-                                            }}
+                                            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                                            onFullscreenUpdate={handleFullscreenUpdate}
                                         />
                                     </PressableWithoutFeedback>
                                 </View>

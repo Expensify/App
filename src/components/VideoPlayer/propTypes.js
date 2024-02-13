@@ -26,6 +26,10 @@ const videoPlayerPropTypes = {
     shouldUseSmallVideoControls: PropTypes.bool,
 
     isVideoHovered: PropTypes.bool,
+
+    onFullscreenUpdate: PropTypes.func,
+
+    onPlaybackStatusUpdate: PropTypes.func,
 };
 
 const videoPlayerDefaultProps = {
@@ -40,6 +44,8 @@ const videoPlayerDefaultProps = {
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
     isVideoHovered: false,
+    onFullscreenUpdate: () => {},
+    onPlaybackStatusUpdate: () => {},
 };
 
 export {videoPlayerDefaultProps, videoPlayerPropTypes};
