@@ -21,7 +21,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
         <>
             {!!item.icons && (
                 <>
-                    {item.shouldShowSubscript ?? shouldUseOnySubscriptAvatar ? (
+                    {shouldUseOnySubscriptAvatar || item.shouldShowSubscript ? (
                         <SubscriptAvatar
                             mainAvatar={item.icons[0]}
                             secondaryAvatar={item.icons[1]}
