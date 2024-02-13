@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -109,11 +108,10 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
 
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
-export default compose(
-    withPolicyAccessOrNotFound(),
+export default withPolicyAccessOrNotFound()(
     withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
         policyCategories: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
         },
-    }),
-)(WorkspaceCategoriesPage);
+    })(WorkspaceCategoriesPage),
+);

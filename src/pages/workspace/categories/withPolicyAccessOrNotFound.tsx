@@ -1,5 +1,4 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import type {RouteProp} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import type {ForwardedRef, RefAttributes} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,7 +22,7 @@ type WithWorkspaceAccessOnyxProps = {
 
 type WithWorkspaceAccessProps = WithWorkspaceAccessOnyxProps & {
     /** The report currently being looked at */
-    route: RouteProp<{params: {policyID: string}}>;
+    route: {params: {policyID: string}};
 
     /** The report currently being looked at */
     policy: OnyxTypes.Policy;
