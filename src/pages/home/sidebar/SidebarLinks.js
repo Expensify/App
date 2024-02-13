@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -131,6 +131,9 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+
     return (
         <View style={[styles.flex1, styles.h100]}>
             <Breadcrumbs
@@ -152,7 +155,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
-                    contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
+                    contentContainerStyles={contentContainerStyles}
                     data={optionListItems}
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={isSmallScreenWidth}

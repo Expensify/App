@@ -8,7 +8,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -32,7 +32,9 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account, NewRoomForm, Policy, Report as ReportType, Session} from '@src/types/onyx';
+import type {NewRoomForm} from '@src/types/form/NewRoomForm';
+import INPUT_IDS from '@src/types/form/NewRoomForm';
+import type {Account, Policy, Report as ReportType, Session} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -75,7 +77,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                     label: policy.name,
                     key: policy.id,
                     value: policy.id,
-                })) ?? [],
+                }))
+                .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())) ?? [],
         [policies],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
@@ -96,7 +99,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     /**
      * @param values - form input values passed by the Form component
      */
-    const submit = (values: OnyxFormValuesFields<'newRoomForm'>) => {
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
         const participants = [session?.accountID ?? 0];
         const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '');
         const policyReport = ReportUtils.buildOptimisticChatReport(
@@ -157,7 +160,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      * @returns an object containing validation errors, if any were found during validation
      */
     const validate = useCallback(
-        (values: OnyxFormValuesFields<'newRoomForm'>): OnyxCommon.Errors => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>): OnyxCommon.Errors => {
             const errors: {policyID?: string; roomName?: string} = {};
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -261,7 +264,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 <InputWrapper
                                     InputComponent={RoomNameInput}
                                     ref={inputCallbackRef}
-                                    inputID="roomName"
+                                    inputID={INPUT_IDS.ROOM_NAME}
                                     isFocused={isFocused}
                                     // @ts-expect-error TODO: Remove this once RoomNameInput (https://github.com/Expensify/App/issues/25090) is migrated to TypeScript.
                                     shouldDelayFocus
@@ -271,7 +274,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             <View style={styles.mb5}>
                                 <InputWrapper
                                     InputComponent={TextInput}
-                                    inputID="reportDescription"
+                                    inputID={INPUT_IDS.REPORT_DESCRIPTION}
                                     label={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ROLE.PRESENTATION}
@@ -284,7 +287,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             <View style={[styles.mhn5]}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID="policyID"
+                                    inputID={INPUT_IDS.POLICY_ID}
                                     // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
@@ -296,7 +299,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 <View style={styles.mhn5}>
                                     <InputWrapper
                                         InputComponent={ValuePicker}
-                                        inputID="writeCapability"
+                                        inputID={INPUT_IDS.WRITE_CAPABILITY}
                                         // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
@@ -308,7 +311,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             <View style={[styles.mb1, styles.mhn5]}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID="visibility"
+                                    inputID={INPUT_IDS.VISIBILITY}
                                     // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}

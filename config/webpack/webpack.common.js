@@ -58,7 +58,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         publicPath: '/',
     },
     stats: {
-        warningsFilter: [],
+        // We can ignore the "module not installed" warning from lottie-react-native
+        // because we are not using the library for JSON format of Lottie animations.
+        warningsFilter: ['./node_modules/lottie-react-native/lib/module/LottieView/index.web.js'],
     },
     plugins: [
         new CleanWebpackPlugin(),
