@@ -17,4 +17,4 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     };
 }
 
-export default getAutoCompleteSuggestionContainerStyle
+export default getAutoCompleteSuggestionContainerStyle;

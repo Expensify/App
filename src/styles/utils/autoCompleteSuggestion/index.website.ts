@@ -1,6 +1,6 @@
 import type {ViewStyle} from 'react-native';
-import CONST from '@src/CONST';
 import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
 
 const isMobileSafari = Browser.isMobileSafari();
 
@@ -11,7 +11,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     let height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
     let top = -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING);
 
-    if ( isMobileSafari) {
+    if (isMobileSafari) {
         top += borderWidth;
     } else {
         height += borderWidth;
@@ -27,4 +27,4 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     };
 }
 
-export default getAutoCompleteSuggestionContainerStyle
+export default getAutoCompleteSuggestionContainerStyle;

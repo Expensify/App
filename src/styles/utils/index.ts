@@ -790,7 +790,6 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
     };
 }
 
-
 function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
     if (isContextMenu) {
         return {
