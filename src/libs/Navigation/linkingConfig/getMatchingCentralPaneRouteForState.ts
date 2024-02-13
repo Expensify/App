@@ -42,8 +42,8 @@ function hasRouteMatchingPolicyID(route: NavigationPartialRoute<CentralPaneName>
     );
 }
 
-// Function that restores already open screen in the settings tab. Thanks to this function, we are able to open the already selected screen in the workspace settings when we return from another tab.
-function getAlreadyOpenSettingsScreen(rootState?: State, policyID?: string): keyof CentralPaneNavigatorParamList | undefined {
+// Function that restores already opened screen in the settings tab. Thanks to this function, we are able to open the already selected screen in the workspace settings when we return from another tab.
+function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): keyof CentralPaneNavigatorParamList | undefined {
     if (!rootState) {
         return undefined;
     }
@@ -79,10 +79,10 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>, r
     const centralPaneName = TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name][0];
 
     if (topmostBottomTabRoute.name === SCREENS.WORKSPACE.INITIAL) {
-        // When we go back to the settings tab without switching the workspace id, we want to return to the previously open screen
+        // When we go back to the settings tab without switching the workspace id, we want to return to the previously opened screen
         const policyID = topmostBottomTabRoute?.params && 'policyID' in topmostBottomTabRoute?.params ? (topmostBottomTabRoute.params.policyID as string) : undefined;
-        const alreadyOpenedSettingsTab = getAlreadyOpenSettingsScreen(rootState, policyID) ?? centralPaneName;
-        return {name: alreadyOpenedSettingsTab, params: topmostBottomTabRoute.params};
+        const screen = getAlreadyOpenedSettingsScreen(rootState, policyID) ?? centralPaneName;
+        return {name: screen, params: topmostBottomTabRoute.params};
     }
 
     if (topmostBottomTabRoute.name === SCREENS.HOME) {
