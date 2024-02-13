@@ -114,7 +114,7 @@ function WorkspaceNewRoomPage(props) {
                     key: policy.id,
                     value: policy.id,
                 }),
-            ),
+            ).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())),
         [props.policies],
     );
     const [policyID, setPolicyID] = useState(() => {
