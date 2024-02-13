@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
-import type Platform from '@libs/getPlatform/types';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -15,6 +14,7 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
+import getAutoCompleteSuggestionContainerStyle from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
 import FontUtils from './FontUtils';
@@ -790,33 +790,6 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
     };
 }
 
-/**
- * Gets the correct position for auto complete suggestion container
- */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, platform: Platform, isMobileSafari: boolean): ViewStyle {
-    'worklet';
-
-    // This if condition is reverting the workaround for broken scroll on all platforms but native android and iOS safari, where the issue with
-    // scrolling char behind suggestion list is occuring. Rewerting the fix resolves the issue with always scrollable list on other platforms.
-    const borderWidth = 2;
-    let height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
-    let top = -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING);
-
-    if (platform === 'android' || isMobileSafari) {
-        top += borderWidth;
-    } else {
-        height += borderWidth;
-    }
-
-    // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
-    // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
-    return {
-        overflow: 'hidden',
-        top,
-        height,
-        minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
-    };
-}
 
 function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
     if (isContextMenu) {
