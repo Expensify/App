@@ -16,7 +16,9 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 const reimbursementAccountDefault = {
     achData: {
@@ -54,7 +56,7 @@ type CompanyOwnersListUBOProps = CompanyOwnersListUBOIOnyxProps & {
     isAnyoneElseUBO: boolean;
 };
 
-const REQUESTOR_PERSONAL_INFO_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const REQUESTOR_PERSONAL_INFO_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 
 function CompanyOwnersListUBO({
     reimbursementAccount = reimbursementAccountDefault,
@@ -69,7 +71,7 @@ function CompanyOwnersListUBO({
     const styles = useThemeStyles();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
-    const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, {}, reimbursementAccount);
+    const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, null, reimbursementAccount);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     const extraBeneficialOwners =
@@ -148,6 +150,7 @@ function CompanyOwnersListUBO({
 CompanyOwnersListUBO.displayName = 'CompanyOwnersListUBO';
 
 export default withOnyx<CompanyOwnersListUBOProps, CompanyOwnersListUBOIOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

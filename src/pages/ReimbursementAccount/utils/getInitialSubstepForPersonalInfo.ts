@@ -1,7 +1,7 @@
-import CONST from '@src/CONST';
-import type {RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 
-const personalInfoKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const personalInfoKeys = INPUT_IDS.PERSONAL_INFO_STEP;
 
 /**
  * Returns the initial substep for the Personal Info step based on already existing data
