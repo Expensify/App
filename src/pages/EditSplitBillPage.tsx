@@ -76,9 +76,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
                 }}
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-                    if (reportID && transactionAmount && defaultCurrency) {
-                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
-                    }
+                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
                 }}
             />
         );
