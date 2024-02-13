@@ -418,7 +418,7 @@ function WorkspaceMembersPage(props) {
     };
 
     const getHeaderButtons = () => (
-        <View style={[styles.w100, styles.flexRow]}>
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             <Button
                 medium
                 success
@@ -426,12 +426,13 @@ function WorkspaceMembersPage(props) {
                 text={props.translate('workspace.invite.member')}
                 icon={Expensicons.Plus}
                 iconStyles={{transform: [{scale: 0.6}]}}
+                innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
                 style={[isSmallScreenWidth && styles.flexGrow1]}
             />
             <Button
                 medium
                 danger
-                style={[styles.ml2]}
+                style={[styles.ml2, isSmallScreenWidth && styles.w50]}
                 isDisabled={selectedEmployees.length === 0}
                 text={props.translate('common.remove')}
                 onPress={askForConfirmationToRemove}
