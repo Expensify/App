@@ -209,6 +209,7 @@ function SidebarLinksData({
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
+                activeWorkspaceID={activeWorkspaceID}
             />
         </View>
     );

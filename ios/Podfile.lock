@@ -1269,7 +1269,7 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-document-picker (9.1.0):
+  - react-native-document-picker (9.1.1):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -2003,6 +2003,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNSound (0.11.2):
+    - React-Core
+    - RNSound/Core (= 0.11.2)
+  - RNSound/Core (0.11.2):
+    - React-Core
   - RNSVG (14.1.0):
     - glog
     - hermes-engine
@@ -2191,6 +2196,7 @@ DEPENDENCIES:
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2444,6 +2450,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSound:
+    :path: "../node_modules/react-native-sound"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   VisionCamera:
@@ -2533,7 +2541,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: a3ee23cfdde79c769c138d505670055de233b07a
   react-native-cameraroll: 95ce0d1a7d2d1fe55bf627ab806b64de6c3e69e9
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
-  react-native-document-picker: 7c17be47bf7f525b485687c7116320f0944b0585
+  react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
   react-native-geolocation: 015b9e3d428af7e34eed17192efadebb98fe12ee
   react-native-image-manipulator: 8a443cd2fce585cff10ceb5a0c3695960223b520
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
@@ -2593,6 +2601,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 71030d84b41327898b22cab449eb5379baf8725e
   RNScreens: f7b8bb892b4957f6f91e5dfd9a191e7f13ce8baa
+  RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: db32cfcad0a221fd175e0882eff7bcba7690380a
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
