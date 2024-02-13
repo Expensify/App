@@ -89,7 +89,6 @@ function BaseOptionsSelector(props) {
     const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
     const [disableEnterShortCut, setDisableEnterShortCut] = useState(false);
-    const [shouldShowReferralModal, setShouldShowReferralModal] = useState(props.shouldShowReferralCT);
 
     const relatedTarget = useRef(null);
     const listRef = useRef();
@@ -223,10 +222,6 @@ function BaseOptionsSelector(props) {
         },
         [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow, shouldDisableRowSelection],
     );
-
-    const handleReferralModal = () => {
-        setShouldShowReferralModal((prev) => !prev);
-    };
 
     const handleFocusIn = () => {
         const activeElement = document.activeElement;
@@ -660,12 +655,9 @@ function BaseOptionsSelector(props) {
                     </>
                 )}
             </View>
-            {props.shouldShowReferralCTA && shouldShowReferralModal && (
+            {props.shouldShowReferralCTA && (
                 <View style={[themeStyles.ph5, themeStyles.pb5, themeStyles.flexShrink0]}>
-                    <ReferralProgramCTA
-                        referralContentType={props.referralContentType}
-                        onCloseButtonPress={handleReferralModal}
-                    />
+                    <ReferralProgramCTA referralContentType={props.referralContentType}/>
                 </View>
             )}
 
