@@ -130,6 +130,6 @@ export {
     PalmTree,
     LockClosed,
     Gears,
-    QrCode,
+    QRCode,
     House,
 };
