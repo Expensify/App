@@ -713,6 +713,10 @@ export default {
             subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         },
     },
+    securityPage: {
+        title: 'Opciones de seguridad',
+        subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
+    },
     shareCodePage: {
         title: 'Tu código',
         subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
@@ -1049,6 +1053,14 @@ export default {
         defaultPaymentMethod: 'Predeterminado',
     },
     preferencesPage: {
+        appSection: {
+            title: 'Preferencias de la aplicación',
+            subtitle: 'Personaliza tu cuenta de Expensify.',
+        },
+        testSection: {
+            title: 'Preferencias para tests',
+            subtitle: 'Ajustes para ayudar a depurar y probar la aplicación en “staging”.',
+        },
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         muteAllSounds: 'Silenciar todos los sonidos de Expensify',
     },

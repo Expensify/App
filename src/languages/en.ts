@@ -718,6 +718,10 @@ export default {
             subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
         },
     },
+    securityPage: {
+        title: 'Security options',
+        subtitle: 'Enable two-factor authentication to keep your account safe.',
+    },
     shareCodePage: {
         title: 'Your code',
         subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
@@ -1051,6 +1055,14 @@ export default {
         defaultPaymentMethod: 'Default',
     },
     preferencesPage: {
+        appSection: {
+            title: 'App preferences',
+            subtitle: 'Customize your Expensify account.',
+        },
+        testSection: {
+            title: 'Test preferences',
+            subtitle: 'Settings to help debug and test the app on staging.',
+        },
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
         muteAllSounds: 'Mute all sounds from Expensify',
     },
