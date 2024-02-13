@@ -82,7 +82,6 @@ function WorkspaceMembersPage(props) {
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
-    const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
     const accountIDs = useMemo(() => _.map(_.keys(props.policyMembers), (accountID) => Number(accountID)), [props.policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
@@ -90,12 +89,6 @@ function WorkspaceMembersPage(props) {
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
     const {isSmallScreenWidth} = useWindowDimensions();
-
-    const isFocusedScreen = useIsFocused();
-
-    useEffect(() => {
-        setSearchValue(SearchInputManager.searchInput);
-    }, [isFocusedScreen]);
 
     useEffect(() => () => (SearchInputManager.searchInput = ''), []);
 
@@ -182,7 +175,6 @@ function WorkspaceMembersPage(props) {
      * Open the modal to invite a user
      */
     const inviteUser = () => {
-        setSearchValue('');
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
     };
 
@@ -323,30 +315,6 @@ function WorkspaceMembersPage(props) {
                 return;
             }
 
-            // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${details.displayName.toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                    return;
-                }
-            }
-
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
@@ -400,7 +368,7 @@ function WorkspaceMembersPage(props) {
         if (isOfflineAndNoMemberDataAvailable) {
             return props.translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+        return !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => {
@@ -456,7 +424,6 @@ function WorkspaceMembersPage(props) {
                     title={props.translate('workspace.common.members')}
                     icon={Illustrations.ReceiptWrangler}
                     onBackButtonPress={() => {
-                        setSearchValue('');
                         Navigation.goBack();
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
@@ -487,12 +454,6 @@ function WorkspaceMembersPage(props) {
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
-                        textInputLabel={props.translate('optionsSelector.findMember')}
-                        textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            SearchInputManager.searchInput = value;
-                            setSearchValue(value);
-                        }}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
