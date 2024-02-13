@@ -101,6 +101,10 @@ type RoomNameForm = Form<{
     roomName: string;
 }>;
 
+type WorkspaceDescriptionForm = Form<{
+    workspaceDescription: string;
+}>;
+
 export default Form;
 
 export type {
@@ -119,4 +123,5 @@ export type {
     ReportFieldEditForm,
     CloseAccountForm,
     RoomNameForm,
+    WorkspaceDescriptionForm,
 };

@@ -22,6 +22,7 @@ import type {
     PrivateNotesForm,
     ReportFieldEditForm,
     RoomNameForm,
+    WorkspaceDescriptionForm,
     WorkspaceSettingsForm,
 } from './Form';
 import type Form from './Form';
@@ -176,4 +177,5 @@ export type {
     PrivateNotesForm,
     ReportFieldEditForm,
     RoomNameForm,
+    WorkspaceDescriptionForm,
 };

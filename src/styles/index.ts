@@ -4337,6 +4337,11 @@ const styles = (theme: ThemeColors) =>
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
         },
+
+        workspaceTitleStyle: {
+            fontWeight: '500',
+            fontSize: variables.fontSizeNormalHeight
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

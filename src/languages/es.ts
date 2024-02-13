@@ -1704,6 +1704,7 @@ export default {
         },
         editor: {
             nameInputLabel: 'Nombre',
+            descriptionInputLabel: 'Descripción',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
             currencyInputLabel: 'Moneda por defecto',

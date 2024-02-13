@@ -1681,6 +1681,7 @@ export default {
         },
         editor: {
             nameInputLabel: 'Name',
+            descriptionInputLabel: 'Description',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
             currencyInputLabel: 'Default currency',

@@ -83,6 +83,14 @@ export default {
         marginVertical: 20,
     },
 
+    mhv5: {
+        marginVertical: -20,
+    },
+
+    mhv8: {
+        marginVertical: -32,
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -233,6 +241,10 @@ export default {
 
     mtn6: {
         marginTop: -24,
+    },
+
+    mtn17: {
+        marginTop: -68,
     },
 
     mb0: {
