@@ -30,7 +30,7 @@ type AttachmentCarouselPagerProps = {
      */
     items: Attachment[];
     /**
-     * The source of the currently active attachment.
+     * The source (URL) of the currently active attachment.
      */
     activeSource: string;
     /**
