@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		059DC4EFD39EF39437E6823D /* libPods-NotificationServiceExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A997AA8204EA3D90907FA80 /* libPods-NotificationServiceExtension.a */; };
+		083353EB2B5AB22A00C603C0 /* attention.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353E72B5AB22900C603C0 /* attention.mp3 */; };
+		083353EC2B5AB22A00C603C0 /* done.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353E82B5AB22900C603C0 /* done.mp3 */; };
+		083353ED2B5AB22A00C603C0 /* receive.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353E92B5AB22900C603C0 /* receive.mp3 */; };
+		083353EE2B5AB22A00C603C0 /* success.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353EA2B5AB22900C603C0 /* success.mp3 */; };
 		0C7C65547D7346EB923BE808 /* ExpensifyMono-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = E704648954784DDFBAADF568 /* ExpensifyMono-Regular.otf */; };
 		0CDA8E34287DD650004ECBEC /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0CDA8E33287DD650004ECBEC /* AppDelegate.mm */; };
 		0CDA8E35287DD650004ECBEC /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0CDA8E33287DD650004ECBEC /* AppDelegate.mm */; };
@@ -79,6 +83,10 @@
 		00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NewExpensifyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		076FD9E41E08971BBF51D580 /* libPods-NewExpensify-NewExpensifyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify-NewExpensifyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		083353E72B5AB22900C603C0 /* attention.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = attention.mp3; path = ../assets/sounds/attention.mp3; sourceTree = "<group>"; };
+		083353E82B5AB22900C603C0 /* done.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = done.mp3; path = ../assets/sounds/done.mp3; sourceTree = "<group>"; };
+		083353E92B5AB22900C603C0 /* receive.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = receive.mp3; path = ../assets/sounds/receive.mp3; sourceTree = "<group>"; };
+		083353EA2B5AB22900C603C0 /* success.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = success.mp3; path = ../assets/sounds/success.mp3; sourceTree = "<group>"; };
 		0CDA8E33287DD650004ECBEC /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = NewExpensify/AppDelegate.mm; sourceTree = "<group>"; };
 		0CDA8E36287DD6A0004ECBEC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NewExpensify/Images.xcassets; sourceTree = "<group>"; };
 		0F5BE0CD252686320097D869 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -311,6 +319,10 @@
 		A9EA265D209D4558995C9BD4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				083353E72B5AB22900C603C0 /* attention.mp3 */,
+				083353E82B5AB22900C603C0 /* done.mp3 */,
+				083353E92B5AB22900C603C0 /* receive.mp3 */,
+				083353EA2B5AB22900C603C0 /* success.mp3 */,
 				44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */,
 				D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */,
 				DCF33E34FFEC48128CDD41D4 /* ExpensifyMono-Bold.otf */,
@@ -496,13 +508,17 @@
 				0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */,
 				E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */,
 				F0C450EA2705020500FD2970 /* colors.json in Resources */,
+				083353EB2B5AB22A00C603C0 /* attention.mp3 in Resources */,
 				0CDA8E37287DD6A0004ECBEC /* Images.xcassets in Resources */,
 				70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */,
 				FF941A8D48F849269AB85C9A /* ExpensifyNewKansas-Medium.otf in Resources */,
 				BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */,
 				26AF3C3540374A9FACB6C19E /* ExpensifyMono-Bold.otf in Resources */,
+				083353EE2B5AB22A00C603C0 /* success.mp3 in Resources */,
 				0C7C65547D7346EB923BE808 /* ExpensifyMono-Regular.otf in Resources */,
 				2A9F8CDA983746B0B9204209 /* ExpensifyNeue-Bold.otf in Resources */,
+				083353EC2B5AB22A00C603C0 /* done.mp3 in Resources */,
+				083353ED2B5AB22A00C603C0 /* receive.mp3 in Resources */,
 				ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */,
 				30581EA8AAFD4FCE88C5D191 /* ExpensifyNeue-Italic.otf in Resources */,
 				1246A3EF20E54E7A9494C8B9 /* ExpensifyNeue-Regular.otf in Resources */,

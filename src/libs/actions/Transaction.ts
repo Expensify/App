@@ -107,10 +107,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean) {
-    if (!transaction) {
-        return;
-    }
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -119,7 +116,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     const waypointValues = Object.values(existingWaypoints);
     const removed = waypointValues.splice(index, 1);
     if (removed.length === 0) {
-        return;
+        return Promise.resolve();
     }
 
     const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed[0] ?? {});
@@ -139,7 +136,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...transaction,
+        ...(transaction as Transaction),
         comment: {
             ...transaction?.comment,
             waypoints: reIndexedWaypoints,
@@ -169,10 +166,9 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
         };
     }
     if (isDraft) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
-        return;
+        return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
     }
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
+    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
 function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {

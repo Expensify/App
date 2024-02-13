@@ -272,10 +272,6 @@ const ROUTES = {
         route: ':iouType/new/confirmation/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}` as const,
     },
-    MONEY_REQUEST_DATE: {
-        route: ':iouType/new/date/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}` as const,
-    },
     MONEY_REQUEST_CURRENCY: {
         route: ':iouType/new/currency/:reportID?',
         getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
@@ -337,9 +333,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
-        route: 'create/:iouType/date/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/date/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/date/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/date/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_DESCRIPTION: {
         route: ':action/:iouType/description/:transactionID/:reportID',
@@ -436,17 +432,17 @@ const ROUTES = {
         route: 'workspace/:policyID/invite-message',
         getRoute: (policyID: string) => `workspace/${policyID}/invite-message` as const,
     },
-    WORKSPACE_OVERVIEW: {
-        route: 'workspace/:policyID/overview',
-        getRoute: (policyID: string) => `workspace/${policyID}/overview` as const,
+    WORKSPACE_PROFILE: {
+        route: 'workspace/:policyID/profile',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile` as const,
     },
-    WORKSPACE_OVERVIEW_CURRENCY: {
-        route: 'workspace/:policyID/overview/currency',
-        getRoute: (policyID: string) => `workspace/${policyID}/overview/currency` as const,
+    WORKSPACE_PROFILE_CURRENCY: {
+        route: 'workspace/:policyID/profile/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/currency` as const,
     },
-    WORKSPACE_OVERVIEW_NAME: {
-        route: 'workspace/:policyID/overview/name',
-        getRoute: (policyID: string) => `workspace/${policyID}/overview/name` as const,
+    WORKSPACE_PROFILE_NAME: {
+        route: 'workspace/:policyID/profile/name',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/name` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
@@ -467,6 +463,14 @@ const ROUTES = {
     WORKSPACE_RATE_AND_UNIT: {
         route: 'workspace/:policyID/rateandunit',
         getRoute: (policyID: string) => `workspace/${policyID}/rateandunit` as const,
+    },
+    WORKSPACE_RATE_AND_UNIT_RATE: {
+        route: 'workspace/:policyID/rateandunit/rate',
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit/rate` as const,
+    },
+    WORKSPACE_RATE_AND_UNIT_UNIT: {
+        route: 'workspace/:policyID/rateandunit/unit',
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit/unit` as const,
     },
     WORKSPACE_BILLS: {
         route: 'workspace/:policyID/bills',
