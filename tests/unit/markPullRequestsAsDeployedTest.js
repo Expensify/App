@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 const _ = require('underscore');
-const GitUtils = require('../../.github/libs/GitUtils');
+const GitUtils = require('../../.github/libs/GitUtils').default;
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
 let run;

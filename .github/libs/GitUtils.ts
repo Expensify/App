@@ -1,14 +1,18 @@
-const _ = require('underscore');
-const {spawn, execSync} = require('child_process');
-const CONST = require('./CONST');
-const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
-const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = require('../libs/versionUpdater');
+import {execSync, spawn} from 'child_process';
+import * as CONST from './CONST';
+import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
+import * as VERSION_UPDATER from './versionUpdater';
+
+type CommitType = {
+    commit: string;
+    subject: string;
+    authorName: string;
+};
 
 /**
- * @param {String} tag
- * @param {String} [shallowExcludeTag] when fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ * When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
-function fetchTag(tag, shallowExcludeTag = '') {
+function fetchTag(tag: string, shallowExcludeTag = '') {
     let shouldRetry = true;
     let needsRepack = false;
     while (shouldRetry) {
@@ -47,19 +51,15 @@ function fetchTag(tag, shallowExcludeTag = '') {
 
 /**
  * Get merge logs between two tags (inclusive) as a JavaScript object.
- *
- * @param {String} fromTag
- * @param {String} toTag
- * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
-function getCommitHistoryAsJSON(fromTag, toTag) {
+function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
     // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
+    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
         let stdout = '';
         let stderr = '';
         const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
@@ -89,26 +89,23 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
         // Then remove newlines, format as JSON and convert to a proper JS object
         const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
 
-        return JSON.parse(json);
+        return JSON.parse(json) as CommitType[];
     });
 }
 
 /**
  * Parse merged PRs, excluding those from irrelevant branches.
- *
- * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<Number>}
  */
-function getValidMergedPRs(commits) {
-    const mergedPRs = new Set();
-    _.each(commits, (commit) => {
+function getValidMergedPRs(commits: CommitType[]): number[] {
+    const mergedPRs = new Set<number>();
+    commits.forEach((commit) => {
         const author = commit.authorName;
         if (author === CONST.OS_BOTIFY) {
             return;
         }
 
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
-        if (!_.isArray(match) || match.length < 2) {
+        if (!Array.isArray(match) || match.length < 2) {
             return;
         }
 
@@ -128,12 +125,8 @@ function getValidMergedPRs(commits) {
 
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- *
- * @param {String} fromTag
- * @param {String} toTag
- * @returns {Promise<Array<Number>>} – Pull request numbers
  */
-async function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
     console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
@@ -144,7 +137,8 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
     return pullRequestNumbers;
 }
 
-module.exports = {
+export default {
     getValidMergedPRs,
     getPullRequestsMergedBetween,
 };
+export type {CommitType};

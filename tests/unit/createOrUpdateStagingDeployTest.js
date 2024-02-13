@@ -6,7 +6,7 @@ const fns = require('date-fns');
 const {vol} = require('memfs');
 const path = require('path');
 const CONST = require('../../.github/libs/CONST');
-const GitUtils = require('../../.github/libs/GitUtils');
+const GitUtils = require('../../.github/libs/GitUtils').default;
 const GithubUtils = require('../../.github/libs/GithubUtils');
 const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
 
