@@ -205,22 +205,61 @@ jobs:
           cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log || true
           cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/Test spec output.txt" || true
 
+      - name: Announce failed workflow in Slack
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#expensify-margelo',
+              attachments: [{
+                color: 'danger',
+                text: `💥 ${process.env.AS_REPO} E2E Test run failed failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
       - name: Unzip AWS Device Farm results
-        if: ${{ always() }}
+        if: always()
         run: unzip "Customer Artifacts.zip"
 
       - name: Print AWS Device Farm run results
-        if: ${{ always() }}
+        if: always()
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
+        id: checkIfRegressionDetected
         run: |
           if grep -q '🔴' ./output.md; then
+            # Create an output to the GH action that the test failed:
+            echo "performanceRegressionDetected=true" >> "$GITHUB_OUTPUT"
+
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
             gh pr comment ${{ inputs.PR_NUMBER }} -F ./output.md
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
+            echo "performanceRegressionDetected=false" >> "$GITHUB_OUTPUT"
             echo '✅ no performance regression detected'
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: 'Announce regression in Slack'
+        if: ${{ steps.checkIfRegressionDetected.outputs.performanceRegressionDetected == 'true' }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#newdot-performance',
+              attachments: [{
+                color: 'danger',
+                text: `🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

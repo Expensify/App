@@ -14,6 +14,7 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
@@ -56,7 +57,7 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
+type MenuItemBaseProps = {
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -77,6 +78,9 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
 
     /** Used to apply styles specifically to the title */
     titleStyle?: ViewStyle;
+
+    /** Any additional styles to apply on the badge element */
+    badgeStyle?: ViewStyle;
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
@@ -136,7 +140,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     error?: string;
 
     /** Error to display at the bottom of the component */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
@@ -232,6 +236,8 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     isPaneMenu?: boolean;
 };
 
+type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
+
 function MenuItem(
     {
         interactive = true,
@@ -243,6 +249,7 @@ function MenuItem(
         titleStyle,
         hoverAndPressStyle,
         descriptionTextStyle,
+        badgeStyle,
         viewMode = CONST.OPTION_MODE.DEFAULT,
         numberOfLinesTitle = 1,
         icon,
@@ -561,11 +568,16 @@ function MenuItem(
                                 {badgeText && (
                                     <Badge
                                         text={badgeText}
-                                        badgeStyles={[styles.alignSelfCenter, brickRoadIndicator ? styles.mr2 : undefined, focused || isHovered || pressed ? styles.buttonHoveredBG : {}]}
+                                        badgeStyles={[
+                                            styles.alignSelfCenter,
+                                            brickRoadIndicator ? styles.mr2 : undefined,
+                                            focused || isHovered || pressed ? styles.buttonHoveredBG : {},
+                                            badgeStyle,
+                                        ]}
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                                {(subtitle ?? subtitle === 0) && (
+                                {(subtitle === 0 || subtitle) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                     </View>
@@ -624,5 +636,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {MenuItemProps};
+export type {IconProps, AvatarProps, NoIcon, MenuItemBaseProps, MenuItemProps};
 export default forwardRef(MenuItem);
