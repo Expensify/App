@@ -41,7 +41,6 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type ReimbursementAccountDraft from './ReimbursementAccountDraft';
-import type {ReimbursementAccountFormDraft} from './ReimbursementAccountDraft';
 import type Report from './Report';
 import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
@@ -69,6 +68,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 
 export type {
     Account,
@@ -114,7 +114,6 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     ReimbursementAccountDraft,
-    ReimbursementAccountFormDraft,
     Report,
     ReportAction,
     ReportActionReactions,
@@ -142,6 +141,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceRateAndUnit,
     ReportUserIsTyping,
     PolicyReportField,
     PolicyReportFields,

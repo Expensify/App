@@ -114,7 +114,10 @@ class BaseOptionsSelector extends Component {
     componentDidUpdate(prevProps, prevState) {
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
             if (this.state.disableEnterShortCut) {
-                this.unsubscribeEnter();
+                if (this.unsubscribeEnter) {
+                    this.unsubscribeEnter();
+                    this.unsubscribeEnter = undefined;
+                }
             } else {
                 this.subscribeToEnterShortcut();
             }
@@ -290,6 +293,9 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeToEnterShortcut() {
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
+        }
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -302,6 +308,9 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeToCtrlEnterShortcut() {
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -327,10 +336,12 @@ class BaseOptionsSelector extends Component {
     unSubscribeFromKeyboardShortcut() {
         if (this.unsubscribeEnter) {
             this.unsubscribeEnter();
+            this.unsubscribeEnter = undefined;
         }
 
         if (this.unsubscribeCTRLEnter) {
             this.unsubscribeCTRLEnter();
+            this.unsubscribeCTRLEnter = undefined;
         }
     }
 

@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -37,7 +38,8 @@ type PrivateNotesEditPageOnyxProps = {
     personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
-type PrivateNotesEditPageProps = PrivateNotesEditPageOnyxProps &
+type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
+    PrivateNotesEditPageOnyxProps &
     StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
         /** The report currently being looked at */
         report: Report;

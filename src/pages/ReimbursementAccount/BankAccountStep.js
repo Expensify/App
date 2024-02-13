@@ -22,13 +22,13 @@ import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import BankAccountManualStep from './BankAccountManualStep';
-import BankAccountPlaidStep from './BankAccountPlaidStep';
+import BankInfo from './BankInfo/BankInfo';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -65,6 +65,8 @@ const defaultProps = {
     policyID: '',
 };
 
+const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+
 function BankAccountStep(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -80,26 +82,21 @@ function BankAccountStep(props) {
         ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
     )}`;
 
-    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return (
-            <BankAccountManualStep
-                reimbursementAccount={props.reimbursementAccount}
-                reimbursementAccountDraft={props.reimbursementAccountDraft}
-                onBackButtonPress={props.onBackButtonPress}
-                getDefaultStateForField={props.getDefaultStateForField}
-            />
-        );
-    }
+    const removeExistingBankAccountDetails = () => {
+        const bankAccountData = {
+            [bankInfoStepKeys.ROUTING_NUMBER]: '',
+            [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
+            [bankInfoStepKeys.PLAID_MASK]: '',
+            [bankInfoStepKeys.IS_SAVINGS]: '',
+            [bankInfoStepKeys.BANK_NAME]: '',
+            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
+        };
+        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+    };
 
-    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return (
-            <BankAccountPlaidStep
-                reimbursementAccount={props.reimbursementAccount}
-                reimbursementAccountDraft={props.reimbursementAccountDraft}
-                onBackButtonPress={props.onBackButtonPress}
-                getDefaultStateForField={props.getDefaultStateForField}
-            />
-        );
+    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+        return <BankInfo onBackButtonPress={props.onBackButtonPress} />;
     }
 
     return (
@@ -136,6 +133,7 @@ function BankAccountStep(props) {
                                 if (props.isPlaidDisabled || !props.user.validated) {
                                     return;
                                 }
+                                removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
                             isDisabled={props.isPlaidDisabled || !props.user.validated}
@@ -151,7 +149,10 @@ function BankAccountStep(props) {
                                 icon={Expensicons.Connect}
                                 title={props.translate('bankAccount.connectManually')}
                                 disabled={!props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => {
+                                    removeExistingBankAccountDetails();
+                                    BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}
                             />

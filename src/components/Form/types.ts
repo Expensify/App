@@ -2,6 +2,7 @@ import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} f
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddressSearch from '@components/AddressSearch';
+import type AmountForm from '@components/AmountForm';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountrySelector from '@components/CountrySelector';
@@ -10,6 +11,7 @@ import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
 import type {TranslationPaths} from '@src/languages/types';
+import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
 
@@ -28,6 +30,8 @@ type ValidInputs =
     | typeof Picker
     | typeof AddressSearch
     | typeof CountrySelector
+    | typeof AmountForm
+    | typeof BusinessTypePicker
     | typeof StatePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
@@ -79,6 +83,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Text to be displayed in the submit button */
     submitButtonText: string;
+
+    /** Submit button styles */
+    submitButtonStyles?: StyleProp<ViewStyle>;
 
     /** Controls the submit button's visibility */
     isSubmitButtonVisible?: boolean;

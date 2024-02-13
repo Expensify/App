@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
 import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputSubmitEditingEventData} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -64,6 +64,12 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
 
         /** Should validate function be called when the value of the input is changed */
         shouldValidateOnChange?: boolean;
+
+        /** Styles that will be applied to the submit button only */
+        submitButtonStyles?: StyleProp<ViewStyle>;
+
+        /** Whether to apply flex to the submit button */
+        submitFlexEnabled?: boolean;
     };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
