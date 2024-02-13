@@ -1,35 +1,30 @@
 import {useNavigationState} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {NativeModules, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import bankAccountPropTypes from '@components/bankAccountPropTypes';
-import cardPropTypes from '@components/cardPropTypes';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import {translatableTextPropTypes} from '@libs/Localize';
 import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
-import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -37,68 +32,59 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Session from '@userActions/Session';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-const propTypes = {
-    /* Onyx Props */
-
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
-
+type InitialSettingsPageOnyxProps = {
     /** The user's wallet account */
-    userWallet: PropTypes.shape({
-        /** The user's current wallet balance */
-        currentBalance: PropTypes.number,
-    }),
+    userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
     /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 
     /** List of user's cards */
-    fundList: PropTypes.objectOf(cardPropTypes),
+    fundList: OnyxEntry<OnyxTypes.FundList>;
 
     /** Information about the user accepting the terms for payments */
-    walletTerms: walletTermsPropTypes,
+    walletTerms: OnyxEntry<OnyxTypes.WalletTerms>;
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Date login was validated, used to show brickroad info status */
-            validatedDate: PropTypes.string,
-
-            /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
-        }),
-    ),
-
-    ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
+    loginList: OnyxEntry<OnyxTypes.LoginList>;
 };
 
-const defaultProps = {
-    session: {},
-    userWallet: {
-        currentBalance: 0,
-    },
-    walletTerms: {},
-    bankAccountList: {},
-    fundList: null,
-    loginList: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
+type InitialSettingsPageProps = InitialSettingsPageOnyxProps & WithCurrentUserPersonalDetailsProps;
+type MenuData = {
+    translationKey: TranslationPaths;
+    icon: IconAsset;
+    routeName?: Route;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    action?: () => void;
+    link?: string | (() => Promise<string>);
+    iconType?: typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconStyles?: StyleProp<ViewStyle>;
+    fallbackIcon?: IconAsset;
+    shouldStackHorizontally?: boolean;
+    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    floatRightAvatars?: Icon[];
+    title?: string;
 };
+type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage(props) {
+function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const activeRoute = useNavigationState(getTopmostSettingsCentralPaneName);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
@@ -107,13 +93,13 @@ function InitialSettingsPage(props) {
         Wallet.openInitialSettingsPage();
     }, []);
 
-    const toggleSignoutConfirmModal = (value) => {
+    const toggleSignoutConfirmModal = (value: boolean) => {
         setShouldShowSignoutConfirmModal(value);
     };
 
     const signOut = useCallback(
         (shouldForceSignout = false) => {
-            if (!props.network.isOffline || shouldForceSignout) {
+            if (!network.isOffline || shouldForceSignout) {
                 Session.signOutAndRedirectToSignIn();
                 return;
             }
@@ -121,18 +107,18 @@ function InitialSettingsPage(props) {
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
             toggleSignoutConfirmModal(true);
         },
-        [props.network.isOffline],
+        [network.isOffline],
     );
 
     /**
      * Retuns a list of menu items data for account section
-     * @returns {Object} object with translationKey, style and items for the account section
+     * @returns object with translationKey, style and items for the account section
      */
-    const accountMenuItemsData = useMemo(() => {
-        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
-        const paymentCardList = props.fundList || {};
+    const accountMenuItemsData: Menu = useMemo(() => {
+        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
+        const paymentCardList = fundList;
 
-        const defaultMenu = {
+        const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
@@ -147,9 +133,9 @@ function InitialSettingsPage(props) {
                     icon: Expensicons.Wallet,
                     routeName: ROUTES.SETTINGS_WALLET,
                     brickRoadIndicator:
-                        PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
+                        PaymentMethods.hasPaymentMethodError(bankAccountList, paymentCardList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors)
                             ? 'error'
-                            : null,
+                            : undefined,
                 },
                 {
                     translationKey: 'common.shareCode',
@@ -185,39 +171,36 @@ function InitialSettingsPage(props) {
         };
 
         if (NativeModules.HybridAppModule) {
-            const hybridAppMenuItems = _.filter(
-                [
-                    {
-                        translationKey: 'initialSettingsPage.returnToClassic',
-                        icon: Expensicons.RotateLeft,
-                        shouldShowRightIcon: true,
-                        iconRight: Expensicons.NewWindow,
-                        action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
-                    },
-                    ...defaultMenu.items,
-                ],
-                (item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic',
-            );
+            const hybridAppMenuItems: MenuData[] = [
+                {
+                    translationKey: 'initialSettingsPage.returnToClassic' as const,
+                    icon: Expensicons.RotateLeft,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    action: () => NativeModules.HybridAppModule.closeReactNativeApp() as void,
+                },
+                ...defaultMenu.items,
+            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic');
 
             return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
         }
 
         return defaultMenu;
-    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, signOut]);
 
     /**
      * Retuns a list of menu items data for general section
-     * @returns {Object} object with translationKey, style and items for the general section
+     * @returns object with translationKey, style and items for the general section
      */
-    const generaltMenuItemsData = useMemo(
+    const generaltMenuItemsData: Menu = useMemo(
         () => ({
             sectionStyle: {
                 ...styles.pt4,
             },
-            sectionTranslationKey: 'initialSettingsPage.general',
+            sectionTranslationKey: 'initialSettingsPage.general' as const,
             items: [
                 {
-                    translationKey: 'initialSettingsPage.help',
+                    translationKey: 'initialSettingsPage.help' as const,
                     icon: Expensicons.QuestionMark,
                     action: () => {
                         Link.openExternalLink(CONST.NEWHELP_URL);
@@ -225,7 +208,7 @@ function InitialSettingsPage(props) {
                     link: CONST.NEWHELP_URL,
                 },
                 {
-                    translationKey: 'initialSettingsPage.about',
+                    translationKey: 'initialSettingsPage.about' as const,
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
@@ -236,20 +219,20 @@ function InitialSettingsPage(props) {
 
     /**
      * Retuns JSX.Element with menu items
-     * @param {Object} menuItemsData list with menu items data
-     * @returns {JSX.Element} the menu items for passed data
+     * @param menuItemsData list with menu items data
+     * @returns the menu items for passed data
      */
     const getMenuItemsSection = useCallback(
-        (menuItemsData) => {
+        (menuItemsData: Menu) => {
             /**
-             * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-             * @returns {String|undefined} the user's wallet balance
+             * @param isPaymentItem whether the item being rendered is the payments menu item
+             * @returns the user's wallet balance
              */
-            const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
+            const getWalletBalance = (isPaymentItem: boolean): string | undefined => (isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet?.currentBalance) : undefined);
 
-            const openPopover = (link, event) => {
+            const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
                 if (typeof link === 'function') {
-                    link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
+                    link?.()?.then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
                 } else if (link) {
                     ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
                 }
@@ -258,13 +241,13 @@ function InitialSettingsPage(props) {
             return (
                 <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
                     <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
-                    {_.map(menuItemsData.items, (item, index) => {
+                    {menuItemsData.items.map((item) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                         const isPaymentItem = item.translationKey === 'common.wallet';
 
                         return (
                             <MenuItem
-                                key={`${keyTitle}_${index}`}
+                                key={keyTitle}
                                 wrapperStyle={styles.sectionMenuItem}
                                 title={keyTitle}
                                 icon={item.icon}
@@ -290,7 +273,7 @@ function InitialSettingsPage(props) {
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
+                                focused={!!activeRoute && !!item.routeName && !!(activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))}
                                 isPaneMenu
                             />
                         );
@@ -305,7 +288,7 @@ function InitialSettingsPage(props) {
             styles.sectionMenuItem,
             styles.hoveredComponentBG,
             translate,
-            props.userWallet.currentBalance,
+            userWallet?.currentBalance,
             isExecuting,
             singleExecution,
             activeRoute,
@@ -316,50 +299,51 @@ function InitialSettingsPage(props) {
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
     const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
 
-    const currentUserDetails = props.currentUserPersonalDetails || {};
-    const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
-    const accountID = lodashGet(currentUserDetails, 'accountID', '');
+    const currentUserDetails = currentUserPersonalDetails;
+    const avatarURL = currentUserDetails?.avatar ?? '';
+    const accountID = currentUserDetails?.accountID ?? '';
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5]}>
-            {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
+            {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <>
                     <OfflineWithFeedback
-                        pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                         style={[styles.mb3, styles.w100]}
                     >
+                        {/* @ts-expect-error TODO: Remove this once AvatarWithImagePicker (https://github.com/Expensify/App/issues/25122) is migrated to TypeScript. */}
                         <AvatarWithImagePicker
-                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
                             source={UserUtils.getAvatar(avatarURL, accountID)}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             size={CONST.AVATAR_SIZE.XLARGE}
                             avatarStyle={styles.avatarXLarge}
-                            pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                            errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
-                            errorRowStyles={[styles.mt6]}
+                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? null}
+                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
+                            errorRowStyles={styles.mt6}
                             onErrorClose={PersonalDetails.clearAvatarErrors}
-                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
+                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                             originalFileName={currentUserDetails.originalFileName}
-                            headerTitle={props.translate('profilePage.profileAvatar')}
-                            fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
+                            headerTitle={translate('profilePage.profileAvatar')}
+                            fallbackIcon={currentUserDetails?.fallbackIcon}
                         />
                     </OfflineWithFeedback>
                     <Text
                         style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                         numberOfLines={1}
                     >
-                        {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
+                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email)}
                     </Text>
-                    {Boolean(props.currentUserPersonalDetails.displayName) && (
+                    {Boolean(currentUserPersonalDetails.displayName) && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
                         >
-                            {props.formatPhoneNumber(props.session.email)}
+                            {formatPhoneNumber(session?.email)}
                         </Text>
                     )}
                 </>
@@ -395,17 +379,10 @@ function InitialSettingsPage(props) {
     );
 }
 
-InitialSettingsPage.propTypes = propTypes;
-InitialSettingsPage.defaultProps = defaultProps;
 InitialSettingsPage.displayName = 'InitialSettingsPage';
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
+export default withCurrentUserPersonalDetails(
+    withOnyx<InitialSettingsPageProps, InitialSettingsPageOnyxProps>({
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
@@ -421,6 +398,5 @@ export default compose(
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },
-    }),
-    withNetwork(),
-)(InitialSettingsPage);
+    })(InitialSettingsPage),
+);
