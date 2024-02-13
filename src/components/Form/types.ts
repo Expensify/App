@@ -1,11 +1,14 @@
 import type {ComponentProps, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type AddressSearch from '@components/AddressSearch';
+import type AmountForm from '@components/AmountForm';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type Picker from '@components/Picker';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
+import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
+import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type Form from '@src/types/onyx/Form';
 import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
@@ -17,7 +20,16 @@ import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
  * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
  */
-type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch;
+type ValidInputs =
+    | typeof TextInput
+    | typeof AmountTextInput
+    | typeof SingleChoiceQuestion
+    | typeof CheckboxWithLabel
+    | typeof Picker
+    | typeof AddressSearch
+    | typeof AmountForm
+    | typeof BusinessTypePicker
+    | typeof StatePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 
@@ -70,6 +82,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Text to be displayed in the submit button */
     submitButtonText: string;
+
+    /** Submit button styles */
+    submitButtonStyles?: StyleProp<ViewStyle>;
 
     /** Controls the submit button's visibility */
     isSubmitButtonVisible?: boolean;
