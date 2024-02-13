@@ -186,7 +186,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         }
     }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
 
-    const handleScaleChange = useCallback(
+    const scaleChange = useCallback(
         (scale: number) => {
             onScaleChangedProp?.(scale);
             onScaleChangedContext?.(scale);
@@ -211,7 +211,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 pagerRef={pagerRef}
                                 shouldDisableTransformationGestures={isPagerScrolling}
                                 onTap={onTap}
-                                onScaleChanged={handleScaleChange}
+                                onScaleChanged={scaleChange}
                             >
                                 <Image
                                     source={{uri}}
