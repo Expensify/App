@@ -9,6 +9,7 @@ import FormElement from '@components/FormElement';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import usePreventFormDefault from '@hooks/usePreventFormDefault';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {Form} from '@src/types/onyx';
@@ -64,6 +65,8 @@ function FormWrapper({
     const formRef = useRef<ScrollView>(null);
     const formContentRef = useRef<View>(null);
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
+
+    usePreventFormDefault(formContentRef.current);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
