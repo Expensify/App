@@ -4,9 +4,12 @@ import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SignInPageForm from '@components/SignInPageForm';
 import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import variables from '@styles/variables';
 import SignInHeroImage from './SignInHeroImage';
 import type {SignInPageLayoutProps} from './types';
@@ -17,7 +20,7 @@ type SignInPageContentProps = Pick<SignInPageLayoutProps, 'welcomeText' | 'welco
 };
 
 function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText, shouldShowWelcomeText, shouldShowSmallScreen, children}: SignInPageContentProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -25,10 +28,10 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
         <View style={[styles.flex1, styles.signInPageLeftContainer]}>
             <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
-                <View style={[styles.flexGrow1, isSmallScreenWidth ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
+                <View style={[styles.flexGrow1, shouldUseNarrowLayout ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
                 <View style={[styles.flexGrow2, styles.mb8]}>
                     <SignInPageForm style={[styles.alignSelfStretch]}>
-                        <View style={[isSmallScreenWidth ? styles.mb8 : styles.mb15, isSmallScreenWidth ? styles.alignItemsCenter : styles.alignSelfStart]}>
+                        <View style={[shouldUseNarrowLayout ? styles.mb8 : styles.mb15, shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignSelfStart]}>
                             <ExpensifyWordmark />
                         </View>
                         <View style={[styles.signInPageWelcomeTextContainer]}>
@@ -39,7 +42,7 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                                         StyleUtils.getLineHeightStyle(variables.lineHeightSignInHeroXSmall),
                                         StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
                                         !welcomeText ? styles.mb5 : {},
-                                        !isSmallScreenWidth ? styles.textAlignLeft : {},
+                                        !shouldUseNarrowLayout ? styles.textAlignLeft : {},
                                         styles.mb5,
                                     ]}
                                 >
@@ -47,7 +50,7 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                                 </Text>
                             ) : null}
                             {shouldShowWelcomeText && welcomeText ? (
-                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{welcomeText}</Text>
+                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>{welcomeText}</Text>
                             ) : null}
                         </View>
                         {children}
@@ -55,9 +58,9 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                     <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
                         <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
                     </View>
-                    {shouldShowSmallScreen ? (
+                    {shouldUseNarrowLayout ? (
                         <View style={[styles.mt8]}>
-                            <SignInHeroImage shouldShowSmallScreen />
+                            <SignInHeroImage />
                         </View>
                     ) : null}
                 </View>

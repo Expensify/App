@@ -5,6 +5,7 @@ import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import ImageSVG from '@components/ImageSVG';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +22,6 @@ import type {SignInPageLayoutProps, SignInPageLayoutRef} from './types';
 
 function SignInPageLayout(
     {
-        shouldShowSmallScreen = false,
         customHeadline,
         customHeroBody,
         shouldShowWelcomeHeader = false,
@@ -41,11 +41,12 @@ function SignInPageLayout(
     const scrollViewRef = useRef<ScrollView>(null);
     const prevPreferredLocale = usePrevious(preferredLocale);
     const {windowHeight, isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {containerStyles, contentContainerStyles} = useMemo(
         () => ({
-            containerStyles: shouldShowSmallScreen ? [styles.flex1] : [styles.flex1, styles.signInPageInner],
-            contentContainerStyles: [styles.flex1, shouldShowSmallScreen ? styles.flexColumn : styles.flexRow],
+            containerStyles: shouldUseNarrowLayout ? [styles.flex1] : [styles.flex1, styles.signInPageInner],
+            contentContainerStyles: [styles.flex1, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow],
         }),
         [shouldShowSmallScreen, styles],
     );
@@ -78,7 +79,7 @@ function SignInPageLayout(
 
     return (
         <View style={containerStyles}>
-            {!shouldShowSmallScreen ? (
+            {!shouldUseNarrowLayout ? (
                 <View style={contentContainerStyles}>
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
@@ -90,7 +91,6 @@ function SignInPageLayout(
                             welcomeText={welcomeText}
                             shouldShowWelcomeText={shouldShowWelcomeText}
                             shouldShowWelcomeHeader={shouldShowWelcomeHeader}
-                            shouldShowSmallScreen={shouldShowSmallScreen}
                         >
                             {children}
                         </SignInPageContent>
@@ -155,16 +155,12 @@ function SignInPageLayout(
                             welcomeText={welcomeText}
                             shouldShowWelcomeText={shouldShowWelcomeText}
                             shouldShowWelcomeHeader={shouldShowWelcomeHeader}
-                            shouldShowSmallScreen={shouldShowSmallScreen}
                         >
                             {children}
                         </SignInPageContent>
                     </View>
                     <View style={[styles.flex0]}>
-                        <Footer
-                            navigateFocus={navigateFocus}
-                            shouldShowSmallScreen
-                        />
+                        <Footer navigateFocus={navigateFocus} />
                     </View>
                 </ScrollView>
             )}

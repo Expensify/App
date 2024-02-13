@@ -17,8 +17,8 @@ import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibili
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
@@ -55,9 +55,8 @@ type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isInModal = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
@@ -67,6 +66,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
+    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
 
     /**
      * Validate the input value and set the error for formError
@@ -120,7 +120,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
     );
 
     function getSignInWithStyles() {
-        return isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
+        return shouldUseNarrowLayout ? [styles.mt1] : [styles.mt5, styles.mb5];
     }
 
     /**
@@ -306,7 +306,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                                         {translate('common.signInWith')}
                                     </Text>
 
-                                    <View style={isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
+                                    <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
                                             <AppleSignIn />
                                         </View>

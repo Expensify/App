@@ -8,11 +8,11 @@ import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import type {LinkProps, PressProps} from '@components/TextLink';
 import TextLink from '@components/TextLink';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SignInPageLayoutProps} from './types';
 
-type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus' | 'shouldShowSmallScreen'>;
+type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'>;
 
 type FooterColumnRow = (LinkProps | PressProps) & {
     translationPath: TranslationPaths;
@@ -147,8 +147,8 @@ function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth} = useWindowDimensions();
-    const isVertical = shouldShowSmallScreen;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
