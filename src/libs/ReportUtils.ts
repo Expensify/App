@@ -1601,7 +1601,6 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
         };
     }
     if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS) {
-        console.log('BADUM');
         return {
             accountID,
             displayName: 'Expensify',

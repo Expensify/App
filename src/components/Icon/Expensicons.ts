@@ -94,6 +94,7 @@ import Monitor from '@assets/images/monitor.svg';
 import NewExpensify from '@assets/images/new-expensify.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
+import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
@@ -237,6 +238,7 @@ export {
     NewExpensify,
     NewWindow,
     NewWorkspace,
+    NotificationsAvatar,
     Offline,
     OfflineCloud,
     OldDotWireframe,
