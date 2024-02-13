@@ -43,6 +43,7 @@ allprojects {
             def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
             force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
             force "com.facebook.react:hermes-engine:" + REACT_NATIVE_VERSION
+            force "com.facebook.soloader:soloader:0.10.4+"
         }
     }
     repositories {
