@@ -674,7 +674,7 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    // Policy won't be set for P2P cases for which we don't need to compute violations
+    // We don't need to compute violations unless we're on a paid policy
     if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
     }
