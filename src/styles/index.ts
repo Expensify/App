@@ -4342,9 +4342,14 @@ const styles = (theme: ThemeColors) =>
             width: 48,
             marginRight: 12,
         },
-        workspaceWorkflowsContainer: {
+        workspaceWorkflowContent: {
+            flexDirection: 'row', 
+            alignItems: 'center',
+        },
+        workspaceWorkflowContainer: {
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'space-between',
         },
         workspaceWorkflowsHeading: {
             fontSize: 15,
@@ -4352,12 +4357,17 @@ const styles = (theme: ThemeColors) =>
         },
         workspaceWorkflowsWrapperText: {
             flexDirection: 'column',
+            maxWidth: 486,
         },
         workspaceWorkflowsSubtitle: {
             fontSize: 13,
             color: theme.textSupporting,
             marginTop: 3,
-        }
+        },
+        workspaceWorkflowsIllustrationContainer: {
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
