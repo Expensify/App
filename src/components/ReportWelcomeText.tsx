@@ -43,6 +43,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
+    const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -65,12 +66,12 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         {policy?.description ? (
                             <PressableWithoutFeedback
                                 onPress={() => {
-                                    if (!ReportUtils.canEditPolicyDescription(policy)) {
+                                    if (!canEditPolicyDescription) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id));
                                 }}
-                                style={styles.renderHTML}
+                                style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             >
                                 <RenderHTML html={policy.description} />
