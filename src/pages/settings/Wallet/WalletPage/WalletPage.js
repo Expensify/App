@@ -344,7 +344,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         icon={Illustrations.MoneyIntoWallet}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
-                    <ScrollView>
+                    <ScrollView style={styles.pt3}>
                         <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <OfflineWithFeedback
                                 style={styles.flex1}
