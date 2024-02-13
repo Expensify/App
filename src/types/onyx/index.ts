@@ -86,6 +86,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 
 export type {
     Account,
@@ -165,6 +166,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceRateAndUnit,
     WorkspaceSettingsForm,
     ReportUserIsTyping,
     PolicyReportField,

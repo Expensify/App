@@ -723,11 +723,15 @@ function MoneyRequestConfirmationList({
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.DATE));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(iouType, reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID ?? '',
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -811,7 +815,15 @@ function MoneyRequestConfirmationList({
                                     return;
                                 }
 
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(iouType, reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        CONST.IOU.TYPE.SEND,
+                                        transaction?.transactionID ?? '',
+                                        reportID ?? '',
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             style={styles.moneyRequestMenuItem}
                             disabled={didConfirm}

@@ -10,7 +10,7 @@ type Rate = {
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Attributes = {
@@ -28,7 +28,7 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
 
@@ -183,4 +183,4 @@ type Policy = {
 
 export default Policy;
 
-export type {Unit, CustomUnit, MileageRate};
+export type {Unit, CustomUnit, Attributes, Rate, MileageRate};

@@ -268,8 +268,8 @@ function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amoun
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestCreated_temporaryForRefactor(transactionID: string, created: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {created});
+function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1127,7 +1127,7 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    // Optimistically modify the transaction
+    // Optimistically modify the transaction and the transaction thread
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1136,6 +1136,14 @@ function getUpdateMoneyRequestParams(
             pendingFields,
             isLoading: hasPendingWaypoints,
             errorFields: null,
+        },
+    });
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: {
+            lastActorAccountID: updatedReportAction.actorAccountID,
         },
     });
 
@@ -1235,6 +1243,13 @@ function getUpdateMoneyRequestParams(
             value: currentTransactionViolations,
         });
     }
+
+    // Reset the transaction thread to its original state
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: transactionThread,
+    });
 
     return {
         params,
@@ -3711,10 +3726,6 @@ function setMoneyRequestAmount(amount: number) {
     Onyx.merge(ONYXKEYS.IOU, {amount});
 }
 
-function setMoneyRequestCreated(created: string) {
-    Onyx.merge(ONYXKEYS.IOU, {created});
-}
-
 function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
@@ -3857,7 +3868,7 @@ export {
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory_temporaryForRefactor,
-    setMoneyRequestCreated_temporaryForRefactor,
+    setMoneyRequestCreated,
     setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestDescription,
     setMoneyRequestOriginalCurrency_temporaryForRefactor,
@@ -3868,7 +3879,6 @@ export {
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
-    setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestId,
     setMoneyRequestMerchant,
