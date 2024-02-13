@@ -14,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportPropTypes from './reportPropTypes';
 
@@ -56,7 +55,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
-        created: transactionCreated,
         category: transactionCategory,
         tag: transactionTag,
     } = draftTransaction ? ReportUtils.getTransactionDetails(draftTransaction) : ReportUtils.getTransactionDetails(transaction);
@@ -71,15 +69,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
         navigateBackToSplitDetails();
     };
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
-        return (
-            <EditRequestCreatedPage
-                defaultCreated={transactionCreated}
-                onSubmit={setDraftSplitTransaction}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
         return (
