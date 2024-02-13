@@ -6,8 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,9 +31,23 @@ function LHNOptionsList({
     currentReportID = '',
     draftComments = {},
     transactionViolations = {},
+    onFirstItemRendered = () => {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
+
+    // When the first item renders we want to call the onFirstItemRendered callback.
+    // At this point in time we know that the list is actually displaying items.
+    const hasCalledOnLayout = React.useRef(false);
+    const onLayoutItem = useCallback(() => {
+        if (hasCalledOnLayout.current) {
+            return;
+        }
+        hasCalledOnLayout.current = true;
+
+        onFirstItemRendered();
+    }, [onFirstItemRendered]);
+
     /**
      * Function which renders a row in the list
      */
@@ -48,8 +61,16 @@ function LHNOptionsList({
             const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
-            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport?.ownerAccountID, itemParentReportAction?.actorAccountID];
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
+            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
+            const lastReportAction = sortedReportActions[0];
+
+            // Get the transaction for the last report action
+            let lastReportActionTransactionID = '';
+
+            if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                lastReportActionTransactionID = lastReportAction.originalMessage?.IOUTransactionID ?? '';
+            }
+            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
 
             return (
                 <OptionRowLHNData
@@ -58,9 +79,9 @@ function LHNOptionsList({
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
-                    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-                    personalDetails={participantsPersonalDetails}
+                    personalDetails={personalDetails ?? {}}
                     transaction={itemTransaction}
+                    lastReportActionTransaction={lastReportActionTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
@@ -69,6 +90,7 @@ function LHNOptionsList({
                     comment={itemComment}
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
+                    onLayout={onLayoutItem}
                 />
             );
         },
@@ -86,6 +108,7 @@ function LHNOptionsList({
             transactions,
             transactionViolations,
             canUseViolations,
+            onLayoutItem,
         ],
     );
 

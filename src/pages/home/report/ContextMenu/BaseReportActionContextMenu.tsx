@@ -2,6 +2,8 @@ import lodashIsEqual from 'lodash/isEqual';
 import type {MutableRefObject, RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
@@ -12,15 +14,16 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, ReportAction, ReportActions} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {ContextMenuActionPayload} from './ContextMenuActions';
+import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
 import type {ContextMenuType} from './ReportActionContextMenu';
-import {hideContextMenu} from './ReportActionContextMenu';
+import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuOnyxProps = {
     /** Beta features list */
@@ -78,7 +81,11 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     /** Content Ref */
     contentRef?: RefObject<View>;
 
+    /** Function to check if context menu is active */
     checkIfContextMenuActive?: () => void;
+
+    /** List of disabled actions */
+    disabledActions?: ContextMenuAction[];
 };
 
 type MenuItemRefs = Record<string, ContextMenuItemHandle | null>;
@@ -100,6 +107,7 @@ function BaseReportActionContextMenu({
     betas,
     reportActions,
     checkIfContextMenuActive,
+    disabledActions = [],
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -117,13 +125,22 @@ function BaseReportActionContextMenu({
     }, [reportActions, reportActionID]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
-    let filteredContextMenuActions = ContextMenuActions.filter((contextAction) =>
-        contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini),
+    let filteredContextMenuActions = ContextMenuActions.filter(
+        (contextAction) =>
+            !disabledActions.includes(contextAction) &&
+            contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini),
     );
-    filteredContextMenuActions =
-        isMini && filteredContextMenuActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS
-            ? ([...filteredContextMenuActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1), filteredContextMenuActions.at(-1)] as typeof filteredContextMenuActions)
-            : filteredContextMenuActions;
+
+    if (isMini) {
+        const menuAction = filteredContextMenuActions.at(-1);
+        const otherActions = filteredContextMenuActions.slice(0, -1);
+        if (otherActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS && menuAction) {
+            filteredContextMenuActions = otherActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1);
+            filteredContextMenuActions.push(menuAction);
+        } else {
+            filteredContextMenuActions = otherActions;
+        }
+    }
 
     // Context menu actions that are not rendered as menu items are excluded from arrow navigation
     const nonMenuItemActionIndexes = filteredContextMenuActions.map((contextAction, index) =>
@@ -172,6 +189,28 @@ function BaseReportActionContextMenu({
         {isActive: shouldEnableArrowNavigation},
     );
 
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent) => {
+        const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+        const originalReport = ReportUtils.getReport(originalReportID);
+        showContextMenu(
+            CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            event,
+            selection,
+            anchor?.current as ViewType | RNText | null,
+            reportID,
+            reportAction?.reportActionID,
+            originalReportID,
+            draftMessage,
+            checkIfContextMenuActive,
+            checkIfContextMenuActive,
+            ReportUtils.isArchivedRoom(originalReport),
+            ReportUtils.chatIncludesChronos(originalReport),
+            undefined,
+            undefined,
+            filteredContextMenuActions,
+        );
+    };
+
     return (
         (isVisible || shouldKeepOpen) && (
             <View
@@ -188,8 +227,7 @@ function BaseReportActionContextMenu({
                         close: () => setShouldKeepOpen(false),
                         openContextMenu: () => setShouldKeepOpen(true),
                         interceptAnonymousUser,
-                        anchor,
-                        checkIfContextMenuActive,
+                        openOverflowMenu,
                     };
 
                     if ('renderContent' in contextAction) {

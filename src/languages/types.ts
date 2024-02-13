@@ -113,7 +113,7 @@ type SplitAmountParams = {amount: number};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: number};
+type AmountEachParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string};
 
@@ -162,8 +162,6 @@ type NotYouParams = {user: string};
 type DateShouldBeBeforeParams = {dateString: string};
 
 type DateShouldBeAfterParams = {dateString: string};
-
-type IncorrectZipFormatParams = {zipFormat?: string};
 
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
@@ -215,7 +213,7 @@ type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
-type ViolationsCashExpenseWithNoReceiptParams = {amount: string};
+type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string};
 
 type ViolationsConversionSurchargeParams = {surcharge?: number};
 
@@ -225,15 +223,15 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
-type ViolationsOverAutoApprovalLimitParams = {formattedLimitAmount: string};
+type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
-type ViolationsOverCategoryLimitParams = {categoryLimit: string};
+type ViolationsOverCategoryLimitParams = {formattedLimit?: string};
 
-type ViolationsOverLimitParams = {amount: string};
+type ViolationsOverLimitParams = {formattedLimit?: string};
 
-type ViolationsPerDayLimitParams = {limit: string};
+type ViolationsPerDayLimitParams = {formattedLimit?: string};
 
-type ViolationsReceiptRequiredParams = {amount: string; category?: string};
+type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
@@ -287,6 +285,10 @@ type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
+type TermsParams = {amount: string};
+
+type ElectronicFundsParams = {percentage: string; amount: string};
+
 export type {
     ApprovedAmountParams,
     AddressLineParams,
@@ -305,12 +307,12 @@ export type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    ElectronicFundsParams,
     EnglishTranslation,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -353,6 +355,7 @@ export type {
     StepCounterParams,
     TagSelectionParams,
     TaskCreatedActionParams,
+    TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,

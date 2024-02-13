@@ -58,7 +58,7 @@ Applying for or using the Expensify Card will never have any positive or negativ
 
 ## How much does the Expensify Card cost?
 
-The Expensify Card is a free corporate card, and no fees are associated with it. In addition, if you use the Expensify Card, you can save money on your Expensify subscription.
+The Expensify Card is a free corporate card, and no fees are associated with it. In addition, if you use the Expensify Card, you can save money on your Expensify subscription (based on how much of your approved spend occurs on the Expensify Card, compared with other approved spend, in each month).
 
 ## If I have staff outside the US, can they use the Expensify Card?
 

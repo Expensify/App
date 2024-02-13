@@ -218,6 +218,7 @@ function RoomMembersPage(props) {
                         source: UserUtils.getAvatar(details.avatar, accountID),
                         name: details.login,
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: Number(accountID),
                     },
                 ],
             });

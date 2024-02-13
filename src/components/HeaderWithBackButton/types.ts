@@ -9,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon?: IconAsset;
+    icon: IconAsset;
 
     /** Text label */
     text: string;
@@ -27,6 +27,13 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Title color */
     titleColor?: string;
+
+    /**
+     * Icon displayed on the left of the title.
+     * If it is passed, the new styling is applied to the component:
+     * taller header on desktop and different font of the title.
+     * */
+    icon?: IconAsset;
 
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
@@ -60,6 +67,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should disable threedots button */
     shouldDisableThreeDotsButton?: boolean;
+
+    /** Whether we should set modal visibility when three dot menu opens */
+    shouldSetModalVisibility?: boolean;
 
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: ThreeDotsMenuItem[];

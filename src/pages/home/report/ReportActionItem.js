@@ -40,6 +40,7 @@ import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
@@ -107,7 +108,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
 
     /** IOU report for this action, if any */
@@ -121,6 +121,9 @@ const propTypes = {
 
     /** All the report actions belonging to the report's parent */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Callback to be called on onPress */
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -132,6 +135,7 @@ const defaultProps = {
     shouldHideThreadDividerLine: false,
     userWallet: {},
     parentReportActions: {},
+    onPress: undefined,
 };
 
 function ReportActionItem(props) {
@@ -150,7 +154,7 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
-    const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
+    const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
@@ -246,12 +250,12 @@ function ReportActionItem(props) {
         }
 
         setModerationDecision(latestDecision);
-        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision)) {
+        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision) && !ReportActionsUtils.isPendingRemove(props.action)) {
             setIsHidden(true);
             return;
         }
         setIsHidden(false);
-    }, [latestDecision, props.action.actionName]);
+    }, [latestDecision, props.action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -346,8 +350,10 @@ function ReportActionItem(props) {
             const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
-                    chatReportID={props.report.reportID}
+                    // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
+                    chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
+                    reportID={props.report.reportID}
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}
@@ -384,7 +390,6 @@ function ReportActionItem(props) {
                     <TaskPreview
                         taskReportID={props.action.originalMessage.taskReportID.toString()}
                         chatReportID={props.report.reportID}
-                        policyID={ReportUtils.getRootParentReport(props.report).policyID}
                         action={props.action}
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef}
@@ -446,11 +451,13 @@ function ReportActionItem(props) {
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else {
-            const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
+            const hasBeenFlagged =
+                !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
+                !ReportActionsUtils.isPendingRemove(props.action);
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     {_.isUndefined(props.draftMessage) ? (
@@ -507,7 +514,6 @@ function ReportActionItem(props) {
                             reportID={props.report.reportID}
                             index={props.index}
                             ref={textInputRef}
-                            report={props.report}
                             // Avoid defining within component due to an existing Onyx bug
                             preferredSkinTone={props.preferredSkinTone}
                             shouldDisableEmojiPicker={
@@ -593,7 +599,10 @@ function ReportActionItem(props) {
                     report={props.report}
                     iouReport={props.iouReport}
                     isHovered={hovered}
-                    hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
+                    hasBeenFlagged={
+                        !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&
+                        !ReportActionsUtils.isPendingRemove(props.action)
+                    }
                 >
                     {content}
                 </ReportActionItemSingle>
@@ -618,7 +627,7 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -630,11 +639,11 @@ function ReportActionItem(props) {
                             </ReportActionItemSingle>
                             <View style={styles.reportHorizontalRule} />
                         </View>
-                    </>
+                    </View>
                 );
             }
             return (
-                <>
+                <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                         <TaskView
@@ -642,7 +651,7 @@ function ReportActionItem(props) {
                             shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                         />
                     </View>
-                </>
+                </View>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
@@ -650,6 +659,7 @@ function ReportActionItem(props) {
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
+                        policy={props.policy}
                         policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
@@ -688,6 +698,13 @@ function ReportActionItem(props) {
         return null;
     }
 
+    // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
+    // This is a temporary solution needed for comment-linking.
+    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
+    if (ReportActionsUtils.isWhisperActionTargetedToOthers(props.action)) {
+        return null;
+    }
+
     const hasErrors = !_.isEmpty(props.action.errors);
     const whisperedToAccountIDs = props.action.whisperedToAccountIDs || [];
     const isWhisper = whisperedToAccountIDs.length > 0;
@@ -698,6 +715,7 @@ function ReportActionItem(props) {
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
+            onPress={props.onPress}
             style={[props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
@@ -732,7 +750,7 @@ function ReportActionItem(props) {
                                     !_.isUndefined(props.draftMessage) ? null : props.action.pendingAction || (props.action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : '')
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(props.action, props.report.reportID)}
-                                errors={props.action.errors}
+                                errors={ErrorUtils.getLatestErrorMessageField(props.action)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
                                 shouldDisableStrikeThrough
@@ -805,6 +823,10 @@ export default compose(
             key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
             initialValue: [],
         },
+        policy: {
+            key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` : undefined),
+            initialValue: {},
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
@@ -848,6 +870,7 @@ export default compose(
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields),
+            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            _.isEqual(prevProps.policy, nextProps.policy),
     ),
 );

@@ -20,11 +20,11 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    ElectronicFundsParams,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -67,6 +67,7 @@ import type {
     StepCounterParams,
     TagSelectionParams,
     TaskCreatedActionParams,
+    TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -83,7 +84,6 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
-    ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -138,6 +138,7 @@ export default {
         magicCode: 'Magic code',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
+        chats: 'Chats',
         profile: 'Profile',
         referral: 'Referral',
         payments: 'Payments',
@@ -299,6 +300,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -378,8 +380,6 @@ export default {
     },
     videoChatButtonAndMenu: {
         tooltip: 'Start a call',
-        zoom: 'Zoom',
-        googleMeet: 'Google Meet',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -485,7 +485,7 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
             send: 'send money',
             split: 'split a bill',
@@ -532,6 +532,10 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
+    },
+    allSettingsScreen: {
+        subscriptions: 'Subscriptions',
+        cardsAndDomains: 'Cards & Domains',
     },
     tabSelector: {
         chat: 'Chat',
@@ -581,7 +585,8 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        receiptScanning: 'Receipt scan in progress…',
+        routePending: 'Route pending...',
+        receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
@@ -594,7 +599,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
-        payElsewhere: 'Pay elsewhere',
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
@@ -671,6 +676,7 @@ export default {
             always: 'Immediately',
             daily: 'Daily',
             mute: 'Mute',
+            hidden: 'Hidden',
         },
     },
     loginField: {
@@ -703,6 +709,18 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
         profileAvatar: 'Profile avatar',
+        publicSection: {
+            title: 'Public',
+            subtitle: 'These details are displayed on your public profile, available for people to see.',
+        },
+        privateSection: {
+            title: 'Private',
+            subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
+        },
+    },
+    shareCodePage: {
+        title: 'Your code',
+        subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -772,6 +790,11 @@ export default {
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
     },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
+    },
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
@@ -804,7 +827,11 @@ export default {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
+        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
+        accountSettings: 'Account Settings',
+        account: 'Account',
+        general: 'General',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
@@ -879,6 +906,9 @@ export default {
         sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
         composerLabel: 'Notes',
         myNote: 'My note',
+        error: {
+            genericFailureMessage: "Private notes couldn't be saved",
+        },
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
@@ -1022,6 +1052,7 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+        muteAllSounds: 'Mute all sounds from Expensify',
     },
     priorityModePage: {
         priorityMode: 'Priority mode',
@@ -1037,10 +1068,10 @@ export default {
             },
         },
     },
-    welcomeMessagePage: {
-        welcomeMessage: 'Welcome message',
-        welcomeMessageOptional: 'Welcome message (optional)',
-        explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
+    reportDescriptionPage: {
+        roomDescription: 'Room description',
+        roomDescriptionOptional: 'Room description (optional)',
+        explainerText: 'Set a custom decription for the room.',
     },
     languagePage: {
         language: 'Language',
@@ -1133,7 +1164,7 @@ export default {
     },
     personalDetails: {
         error: {
-            containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
+            containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
@@ -1148,7 +1179,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
@@ -1286,8 +1317,8 @@ export default {
             dob: 'Please select a valid date of birth',
             age: 'Must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
-            firstName: 'Please enter valid first name',
-            lastName: 'Please enter valid last name',
+            firstName: 'Please enter a valid first name',
+            lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
@@ -1358,10 +1389,8 @@ export default {
         agreeToThe: 'I agree to the',
         walletAgreement: 'Wallet agreement',
         enablePayments: 'Enable payments',
-        feeAmountZero: '$0',
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
-        electronicFundsInstantFee: '1.5%',
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
@@ -1383,7 +1412,7 @@ export default {
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',
             conditionsPhone: 'or calling +1 833-400-0904.',
             instant: '(instant)',
-            electronicFundsInstantFeeMin: '(min $0.25)',
+            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
             listOfAllFees: 'A list of all Expensify Wallet fees',
@@ -1402,14 +1431,14 @@ export default {
                 'There is no fee to transfer funds from your Expensify Wallet ' +
                 'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
                 ' days.',
-            electronicFundsInstantDetails:
+            electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
                 'There is a fee to transfer funds from your Expensify Wallet to ' +
                 'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
-            fdicInsuranceBancorp:
+                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+            fdicInsuranceBancorp: ({amount}: TermsParams) =>
                 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
                 `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to $250,000 by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
+                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
             fdicInsuranceBancorp2: 'for details.',
             contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
@@ -1419,7 +1448,7 @@ export default {
             automated: 'Automated',
             liveAgent: 'Live Agent',
             instant: 'Instant',
-            electronicFundsInstantFeeMin: 'Min $0.25',
+            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `Min ${amount}`,
         },
     },
     activateStep: {
@@ -1514,6 +1543,7 @@ export default {
             travel: 'Travel',
             members: 'Members',
             plan: 'Plan',
+            profile: 'Profile',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
@@ -1525,6 +1555,9 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceName: 'Workspace name',
+            workspaceOwner: 'Owner',
+            workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
@@ -1535,7 +1568,7 @@ export default {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Manage business expenses, issue cards, send invoices, and more.',
+            subtitle: 'Workspaces are where you’ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more - all in one place.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -1544,6 +1577,11 @@ export default {
             },
             notFound: 'No workspace found',
             description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
+        },
+        switcher: {
+            headerTitle: 'Choose a workspace',
+            everythingSection: 'Everything',
+            placeholder: 'Find a workspace',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -1584,6 +1622,9 @@ export default {
             trackDistanceCopy: 'Set the per mile/km rate and choose a default unit to track.',
             trackDistanceRate: 'Rate',
             trackDistanceUnit: 'Unit',
+            trackDistanceChooseUnit: 'Choose a default unit to track.',
+            kilometers: 'Kilometers',
+            miles: 'Miles',
             unlockNextDayReimbursements: 'Unlock next-day reimbursements',
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
@@ -1645,7 +1686,6 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
-            nameIsTooLongError: `Your workspace name can be at most ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} characters long.`,
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
@@ -1764,6 +1804,8 @@ export default {
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
+        deleteTask: 'Delete task',
+        deleteConfirmation: 'Are you sure that you want to delete this task?',
     },
     statementPage: {
         title: (year, monthName) => `${monthName} ${year} statement`,
@@ -1881,6 +1923,8 @@ export default {
     report: {
         genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
+        genericUpdateReportFieldFailureMessage: 'Unexpected error while updating the field, please try again later',
+        genericUpdateReporNameEditFailureMessage: 'Unexpected error while renaming the report, please try again later',
         noActivityYet: 'No activity yet',
     },
     chronos: {
@@ -1942,11 +1986,11 @@ export default {
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
-        in: 'In',
+        in: 'in',
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copy: 'Copy',
+        copy: 'Copy URL',
         copied: 'Copied!',
     },
     moderation: {
@@ -2000,7 +2044,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Out of pocket',
+        outOfPocket: 'Out-of-pocket spend',
         companySpend: 'Company spend',
     },
     distance: {
@@ -2082,11 +2126,25 @@ export default {
         welcomeMessage: 'Welcome to Expensify',
         welcomeSubtitle: 'What would you like to do?',
     },
+    manageTeams: {
+        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
+        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
+        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
+        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
+        title: 'Do you require any of the following features?',
+    },
+    expensifyClassic: {
+        title: "Expensify Classic has everything you'll need",
+        firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
+        secondDescription: "Don't worry, Expensify Classic has everything you need.",
+        buttonText: 'Take me to Expensify Classic',
+    },
     violations: {
         allTagLevelsRequired: 'All tags required',
         autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
         billableExpense: 'Billable no longer valid',
-        cashExpenseWithNoReceipt: ({amount}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required over ${amount}`,
+        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Unit no longer valid',
@@ -2097,17 +2155,18 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
-        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: 'Amount greater than scanned receipt',
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
-        overAutoApprovalLimit: ({formattedLimitAmount}: ViolationsOverAutoApprovalLimitParams) => `Expense exceeds auto approval limit of ${formattedLimitAmount}`,
-        overCategoryLimit: ({categoryLimit}: ViolationsOverCategoryLimitParams) => `Amount over ${categoryLimit}/person category limit`,
-        overLimit: ({amount}: ViolationsOverLimitParams) => `Amount over ${amount}/person limit`,
-        overLimitAttendee: ({amount}: ViolationsOverLimitParams) => `Amount over ${amount}/person limit`,
-        perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Amount over daily ${limit}/person category limit`,
+        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto approval limit of ${formattedLimit}`,
+        overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Amount over ${formattedLimit}/person category limit`,
+        overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
+        overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
+        perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Receipt required over ${amount} ${category ? ' category limit' : ''}`,
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
+            `Receipt required${formattedLimit ? ` over ${formattedLimit}${category ? ' category limit' : ''}` : ''}`,
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
@@ -2122,9 +2181,9 @@ export default {
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
         someTagLevelsRequired: 'Missing tag',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? ''} no longer valid`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? ''} no longer valid`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
     },

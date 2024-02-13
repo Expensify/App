@@ -2,8 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Localize from '@libs/Localize';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import CONST from '@src/CONST';
 
@@ -18,10 +19,11 @@ const defaultProps = {
 
 function ShortTermsForm(props) {
     const styles = useThemeStyles();
+    const {translate, numberFormat} = useLocalize();
     return (
         <>
             <Text style={styles.mb5}>
-                {Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount', {
+                {translate('termsStep.shortTermsForm.expensifyPaymentsAccount', {
                     walletProgram:
                         props.userWallet.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
                 })}
@@ -31,19 +33,19 @@ function ShortTermsForm(props) {
                 <View style={[styles.shortTermsRow, styles.mb4]}>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flexRow, styles.mb1]}>
-                            <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.monthlyFee')}</Text>
+                            <Text style={styles.textLarge}>{translate('termsStep.monthlyFee')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.shortTermsHeadline}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                            <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
                         </View>
                     </View>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flex2]}>
                             <View style={[styles.flexRow, styles.mb1]}>
-                                <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
+                                <Text style={styles.textLarge}>{translate('termsStep.shortTermsForm.perPurchase')}</Text>
                             </View>
                             <View style={styles.flexRow}>
-                                <Text style={styles.shortTermsHeadline}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                                <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
                             </View>
                         </View>
                     </View>
@@ -52,28 +54,28 @@ function ShortTermsForm(props) {
                 <View style={[styles.shortTermsRow, styles.mb6]}>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flexRow, styles.mb1]}>
-                            <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.atmWithdrawal')}</Text>
+                            <Text style={styles.textLarge}>{translate('termsStep.shortTermsForm.atmWithdrawal')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.shortTermsHeadline}>{Localize.translateLocal('common.na')}</Text>
+                            <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.textLabelSupporting}>{Localize.translateLocal('termsStep.shortTermsForm.inNetwork')}</Text>
+                            <Text style={styles.textLabelSupporting}>{translate('termsStep.shortTermsForm.inNetwork')}</Text>
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
-                            <Text style={styles.shortTermsHeadline}>{Localize.translateLocal('common.na')}</Text>
+                            <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.textLabelSupporting}>{Localize.translateLocal('termsStep.shortTermsForm.outOfNetwork')}</Text>
+                            <Text style={styles.textLabelSupporting}>{translate('termsStep.shortTermsForm.outOfNetwork')}</Text>
                         </View>
                     </View>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flex2]}>
                             <View style={[styles.flexRow, styles.mb1]}>
-                                <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.cashReload')}</Text>
+                                <Text style={styles.textLarge}>{translate('termsStep.shortTermsForm.cashReload')}</Text>
                             </View>
                             <View style={styles.flexRow}>
-                                <Text style={styles.shortTermsHeadline}>{Localize.translateLocal('common.na')}</Text>
+                                <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>
                             </View>
                         </View>
                     </View>
@@ -83,11 +85,11 @@ function ShortTermsForm(props) {
                 <View style={styles.shortTermsRow}>
                     <View style={[styles.flex3, styles.pr4]}>
                         <Text>
-                            {Localize.translateLocal('termsStep.shortTermsForm.atmBalanceInquiry')} {Localize.translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
+                            {translate('termsStep.shortTermsForm.atmBalanceInquiry')} {translate('termsStep.shortTermsForm.inOrOutOfNetwork')}
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text>{Localize.translateLocal('common.na')}</Text>
+                        <Text>{translate('common.na')}</Text>
                     </View>
                 </View>
 
@@ -95,11 +97,11 @@ function ShortTermsForm(props) {
                 <View style={styles.shortTermsRow}>
                     <View style={[styles.flex3, styles.pr4]}>
                         <Text>
-                            {Localize.translateLocal('termsStep.shortTermsForm.customerService')} {Localize.translateLocal('termsStep.shortTermsForm.automatedOrLive')}
+                            {translate('termsStep.shortTermsForm.customerService')} {translate('termsStep.shortTermsForm.automatedOrLive')}
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text style={styles.label}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                        <Text style={styles.label}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
                     </View>
                 </View>
 
@@ -107,40 +109,40 @@ function ShortTermsForm(props) {
                 <View style={[styles.shortTermsRow, styles.mb4]}>
                     <View style={[styles.flex3, styles.pr4]}>
                         <Text>
-                            {Localize.translateLocal('termsStep.inactivity')} {Localize.translateLocal('termsStep.shortTermsForm.afterTwelveMonths')}
+                            {translate('termsStep.inactivity')} {translate('termsStep.shortTermsForm.afterTwelveMonths')}
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                        <Text>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
                     </View>
                 </View>
 
                 <View style={styles.shortTermsLargeHorizontalRule} />
                 <View style={[styles.shortTermsBoldHeadingSection, styles.mb3]}>
-                    <Text style={styles.textStrong}>{Localize.translateLocal('termsStep.shortTermsForm.weChargeOneFee')}</Text>
+                    <Text style={styles.textStrong}>{translate('termsStep.shortTermsForm.weChargeOneFee')}</Text>
                 </View>
 
                 <View style={styles.shortTermsHorizontalRule} />
                 <View style={styles.shortTermsRow}>
                     <View style={[styles.flex3, styles.pr4]}>
                         <Text>
-                            {Localize.translateLocal('termsStep.electronicFundsWithdrawal')} {Localize.translateLocal('termsStep.shortTermsForm.instant')}
+                            {translate('termsStep.electronicFundsWithdrawal')} {translate('termsStep.shortTermsForm.instant')}
                         </Text>
                     </View>
                     <View style={[styles.flex1, styles.termsCenterRight]}>
-                        <Text style={styles.label}>{Localize.translateLocal('termsStep.electronicFundsInstantFee')} </Text>
-                        <Text style={styles.label}>{Localize.translateLocal('termsStep.shortTermsForm.electronicFundsInstantFeeMin')}</Text>
+                        <Text style={styles.label}>{numberFormat(1.5)}%</Text>
+                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', {amount: CurrencyUtils.convertToDisplayString(25, 'USD')})}</Text>
                     </View>
                 </View>
                 <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>
-                    <Text style={[styles.textStrong, styles.mb3]}>{Localize.translateLocal('termsStep.noOverdraftOrCredit')}</Text>
-                    <Text style={styles.mb3}>{Localize.translateLocal('termsStep.shortTermsForm.fdicInsurance')}</Text>
+                    <Text style={[styles.textStrong, styles.mb3]}>{translate('termsStep.noOverdraftOrCredit')}</Text>
+                    <Text style={styles.mb3}>{translate('termsStep.shortTermsForm.fdicInsurance')}</Text>
                     <Text style={styles.mb3}>
-                        {Localize.translateLocal('termsStep.shortTermsForm.generalInfo')} <TextLink href={CONST.CFPB_PREPAID_URL}>{CONST.TERMS.CFPB_PREPAID}</TextLink>.
+                        {translate('termsStep.shortTermsForm.generalInfo')} <TextLink href={CONST.CFPB_PREPAID_URL}>{CONST.TERMS.CFPB_PREPAID}</TextLink>.
                     </Text>
                     <Text>
-                        {Localize.translateLocal('termsStep.shortTermsForm.conditionsDetails')} <TextLink href={CONST.FEES_URL}>{CONST.TERMS.USE_EXPENSIFY_FEES}</TextLink>{' '}
-                        {Localize.translateLocal('termsStep.shortTermsForm.conditionsPhone')}
+                        {translate('termsStep.shortTermsForm.conditionsDetails')} <TextLink href={CONST.FEES_URL}>{CONST.TERMS.USE_EXPENSIFY_FEES}</TextLink>{' '}
+                        {translate('termsStep.shortTermsForm.conditionsPhone')}
                     </Text>
                 </View>
             </View>
