@@ -50,7 +50,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -82,6 +82,13 @@ type OptimisticCustomUnits = {
 };
 
 type PoliciesRecord = Record<string, OnyxEntry<Policy>>;
+
+type NewCustomUnit = {
+    customUnitID: string;
+    name: string;
+    attributes: Attributes;
+    rates: Rate;
+};
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -115,6 +122,13 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
+});
+
+let allReports: OnyxCollection<Report> = null;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 let allPolicyMembers: OnyxCollection<PolicyMember>;
@@ -219,7 +233,7 @@ function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, reports: Report[], policyName: string) {
+function deleteWorkspace(policyID: string, policyName: string) {
     if (!allPolicies) {
         return;
     }
@@ -248,7 +262,9 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
             : []),
     ];
 
-    reports.forEach(({reportID, ownerAccountID}) => {
+    const reportsToArchive = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+    reportsToArchive.forEach((report) => {
+        const {reportID, ownerAccountID} = report ?? {};
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -293,7 +309,8 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
         },
     ];
 
-    reports.forEach(({reportID, stateNum, statusNum, hasDraft, oldPolicyName}) => {
+    reportsToArchive.forEach((report) => {
+        const {reportID, stateNum, statusNum, hasDraft, oldPolicyName} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1002,7 +1019,7 @@ function hideWorkspaceAlertMessage(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
-function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit, lastModified: number) {
+function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: NewCustomUnit, lastModified?: string) {
     if (!currentCustomUnit.customUnitID || !newCustomUnit?.customUnitID || !newCustomUnit.rates?.customUnitRateID) {
         return;
     }
@@ -1016,7 +1033,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID as string]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 ...newCustomUnit.rates,
                                 errors: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1039,7 +1056,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                         pendingAction: null,
                         errors: null,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID as string]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -1058,7 +1075,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                     [currentCustomUnit.customUnitID]: {
                         customUnitID: currentCustomUnit.customUnitID,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID as string]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 ...currentCustomUnit.rates,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
@@ -1515,6 +1532,22 @@ function openWorkspaceReimburseView(policyID: string) {
     const params: OpenWorkspaceReimburseViewParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_WORKSPACE_REIMBURSE_VIEW, params, {successData, failureData});
+}
+
+function setPolicyIDForReimburseView(policyID: string) {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID, rate: null, unit: null});
+}
+
+function clearOnyxDataForReimburseView() {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, null);
+}
+
+function setRateForReimburseView(rate: string) {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {rate});
+}
+
+function setUnitForReimburseView(unit: Unit) {
+    Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {unit});
 }
 
 /**
@@ -2066,6 +2099,10 @@ export {
     clearAddMemberError,
     clearDeleteWorkspaceError,
     openWorkspaceReimburseView,
+    setPolicyIDForReimburseView,
+    clearOnyxDataForReimburseView,
+    setRateForReimburseView,
+    setUnitForReimburseView,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
