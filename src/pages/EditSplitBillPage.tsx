@@ -17,7 +17,6 @@ import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestTagPage from './EditRequestTagPage';
 
@@ -46,7 +45,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         amount: transactionAmount,
         currency: transactionCurrency,
         merchant: transactionMerchant,
-        created: transactionCreated,
         category: transactionCategory,
         tag: transactionTag,
     } = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
@@ -63,15 +61,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         }
         navigateBackToSplitDetails();
     };
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
-        return (
-            <EditRequestCreatedPage
-                defaultCreated={transactionCreated ?? ''}
-                onSubmit={setDraftSplitTransaction}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
         return (
@@ -119,10 +108,10 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         );
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && transactionTag) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG) {
         return (
             <EditRequestTagPage
-                defaultTag={transactionTag}
+                defaultTag={transactionTag ?? ''}
                 policyID={report?.policyID ?? ''}
                 onSubmit={(transactionChanges) => {
                     setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
