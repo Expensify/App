@@ -1,4 +1,3 @@
-// const launchApp = require('./utils/launchApp');
 import launchApp from './utils/launchApp';
 
 /**
