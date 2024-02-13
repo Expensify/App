@@ -21,7 +21,7 @@ const lightTheme = {
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
-    syntax: colors.productLight600,
+    syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
     buttonDefaultBG: colors.productLight400,

@@ -1166,7 +1166,7 @@ PODS:
     - react-native-config/App (= 1.4.6)
   - react-native-config/App (1.4.6):
     - React-Core
-  - react-native-document-picker (8.2.1):
+  - react-native-document-picker (9.1.1):
     - React-Core
   - react-native-geolocation (3.0.6):
     - React-Core
@@ -1372,7 +1372,7 @@ PODS:
     - React-Core
   - RNCAsyncStorage (1.21.0):
     - React-Core
-  - RNCClipboard (1.12.1):
+  - RNCClipboard (1.13.2):
     - React-Core
   - RNCPicker (2.5.1):
     - React-Core
@@ -1437,6 +1437,11 @@ PODS:
   - RNScreens (3.29.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
+    - React-Core
+  - RNSound (0.11.2):
+    - React-Core
+    - RNSound/Core (= 0.11.2)
+  - RNSound/Core (0.11.2):
     - React-Core
   - RNSVG (14.0.0):
     - React-Core
@@ -1580,6 +1585,7 @@ DEPENDENCIES:
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -1827,6 +1833,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSound:
+    :path: "../node_modules/react-native-sound"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   VisionCamera:
@@ -1916,7 +1924,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 30a6c9fd067aadf9177e61a998f2c7efb670598d
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
-  react-native-document-picker: 69ca2094d8780cfc1e7e613894d15290fdc54bba
+  react-native-document-picker: 3599b238843369026201d2ef466df53f77ae0452
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
@@ -1954,7 +1962,7 @@ SPEC CHECKSUMS:
   ReactCommon: 45b5d4f784e869c44a6f5a8fad5b114ca8f78c53
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCAsyncStorage: 618d03a5f52fbccb3d7010076bc54712844c18ef
-  RNCClipboard: d77213bfa269013bf4b857b7a9ca37ee062d8ef1
+  RNCClipboard: 60fed4b71560d7bfe40e9d35dea9762b024da86d
   RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
   RNDeviceInfo: 4701f0bf2a06b34654745053db0ce4cb0c53ada7
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
@@ -1973,6 +1981,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: 57f436e7aa3d277fbfed05e003230b43428157c0
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
+  RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 255767813dac22db1ec2062c8b7e7b856d4e5ae6
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
