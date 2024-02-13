@@ -1,29 +1,28 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-
-    /** policyID of the workspace where user is setting up bank account */
-    policyID: PropTypes.string.isRequired,
+type Enable2FACardProps = {
+    policyID: string;
 };
 
-function Enable2FAPrompt({translate, policyID}) {
+function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     return (
         <Section
             title={translate('validationStep.enable2FATitle')}
             icon={Illustrations.ShieldYellow}
+            titleStyles={[styles.mb4]}
+            containerStyles={[styles.mh5]}
             menuItems={[
                 {
                     title: translate('validationStep.secureYourAccount'),
@@ -37,14 +36,13 @@ function Enable2FAPrompt({translate, policyID}) {
                 },
             ]}
         >
-            <View style={[styles.mv3]}>
+            <View style={styles.mb6}>
                 <Text>{translate('validationStep.enable2FAText')}</Text>
             </View>
         </Section>
     );
 }
 
-Enable2FAPrompt.propTypes = propTypes;
-Enable2FAPrompt.displayName = 'Enable2FAPrompt';
+Enable2FACard.displayName = 'Enable2FAPrompt';
 
-export default withLocalize(Enable2FAPrompt);
+export default Enable2FACard;
