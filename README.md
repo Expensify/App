@@ -16,6 +16,7 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [Philosophy](#Philosophy)
+* [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 
@@ -392,6 +393,117 @@ This application is built with the following principles.
     1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+
+----
+
+# Security
+Updated rules for managing members across all types of chats in New Expensify.
+
+- **Nobody can leave or be removed from something they were automatically added to. For example:**
+
+    - DM members can't leave or be removed from their DMs
+    - Members can't leave or be removed from their own workspace chats
+    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from the #announce room
+    - Admins can't leave or be removed from #admins
+    - Domain members can't leave or be removed from their domain chat
+    - Report submitters can't leave or be removed from their reports 
+    - Report managers can't leave or be removed from their reports 
+    - Group owners cannot be removed from their groups - they need to transfer ownership first
+- **Excepting the above, admins can remove anyone. For example:**
+    - Group admins can remove other group admins, as well as group members
+    - Workspace admins can remove other workspace admins, as well as workspace members, and invited guests
+- **Excepting the above, members can remove guests. For example:**
+    - Workspace members can remove non-workspace guests.
+- **Excepting the above, anybody can remove themselves from any object**
+
+1. ### DM
+    |  | Member
+    | :---: | :---: 
+    | **Invite** | ❌ 
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌
+- DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
+
+2. ### Workspace
+    1. #### Workspace
+        |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: | :---: 
+        | **Invite** | ✅ |  ❌ |  ✅ | ❌
+        | **Remove** | ✅ |  ❌ |  ✅ | ❌
+        | **Leave**  | ❌ |  ✅ |  ❌ | ✅
+        | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
+
+        - Creator can't leave or be removed from their own workspace
+        - Admins can't leave from the workspace
+        - Admins can remove other workspace admins, as well as workspace members, and invited guests
+        - Creator can remove other workspace admins, as well as workspace members, and invited guests
+        - Members and Auditors cannot invite or remove anyone from the workspace
+
+    2. #### Workspace #announce room
+        |   |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: 
+        | **Invite** | ❌ |  ❌ |  ❌
+        | **Remove** | ❌ |  ❌ |  ❌
+        | **Leave**  | ❌ |  ❌ |  ❌
+        | **Can be removed**  | ❌ |  ❌ |  ❌ |
+
+       - No one can leave or be removed from the #announce room
+
+    3. #### Workspace #admin room
+        |   |  Admin |
+        | :---: | :---: 
+        | **Invite** | ❌  
+        | **Remove** | ❌   
+        | **Leave**  | ❌ 
+        | **Can be removed**  | ❌
+
+        - Admins can't leave or be removed from #admins
+    
+    4. #### Workspace rooms
+        |   |  Creator | Member | Guest(outside of the workspace)
+        | :---: | :---:  |  :---: | :---:
+        | **Invite** | ✅ | ✅ | ✅
+        | **Remove** | ✅ | ✅ | ❌
+        | **Leave**  | ✅ | ✅ | ✅
+        | **Can be removed**  | ✅ | ✅ | ✅
+
+        - Everyone can be removed/can leave from the room including creator
+        - Guests are not able to remove anyone from the room
+
+    4. #### Workspace chats
+        |   |  Admin | Member(default) | Member(invited)  
+        | :---: | :---:  |  :---:  |  :---:
+        | **Invite** | ✅ |  ✅ | ❌
+        | **Remove** | ✅ |  ✅ | ❌  
+        | **Leave**  | ❌ |  ❌  | ✅
+        | **Can be removed**  | ❌ | ❌ | ✅
+
+        - Admins are not able to leave/be removed from the workspace chat
+        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
+        - Invited members(invited by members) are not able to invite or remove from the workspace chat
+        - Invited members(invited by members) are able to leave the workspace chat
+        - Default members and admins are able to remove invited members
+
+3. ### Domain chat
+    |   |  Member
+    | :---: | :---:  
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌ 
+
+- Domain members can't leave or be removed from their domain chat
+
+4. ### Reports
+    |   |  Submitter | Manager
+    | :---: | :---:  | :---:  
+    | **Remove** | ❌ | ❌
+    | **Leave**  | ❌ | ❌
+    | **Can be removed**  | ❌ | ❌
+
+- Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
+- Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
 
 ----
 

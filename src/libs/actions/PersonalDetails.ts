@@ -112,7 +112,7 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 /**
@@ -133,7 +133,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
@@ -170,7 +170,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 /**
@@ -241,7 +241,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
 /**
  * Fetches additional personal data like legal name, date of birth, address
  */
-function openPersonalDetailsPage() {
+function openPersonalDetails() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -272,7 +272,7 @@ function openPersonalDetailsPage() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS_PAGE, {}, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -455,7 +455,7 @@ export {
     clearAvatarErrors,
     deleteAvatar,
     getPrivatePersonalDetails,
-    openPersonalDetailsPage,
+    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,

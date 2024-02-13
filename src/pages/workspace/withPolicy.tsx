@@ -6,6 +6,7 @@ import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {translatableTextPropTypes} from '@libs/Localize';
 import type {BottomTabNavigatorParamList, CentralPaneNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
@@ -57,7 +58,7 @@ const policyPropTypes = {
          *     }
          * }
          */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Whether or not the policy requires tags */
         requiresTag: PropTypes.bool,
