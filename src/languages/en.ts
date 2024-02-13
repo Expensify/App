@@ -1675,6 +1675,7 @@ export default {
             bookTravelWithConcierge: 'Book travel with Concierge',
         },
         invite: {
+            member: 'Invite member',
             invitePeople: 'Invite new members',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
