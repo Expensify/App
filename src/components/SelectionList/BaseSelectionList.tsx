@@ -301,7 +301,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
-																shouldUseOnySubscriptAvatar={shouldUseOnySubscriptAvatar}
+                shouldUseOnySubscriptAvatar={shouldUseOnySubscriptAvatar}
             />
         );
     };

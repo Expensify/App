@@ -249,7 +249,7 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Fired when the list is displayed with the items */
     onLayout?: (event: LayoutChangeEvent) => void;
-				
+
     /** Whether this item should use only the subscript avatar */
     shouldUseOnySubscriptAvatar?: boolean;
 };
