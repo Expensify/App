@@ -122,9 +122,6 @@ const SCREENS = {
     SAML_SIGN_IN: 'SAMLSignIn',
 
     MONEY_REQUEST: {
-        MANUAL_TAB: 'manual',
-        SCAN_TAB: 'scan',
-        DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
@@ -141,7 +138,6 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',

@@ -360,11 +360,7 @@ function IOURequestStepConfirmation({
         (paymentMethodType) => {
             const currency = transaction.currency;
 
-            let trimmedComment = '';
-
-            if (transaction.comment && transaction.comment.comment) {
-                trimmedComment = transaction.comment.comment.trim();
-            }
+            const trimmedComment = transaction.comment && transaction.comment.comment ? transaction.comment.comment.trim() : '';
 
             const participant = participants[0];
 
