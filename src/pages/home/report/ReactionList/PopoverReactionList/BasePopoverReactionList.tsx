@@ -37,10 +37,6 @@ function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWit
             fullscreen
             withoutOverlay
             anchorRef={reactionListRef}
-            anchorAlignment={{
-                horizontal: 'left',
-                vertical: 'top',
-            }}
         >
             <BaseReactionList
                 isVisible
