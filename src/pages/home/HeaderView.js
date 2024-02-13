@@ -328,10 +328,11 @@ function HeaderView(props) {
                                         {isPolicyExpenseChat && !_.isEmpty(policyDescription) && _.isEmpty(parentNavigationSubtitleData) && (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
-                                                    if (!ReportUtils.canEditPolicyDescription(props.policy)) {
+                                                    if (ReportUtils.canEditPolicyDescription(props.policy)) {
+                                                                                                            Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(props.report.policyID));
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(props.report.policyID));
+                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));
                                                 }}
                                                 style={[styles.alignSelfStart, styles.mw100]}
                                                 accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
