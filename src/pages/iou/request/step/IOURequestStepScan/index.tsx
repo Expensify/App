@@ -206,6 +206,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker>
+                    {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
@@ -280,6 +281,7 @@ function IOURequestStepScan({report, route, isFromGlobalCreate}: IOURequestStepS
             </View>
 
             <AttachmentPicker>
+                {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
                 {({openPicker}) => (
                     <Button
                         medium
