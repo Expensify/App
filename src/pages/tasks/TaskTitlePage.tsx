@@ -1,7 +1,5 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -21,15 +19,9 @@ import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNot
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyRole} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type TaskTitlePageOnyxProps = {
-    /** The policy of parent report */
-    rootParentReportPolicy: OnyxEntry<PolicyRole>;
-};
-
-type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & TaskTitlePageOnyxProps;
+type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 type Values = {
     title: string;
@@ -39,7 +31,7 @@ type Errors = {
     title?: string;
 };
 
-function TaskTitlePage({report, rootParentReportPolicy, currentUserPersonalDetails}: TaskTitlePageProps) {
+function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -74,7 +66,7 @@ function TaskTitlePage({report, rootParentReportPolicy, currentUserPersonalDetai
 
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID, rootParentReportPolicy?.role);
+    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
@@ -126,16 +118,6 @@ function TaskTitlePage({report, rootParentReportPolicy, currentUserPersonalDetai
 
 TaskTitlePage.displayName = 'TaskTitlePage';
 
-const ComponentWithOnyx = withOnyx<TaskTitlePageProps, TaskTitlePageOnyxProps>({
-    rootParentReportPolicy: {
-        key: ({report}) => {
-            const rootParentReport = ReportUtils.getRootParentReport(report);
-            return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-        },
-        selector: (policy: OnyxEntry<Policy>) => ({role: policy?.role}),
-    },
-})(TaskTitlePage);
-
-const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(ComponentWithOnyx);
+const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskTitlePage);
 
 export default withReportOrNotFound()(ComponentWithCurrentUserPersonalDetails);

@@ -124,6 +124,6 @@ export default withCurrentUserPersonalDetails(
     withOnyx<TaskPreviewProps, TaskPreviewOnyxProps>({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-        }
+        },
     })(TaskPreview),
 );

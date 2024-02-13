@@ -221,7 +221,7 @@ const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProp
     },
     task: {
         key: ONYXKEYS.TASK,
-    }
+    },
 })(TaskAssigneeSelectorModal);
 
 export default withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx);

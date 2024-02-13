@@ -45,8 +45,6 @@ type Connection = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
-type PolicyValue = ValueOf<typeof CONST.POLICY.ROLE>;
-
 type Policy = {
     /** The ID of the policy */
     id: string;
@@ -55,7 +53,7 @@ type Policy = {
     name: string;
 
     /** The current user's role in the policy */
-    role: PolicyValue;
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
 
     /** The policy type */
     type: ValueOf<typeof CONST.POLICY.TYPE>;
@@ -177,11 +175,6 @@ type Policy = {
     connections?: Record<string, Connection>;
 };
 
-type PolicyRole = {
-    /** The role of current user */
-    role?: PolicyValue;
-};
-
 export default Policy;
 
-export type {Unit, CustomUnit, PolicyRole};
+export type {Unit, CustomUnit};
