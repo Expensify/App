@@ -407,8 +407,8 @@ Updated rules for managing members across all types of chats in New Expensify.
     - Members can't leave or be removed from the #announce room
     - Admins can't leave or be removed from #admins
     - Domain members can't leave or be removed from their domain chat
-    - Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
-    - Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
+    - Report submitters can't leave or be removed from their reports 
+    - Report managers can't leave or be removed from their reports 
     - Group owners cannot be removed from their groups - they need to transfer ownership first
 - **Excepting the above, admins can remove anyone. For example:**
     - Group admins can remove other group admins, as well as group members
