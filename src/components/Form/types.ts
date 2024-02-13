@@ -1,6 +1,7 @@
 import type {ComponentProps, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type AddressSearch from '@components/AddressSearch';
+import type AmountForm from '@components/AmountForm';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type Picker from '@components/Picker';
@@ -26,6 +27,7 @@ type ValidInputs =
     | typeof CheckboxWithLabel
     | typeof Picker
     | typeof AddressSearch
+    | typeof AmountForm
     | typeof BusinessTypePicker
     | typeof StatePicker;
 
