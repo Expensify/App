@@ -26,7 +26,6 @@ function ValidateLoginPage({
     const cachedAccountID = credentials?.accountID;
 
     useEffect(() => {
-
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
 
@@ -39,7 +38,6 @@ function ValidateLoginPage({
         Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
-
             if (exitTo) {
                 InteractionManager.runAfterInteractions(() => {
                     Session.waitForUserSignIn().then(() => {
@@ -60,9 +58,7 @@ function ValidateLoginPage({
 
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
-
             if (exitTo) {
-
                 InteractionManager.runAfterInteractions(() => {
                     Session.waitForUserSignIn().then(() => {
                         Navigation.waitForProtectedRoutes().then(() => {
