@@ -9,8 +9,15 @@ type BaseInvertedFlatListProps<T> = FlatListProps<T> & {
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
-function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+let localViewableItems: unknown;
+const getViewableItems = () => localViewableItems;
+
+function BaseInvertedFlatListE2e<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
+
+    const handleViewableItemsChanged = ({viewableItems}: { viewableItems: unknown }) => {
+        localViewableItems = viewableItems;
+    };
 
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
@@ -32,11 +39,12 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             ref={ref}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
+            onViewableItemsChanged={handleViewableItemsChanged}
         />
     );
 }
 
-BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
+BaseInvertedFlatListE2e.displayName = 'BaseInvertedFlatListE2e';
 
-export default forwardRef(BaseInvertedFlatList);
-export {AUTOSCROLL_TO_TOP_THRESHOLD};
+export default forwardRef(BaseInvertedFlatListE2e);
+export {getViewableItems};
