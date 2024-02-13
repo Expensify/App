@@ -379,19 +379,21 @@ function WorkspaceMembersPage(props) {
         return !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
-    const getHeaderContent = () => {
-        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
-            return null;
-        }
-        return (
-            <MessagesRow
-                type="success"
-                messages={{0: 'workspace.people.addedWithPrimary'}}
-                containerStyles={[styles.pb5, styles.ph5]}
-                onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
-            />
-        );
-    };
+    const getHeaderContent = () => (
+        <>
+            <Text style={[styles.pl5, styles.mb5, styles.mt3]}>
+                {props.translate('workspace.people.membersListTitle')}
+            </Text>
+            {!_.isEmpty(invitedPrimaryToSecondaryLogins) && (
+                <MessagesRow
+                    type="success"
+                    messages={{0: 'workspace.people.addedWithPrimary'}}
+                    containerStyles={[styles.pb5, styles.ph5]}
+                    onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
+                />
+            )}
+        </>
+    );
 
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
@@ -459,7 +461,6 @@ function WorkspaceMembersPage(props) {
                     }
                 />
                 <View style={[styles.w100, styles.flex1]}>
-                    <Text style={[styles.pl5, styles.mb5, styles.mt3]}>{props.translate('workspace.people.membersListTitle')}</Text>
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
