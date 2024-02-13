@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -55,7 +55,7 @@ type User = {
     login?: string;
 
     /** Element to show on the right side of the item */
-    rightElement?: ReactElement;
+    rightElement?: ReactNode;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: Icon[];
@@ -129,6 +129,9 @@ type Section<TItem extends User | RadioItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean;
+
+    /** Whether this section should be shown or not */
+    shouldShow?: boolean;
 };
 
 type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {
@@ -233,6 +236,9 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
+
+    /** Fired when the list is displayed with the items */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type ItemLayout = {
