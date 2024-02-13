@@ -46,7 +46,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
-    const [invitePersonalDetails, setPersonalDetails] = useState<ReportUtils.OptionData[]>([]);
+    const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
@@ -77,7 +77,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         });
 
         setUserToInvite(inviteOptions.userToInvite);
-        setPersonalDetails(inviteOptions.personalDetails);
+        setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetails, betas, searchTerm, excludedUsers]);
@@ -107,7 +107,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         if (searchTerm !== '') {
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
-                const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail.accountID && personalDetail.accountID === accountID);
+                const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
                 const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
                 const isPartOfSearchTerm = option.text?.toLowerCase().includes(searchValue) ?? option.login?.toLowerCase().includes(searchValue);
