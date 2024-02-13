@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
+import {useReports} from '@hooks/useReports';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
@@ -11,9 +12,6 @@ import type {Policy, PolicyMembers, Report, ReportMetadata} from '@src/types/ony
 import type {ReportScreenWrapperProps} from './ReportScreenWrapper';
 
 type ReportScreenIDSetterComponentProps = {
-    /** Available reports that would be displayed in this navigator */
-    reports: OnyxCollection<Report>;
-
     /** The policies which the user has access to */
     policies: OnyxCollection<Policy>;
 
@@ -59,9 +57,10 @@ const getLastAccessedReportID = (
 };
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
-function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, navigation, isFirstTimeNewExpensifyUser = false, reportMetadata, accountID}: ReportScreenIDSetterProps) {
+function ReportScreenIDSetter({route, policies, policyMembers = {}, navigation, isFirstTimeNewExpensifyUser = false, reportMetadata, accountID}: ReportScreenIDSetterProps) {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const reports = useReports();
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -83,7 +82,7 @@ function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, nav
             !canUseDefaultRooms,
             policies,
             isFirstTimeNewExpensifyUser,
-            !!reports?.params?.openOnAdminRoom,
+            !!route?.params?.openOnAdminRoom,
             reportMetadata,
             activeWorkspaceID,
             policyMemberAccountIDs,
@@ -106,10 +105,6 @@ function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, nav
 ReportScreenIDSetter.displayName = 'ReportScreenIDSetter';
 
 export default withOnyx<ReportScreenIDSetterProps, ReportScreenIDSetterComponentProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-        allowStaleData: true,
-    },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
         allowStaleData: true,

@@ -20,6 +20,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import {useReports} from '@hooks/useReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -33,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -72,9 +73,6 @@ type WorkspaceListPageOnyxProps = {
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: OnyxCollection<PolicyMembers>;
-
-    /** All reports shared with the user (coming from Onyx) */
-    reports: OnyxCollection<Report>;
 };
 
 type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
@@ -110,7 +108,8 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}: WorkspaceListPageProps) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount}: WorkspaceListPageProps) {
+    const reports = useReports();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -406,9 +405,6 @@ export default withPolicyAndFullscreenLoading(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
     })(WorkspacesListPage),
 );

@@ -5,6 +5,7 @@ import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
+import {useReports} from '@hooks/useReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
@@ -22,7 +23,6 @@ function LHNOptionsList({
     onSelectRow,
     optionMode,
     shouldDisableFocusOptions = false,
-    reports = {},
     reportActions = {},
     policy = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
@@ -33,6 +33,7 @@ function LHNOptionsList({
     transactionViolations = {},
     onFirstItemRendered = () => {},
 }: LHNOptionsListProps) {
+    const reports = useReports();
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
 
@@ -134,9 +135,6 @@ LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default withCurrentReportID(
     withOnyx<LHNOptionsListProps, LHNOptionsListOnyxProps>({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         },

@@ -2,12 +2,12 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
+import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -78,59 +78,23 @@ function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
 
-// Define a cache object to store the memoized results
-const reportIDsCache = new Map<string, string[]>();
-
-// Function to set a key-value pair while maintaining the maximum key limit
-function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TValue) {
-    if (map.size >= 5) {
-        // If the map has reached its limit, remove the first (oldest) key-value pair
-        const firstKey = map.keys().next().value;
-        map.delete(firstKey);
-    }
-    map.set(key, value);
-}
-
-// Variable to verify if ONYX actions are loaded
-let hasInitialReportActions = false;
-
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: Record<string, Report>,
+    allReports: OnyxCollection<Report>,
     betas: Beta[],
-    policies: Record<string, Policy>,
-    priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
+    policies: OnyxCollection<Policy>,
+    priorityMode: OnyxEntry<PriorityMode>,
     allReportActions: OnyxCollection<ReportAction[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
-    const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`];
-    let reportActionCount = currentReportActions?.length ?? 0;
-    reportActionCount = Math.max(reportActionCount, 1);
-
-    // Generate a unique cache key based on the function arguments
-    const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount, currentPolicyID, policyMemberAccountIDs],
-        // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
-        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
-    );
-
-    // Check if the result is already in the cache
-    const cachedIDs = reportIDsCache.get(cachedReportsKey);
-    if (cachedIDs && hasInitialReportActions) {
-        return cachedIDs;
-    }
-
-    // This is needed to prevent caching when Onyx is empty for a second render
-    hasInitialReportActions = Object.values(lastReportActions).length > 0;
-
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
-    const allReportsDictValues = Object.values(allReports);
+    const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
@@ -173,10 +137,18 @@ function getOrderedReportIDs(
     const archivedReports: Report[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
+        reportsToDisplay = reportsToDisplay.filter((report) => {
+            if (!report) {
+                return false;
+            }
+            return ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID);
+        });
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
+        if (!report) {
+            return;
+        }
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
@@ -219,7 +191,6 @@ function getOrderedReportIDs(
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
     const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
-    setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
 

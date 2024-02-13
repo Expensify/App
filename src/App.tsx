@@ -26,6 +26,8 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import {OrderedReportIDsContextProvider} from './hooks/useOrderedReportIDs';
+import {ReportsContextProvider} from './hooks/useReports';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
@@ -79,6 +81,8 @@ function App({url}: AppProps) {
                         EnvironmentProvider,
                         CustomStatusBarAndBackgroundContextProvider,
                         ActiveWorkspaceContextProvider,
+                        ReportsContextProvider,
+                        OrderedReportIDsContextProvider,
                     ]}
                 >
                     <CustomStatusBarAndBackground />

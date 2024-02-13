@@ -15,9 +15,6 @@ type LHNOptionsListOnyxProps = {
     /** The policy which the user has access to and which the report could be tied to */
     policy: OnyxCollection<Policy>;
 
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
-
     /** Array of report actions for this report */
     reportActions: OnyxCollection<ReportActions>;
 
