@@ -79,7 +79,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                         source={lodashGet(policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.XLARGE}
                         avatarStyle={styles.avatarXLarge}
-																								enablePreview
+                        enablePreview
                         DefaultAvatar={() => (
                             <Avatar
                                 containerStyles={styles.avatarXLarge}
