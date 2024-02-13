@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -65,6 +66,9 @@ type SectionProps = ChildrenProps & {
 
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
+
+    /** Overlay content to display on top of animation */
+    overlayContent?: () => ReactNode;
 };
 
 function Section({
@@ -84,13 +88,14 @@ function Section({
     illustration,
     illustrationBackgroundColor,
     illustrationStyle,
+    overlayContent,
 }: SectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? theme.appBG);
+    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? illustration?.backgroundColor ?? theme.appBG);
 
     return (
         <>
@@ -107,10 +112,12 @@ function Section({
                             <Lottie
                                 source={illustration}
                                 style={styles.h100}
+                                webStyle={styles.h100}
                                 autoPlay
                                 loop
                             />
                         </View>
+                        {overlayContent?.()}
                     </View>
                 )}
                 <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
