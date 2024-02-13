@@ -5,9 +5,9 @@ import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import useThemeStyles from '@hooks/useThemeStyles';
 import toggleProfileToolsModal from '@libs/actions/ProfilingTool';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Switch from './Switch';
-import TestToolRow from './TestToolRow';
-import Text from './Text';
+import Switch from '@components/Switch';
+import Text from '@components/Text';
+import TestToolRow from '@components/TestToolRow';
 
 type ProfilingToolMenuOnyxProps = {
     isAppProfiling: OnyxEntry<boolean>;
