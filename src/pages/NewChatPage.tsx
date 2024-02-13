@@ -1,69 +1,59 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import personalDetailsPropType from './personalDetailsPropType';
-import reportPropTypes from './reportPropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {DismissedReferralBanners} from '@src/types/onyx/Account';
 
-const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
+type NewChatPageWithOnyxProps = {
+    /** All reports shared with the user */
+    reports: OnyxCollection<OnyxTypes.Report>;
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
-
-    ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
+    dismissedReferralBanners: DismissedReferralBanners;
 
     /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
+    isSearchingForReports: OnyxEntry<boolean>;
 };
 
-const defaultProps = {
-    betas: [],
-    dismissedReferralBanners: {},
-    personalDetails: {},
-    reports: {},
-    isSearchingForReports: false,
+type NewChatPageProps = NewChatPageWithOnyxProps & {
+    isGroupChat: boolean;
 };
 
-const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
+const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports, dismissedReferralBanners}) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState();
-    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [filteredRecentReports, setFilteredRecentReports] = useState<ReportUtils.OptionData[]>([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<ReportUtils.OptionData[]>([]);
+    const [filteredUserToInvite, setFilteredUserToInvite] = useState<ReportUtils.OptionData | null>();
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -76,16 +66,18 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         Boolean(filteredUserToInvite),
         searchTerm.trim(),
         maxParticipantsReached,
-        _.some(selectedOptions, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+        selectedOptions.some((participant) => participant?.searchText?.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
+
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
-    const sections = useMemo(() => {
-        const sectionsList = [];
+    const sections = useMemo((): OptionsListUtils.CategorySection[] => {
+        const sectionsList: OptionsListUtils.CategorySection[] = [];
         let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, maxParticipantsReached, indexOffset);
         sectionsList.push(formatResults.section);
+
         indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
@@ -95,7 +87,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         sectionsList.push({
             title: translate('common.recents'),
             data: filteredRecentReports,
-            shouldShow: !_.isEmpty(filteredRecentReports),
+            shouldShow: filteredRecentReports.length > 0,
             indexOffset,
         });
         indexOffset += filteredRecentReports.length;
@@ -103,7 +95,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         sectionsList.push({
             title: translate('common.contacts'),
             data: filteredPersonalDetails,
-            shouldShow: !_.isEmpty(filteredPersonalDetails),
+            shouldShow: filteredPersonalDetails.length > 0,
             indexOffset,
         });
         indexOffset += filteredPersonalDetails.length;
@@ -122,15 +114,14 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     * @param {Object} option
      */
-    const toggleOption = (option) => {
-        const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+    const toggleOption = (option: OptionData) => {
+        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
         } else {
             newSelectedOptions = [...selectedOptions, option];
         }
@@ -142,7 +133,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         } = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
-            betas,
+            betas ?? [],
             searchTerm,
             newSelectedOptions,
             isGroupChat ? excludedGroupEmails : [],
@@ -166,10 +157,11 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     /**
      * Creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
-     *
-     * @param {Object} option
      */
-    const createChat = (option) => {
+    const createChat = (option: OptionData) => {
+        if (!option.login) {
+            return;
+        }
         Report.navigateToAndOpenReport([option.login]);
     };
 
@@ -178,10 +170,12 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * or navigates to the existing chat if one with those participants already exists.
      */
     const createGroup = () => {
-        const logins = _.pluck(selectedOptions, 'login');
+        const logins = selectedOptions.map((option) => option.login).filter((login): login is string => typeof login === 'string');
+
         if (logins.length < 1) {
             return;
         }
+
         Report.navigateToAndOpenReport(logins);
     };
 
@@ -193,7 +187,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         } = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
-            betas,
+            betas ?? [],
             searchTerm,
             selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
@@ -223,6 +217,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             if (!interactionTask) {
                 return;
             }
+
             interactionTask.cancel();
         };
     }, []);
@@ -251,11 +246,12 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                     behavior="padding"
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                    keyboardVerticalOffset={variables.contentHeaderHeight + insets.top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+                    keyboardVerticalOffset={variables.contentHeaderHeight + (insets?.top ?? 0) + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
                             ref={inputCallbackRef}
+                            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
@@ -287,30 +283,24 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     );
 }
 
-NewChatPage.propTypes = propTypes;
-NewChatPage.defaultProps = defaultProps;
 NewChatPage.displayName = 'NewChatPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        dismissedReferralBanners: {
-            key: ONYXKEYS.ACCOUNT,
-            selector: (data) => data.dismissedReferralBanners || {},
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isSearchingForReports: {
-            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-            initWithStoredValues: false,
-        },
-    }),
-)(NewChatPage);
+export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (data) => data?.dismissedReferralBanners ?? {},
+    },
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(NewChatPage);
