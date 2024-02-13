@@ -93,7 +93,7 @@ function BaseTwoFactorAuthForm(props) {
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
             onFulfill={validateAndSubmitForm}
-            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+            errorText={formError.twoFactorAuthCode || ErrorUtils.getLatestErrorMessage(props.account)}
             ref={inputRef}
             autoFocus={false}
         />
