@@ -74,6 +74,7 @@ function isValidPastDate(date: string | Date): boolean {
 
 /**
  * Used to validate a value that is "required".
+ * @param value - field value
  */
 function isRequiredFulfilled(value?: string | boolean | Date | unknown[] | Record<string, unknown> | null): boolean {
     if (!value) {
@@ -91,11 +92,15 @@ function isRequiredFulfilled(value?: string | boolean | Date | unknown[] | Recor
     }
     return Boolean(value);
 }
-
+/**
+ * Used for getting errors for required fields.
+ */
 type GetFieldRequiredErrorsReturn<K extends string[]> = {[P in K[number]]: string};
 
 /**
  * Used to add requiredField error to the fields passed.
+ * @param values - all form values
+ * @param requiredFields - required fields for particular form
  */
 function getFieldRequiredErrors<T extends OnyxFormValuesFields, K extends string[]>(values: T, requiredFields: K): GetFieldRequiredErrorsReturn<K> {
     const errors: GetFieldRequiredErrorsReturn<K> = {} as GetFieldRequiredErrorsReturn<K>;

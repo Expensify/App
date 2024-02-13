@@ -10,6 +10,14 @@ type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'isEditing
     fieldIds: Array<keyof ReimbursementAccountDraftValues>;
 };
 
+/**
+ * Hook for handling submit method in ReimbursementAccount substeps.
+ * When user is in editing mode we should save values only when user confirm that
+ * @param formId - ID for particular form
+ * @param isEditing - if form is in editing mode
+ * @param onNext - callback
+ * @param fieldIds - field IDs for particular step
+ */
 export default function useReimbursementAccountStepFormSubmit({
     formId = ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM,
     isEditing,

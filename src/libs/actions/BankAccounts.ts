@@ -144,8 +144,8 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
     };
 }
 
-function addBusinessWebsiteForDraft(website: string) {
-    Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {website});
+function addBusinessWebsiteForDraft(websiteUrl: string) {
+    Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {website: websiteUrl});
 }
 
 /**
@@ -251,6 +251,8 @@ function deletePaymentBankAccount(bankAccountID: number) {
  * Update the user's personal information on the bank account in database.
  *
  * This action is called by the requestor step in the Verified Bank Account flow
+ * @param bankAccountID - ID for bank account
+ * @param params - User personal data
  */
 function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps) {
     API.write(
@@ -308,6 +310,13 @@ function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
 
+/**
+ * Function to display and fetch data for Reimbursement Account step
+ * @param stepToOpen - current step to open
+ * @param subStep - particular step
+ * @param localCurrentStep - last step on device
+ * @param policyID - policy ID
+ */
 function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep, policyID: string) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -352,6 +361,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
 
 /**
  * Updates the bank account in the database with the company step data
+ * @param params - Business step form data
  */
 function updateCompanyInformationForBankAccount(bankAccountID: number, params: CompanyStepProps) {
     API.write(
@@ -367,6 +377,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: C
 
 /**
  * Add beneficial owners for the bank account and verify the accuracy of the information provided
+ * @param params - Beneficial Owners step form params
  */
 function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: BeneficialOwnersStepProps) {
     API.write(
@@ -382,6 +393,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Ben
 
 /**
  * Accept the ACH terms and conditions and verify the accuracy of the information provided
+ * @param params - Verification step form params
  */
 function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps) {
     API.write(
@@ -397,7 +409,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
 
 /**
  * Create the bank account with manually entered data.
- *
+ * @param plaidMask - scheme for Plaid account number
  */
 function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string, policyID?: string) {
     const parameters: ConnectBankAccountManuallyParams = {

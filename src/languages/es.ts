@@ -143,7 +143,7 @@ export default {
         continue: 'Continuar',
         firstName: 'Nombre',
         lastName: 'Apellidos',
-        phone: 'teléfono',
+        phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
