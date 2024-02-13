@@ -39,14 +39,7 @@ function ValidateLoginPage({
 
         if (isSignedIn || !login) {
             if (exitTo) {
-                InteractionManager.runAfterInteractions(() => {
-                    Session.waitForUserSignIn().then(() => {
-                        Navigation.waitForProtectedRoutes().then(() => {
-                            const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                            Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
-                        });
-                    });
-                });
+                Session.handleExitToNavigation(exitTo);
             }
             return;
         }
@@ -59,14 +52,7 @@ function ValidateLoginPage({
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
             if (exitTo) {
-                InteractionManager.runAfterInteractions(() => {
-                    Session.waitForUserSignIn().then(() => {
-                        Navigation.waitForProtectedRoutes().then(() => {
-                            const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                            Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
-                        });
-                    });
-                });
+                Session.handleExitToNavigation(exitTo);
             }
             return;
         }

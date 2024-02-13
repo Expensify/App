@@ -22,28 +22,14 @@ function ValidateLoginPage({
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
                 if (exitTo) {
-                    InteractionManager.runAfterInteractions(() => {
-                        Session.waitForUserSignIn().then(() => {
-                            Navigation.waitForProtectedRoutes().then(() => {
-                                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
-                            });
-                        });
-                    });
+                    Session.handleExitToNavigation(exitTo);
                 } else {
                     Navigation.goBack();
                 }
             } else {
                 Session.signInWithValidateCode(Number(accountID), validateCode);
                 if (exitTo) {
-                    InteractionManager.runAfterInteractions(() => {
-                        Session.waitForUserSignIn().then(() => {
-                            Navigation.waitForProtectedRoutes().then(() => {
-                                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
-                            });
-                        });
-                    });
+                    Session.handleExitToNavigation(exitTo);
                 } else {
                     Navigation.navigate(ROUTES.HOME);
                 }

@@ -1,7 +1,7 @@
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {Linking} from 'react-native';
+import {InteractionManager, Linking, NativeModules} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -45,6 +45,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -877,6 +878,23 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     return false;
 };
 
+/**
+ * navigate to exitTo path after signin
+ *
+ * @param {Routes | HybridAppRoute} exitTo
+ */
+
+const handleExitToNavigation = (exitTo: Routes | HybridAppRoute) => {
+    InteractionManager.runAfterInteractions(() => {
+        waitForUserSignIn().then(() => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+            });
+        });
+    });
+};
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -906,4 +924,5 @@ export {
     validateTwoFactorAuth,
     waitForUserSignIn,
     canAccessRouteByAnonymousUser,
+    handleExitToNavigation,
 };
