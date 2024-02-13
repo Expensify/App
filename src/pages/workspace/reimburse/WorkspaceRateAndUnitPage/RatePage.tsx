@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -42,15 +42,15 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
-        const rate = values.rate as string;
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
+        const rate = values.rate;
         Policy.setRateForReimburseView((parseFloat(rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(1));
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
-    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
-        const errors: {rate?: string} = {};
-        const rate = values.rate as string;
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM> = {};
+        const rate = values.rate;
         const parsedRate = MoneyRequestUtils.replaceAllDigits(rate, toLocaleDigit);
         const decimalSeparator = toLocaleDigit('.');
         const outputCurrency = props.policy?.outputCurrency ?? CONST.CURRENCY.USD;

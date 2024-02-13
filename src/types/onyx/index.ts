@@ -40,7 +40,6 @@ import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
-import type ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import type Report from './Report';
 import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
@@ -113,7 +112,6 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
-    ReimbursementAccountDraft,
     Report,
     ReportAction,
     ReportActionReactions,

@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -10,11 +11,9 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type IncorporationStateBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -23,10 +22,11 @@ type IncorporationStateBusinessOnyxProps = {
 
 type IncorporationStateBusinessProps = IncorporationStateBusinessOnyxProps & SubStepProps;
 
-const COMPANY_INCORPORATION_STATE_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
+const COMPANY_INCORPORATION_STATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_STATE_KEY];
 
-const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
+    ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
 function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: IncorporationStateBusinessProps) {
     const {translate} = useLocalize();
@@ -64,6 +64,7 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
 IncorporationStateBusiness.displayName = 'IncorporationStateBusiness';
 
 export default withOnyx<IncorporationStateBusinessProps, IncorporationStateBusinessOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

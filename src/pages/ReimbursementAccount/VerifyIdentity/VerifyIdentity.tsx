@@ -15,7 +15,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type {OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type VerifyIdentityOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -40,7 +39,7 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
     const {translate} = useLocalize();
 
     const handleOnfidoSuccess = useCallback(
-        (onfidoData: OnfidoData) => {
+        (onfidoData: Record<string, unknown>) => {
             BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID});
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
@@ -89,6 +88,7 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
 VerifyIdentity.displayName = 'VerifyIdentity';
 
 export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

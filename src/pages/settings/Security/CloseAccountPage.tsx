@@ -7,7 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -24,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 import type {Session} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type CloseAccountPageOnyxProps = {
     /** Session of currently logged in user */
@@ -67,10 +66,9 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
      */
     const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): Errors => {
-        const requiredFields = ['phoneOrEmail'];
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
         const userEmailOrPhone = formatPhoneNumber(session?.email);
-        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, ['phoneOrEmail']);
 
         if (values.phoneOrEmail && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
             errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
