@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		083353EB2B5AB22A00C603C0 /* attention.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353E72B5AB22900C603C0 /* attention.mp3 */; };
+		083353EC2B5AB22A00C603C0 /* done.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353E82B5AB22900C603C0 /* done.mp3 */; };
+		083353ED2B5AB22A00C603C0 /* receive.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353E92B5AB22900C603C0 /* receive.mp3 */; };
+		083353EE2B5AB22A00C603C0 /* success.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 083353EA2B5AB22900C603C0 /* success.mp3 */; };
 		0C7C65547D7346EB923BE808 /* ExpensifyMono-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = E704648954784DDFBAADF568 /* ExpensifyMono-Regular.otf */; };
 		0CDA8E34287DD650004ECBEC /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0CDA8E33287DD650004ECBEC /* AppDelegate.mm */; };
 		0CDA8E35287DD650004ECBEC /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0CDA8E33287DD650004ECBEC /* AppDelegate.mm */; };
@@ -78,8 +82,11 @@
 		00D7E69E5ADD16FD4C44221B /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NewExpensifyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		016DA61B5C80AB62C04F4D3F /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; sourceTree = "<group>"; };
-		0BFF51686238403B4F82713B /* Pods-NewExpensify.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugproduction.xcconfig"; sourceTree = "<group>"; };
+		030F99CEB3AEF1F11B001798 /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; sourceTree = "<group>"; };
+		083353E72B5AB22900C603C0 /* attention.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = attention.mp3; path = ../assets/sounds/attention.mp3; sourceTree = "<group>"; };
+		083353E82B5AB22900C603C0 /* done.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = done.mp3; path = ../assets/sounds/done.mp3; sourceTree = "<group>"; };
+		083353E92B5AB22900C603C0 /* receive.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = receive.mp3; path = ../assets/sounds/receive.mp3; sourceTree = "<group>"; };
+		083353EA2B5AB22900C603C0 /* success.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = success.mp3; path = ../assets/sounds/success.mp3; sourceTree = "<group>"; };
 		0CDA8E33287DD650004ECBEC /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = NewExpensify/AppDelegate.mm; sourceTree = "<group>"; };
 		0CDA8E36287DD6A0004ECBEC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NewExpensify/Images.xcassets; sourceTree = "<group>"; };
 		0F5BE0CD252686320097D869 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -93,6 +100,7 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = NewExpensify/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = NewExpensify/main.m; sourceTree = "<group>"; };
 		18D050DF262400AF000D658B /* BridgingFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgingFile.swift; sourceTree = "<group>"; };
+		3328C9B8861CA667C42B47F3 /* Pods-NewExpensify.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugproduction.xcconfig"; sourceTree = "<group>"; };
 		374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OriginImageRequestHandler.h; path = NewExpensify/OriginImageRequestHandler.h; sourceTree = "<group>"; };
 		374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = OriginImageRequestHandler.mm; path = NewExpensify/OriginImageRequestHandler.mm; sourceTree = "<group>"; };
 		44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; };
@@ -292,6 +300,10 @@
 		A9EA265D209D4558995C9BD4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				083353E72B5AB22900C603C0 /* attention.mp3 */,
+				083353E82B5AB22900C603C0 /* done.mp3 */,
+				083353E92B5AB22900C603C0 /* receive.mp3 */,
+				083353EA2B5AB22900C603C0 /* success.mp3 */,
 				44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */,
 				D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */,
 				DCF33E34FFEC48128CDD41D4 /* ExpensifyMono-Bold.otf */,
@@ -309,13 +321,11 @@
 			children = (
 				0FF2BC0D01CA2C62CE94229E /* Pods-NewExpensify.debugdevelopment.xcconfig */,
 				5A1F158A9A6CBE170EC19D9C /* Pods-NewExpensify.debugadhoc.xcconfig */,
-				0BFF51686238403B4F82713B /* Pods-NewExpensify.debugproduction.xcconfig */,
 				B4CF7147C89747459BAC5BB7 /* Pods-NewExpensify.releasedevelopment.xcconfig */,
 				7312B334B72E8BE41A811FAB /* Pods-NewExpensify.releaseadhoc.xcconfig */,
 				9EADA69D62F2E7B3D96E5B1C /* Pods-NewExpensify.releaseproduction.xcconfig */,
 				E750C93A45B47BDC5149C5AA /* Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig */,
 				F98306ABF3F272DF04DF65CC /* Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig */,
-				016DA61B5C80AB62C04F4D3F /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */,
 				972584042DB4782F830B063A /* Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig */,
 				D15262BE5F713CDB4DA576AE /* Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig */,
 				466D03D63F4B48E009C04FA3 /* Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig */,
@@ -325,6 +335,8 @@
 				11B2BA236BB72A603FBB7B99 /* Pods-NotificationServiceExtension.releasedevelopment.xcconfig */,
 				AC9422F6C8A49AE701481721 /* Pods-NotificationServiceExtension.releaseadhoc.xcconfig */,
 				96ADA7C82BA6A08C4A56344A /* Pods-NotificationServiceExtension.releaseproduction.xcconfig */,
+				3328C9B8861CA667C42B47F3 /* Pods-NewExpensify.debugproduction.xcconfig */,
+				030F99CEB3AEF1F11B001798 /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -462,13 +474,17 @@
 				0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */,
 				E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */,
 				F0C450EA2705020500FD2970 /* colors.json in Resources */,
+				083353EB2B5AB22A00C603C0 /* attention.mp3 in Resources */,
 				0CDA8E37287DD6A0004ECBEC /* Images.xcassets in Resources */,
 				70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */,
 				FF941A8D48F849269AB85C9A /* ExpensifyNewKansas-Medium.otf in Resources */,
 				BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */,
 				26AF3C3540374A9FACB6C19E /* ExpensifyMono-Bold.otf in Resources */,
+				083353EE2B5AB22A00C603C0 /* success.mp3 in Resources */,
 				0C7C65547D7346EB923BE808 /* ExpensifyMono-Regular.otf in Resources */,
 				2A9F8CDA983746B0B9204209 /* ExpensifyNeue-Bold.otf in Resources */,
+				083353EC2B5AB22A00C603C0 /* done.mp3 in Resources */,
+				083353ED2B5AB22A00C603C0 /* receive.mp3 in Resources */,
 				ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */,
 				30581EA8AAFD4FCE88C5D191 /* ExpensifyNeue-Italic.otf in Resources */,
 				1246A3EF20E54E7A9494C8B9 /* ExpensifyNeue-Regular.otf in Resources */,
@@ -569,8 +585,8 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/Airship/AirshipMessageCenterResources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Airship/AirshipPreferenceCenterResources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleSignIn/GoogleSignIn.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/RCTI18nStrings.bundle",
 				"${PODS_ROOT}/../../node_modules/@expensify/react-native-live-markdown/parser/react-native-live-markdown-parser.js",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/RCTI18nStrings.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -580,8 +596,8 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AirshipMessageCenterResources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AirshipPreferenceCenterResources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleSignIn.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCTI18nStrings.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/react-native-live-markdown-parser.js",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCTI18nStrings.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -716,8 +732,8 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/Airship/AirshipMessageCenterResources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Airship/AirshipPreferenceCenterResources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleSignIn/GoogleSignIn.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/RCTI18nStrings.bundle",
 				"${PODS_ROOT}/../../node_modules/@expensify/react-native-live-markdown/parser/react-native-live-markdown-parser.js",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/RCTI18nStrings.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -727,8 +743,8 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AirshipMessageCenterResources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AirshipPreferenceCenterResources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleSignIn.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCTI18nStrings.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/react-native-live-markdown-parser.js",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCTI18nStrings.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1687,7 +1703,7 @@
 		};
 		CF9AF93F29EE9276001FA527 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0BFF51686238403B4F82713B /* Pods-NewExpensify.debugproduction.xcconfig */;
+			baseConfigurationReference = 3328C9B8861CA667C42B47F3 /* Pods-NewExpensify.debugproduction.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
@@ -1725,7 +1741,7 @@
 		};
 		CF9AF94029EE9276001FA527 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 016DA61B5C80AB62C04F4D3F /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */;
+			baseConfigurationReference = 030F99CEB3AEF1F11B001798 /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
