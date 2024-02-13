@@ -1128,7 +1128,7 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    // Optimistically modify the transaction
+    // Optimistically modify the transaction and the transaction thread
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1137,6 +1137,14 @@ function getUpdateMoneyRequestParams(
             pendingFields,
             isLoading: hasPendingWaypoints,
             errorFields: null,
+        },
+    });
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: {
+            lastActorAccountID: updatedReportAction.actorAccountID,
         },
     });
 
@@ -1236,6 +1244,13 @@ function getUpdateMoneyRequestParams(
             value: currentTransactionViolations,
         });
     }
+
+    // Reset the transaction thread to its original state
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: transactionThread,
+    });
 
     return {
         params,

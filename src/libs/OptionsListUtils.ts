@@ -1756,7 +1756,7 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: Record<string, Report>,
+    reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
@@ -1942,7 +1942,7 @@ function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
-    filteredPersonalDetails: PersonalDetails[],
+    filteredPersonalDetails: ReportUtils.OptionData[],
     maxOptionsSelected: boolean,
     indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
@@ -2025,4 +2025,4 @@ export {
     transformedTaxRates,
 };
 
-export type {MemberForList};
+export type {MemberForList, CategorySection};

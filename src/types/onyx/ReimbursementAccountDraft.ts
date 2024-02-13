@@ -1,6 +1,8 @@
-import type * as OnyxTypes from './index';
+import type {OnyxFormValuesFields} from '@components/Form/types';
+import type ONYXKEYS from '@src/ONYXKEYS';
 
 type OnfidoData = Record<string, unknown>;
+type ReimbursementAccountDraftValues = OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT>;
 
 type BankAccountStepProps = {
     accountNumber?: string;
@@ -20,7 +22,7 @@ type CompanyStepProps = {
     website?: string;
     companyTaxID?: string;
     incorporationType?: string;
-    incorporationDate?: string | Date;
+    incorporationDate?: string;
     incorporationState?: string;
     hasNoConnectionToCannabis?: boolean;
 };
@@ -32,19 +34,23 @@ type RequestorStepProps = {
     requestorAddressCity?: string;
     requestorAddressState?: string;
     requestorAddressZipCode?: string;
-    dob?: string | Date;
+    dob?: string;
     ssnLast4?: string;
-    isControllingOfficer?: boolean;
     isOnfidoSetupComplete?: boolean;
     onfidoData?: OnfidoData;
 };
 
-type ACHContractStepProps = {
+type BeneficialOwnersStepProps = {
     ownsMoreThan25Percent?: boolean;
     hasOtherBeneficialOwners?: boolean;
+    beneficialOwners?: string;
+    beneficialOwnerKeys?: string[];
+};
+
+type ACHContractStepProps = {
     acceptTermsAndConditions?: boolean;
     certifyTrueInformation?: boolean;
-    beneficialOwners?: string[];
+    isAuthorizedToUseBankAccount?: boolean;
 };
 
 type ReimbursementAccountProps = {
@@ -57,9 +63,29 @@ type ReimbursementAccountProps = {
     amount3?: string;
 };
 
-type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps;
+// BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
+type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
+type BeneficialOwnerDraftData = Record<BeneficialOwnerDataKey, string>;
 
-type ReimbursementAccountFormDraft = ReimbursementAccountDraft & OnyxTypes.Form;
+type ReimbursementAccountDraft = BankAccountStepProps &
+    CompanyStepProps &
+    RequestorStepProps &
+    BeneficialOwnersStepProps &
+    ACHContractStepProps &
+    ReimbursementAccountProps &
+    BeneficialOwnerDraftData & {
+        selectedPlaidAccountID?: string;
+    };
 
 export default ReimbursementAccountDraft;
-export type {ACHContractStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps, ReimbursementAccountFormDraft};
+export type {
+    ACHContractStepProps,
+    BeneficialOwnersStepProps,
+    RequestorStepProps,
+    OnfidoData,
+    BankAccountStepProps,
+    CompanyStepProps,
+    ReimbursementAccountProps,
+    BeneficialOwnerDraftData,
+    ReimbursementAccountDraftValues,
+};
