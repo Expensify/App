@@ -33,8 +33,8 @@ function OnboardingWelcomeVideoModal() {
                     <View style={[styles.onboardingWelcomeVideo]}>
                         <Lottie
                             source={LottieAnimations.Hands}
-                            style={styles.h100}
-                            webStyle={styles.h100}
+                            style={styles.w100}
+                            webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
                             autoPlay
                             loop
                         />

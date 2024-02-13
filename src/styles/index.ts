@@ -4054,6 +4054,8 @@ const styles = (theme: ThemeColors) =>
 
         onboardingWelcomeVideo: {
             backgroundColor: theme.onboardingVideoBG,
+            justifyContent: 'center',
+            alignItems: 'center',
             borderRadius: 10,
         },
 
