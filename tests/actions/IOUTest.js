@@ -732,7 +732,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction.pendingAction).toBeFalsy();
                                         expect(transaction.errors).toBeTruthy();
-                                        expect(_.values(transaction.errors)[0]).toBe('iou.error.genericCreateFailureMessage');
+                                        expect(_.values(transaction.errors)[0]).toEqual(expect.arrayContaining(['iou.error.genericCreateFailureMessage', {isTranslated: false}]));
                                         resolve();
                                     },
                                 });
@@ -1680,7 +1680,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
                                     expect(updatedAction.actionName).toEqual('MODIFIEDEXPENSE');
-                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining(['iou.error.genericEditFailureMessage']));
+                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining([['iou.error.genericEditFailureMessage', {isTranslated: false}]]));
                                     resolve();
                                 },
                             });
@@ -1894,7 +1894,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const erroredAction = _.find(_.values(allActions), (action) => !_.isEmpty(action.errors));
-                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining(['iou.error.other']));
+                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining([['iou.error.other', {isTranslated: false}]]));
                                     resolve();
                                 },
                             });
