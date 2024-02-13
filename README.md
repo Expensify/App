@@ -417,9 +417,6 @@ Updated rules for managing members across all types of chats in New Expensify.
     - Workspace members can remove non-workspace guests.
 - **Excepting the above, anybody can remove themselves from any object**
 
-
-
-
 1. ### DM
     |  | Member
     | :---: | :---: 
