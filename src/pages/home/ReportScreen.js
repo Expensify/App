@@ -206,6 +206,7 @@ function ReportScreen({
             oldPolicyName: reportProp.oldPolicyName,
             policyName: reportProp.policyName,
             isOptimisticReport: reportProp.isOptimisticReport,
+            lastMentionedTime: reportProp.lastMentionedTime,
         }),
         [
             reportProp.lastReadTime,
@@ -242,6 +243,7 @@ function ReportScreen({
             reportProp.oldPolicyName,
             reportProp.policyName,
             reportProp.isOptimisticReport,
+            reportProp.lastMentionedTime,
         ],
     );
 
@@ -515,6 +517,7 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const reportIDFromParams = lodashGet(route.params, 'reportID');
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         () =>
@@ -525,8 +528,9 @@ function ReportScreen({
                 !reportMetadata.isLoadingInitialReportActions &&
                 !isLoading &&
                 !userLeavingStatus) ||
-            shouldHideReport,
-        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
+            shouldHideReport ||
+            (reportIDFromParams && !ReportUtils.isValidReportIDFromPath(reportIDFromParams)),
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportIDFromParams],
     );
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
