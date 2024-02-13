@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FeatureList from '@components/FeatureList';
+import type {FeatureListItem} from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -31,7 +32,6 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -78,7 +78,7 @@ type WorkspaceListPageOnyxProps = {
 
 type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
 
-const workspaceFeatures = [
+const workspaceFeatures: FeatureListItem[] = [
     {
         icon: Illustrations.MoneyReceipts,
         translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
@@ -125,7 +125,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             return;
         }
 
-        Policy.deleteWorkspace(policyIDToDelete, [], policyNameToDelete);
+        Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
     };
 
@@ -208,7 +208,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap5, styles.mh5, styles.mv5, styles.pl5]}>
+            <View style={[styles.flexRow, styles.gap5, styles.p5, styles.pl10, styles.appBG]}>
                 <View style={[styles.flexRow, styles.flex1]}>
                     <Text
                         numberOfLines={1}
@@ -341,9 +341,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
                             onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                            // @ts-expect-error TODO: Remove once FeatureList (https://github.com/Expensify/App/issues/25039) is migrated to TS
                             illustration={LottieAnimations.WorkspacePlanet}
-                            illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
                         />
@@ -377,6 +375,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     data={workspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
+                    stickyHeaderIndices={[0]}
                 />
             </View>
             <ConfirmModal
