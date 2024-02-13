@@ -25,7 +25,6 @@ function BaseListItem<TItem extends User | RadioItem>({
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
-    shouldUseOnySubscriptAvatar = true,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -118,7 +117,6 @@ function BaseListItem<TItem extends User | RadioItem>({
                                 showTooltip={showTooltip}
                                 isFocused={isFocused}
                                 isHovered={hovered}
-                                shouldUseOnySubscriptAvatar={shouldUseOnySubscriptAvatar}
                             />
 
                             {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (

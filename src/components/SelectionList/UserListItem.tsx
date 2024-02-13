@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {UserListItemProps} from './types';
 
-function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style, isFocused, isHovered, shouldUseOnySubscriptAvatar = true}: UserListItemProps) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style, isFocused, isHovered}: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -21,7 +21,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
         <>
             {!!item.icons && (
                 <>
-                    {shouldUseOnySubscriptAvatar || item.shouldShowSubscript ? (
+                    {item.shouldShowSubscript ? (
                         <SubscriptAvatar
                             mainAvatar={item.icons[0]}
                             secondaryAvatar={item.icons[1]}
