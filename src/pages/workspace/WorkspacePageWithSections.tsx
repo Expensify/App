@@ -21,7 +21,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {PolicyRoute} from './withPolicy';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -40,9 +39,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** The text to display in the header */
         headerText: string;
-
-        /** The route object passed to this page from the navigator */
-        route: PolicyRoute;
 
         /** Main content of the page */
         children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
@@ -84,7 +80,7 @@ function fetchData(skipVBBACal?: boolean) {
 }
 
 function WorkspacePageWithSections({
-    backButtonRoute = '',
+    backButtonRoute,
     children = () => null,
     footer = null,
     guidesCallTaskID = '',
@@ -130,7 +126,8 @@ function WorkspacePageWithSections({
     }, [shouldSkipVBBACall]);
 
     const shouldShow = useMemo(() => {
-        if (isEmptyObject(policy) && isEmptyObject(policyDraft)) {
+        // If the policy object doesn't exist or contains only error data, we shouldn't display it.
+        if ((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) {
             return true;
         }
 
@@ -188,6 +185,7 @@ export default withPolicyAndFullscreenLoading(
         user: {
             key: ONYXKEYS.USER,
         },
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },

@@ -122,7 +122,6 @@ function ReportPreview({
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const policyType = policy?.type;
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
-    const isReimburser = session?.email === policy?.reimburserEmail;
 
     const iouSettled = ReportUtils.isSettled(iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
@@ -213,7 +212,7 @@ function ReportPreview({
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPaidGroupPolicy
         ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
-          isReimburser && (isApproved || isCurrentUserManager)
+          isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
