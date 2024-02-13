@@ -164,6 +164,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}
                             isLoadingNewOptions={isSearchingForReports}
+                            shouldUseOnySubscriptAvatar={false}
                         />
                     </View>
                 </>
