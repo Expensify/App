@@ -714,8 +714,15 @@ function ReportActionItem(props) {
         return null;
     }
 
-    // if isActionableMentionWhisper, and resolved, then we don't want to render anything
+    // if action is actionable mention whisper and resolved by user, then we don't want to render anything
     if (ReportActionsUtils.isActionableMentionWhisper(props.action) && lodashGet(props.action, 'originalMessage.resolution', null)) {
+        return null;
+    }
+
+    // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
+    // This is a temporary solution needed for comment-linking.
+    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
+    if (ReportActionsUtils.isWhisperActionTargetedToOthers(props.action)) {
         return null;
     }
 
