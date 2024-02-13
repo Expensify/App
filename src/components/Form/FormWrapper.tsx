@@ -5,7 +5,7 @@ import {Keyboard, ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormSubmit from '@components/FormSubmit';
+import FormElement from '@components/FormElement';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
@@ -28,6 +28,9 @@ type FormWrapperProps = ChildrenProps &
         /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
+        /** Whether to apply flex to the submit button */
+        submitFlexEnabled?: boolean;
+
         /** Server side errors keyed by microtime */
         errors: Errors;
 
@@ -49,6 +52,7 @@ function FormWrapper({
     isSubmitButtonVisible = true,
     style,
     submitButtonStyles,
+    submitFlexEnabled = true,
     enabledWhenOffline,
     isSubmitActionDangerous = false,
     formID,
@@ -94,11 +98,10 @@ function FormWrapper({
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle: SafeAreaChildrenProps['safeAreaPaddingBottomStyle']) => (
-            <FormSubmit
+            <FormElement
                 key={formID}
                 ref={formContentRef}
                 style={[style, safeAreaPaddingBottomStyle]}
-                onSubmit={onSubmit}
             >
                 {children}
                 {isSubmitButtonVisible && (
@@ -110,13 +113,13 @@ function FormWrapper({
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
                     />
                 )}
-            </FormSubmit>
+            </FormElement>
         ),
         [
             children,
@@ -135,6 +138,7 @@ function FormWrapper({
             styles.mh0,
             styles.mt5,
             submitButtonStyles,
+            submitFlexEnabled,
             submitButtonText,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,
