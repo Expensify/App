@@ -268,10 +268,10 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.amount,
                     trimmedComment,
                     props.iou.currency,
+                    props.iou.merchant,
                     props.iou.category,
                     props.iou.tag,
                     reportID,
-                    props.iou.merchant,
                     false,
                 );
                 return;
