@@ -151,8 +151,8 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: Transaction) {
-    return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+function isAmountMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
 function isCreatedMissing(transaction: Transaction) {

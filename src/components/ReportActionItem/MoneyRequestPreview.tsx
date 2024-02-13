@@ -159,6 +159,8 @@ function MoneyRequestPreview({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isMissingDetails = TransactionUtils.hasMissingSmartscanFields(transaction);
+    const shouldShowAmount = isScanning || !TransactionUtils.isAmountMissing(transaction);
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -232,10 +234,6 @@ function MoneyRequestPreview({
             return translate('iou.routePending');
         }
 
-        if (!isSettled && TransactionUtils.hasMissingSmartscanFields(transaction)) {
-            return Localize.translateLocal('iou.receiptMissingDetails');
-        }
-
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
 
@@ -289,16 +287,19 @@ function MoneyRequestPreview({
                             </View>
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text
-                                        style={[
-                                            styles.textHeadline,
-                                            isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
-                                            isDeleted && styles.lineThrough,
-                                        ]}
-                                        numberOfLines={1}
-                                    >
-                                        {displayAmount}
-                                    </Text>
+                                    {shouldShowAmount && (
+                                        <Text
+                                            style={[
+                                                styles.textHeadline,
+                                                isBillSplit &&
+                                                    StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                                isDeleted && styles.lineThrough,
+                                            ]}
+                                            numberOfLines={1}
+                                        >
+                                            {displayAmount}
+                                        </Text>
+                                    )}
                                     {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
@@ -339,6 +340,18 @@ function MoneyRequestPreview({
                                     </Text>
                                 )}
                             </View>
+                            {isMissingDetails && (
+                                <View style={[styles.flexRow]}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text
+                                            style={styles.textHeadline}
+                                            numberOfLines={1}
+                                        >
+                                            {Localize.translateLocal('iou.receiptMissingDetails')}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
                         </View>
                     )}
                 </View>
