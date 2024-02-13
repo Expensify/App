@@ -3181,6 +3181,7 @@ const CONST = {
         WIDE_SCREEN: {
             SIZE: 350,
         },
+        NAN_ASPECT_RATIO: 1.5,
     },
 
     VIDEO_PLAYER: {
