@@ -215,7 +215,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             if (!getIsNarrowLayout()) {
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath)!;
+                const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath, rootState)!;
                 if (matchingCentralPaneRoute && 'name' in matchingCentralPaneRoute) {
                     root.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
