@@ -18,12 +18,6 @@ type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = _.isEmpty(val) ? {} : val),
-});
-
 /**
  * Searches through given loginList for any contact method / login with an error.
  *
