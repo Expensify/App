@@ -1,7 +1,7 @@
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef} from 'react';
 import {View} from 'react-native';
-import type {EdgeInsets, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
+import type {EdgeInsets, useSafeAreaFrame as LibUseSafeAreaFrame, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SafeAreaProviderProps = ChildrenProps;
@@ -50,12 +50,7 @@ const SafeAreaInsetsContext: SafeAreaInsetsContextValue = {
     Consumer: SafeAreaConsumer,
 };
 
-const useSafeAreaFrame: jest.Mock<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}> = jest.fn(() => ({
+const useSafeAreaFrame: jest.Mock<ReturnType<typeof LibUseSafeAreaFrame>> = jest.fn(() => ({
     x: 0,
     y: 0,
     width: 390,
