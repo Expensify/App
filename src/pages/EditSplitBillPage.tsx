@@ -39,7 +39,7 @@ type EditSplitBillOnyxProps = {
 type EditSplitBillProps = EditSplitBillOnyxProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
 
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
-    const {field: fieldToEdit, reportID, reportActionID} = route.params;
+    const {field: fieldToEdit, reportID, reportActionID, currency} = route.params;
 
     const {
         amount: transactionAmount,
@@ -49,8 +49,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         tag: transactionTag,
     } = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
 
-    const defaultCurrency = transactionCurrency;
-
+    const defaultCurrency = currency ?? transactionCurrency;
     function navigateBackToSplitDetails() {
         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
     }
