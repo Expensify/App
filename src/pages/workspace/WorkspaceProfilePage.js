@@ -117,18 +117,20 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                             shouldUseDefaultCursorWhenDisabled
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.description')}>
-                        <MenuItemWithTopDescription
-                            title={policy.description}
-                            description={translate('workspace.editor.descriptionInputLabel')}
-                            shouldShowRightIcon={!readOnly}
-                            disabled={readOnly}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id))}
-                            shouldGreyOutWhenDisabled={false}
-                            shouldUseDefaultCursorWhenDisabled
-                            shouldRenderAsHTML
-                        />
-                    </OfflineWithFeedback>
+                    {(!_.isEmpty(policy.description) || !readOnly) && (
+                        <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.description')}>
+                            <MenuItemWithTopDescription
+                                title={policy.description}
+                                description={translate('workspace.editor.descriptionInputLabel')}
+                                shouldShowRightIcon={!readOnly}
+                                disabled={readOnly}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id))}
+                                shouldGreyOutWhenDisabled={false}
+                                shouldUseDefaultCursorWhenDisabled
+                                shouldRenderAsHTML
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <View>
                             <MenuItemWithTopDescription
