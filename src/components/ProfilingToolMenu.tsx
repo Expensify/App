@@ -57,12 +57,7 @@ function ProfilingToolMenu({isAppProfiling = false}: ProfilingToolMenuProps) {
                     onToggle={onToggleProfiling}
                 />
             </TestToolRow>
-                <Text
-                    style={[styles.textLabelSupporting, styles.mb4]}
-                    // numberOfLines={1}
-                >
-                    {!!pathIOS && `path: ${pathIOS}`}
-                </Text>
+            <Text style={[styles.textLabelSupporting, styles.mb4]}>{!!pathIOS && `path: ${pathIOS}`}</Text>
         </>
     );
 }
