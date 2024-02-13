@@ -4448,7 +4448,7 @@ const styles = (theme: ThemeColors) =>
 
         workspaceTitleStyle: {
             fontWeight: '500',
-            fontSize: variables.fontSizeNormalHeight
+            fontSize: variables.fontSizeNormalHeight,
         },
     } satisfies Styles);
 

@@ -11,7 +11,7 @@ export default {
     },
 
     h68: {
-        height: 272
+        height: 272,
     },
 
     w15: {
