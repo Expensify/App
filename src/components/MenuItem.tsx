@@ -57,7 +57,7 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
+type MenuItemBaseProps = {
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -78,6 +78,9 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
 
     /** Used to apply styles specifically to the title */
     titleStyle?: ViewStyle;
+
+    /** Any additional styles to apply on the badge element */
+    badgeStyle?: ViewStyle;
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
@@ -233,6 +236,8 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     isPaneMenu?: boolean;
 };
 
+type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
+
 function MenuItem(
     {
         interactive = true,
@@ -244,6 +249,7 @@ function MenuItem(
         titleStyle,
         hoverAndPressStyle,
         descriptionTextStyle,
+        badgeStyle,
         viewMode = CONST.OPTION_MODE.DEFAULT,
         numberOfLinesTitle = 1,
         icon,
@@ -562,7 +568,12 @@ function MenuItem(
                                 {badgeText && (
                                     <Badge
                                         text={badgeText}
-                                        badgeStyles={[styles.alignSelfCenter, brickRoadIndicator ? styles.mr2 : undefined, focused || isHovered || pressed ? styles.buttonHoveredBG : {}]}
+                                        badgeStyles={[
+                                            styles.alignSelfCenter,
+                                            brickRoadIndicator ? styles.mr2 : undefined,
+                                            focused || isHovered || pressed ? styles.buttonHoveredBG : {},
+                                            badgeStyle,
+                                        ]}
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -625,5 +636,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {MenuItemProps};
+export type {IconProps, AvatarProps, NoIcon, MenuItemBaseProps, MenuItemProps};
 export default forwardRef(MenuItem);

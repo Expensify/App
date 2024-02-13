@@ -32,7 +32,6 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -126,7 +125,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             return;
         }
 
-        Policy.deleteWorkspace(policyIDToDelete, [], policyNameToDelete);
+        Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
     };
 
@@ -343,7 +342,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
                             onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                             illustration={LottieAnimations.WorkspacePlanet}
-                            illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
                         />
