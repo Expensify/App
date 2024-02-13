@@ -443,8 +443,12 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
-        textIvoryLight: {
+        textVersion: {
             color: theme.iconColorfulBackground,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightNormal,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+            textAlign: 'center',
         },
 
         textNoWrap: {
@@ -531,6 +535,14 @@ const styles = (theme: ThemeColors) =>
 
             // Add 1px to the Button text to give optical vertical alignment.
             paddingBottom: 1,
+        },
+
+        testRowContainer: {
+            ...flex.flexRow,
+            ...flex.justifyContentBetween,
+            ...flex.alignItemsCenter,
+            ...sizing.mnw120,
+            height: 64,
         },
 
         buttonSmall: {
@@ -1371,11 +1383,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarFooter: {
-            alignItems: 'center',
             display: 'flex',
             justifyContent: 'center',
-            paddingVertical: variables.lineHeightXLarge,
             width: '100%',
+            paddingLeft: 20,
         },
 
         sidebarAvatar: {
