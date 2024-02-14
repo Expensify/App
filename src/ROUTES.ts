@@ -260,12 +260,6 @@ const ROUTES = {
         route: 'r/:reportID/invite',
         getRoute: (reportID: string) => `r/${reportID}/invite` as const,
     },
-
-    // To see the available iouType, please refer to CONST.IOU.TYPE
-    MONEY_REQUEST: {
-        route: ':iouType/new/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}` as const,
-    },
     MONEY_REQUEST_AMOUNT: {
         route: ':iouType/new/amount/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}` as const,

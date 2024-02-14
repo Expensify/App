@@ -71,8 +71,6 @@ function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
     const selectedCurrencyCode = (lodashGet(props.route, 'params.currency', props.iou.currency) || CONST.CURRENCY.USD).toUpperCase();
-    const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.TYPE.REQUEST);
-    const reportID = lodashGet(props.route, 'params.reportID', '');
     const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
 
     // Decides whether to allow or disallow editing a money request
@@ -161,7 +159,7 @@ function IOUCurrencySelection(props) {
                 <>
                     <HeaderWithBackButton
                         title={translate('common.selectCurrency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.EDIT_REQUEST.getRoute(threadReportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     />
                     <SelectionList
                         sections={sections}
