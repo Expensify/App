@@ -274,3 +274,5 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
 };
+
+export type {MemberEmailsToAccountIDs};
