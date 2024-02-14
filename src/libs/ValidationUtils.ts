@@ -5,7 +5,7 @@ import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -37,7 +37,7 @@ function validateCardNumber(value: string): boolean {
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  */
-function isValidAddress(value: string): boolean {
+function isValidAddress(value: FormValue): boolean {
     if (typeof value !== 'string') {
         return false;
     }
