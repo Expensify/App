@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -12,8 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/onyx';
-import type {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {ReimbursementAccountForm} from '@src/types/form';
 
 const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -23,19 +23,19 @@ type LegalNameUBOOnyxProps = {
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 };
 type LegalNameUBOProps = SubStepProps & LegalNameUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
-type FormValues = BeneficialOwnerDraftData;
 
 function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}: LegalNameUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const firstNameInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}`;
-    const lastNameInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}`;
+    const firstNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}` as const;
+    const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}` as const;
     const stepFields = [firstNameInputID, lastNameInputID];
     const defaultFirstName = reimbursementAccountDraft?.[firstNameInputID] ?? '';
     const defaultLastName = reimbursementAccountDraft?.[lastNameInputID] ?? '';
 
-    const validate = (values: FormValues) => ValidationUtils.getFieldRequiredErrors(values, stepFields);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
+        ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,

@@ -1,36 +1,28 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
 import WorkspaceTravelVBAView from './WorkspaceTravelVBAView';
 
-const propTypes = {
-    /** The route object passed to this page from the navigator */
-    route: PropTypes.shape({
-        /** Each parameter passed via the URL */
-        params: PropTypes.shape({
-            /** The policyID that is being configured */
-            policyID: PropTypes.string.isRequired,
-        }).isRequired,
-    }).isRequired,
+type WorkspaceTravelPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL>;
 
-    ...withLocalizePropTypes,
-};
-
-function WorkspaceTravelPage(props) {
+function WorkspaceTravelPage({route}: WorkspaceTravelPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            headerText={props.translate('workspace.common.travel')}
-            route={props.route}
+            headerText={translate('workspace.common.travel')}
+            route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -44,7 +36,6 @@ function WorkspaceTravelPage(props) {
     );
 }
 
-WorkspaceTravelPage.propTypes = propTypes;
 WorkspaceTravelPage.displayName = 'WorkspaceTravelPage';
 
-export default withLocalize(WorkspaceTravelPage);
+export default WorkspaceTravelPage;
