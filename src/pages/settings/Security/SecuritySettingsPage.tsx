@@ -1,22 +1,21 @@
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 function SecuritySettingsPage() {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
@@ -43,29 +42,42 @@ function SecuritySettingsPage() {
             onPress: item.action,
             shouldShowRightIcon: true,
             link: '',
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate]);
+    }, [translate, waitForNavigate, styles]);
 
     return (
-        <IllustratedHeaderPageLayout
-            title={translate('initialSettingsPage.security')}
-            onBackButtonPress={() => Navigation.goBack()}
-            shouldShowBackButton={isSmallScreenWidth}
-            illustration={LottieAnimations.Safe}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
-            shouldShowOfflineIndicatorInWideScreen
-            icon={Illustrations.LockClosed}
+        <ScreenWrapper
             testID={SecuritySettingsPage.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicatorInWideScreen
         >
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
-                <View style={[styles.flex1]}>
-                    <MenuItemList
-                        menuItems={menuItems}
-                        shouldUseSingleExecution
-                    />
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.security')}
+                shouldShowBackButton={isSmallScreenWidth}
+                onBackButtonPress={() => Navigation.goBack()}
+                icon={Illustrations.LockClosed}
+            />
+            <ScrollView contentContainerStyle={styles.pt3}>
+                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('securityPage.title')}
+                        subtitle={translate('securityPage.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        illustration={LottieAnimations.Safe}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        childrenStyles={styles.pt5}
+                    >
+                        <MenuItemList
+                            menuItems={menuItems}
+                            shouldUseSingleExecution
+                        />
+                    </Section>
                 </View>
             </ScrollView>
-        </IllustratedHeaderPageLayout>
+        </ScreenWrapper>
     );
 }
 
