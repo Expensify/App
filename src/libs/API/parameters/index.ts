@@ -85,6 +85,7 @@ export type {default as DeleteCommentParams} from './DeleteCommentParams';
 export type {default as UpdateCommentParams} from './UpdateCommentParams';
 export type {default as UpdateReportNotificationPreferenceParams} from './UpdateReportNotificationPreferenceParams';
 export type {default as UpdateRoomDescriptionParams} from './UpdateRoomDescriptionParams';
+export type {default as UpdateRoomVisibilityParams} from './UpdateRoomVisibilityParams';
 export type {default as UpdateReportWriteCapabilityParams} from './UpdateReportWriteCapabilityParams';
 export type {default as AddWorkspaceRoomParams} from './AddWorkspaceRoomParams';
 export type {default as UpdatePolicyRoomNameParams} from './UpdatePolicyRoomNameParams';
