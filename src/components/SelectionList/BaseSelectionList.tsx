@@ -461,6 +461,17 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                             )}
                                         </View>
                                     </PressableWithFeedback>}
+                                    {!headerMessage && !canSelectMultiple && headerItems && headerItems.length > 0 && (
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
+                                            {headerItems.map((headerItem, index) => (
+                                                <Text style={[
+                                                    styles.searchInputStyle,
+                                                    isUserList && StyleUtils.getPaddingLeft(52) as TextStyle
+                                                    // eslint-disable-next-line react/no-array-index-key
+                                                ]} key={index}>{headerItem}</Text>
+                                            ))}
+                                        </View>
+                                    )}
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}
