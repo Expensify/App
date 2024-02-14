@@ -213,7 +213,9 @@ type RoomMembersNavigatorParamList = {
 };
 
 type RoomInviteNavigatorParamList = {
-    [SCREENS.ROOM_INVITE_ROOT]: undefined;
+    [SCREENS.ROOM_INVITE_ROOT]: {
+        reportID: string;
+    };
 };
 
 type MoneyRequestNavigatorParamList = {
@@ -332,7 +334,12 @@ type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
         reportActionID: string;
     };
-    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: undefined;
+    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
+        field: string;
+        reportID: string;
+        reportActionID: string;
+        currency: string;
+    };
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
 
@@ -456,6 +463,7 @@ type PublicScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
+        exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;

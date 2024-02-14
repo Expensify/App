@@ -15,8 +15,8 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
@@ -71,12 +71,7 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     isVisible: PropTypes.bool.isRequired,
-
-    ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -89,7 +84,6 @@ const defaultProps = {
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
-    isInModal: false,
 };
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
@@ -103,6 +97,7 @@ function LoginForm(props) {
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
+    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
 
     const {translate} = props;
 
@@ -162,7 +157,7 @@ function LoginForm(props) {
     );
 
     function getSignInWithStyles() {
-        return props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
+        return shouldUseNarrowLayout ? [styles.mt1] : [styles.mt5, styles.mb5];
     }
 
     /**
@@ -216,7 +211,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (props.isInModal) {
+        if (isInModal) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();
@@ -343,7 +338,7 @@ function LoginForm(props) {
                                         {props.translate('common.signInWith')}
                                     </Text>
 
-                                    <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
+                                    <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
                                             <AppleSignIn />
                                         </View>
@@ -381,7 +376,6 @@ export default compose(
         credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
-    withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),

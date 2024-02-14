@@ -1,8 +1,8 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
-import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from './ReimbursementAccountDraft';
 
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 

@@ -59,7 +59,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
+    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) && !!policy.outputCurrency ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy.id)), [policy.id]);
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy.id)), [policy.id]);
@@ -95,6 +95,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                 source={lodashGet(policy, 'avatar')}
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 avatarStyle={styles.avatarXLarge}
+                                enablePreview
                                 DefaultAvatar={() => (
                                     <Avatar
                                         containerStyles={styles.avatarXLarge}

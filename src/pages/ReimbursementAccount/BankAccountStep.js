@@ -28,6 +28,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import BankInfo from './BankInfo/BankInfo';
 import StepPropTypes from './StepPropTypes';
 
@@ -65,7 +66,7 @@ const defaultProps = {
     policyID: '',
 };
 
-const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
 
 function BankAccountStep(props) {
     const theme = useTheme();
