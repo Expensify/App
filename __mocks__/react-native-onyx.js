@@ -1,6 +1,8 @@
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import Onyx, {withOnyx} from 'react-native-onyx';
 
+global._ = require('underscore');
+
 let connectCallbackDelay = 0;
 function addDelayToConnectCallback(delay) {
     connectCallbackDelay = delay;

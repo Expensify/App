@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-onyx/dist/Onyx.js b/node_modules/react-native-onyx/dist/Onyx.js
-index aabb482..a813c2b 100644
+index aabb482..20e17af 100644
 --- a/node_modules/react-native-onyx/dist/Onyx.js
 +++ b/node_modules/react-native-onyx/dist/Onyx.js
 @@ -53,6 +53,8 @@ const mergeQueuePromise = {};
@@ -11,7 +11,22 @@ index aabb482..a813c2b 100644
  // Keeps a copy of the values of the onyx collection keys as a map for faster lookups
  let onyxCollectionKeyMap = new Map();
  // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
-@@ -370,7 +372,12 @@ function keysChanged(collectionKey, partialCollection, notifyRegularSubscibers =
+@@ -185,6 +187,14 @@ function getAllKeys() {
+     });
+     return OnyxCache_1.default.captureTask(taskName, promise);
+ }
++
++function getPureKey(key) {
++    if (!key) {
++        return '';
++    }
++    return key.replace(/\d+/g, '');
++}
++
+ /**
+  * Checks to see if the a subscriber's supplied key
+  * is associated with a collection of keys.
+@@ -370,7 +380,12 @@ function keysChanged(collectionKey, partialCollection, notifyRegularSubscibers =
      // We are iterating over all subscribers similar to keyChanged(). However, we are looking for subscribers who are subscribing to either a collection key or
      // individual collection key member for the collection that is being updated. It is important to note that the collection parameter cane be a PARTIAL collection
      // and does not represent all of the combined keys and values for a collection key. It is just the "new" data that was merged in via mergeCollection().
@@ -25,12 +40,12 @@ index aabb482..a813c2b 100644
      for (let i = 0; i < stateMappingKeys.length; i++) {
          const subscriber = callbackToStateMapping[stateMappingKeys[i]];
          if (!subscriber) {
-@@ -525,7 +532,12 @@ function keyChanged(key, data, canUpdateSubscriber, notifyRegularSubscibers = tr
+@@ -525,7 +540,12 @@ function keyChanged(key, data, canUpdateSubscriber, notifyRegularSubscibers = tr
      // We are iterating over all subscribers to see if they are interested in the key that has just changed. If the subscriber's  key is a collection key then we will
      // notify them if the key that changed is a collection member. Or if it is a regular key notify them when there is an exact match. Depending on whether the subscriber
      // was connected via withOnyx we will call setState() directly on the withOnyx instance. If it is a regular connection we will pass the data to the provided callback.
 -    const stateMappingKeys = underscore_1.default.keys(callbackToStateMapping);
-+    const stateMappingKeys = onyxKeyToConnectionIDs.get(key);
++    const stateMappingKeys = onyxKeyToConnectionIDs.get(getPureKey(key));
 +
 +    // If the key was not found in the mapping then we can skip notifying subscribers
 +    if (!stateMappingKeys) {
@@ -39,55 +54,55 @@ index aabb482..a813c2b 100644
      for (let i = 0; i < stateMappingKeys.length; i++) {
          const subscriber = callbackToStateMapping[stateMappingKeys[i]];
          if (!subscriber || !isKeyMatch(subscriber.key, key) || (underscore_1.default.isFunction(canUpdateSubscriber) && !canUpdateSubscriber(subscriber))) {
-@@ -733,6 +745,12 @@ function connect(mapping) {
+@@ -733,6 +753,12 @@ function connect(mapping) {
      const connectionID = lastConnectionID++;
      callbackToStateMapping[connectionID] = mapping;
      callbackToStateMapping[connectionID].connectionID = connectionID;
-+
-+    if (!onyxKeyToConnectionIDs.has(mapping.key)) {
-+        onyxKeyToConnectionIDs.set(mapping.key, []);
++    const pureKey = getPureKey(mapping.key);
++    if (!onyxKeyToConnectionIDs.has(pureKey)) {
++        onyxKeyToConnectionIDs.set(pureKey, []);
 +    }
-+    onyxKeyToConnectionIDs.get(mapping.key).push(connectionID);
++    onyxKeyToConnectionIDs.get(pureKey).push(connectionID);
 +
      if (mapping.initWithStoredValues === false) {
          return connectionID;
      }
-@@ -749,6 +767,28 @@ function connect(mapping) {
+@@ -749,6 +775,28 @@ function connect(mapping) {
          return getAllKeys();
      })
          .then((keys) => {
-+            console.log('mergeQueue', mergeQueue);
-+        console.log('mergeQueuePromise', mergeQueuePromise);
-+        // Keeps track of the last connectionID that was used so we can keep incrementing it
++        //     console.log('mergeQueue', mergeQueue);
++        // console.log('mergeQueuePromise', mergeQueuePromise);
++        // // Keeps track of the last connectionID that was used so we can keep incrementing it
 +
-+        // Holds a mapping of all the react components that want their state subscribed to a store key
-+        console.log('callbackToStateMapping', callbackToStateMapping);
-+        // Keeps a copy of the values of the onyx collection keys as a map for faster lookups
-+        console.log('onyxCollectionKeyMap', onyxCollectionKeyMap);
-+        // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
-+        console.log('recentlyAccessedKeys', recentlyAccessedKeys);
-+        // Holds a list of keys that are safe to remove when we reach max storage. If a key does not match with
-+        // whatever appears in this list it will NEVER be a candidate for eviction.
-+        console.log('evictionAllowList', evictionAllowList);
-+        // Holds a map of keys and connectionID arrays whose keys will never be automatically evicted as
-+        // long as we have at least one subscriber that returns false for the canEvict property.
-+        console.log('evictionBlocklist', evictionBlocklist);
-+        // Optional user-provided key value states set when Onyx initializes or clears
-+        console.log('defaultKeyStates', defaultKeyStates);
-+        // Connections can be made before `Onyx.init`. They would wait for this task before resolving
-+        console.log('deferredInitTask', deferredInitTask);
-+        console.log('batchUpdatesPromise', batchUpdatesPromise);
-+        console.log('batchUpdatesQueue', batchUpdatesQueue);
++        // // Holds a mapping of all the react components that want their state subscribed to a store key
++        // console.log('callbackToStateMapping', callbackToStateMapping);
++        // // Keeps a copy of the values of the onyx collection keys as a map for faster lookups
++        // console.log('onyxCollectionKeyMap', onyxCollectionKeyMap);
++        // // Holds a list of keys that have been directly subscribed to or recently modified from least to most recent
++        // console.log('recentlyAccessedKeys', recentlyAccessedKeys);
++        // // Holds a list of keys that are safe to remove when we reach max storage. If a key does not match with
++        // // whatever appears in this list it will NEVER be a candidate for eviction.
++        // console.log('evictionAllowList', evictionAllowList);
++        // // Holds a map of keys and connectionID arrays whose keys will never be automatically evicted as
++        // // long as we have at least one subscriber that returns false for the canEvict property.
++        // console.log('evictionBlocklist', evictionBlocklist);
++        // // Optional user-provided key value states set when Onyx initializes or clears
++        // console.log('defaultKeyStates', defaultKeyStates);
++        // // Connections can be made before `Onyx.init`. They would wait for this task before resolving
++        // console.log('deferredInitTask', deferredInitTask);
++        // console.log('batchUpdatesPromise', batchUpdatesPromise);
++        // console.log('batchUpdatesQueue', batchUpdatesQueue);
          // We search all the keys in storage to see if any are a "match" for the subscriber we are connecting so that we
          // can send data back to the subscriber. Note that multiple keys can match as a subscriber could either be
          // subscribed to a "collection key" or a single key.
-@@ -819,6 +859,14 @@ function disconnect(connectionID, keyToRemoveFromEvictionBlocklist) {
+@@ -819,6 +867,14 @@ function disconnect(connectionID, keyToRemoveFromEvictionBlocklist) {
      if (keyToRemoveFromEvictionBlocklist) {
          removeFromEvictionBlockList(keyToRemoveFromEvictionBlocklist, connectionID);
      }
 +
 +    const subscriber = callbackToStateMapping[connectionID];
-+    const keyToDelete = subscriber.key;
++    const keyToDelete = getPureKey(subscriber.key);
 +
 +    if (onyxKeyToConnectionIDs.has(keyToDelete)) {
 +        onyxKeyToConnectionIDs.set(keyToDelete, _.without(onyxKeyToConnectionIDs.get(keyToDelete), connectionID));
