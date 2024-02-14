@@ -1226,15 +1226,15 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 currentTransactionViolations,
-                !!policy?.requiresTag,
+                !!policy.requiresTag,
                 policyTags ?? {},
-                !!policy?.requiresCategory,
+                !!policy.requiresCategory,
                 policyCategories ?? {},
             ),
         );
