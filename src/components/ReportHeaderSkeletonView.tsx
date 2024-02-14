@@ -23,7 +23,10 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const {isSmallScreenWidth} = useWindowDimensions();
     const smallScreenHeight = styles.appContentHeader.height;
     const height = !isSmallScreenWidth ? styles.headerBarDesktopHeight.height : smallScreenHeight;
-    const heightDiff = height - smallScreenHeight;
+    const radius = 20;
+    const circleY = height / 2;
+    const circleTopY = circleY - radius;
+    const circleBottomY = circleY + radius;
 
     return (
         <View style={[styles.appContentHeader, isSmallScreenWidth && styles.pl2, styles.h100]}>
@@ -51,17 +54,17 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                     <Circle
                         cx="20"
                         cy={height / 2}
-                        r="20"
+                        r={radius}
                     />
                     <Rect
                         x="55"
-                        y={24 + heightDiff / 2}
+                        y={circleTopY + 8}
                         width="30%"
                         height="8"
                     />
                     <Rect
                         x="55"
-                        y={44 + heightDiff / 2}
+                        y={circleBottomY - 12}
                         width="40%"
                         height="8"
                     />
