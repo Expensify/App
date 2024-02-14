@@ -194,21 +194,17 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
             }
 
             const newWaypoints = {};
-            let emptyWaypointIndex = -1;
             _.each(data, (waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
-                // Find waypoint that BECOMES empty after dragging
-                if (_.isEmpty(newWaypoints[`waypoint${index}`]) && !_.isEmpty(lodashGet(waypoints, `waypoint${index}`, {}))) {
-                    emptyWaypointIndex = index;
-                }
             });
 
             setOptimisticWaypoints(newWaypoints);
-            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
+            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+            Transaction.updateWaypoints(transactionID, newWaypoints).then(() => {
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, transaction, waypoints, waypointsList],
+        [transactionID, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {
