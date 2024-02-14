@@ -1,0 +1,5 @@
+name: 'Get and Save graphite string'
+description: 'Parse reassure output.json file and create string which can be sent to the graphite server'
+runs:
+  using: 'node20'
+  main: './index.js'
