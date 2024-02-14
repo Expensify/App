@@ -283,12 +283,13 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CREATE]: {
+    [SCREENS.MONEY_REQUEST.SCAN_TAB]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
-        backTo: Route;
+        pageIndex: number;
+        backTo: string;
     };
 };
 
