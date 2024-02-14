@@ -3622,7 +3622,7 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequ
         getTransactionReportName(reportAction),
         undefined,
         getReport(moneyRequestReportID)?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
-        getReport(moneyRequestReportID)?.ownerAccountID ?? CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
         undefined,
