@@ -8,6 +8,7 @@ import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEvent
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -29,8 +30,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -41,10 +42,10 @@ type WorkspaceInviteMessagePageOnyxProps = {
     allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs | undefined>;
+    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
 
     /** Updated workspace invite message */
-    workspaceInviteMessageDraft: OnyxEntry<string | undefined>;
+    workspaceInviteMessageDraft: OnyxEntry<string>;
 };
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
@@ -82,6 +83,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
 
     const sendInvitation = () => {
         Keyboard.dismiss();
+        // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         SearchInputManager.searchInput = '';
@@ -96,8 +98,8 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         Link.openExternalLink(CONST.PRIVACY_URL);
     };
 
-    const validate = (): Errors => {
-        const errorFields: Errors = {};
+    const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
+        const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
         if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
         }
@@ -166,7 +168,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID="welcomeMessage"
+                            inputID={INPUT_IDS.WELCOME_MESSAGE}
                             label={translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"
