@@ -1,28 +1,31 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
-import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputSubmitEditingEventData} from 'react-native';
+import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Form, Network} from '@src/types/onyx';
-import type {FormValueType} from '@src/types/onyx/Form';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Form} from '@src/types/form';
+import type {Network} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {BaseInputProps, FormProps, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
+import type {FormInputErrors, FormOnyxValues, FormProps, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
 // More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
 
+type GenericFormInputErrors = Partial<Record<string, TranslationPaths>>;
 type InitialDefaultValue = false | Date | '';
 
 function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
@@ -52,20 +55,26 @@ type FormProviderOnyxProps = {
 type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProviderOnyxProps &
     FormProps<TFormID> & {
         /** Children to render. */
-        children: ((props: {inputValues: OnyxFormValues<TFormID>}) => ReactNode) | ReactNode;
+        children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
         /** Callback to validate the form */
-        validate?: (values: OnyxFormValuesFields<TFormID>) => Errors;
+        validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
         /** Should validate function be called when input loose focus */
         shouldValidateOnBlur?: boolean;
 
         /** Should validate function be called when the value of the input is changed */
         shouldValidateOnChange?: boolean;
+
+        /** Styles that will be applied to the submit button only */
+        submitButtonStyles?: StyleProp<ViewStyle>;
+
+        /** Whether to apply flex to the submit button */
+        submitFlexEnabled?: boolean;
     };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
-    resetForm: (optionalValue: OnyxFormValues<TFormID>) => void;
+    resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
 };
 
 function FormProvider(
@@ -84,14 +93,15 @@ function FormProvider(
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
+    const {preferredLocale} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
-    const [errors, setErrors] = useState<Errors>({});
+    const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
 
     const onValidate = useCallback(
-        (values: OnyxFormValuesFields, shouldClearServerError = true) => {
+        (values: FormOnyxValues, shouldClearServerError = true) => {
             const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
@@ -99,7 +109,7 @@ function FormProvider(
             }
             FormActions.clearErrorFields(formID);
 
-            const validateErrors = validate?.(trimmedStringValues) ?? {};
+            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
 
             // Validate the input for html tags. It should supersede any other error
             Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
@@ -151,6 +161,25 @@ function FormProvider(
         [errors, formID, validate],
     );
 
+    // When locales change from another session of the same account,
+    // validate the form in order to update the error translations
+    useEffect(() => {
+        // Return since we only have issues with error translations
+        if (Object.keys(errors).length === 0) {
+            return;
+        }
+
+        // Prepare validation values
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+
+        // Validate in order to make sure the correct error translations are displayed,
+        // making sure to not clear server errors if they exist
+        onValidate(trimmedStringValues, !hasServerError);
+
+        // Only run when locales change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferredLocale]);
+
     /** @param inputID - The inputID of the input being touched */
     const setTouchedInput = useCallback(
         (inputID: keyof Form) => {
@@ -185,13 +214,13 @@ function FormProvider(
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate]);
 
     const resetForm = useCallback(
-        (optionalValue: OnyxFormValuesFields) => {
+        (optionalValue: FormOnyxValues) => {
             Object.keys(inputValues).forEach((inputID) => {
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
 
                     touchedInputs.current[inputID] = false;
-                    copyPrevState[inputID] = optionalValue[inputID as keyof OnyxFormValuesFields] || '';
+                    copyPrevState[inputID] = optionalValue[inputID as keyof FormOnyxValues] || '';
 
                     return copyPrevState;
                 });
@@ -205,8 +234,8 @@ function FormProvider(
     }));
 
     const registerInput = useCallback<RegisterInput>(
-        <TInputProps extends BaseInputProps>(inputID: keyof Form, shouldSubmitForm: boolean, inputProps: TInputProps): TInputProps => {
-            const newRef: MutableRefObject<BaseInputProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+        (inputID, shouldSubmitForm, inputProps) => {
+            const newRef: MutableRefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
@@ -224,10 +253,10 @@ function FormProvider(
 
             const errorFields = formState?.errorFields?.[inputID] ?? {};
             const fieldErrorMessage =
-                Object.keys(errorFields)
+                (Object.keys(errorFields)
                     .sort()
                     .map((key) => errorFields[key])
-                    .at(-1) ?? '';
+                    .at(-1) as string) ?? '';
 
             const inputRef = inputProps.ref;
 
@@ -243,7 +272,7 @@ function FormProvider(
                 }),
                 ref:
                     typeof inputRef === 'function'
-                        ? (node: BaseInputProps) => {
+                        ? (node: InputComponentBaseProps) => {
                               inputRef(node);
                               newRef.current = node;
                           }
@@ -307,7 +336,7 @@ function FormProvider(
                     }
                     inputProps.onBlur?.(event);
                 },
-                onInputChange: (value: FormValueType, key?: string) => {
+                onInputChange: (value, key) => {
                     const inputKey = key ?? inputID;
                     setInputValues((prevState) => {
                         const newState = {
@@ -322,7 +351,7 @@ function FormProvider(
                     });
 
                     if (inputProps.shouldSaveDraft && !formID.includes('Draft')) {
-                        FormActions.setDraftValues(formID as OnyxFormKeyWithoutDraft, {[inputKey]: value});
+                        FormActions.setDraftValues(formID as OnyxFormKey, {[inputKey]: value});
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },
