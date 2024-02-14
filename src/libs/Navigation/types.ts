@@ -104,6 +104,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
+    [SCREENS.SETTINGS.CONSOLE]: undefined;
+    [SCREENS.SETTINGS.SHARE_LOG]: {
+        /** URL of the generated file to share logs in a report */
+        source: string;
+    };
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: undefined;
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
