@@ -568,7 +568,7 @@ function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, retu
 
     const parentReport = getRootParentReport(report);
 
-    // Public rooms send back the policy name with the reportSummary,
+    // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
