@@ -80,7 +80,7 @@ function DatePicker(
 
     useEffect(() => {
         // Value is provided to input via props and onChange never fires. We have to save draft manually.
-        if (shouldSaveDraft && formID) {
+        if (shouldSaveDraft && !!formID) {
             FormActions.setDraftValues(formID, {[inputID]: selectedDate});
         }
 
