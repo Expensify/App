@@ -5,7 +5,6 @@ import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
-import type {ReactElement} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -122,11 +121,11 @@ type MemberForList = {
     keyForList: string;
     isSelected: boolean;
     isDisabled: boolean;
-    accountID?: number;
+    accountID?: number | null;
     login: string;
-    rightElement: ReactElement | null;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
+    reportID: string;
 };
 
 type SectionForSearchTerm = {
@@ -1769,7 +1768,7 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: Record<string, Report>,
+    reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
@@ -1850,14 +1849,8 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config?: Partial<MemberForList>): MemberForList;
-function formatMemberForList(member: null | undefined, config?: Partial<MemberForList>): undefined;
-function formatMemberForList(member: ReportUtils.OptionData | null | undefined, config: Partial<MemberForList> = {}): MemberForList | undefined {
-    if (!member) {
-        return undefined;
-    }
-
-    const accountID = member.accountID ?? undefined;
+function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
+    const accountID = member.accountID;
 
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1866,14 +1859,13 @@ function formatMemberForList(member: ReportUtils.OptionData | null | undefined, 
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         keyForList: member.keyForList || String(accountID ?? 0) || '',
-        isSelected: false,
-        isDisabled: false,
+        isSelected: member.isSelected ?? false,
+        isDisabled: member.isDisabled ?? false,
         accountID,
         login: member.login ?? '',
-        rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
-        ...config,
+        reportID: member.reportID,
     };
 }
 
@@ -1955,7 +1947,7 @@ function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
-    filteredPersonalDetails: PersonalDetails[],
+    filteredPersonalDetails: ReportUtils.OptionData[],
     maxOptionsSelected: boolean,
     indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
@@ -2039,4 +2031,4 @@ export {
     getShareLogOptions,
 };
 
-export type {GetOptions, MemberForList};
+export type {MemberForList, CategorySection, GetOptions};
