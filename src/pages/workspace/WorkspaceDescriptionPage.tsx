@@ -3,7 +3,7 @@ import React, {useCallback, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -18,16 +18,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
-type Props = WithPolicyProps;
+type WorkspaceDescriptionProps = WithPolicyProps;
 
-function WorkspaceDescriptionPage({policy}: Props) {
+function WorkspaceDescriptionPage({policy}: WorkspaceDescriptionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const parser = new ExpensiMark();
     const [description, setDescription] = useState(() => parser.htmlToMarkdown(policy?.description ?? ''));
 
     const submit = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
             if (!policy || policy.isPolicyUpdating) {
                 return;
             }

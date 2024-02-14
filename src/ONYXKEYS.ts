@@ -417,8 +417,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: FormTypes.ReportFieldEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
-    [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: OnyxTypes.WorkspaceDescriptionForm;
-    [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM_DRAFT]: OnyxTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM_DRAFT]: FormTypes.WorkspaceDescriptionForm;
 };
 
 type OnyxFormDraftValuesMapping = {
