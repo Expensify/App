@@ -9,10 +9,10 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -72,9 +72,6 @@ const propTypes = {
     /** Active Clients connected to ONYX Database */
     activeClients: PropTypes.arrayOf(PropTypes.string),
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     /** The user's preferred locale */
     preferredLocale: PropTypes.string,
 };
@@ -82,7 +79,6 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    isInModal: false,
     activeClients: [],
     preferredLocale: '',
 };
@@ -133,12 +129,11 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
+function SignInPageInner({credentials, account, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef();
     const loginFormRef = useRef();
@@ -212,12 +207,12 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
         welcomeText = translate('welcomeText.anotherLoginPageIsOpenExplanation');
     } else if (shouldShowLoginForm) {
-        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
-        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.getStarted');
+        welcomeText = shouldUseNarrowLayout ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
-            welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+            welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
             const userLogin = Str.removeSMSDomain(credentials.login || '');
@@ -225,19 +220,19 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account.validated) {
-                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = shouldShowSmallScreen
+                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = shouldUseNarrowLayout
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcome');
-                welcomeText = shouldShowSmallScreen
+                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
+                welcomeText = shouldUseNarrowLayout
                     ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
-        welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
+        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
@@ -256,23 +251,21 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
         <View
-            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: shouldUseNarrowLayout ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageInner.displayName}
         >
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 ref={signInPageLayoutRef}
-                shouldShowSmallScreen={shouldShowSmallScreen}
                 navigateFocus={navigateFocus}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
              so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
                     ref={loginFormRef}
-                    isInModal={isInModal}
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}

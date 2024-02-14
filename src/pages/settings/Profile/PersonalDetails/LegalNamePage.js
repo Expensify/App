@@ -20,6 +20,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/LegalNameForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -103,7 +104,7 @@ function LegalNamePage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalFirstName"
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
                             aria-label={props.translate('privatePersonalDetails.legalFirstName')}
@@ -115,7 +116,7 @@ function LegalNamePage(props) {
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalLastName"
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
                             aria-label={props.translate('privatePersonalDetails.legalLastName')}
