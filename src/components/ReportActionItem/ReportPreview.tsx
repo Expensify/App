@@ -233,7 +233,7 @@ function ReportPreview({
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasAddBankAccountAction(iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
-    
+
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
