@@ -6,6 +6,7 @@ import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -64,6 +65,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
     const [logs, setLogs] = useState(capturedLogs);
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
+    const [isLimitModalVisible, setIsLimitModalVisible] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -91,7 +93,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const saveLogs = () => {
         const logsWithParsedMessages = parseStingifiedMessages(logsList);
 
-        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), 'File was saved in your Downloads folder.');
+        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
     };
 
     const shareLogs = () => {
@@ -99,8 +101,16 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
         const logsWithParsedMessages = parseStingifiedMessages(logsList);
 
         // Generate a file with the logs and pass its path to the list of reports to share it with
-        localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path}) => {
+        localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path, size}) => {
             setIsGeneratingLogsFile(false);
+
+            // if the file size is too large to send it as an attachment, show a modal and return
+            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setIsLimitModalVisible(true);
+
+                return;
+            }
+
             Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path));
         });
     };
@@ -110,10 +120,10 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
             if (!item) {
                 return null;
             }
-
+            console.debug({item});
             return (
                 <View style={styles.mb2}>
-                    <Text family="MONOSPACE">{`${format(item.time, CONST.DATE.FNS_DB_FORMAT_STRING)} ${item.message}`}</Text>
+                    <Text family="MONOSPACE">{`${format(new Date(item.time), CONST.DATE.FNS_DB_FORMAT_STRING)} ${item.message}`}</Text>
                 </View>
             );
         },
@@ -166,6 +176,16 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                     style={[styles.mt5]}
                 />
             </View>
+            <ConfirmModal
+                title={translate('initialSettingsPage.debugConsole.shareLog')}
+                isVisible={isLimitModalVisible}
+                onConfirm={() => setIsLimitModalVisible(false)}
+                prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', {
+                    size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
+                })}
+                shouldShowCancelButton={false}
+                confirmText={translate('common.ok')}
+            />
         </ScreenWrapper>
     );
 }

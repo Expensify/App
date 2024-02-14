@@ -120,7 +120,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title="Share Log"
+                        title={translate('initialSettingsPage.debugConsole.shareLog')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>

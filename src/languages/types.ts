@@ -289,6 +289,8 @@ type TermsParams = {amount: string};
 
 type ElectronicFundsParams = {percentage: string; amount: string};
 
+type LogSizeParams = {size: number};
+
 export type {
     ApprovedAmountParams,
     AddressLineParams,
@@ -389,4 +391,5 @@ export type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+    LogSizeParams,
 };
