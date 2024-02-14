@@ -137,24 +137,20 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
         [],
     );
 
-    const carouselItems = useMemo(
-        () =>
-            items.map((item, index) => (
-                <View
-                    key={item.source}
-                    style={styles.flex1}
-                >
-                    <CarouselItem
-                        // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
-                        item={item}
-                        isSingleItem={items.length === 1}
-                        index={index}
-                        isFocused={index === activePageIndex && activeSource === item.source}
-                    />
-                </View>
-            )),
-        [activePageIndex, activeSource, items, styles.flex1],
-    );
+    const carouselItems = items.map((item, index) => (
+        <View
+            key={item.source}
+            style={styles.flex1}
+        >
+            <CarouselItem
+                // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
+                item={item}
+                isSingleItem={items.length === 1}
+                index={index}
+                isFocused={index === activePageIndex && activeSource === item.source}
+            />
+        </View>
+    ));
 
     return (
         <AttachmentCarouselPagerContext.Provider value={contextValue}>
