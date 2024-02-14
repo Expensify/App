@@ -6,7 +6,6 @@ import {createNativeWrapper} from 'react-native-gesture-handler';
 import type {PagerViewProps} from 'react-native-pager-view';
 import PagerView from 'react-native-pager-view';
 import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
-import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
@@ -20,31 +19,21 @@ type AttachmentCarouselPagerHandle = {
     setPage: (selectedPage: number) => void;
 };
 
-type Attachment = {
+type PagerItem = {
+    key: string;
+    url: string;
     source: string;
 };
 
 type AttachmentCarouselPagerProps = {
-    /** The attachments to be rendered in the pager. */
-    items: Attachment[];
-
-    /** The source (URL) of the currently active attachment. */
-    activeSource: string;
-
-    /** The index of the initial page to be rendered. */
-    initialPage: number;
-
-    /** A callback to be called when the page is changed. */
+    items: PagerItem[];
+    renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
+    initialIndex: number;
     onPageSelected: () => void;
-
-    /**
-     * A callback that can be used to toggle the attachment carousel arrows, when the scale of the image changes.
-     * @param showArrows If set, it will show/hide the arrows. If not set, it will toggle the arrows.
-     */
     onRequestToggleArrows: (showArrows?: boolean) => void;
 };
 
-function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelected, onRequestToggleArrows}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onRequestToggleArrows}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
@@ -52,8 +41,8 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
     const isPagerScrolling = useSharedValue(false);
     const isScrollEnabled = useSharedValue(true);
 
-    const activePage = useSharedValue(initialPage);
-    const [activePageIndex, setActivePageIndex] = useState(initialPage);
+    const activePage = useSharedValue(initialIndex);
+    const [activePageState, setActivePageState] = useState(initialIndex);
 
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
@@ -63,12 +52,9 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
     }, []);
 
     useEffect(() => {
-        setActivePageIndex(initialPage);
-        activePage.value = initialPage;
-    }, [activePage, initialPage]);
-
-    /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
-    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageIndex})), [activePageIndex, items]);
+        setActivePageState(initialIndex);
+        activePage.value = initialIndex;
+    }, [activePage, initialIndex]);
 
     /**
      * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
@@ -108,15 +94,13 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
 
     const contextValue = useMemo(
         () => ({
-            pagerItems,
-            activePage: activePageIndex,
+            pagerRef,
             isPagerScrolling,
             isScrollEnabled,
-            pagerRef,
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
         }),
-        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
+        [isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
     );
 
     const animatedProps = useAnimatedProps(() => ({
@@ -137,21 +121,6 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
         [],
     );
 
-    const carouselItems = items.map((item, index) => (
-        <View
-            key={item.source}
-            style={styles.flex1}
-        >
-            <CarouselItem
-                // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
-                item={item}
-                isSingleItem={items.length === 1}
-                index={index}
-                isFocused={index === activePageIndex && activeSource === item.source}
-            />
-        </View>
-    ));
-
     return (
         <AttachmentCarouselPagerContext.Provider value={contextValue}>
             <AnimatedPagerView
@@ -159,12 +128,19 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
                 offscreenPageLimit={1}
                 onPageScroll={pageScrollHandler}
                 onPageSelected={onPageSelected}
-                style={styles.flex1}
-                initialPage={initialPage}
-                animatedProps={animatedProps}
                 ref={pagerRef}
+                style={styles.flex1}
+                initialPage={initialIndex}
+                animatedProps={animatedProps}
             >
-                {carouselItems}
+                {items.map((item, index) => (
+                    <View
+                        key={item.source}
+                        style={styles.flex1}
+                    >
+                        {renderItem({item, index, isActive: index === activePageState})}
+                    </View>
+                ))}
             </AnimatedPagerView>
         </AttachmentCarouselPagerContext.Provider>
     );
