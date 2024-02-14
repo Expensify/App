@@ -1,7 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
+import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
+import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
 /**
@@ -62,6 +64,14 @@ const ONYXKEYS = {
 
     /** Contains all the info for Tasks */
     TASK: 'task',
+
+    /**
+     * Contains all the info for Workspace Rate and Unit while editing.
+     *
+     * Note: This is not under the COLLECTION key as we can edit rate and unit
+     * for one workspace only at a time. And we don't need to store
+     * rates and units for different workspaces at the same time. */
+    WORKSPACE_RATE_AND_UNIT: 'workspaceRateAndUnit',
 
     /** Contains a list of all currencies available to the user - user can
      * select a currency based on the list */
@@ -133,6 +143,7 @@ const ONYXKEYS = {
 
     /** Token needed to initialize Onfido */
     ONFIDO_TOKEN: 'onfidoToken',
+    ONFIDO_APPLICANT_ID: 'onfidoApplicantID',
 
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'preferredLocale',
@@ -227,9 +238,6 @@ const ONYXKEYS = {
 
     // The last update ID that was applied to the client
     ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',
-
-    // Receipt upload modal
-    RECEIPT_MODAL: 'receiptModal',
 
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
@@ -370,12 +378,85 @@ const ONYXKEYS = {
     },
 } as const;
 
-type OnyxKeysMap = typeof ONYXKEYS;
-type OnyxCollectionKey = ValueOf<OnyxKeysMap['COLLECTION']>;
-type OnyxKey = DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>>;
-type OnyxFormKey = ValueOf<OnyxKeysMap['FORMS']>;
+type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
 
-type OnyxValues = {
+type OnyxFormValuesMapping = {
+    [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: FormTypes.AddDebitCardForm;
+    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
+    [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: FormTypes.WorkspaceRateAndUnitForm;
+    [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: FormTypes.CloseAccountForm;
+    [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: FormTypes.DisplayNameForm;
+    [ONYXKEYS.FORMS.ROOM_NAME_FORM]: FormTypes.RoomNameForm;
+    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM]: FormTypes.DateOfBirthForm;
+    [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.NEW_ROOM_FORM]: FormTypes.NewRoomForm;
+    [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.NEW_TASK_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.EDIT_TASK_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
+    [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;
+    [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: FormTypes.IntroSchoolPrincipalForm;
+    [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: FormTypes.Form;
+    [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: FormTypes.GetPhysicalCardForm;
+    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: FormTypes.ReportFieldEditForm;
+    [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
+};
+
+type OnyxFormDraftValuesMapping = {
+    [K in keyof OnyxFormValuesMapping as `${K}Draft`]: OnyxFormValuesMapping[K];
+};
+
+type OnyxCollectionValuesMapping = {
+    [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
+    [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
+    [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
+    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
+    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
+    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
+    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
+    [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
+    [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
+    [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
+    [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
+    [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
+    [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
+    [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
+    [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
+    [ONYXKEYS.COLLECTION.POLICY_TAX_RATE]: string[];
+};
+
+type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
@@ -393,6 +474,7 @@ type OnyxValues = {
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
+    [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
     [ONYXKEYS.CURRENCY_LIST]: Record<string, OnyxTypes.Currency>;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
@@ -417,6 +499,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
+    [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
@@ -450,116 +533,27 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
+    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
-
-    // Collections
-    [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
-    [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
-    [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
-    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
-    [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
-    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
-    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs | undefined;
-    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string | undefined;
-    [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
-    [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
-    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
-    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
-    [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
-    [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
-    [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
-    [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
-    [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
-    [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
-    [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
-    [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
-    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
-    [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
-    [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
-    [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
-
-    // Forms
-    [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
-    [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM_DRAFT]: OnyxTypes.AddDebitCardForm;
-    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: OnyxTypes.WorkspaceSettingsForm;
-    [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM_DRAFT]: OnyxTypes.WorkspaceSettingsForm;
-    [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: OnyxTypes.CloseAccountForm;
-    [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM_DRAFT]: OnyxTypes.CloseAccountForm;
-    [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: OnyxTypes.DisplayNameForm;
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.DisplayNameForm;
-    [ONYXKEYS.FORMS.ROOM_NAME_FORM]: OnyxTypes.RoomNameForm;
-    [ONYXKEYS.FORMS.ROOM_NAME_FORM_DRAFT]: OnyxTypes.RoomNameForm;
-    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.LEGAL_NAME_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM]: OnyxTypes.DateOfBirthForm;
-    [ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM_DRAFT]: OnyxTypes.DateOfBirthForm;
-    [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.NEW_ROOM_FORM]: OnyxTypes.NewRoomForm;
-    [ONYXKEYS.FORMS.NEW_ROOM_FORM_DRAFT]: OnyxTypes.NewRoomForm;
-    [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.NEW_TASK_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.NEW_TASK_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.EDIT_TASK_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.EDIT_TASK_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WAYPOINT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.WAYPOINT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: OnyxTypes.PrivateNotesForm;
-    [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM_DRAFT]: OnyxTypes.PrivateNotesForm;
-    [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: OnyxTypes.IKnowATeacherForm;
-    [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM_DRAFT]: OnyxTypes.IKnowATeacherForm;
-    [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: OnyxTypes.IntroSchoolPrincipalForm;
-    [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM_DRAFT]: OnyxTypes.IntroSchoolPrincipalForm;
-    [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.GetPhysicalCardForm;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.GetPhysicalCardForm;
-    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: OnyxTypes.ReportFieldEditForm;
-    [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
-    // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
-    [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
-    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT]: OnyxTypes.PersonalBankAccount;
+    [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
 };
 
-type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
+type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
+
+type OnyxCollectionKey = keyof OnyxCollectionValuesMapping;
+type OnyxFormKey = keyof OnyxFormValuesMapping;
+type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
+type OnyxValueKey = keyof OnyxValuesMapping;
+
+type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
+type OnyxValue<TOnyxKey extends OnyxKey> = OnyxEntry<OnyxValues[TOnyxKey]>;
+
+type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
+/** If this type errors, it means that the `OnyxKey` type is missing some keys. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};
+export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormValuesMapping, OnyxFormDraftKey};
