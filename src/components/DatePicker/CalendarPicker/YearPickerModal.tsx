@@ -1,63 +1,55 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import {radioListItemPropTypes} from '@components/SelectionList/selectionListPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type CalendarPickerRadioItem from './types';
 
-const propTypes = {
+type YearPickerModalProps = {
     /** Whether the modal is visible */
-    isVisible: PropTypes.bool.isRequired,
+    isVisible: boolean;
 
     /** The list of years to render */
-    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes.item)).isRequired,
+    years: CalendarPickerRadioItem[];
 
     /** Currently selected year */
-    currentYear: PropTypes.number,
+    currentYear?: number;
 
     /** Function to call when the user selects a year */
-    onYearChange: PropTypes.func,
+    onYearChange?: (year: number) => void;
 
     /** Function to call when the user closes the year picker */
-    onClose: PropTypes.func,
+    onClose?: () => void;
 };
 
-const defaultProps = {
-    currentYear: new Date().getFullYear(),
-    onYearChange: () => {},
-    onClose: () => {},
-};
-
-function YearPickerModal(props) {
+function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose}: YearPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {
-        const yearsList = searchText === '' ? props.years : _.filter(props.years, (year) => year.text.includes(searchText));
+        const yearsList = searchText === '' ? years : years.filter((year) => year.text.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
             sections: [{data: yearsList, indexOffset: 0}],
         };
-    }, [props.years, searchText, translate]);
+    }, [years, searchText, translate]);
 
     useEffect(() => {
-        if (props.isVisible) {
+        if (isVisible) {
             return;
         }
         setSearchText('');
-    }, [props.isVisible]);
+    }, [isVisible]);
 
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={props.isVisible}
-            onClose={props.onClose}
-            onModalHide={props.onClose}
+            isVisible={isVisible}
+            onClose={() => onClose?.()}
+            onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
         >
@@ -69,7 +61,7 @@ function YearPickerModal(props) {
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
-                    onBackButtonPress={props.onClose}
+                    onBackButtonPress={onClose}
                 />
                 <SelectionList
                     shouldDelayFocus
@@ -80,8 +72,10 @@ function YearPickerModal(props) {
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
-                    onSelectRow={(option) => props.onYearChange(option.value)}
-                    initiallyFocusedOptionKey={props.currentYear.toString()}
+                    onSelectRow={(option: CalendarPickerRadioItem) => {
+                        onYearChange?.(option.value);
+                    }}
+                    initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
                 />
@@ -90,8 +84,6 @@ function YearPickerModal(props) {
     );
 }
 
-YearPickerModal.propTypes = propTypes;
-YearPickerModal.defaultProps = defaultProps;
 YearPickerModal.displayName = 'YearPickerModal';
 
 export default YearPickerModal;

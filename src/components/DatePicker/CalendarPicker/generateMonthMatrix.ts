@@ -4,19 +4,13 @@ import DateUtils from '@libs/DateUtils';
 /**
  * Generates a matrix representation of a month's calendar given the year and month.
  *
- * @param {Number} year - The year for which to generate the month matrix.
- * @param {Number} month - The month (0-indexed) for which to generate the month matrix.
- * @returns {Array<Array<Number|null>>} - A 2D array of the month's calendar days, with null values representing days outside the current month.
+ * @param year - The year for which to generate the month matrix.
+ * @param month - The month (0-indexed) for which to generate the month matrix.
+ * @returns A 2D array of the month's calendar days, with null values representing days outside the current month.
  */
-export default function generateMonthMatrix(year, month) {
-    if (typeof year !== 'number') {
-        throw new TypeError('Year must be a number');
-    }
+export default function generateMonthMatrix(year: number, month: number) {
     if (year < 0) {
         throw new Error('Year cannot be less than 0');
-    }
-    if (typeof month !== 'number') {
-        throw new TypeError('Month must be a number');
     }
     if (month < 0) {
         throw new Error('Month cannot be less than 0');
@@ -51,14 +45,14 @@ export default function generateMonthMatrix(year, month) {
     // Add null values for days after the last day of the month
     if (currentWeek.length > 0) {
         for (let i = currentWeek.length; i < 7; i++) {
-            currentWeek.push(null);
+            currentWeek.push(undefined);
         }
         matrix.push(currentWeek);
     }
 
     // Add null values for days before the first day of the month
     for (let i = matrix[0].length; i < 7; i++) {
-        matrix[0].unshift(null);
+        matrix[0].unshift(undefined);
     }
 
     return matrix;
