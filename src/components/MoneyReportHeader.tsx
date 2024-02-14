@@ -67,9 +67,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const cancelPayment = useCallback(() => {
-        // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
-        IOU.cancelPayment(moneyRequestReport, chatReport);
-        setIsConfirmModalVisible(false);
+        if (chatReport) {
+            IOU.cancelPayment(moneyRequestReport, chatReport);
+            setIsConfirmModalVisible(false);
+        }
     }, [moneyRequestReport, chatReport]);
 
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
@@ -135,6 +136,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
+                            // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
                             onPress={(paymentType: PaymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
