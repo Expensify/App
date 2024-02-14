@@ -78,16 +78,24 @@ function BaseVideoPlayer({
         setIsPopoverVisible(false);
     };
 
+    // fix for iOS mWeb: preventing iOS native player edfault behavior from pausing the video when exiting fullscreen
+    const preventPausingWhenExitingFullscreen = useCallback(
+        (isVideoPlaying) => {
+            if (videoResumeTryNumber.current === 0 || isVideoPlaying) {
+                return;
+            }
+            if (videoResumeTryNumber.current === 1) {
+                playVideo();
+            }
+            videoResumeTryNumber.current -= 1;
+        },
+        [playVideo],
+    );
+
     const handlePlaybackStatusUpdate = useCallback(
         (e) => {
             const isVideoPlaying = e.isPlaying || false;
-            if (videoResumeTryNumber.current > 0 && !isVideoPlaying) {
-                if (videoResumeTryNumber.current === 1) {
-                    playVideo();
-                }
-                videoResumeTryNumber.current -= 1;
-            }
-
+            preventPausingWhenExitingFullscreen(isVideoPlaying);
             setIsPlaying(isVideoPlaying);
             setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setIsBuffering(e.isBuffering || false);
@@ -96,7 +104,7 @@ function BaseVideoPlayer({
 
             onPlaybackStatusUpdate(e);
         },
-        [onPlaybackStatusUpdate, playVideo, videoDuration],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
     );
 
     const handleFullscreenUpdate = useCallback(
