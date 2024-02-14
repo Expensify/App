@@ -233,7 +233,7 @@ function BaseOptionsSelector(props) {
     };
 
     const subscribeActiveElement = () => {
-        if (isWebOrDesktop) {
+        if (!isWebOrDesktop) {
             return;
         }
         document.addEventListener('focusin', handleFocusIn);
