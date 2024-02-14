@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import type {ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
 
 type BeneficialOwnerValues = {
     firstName: string;
@@ -12,7 +12,7 @@ type BeneficialOwnerValues = {
     zipCode: string;
 };
 
-function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountDraft | null): BeneficialOwnerValues {
+function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountForm | null): BeneficialOwnerValues {
     if (!reimbursementAccountDraft) {
         return {
             firstName: '',
