@@ -196,7 +196,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string) => `r/${reportID}/details` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
