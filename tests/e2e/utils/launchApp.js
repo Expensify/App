@@ -1,8 +1,8 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-const {APP_PACKAGE, ACTIVITY_PATH} = require('../config');
-const execAsync = require('./execAsync');
+import config from '../config';
+import execAsync from './execAsync';
 
-module.exports = function (platform = 'android', packageName = APP_PACKAGE, activityPath = ACTIVITY_PATH, launchArgs = {}) {
+export default function (platform = 'android', packageName = config.APP_PACKAGE, activityPath = config.ACTIVITY_PATH, launchArgs = {}) {
     if (platform !== 'android') {
         throw new Error(`launchApp() missing implementation for platform: ${platform}`);
     }
@@ -12,4 +12,4 @@ module.exports = function (platform = 'android', packageName = APP_PACKAGE, acti
         .map((key) => `${typeof launchArgs[key] === 'boolean' ? '--ez' : '--es'} ${key} ${launchArgs[key]}`)
         .join(' ');
     return execAsync(`adb shell am start -n ${packageName}/${activityPath} ${launchArgsString}`);
-};
+}

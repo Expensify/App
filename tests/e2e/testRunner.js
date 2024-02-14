@@ -14,19 +14,19 @@
  */
 
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
-const fs = require('fs');
-const _ = require('underscore');
-const defaultConfig = require('./config');
-const Logger = require('./utils/logger');
-const execAsync = require('./utils/execAsync');
-const killApp = require('./utils/killApp');
-const launchApp = require('./utils/launchApp');
-const createServerInstance = require('./server');
-const installApp = require('./utils/installApp');
-const withFailTimeout = require('./utils/withFailTimeout');
-const reversePort = require('./utils/androidReversePort');
-const sleep = require('./utils/sleep');
-const compare = require('./compare/compare');
+import fs from 'fs';
+import _ from 'underscore';
+import compare from './compare/compare';
+import defaultConfig from './config';
+import createServerInstance from './server';
+import reversePort from './utils/androidReversePort';
+import execAsync from './utils/execAsync';
+import installApp from './utils/installApp';
+import killApp from './utils/killApp';
+import launchApp from './utils/launchApp';
+import Logger from './utils/logger';
+import sleep from './utils/sleep';
+import withFailTimeout from './utils/withFailTimeout';
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);

@@ -1,4 +1,4 @@
-const versionUpdater = require('../../.github/libs/versionUpdater');
+import * as versionUpdater from '../../.github/libs/versionUpdater';
 
 const VERSION = '2.3.9-80';
 const VERSION_NUMBER = [2, 3, 9, 80];

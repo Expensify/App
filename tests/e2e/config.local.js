@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
     DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
     MAIN_APP_PATH: './android/app/build/outputs/apk/e2e/release/app-e2e-release.apk',
