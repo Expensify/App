@@ -8,16 +8,12 @@ import * as Session from '@userActions/Session';
 import SCREENS from '@src/SCREENS';
 import SignInPage from './SignInPage';
 
-const propTypes = {};
-
-const defaultProps = {};
-
 function SignInModal() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
     if (!Session.isAnonymousUser()) {
-        // Sign in in RHP is only for anonymous users
+        // Signing in RHP is only for anonymous users
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
@@ -35,8 +31,6 @@ function SignInModal() {
     );
 }
 
-SignInModal.propTypes = propTypes;
-SignInModal.defaultProps = defaultProps;
 SignInModal.displayName = 'SignInModal';
 
 export default SignInModal;

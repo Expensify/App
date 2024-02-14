@@ -8,17 +8,7 @@ import type {MultiGestureCanvasVariables} from './types';
 
 type UsePinchGestureProps = Pick<
     MultiGestureCanvasVariables,
-    | 'canvasSize'
-    | 'zoomScale'
-    | 'zoomRange'
-    | 'offsetX'
-    | 'offsetY'
-    | 'pinchTranslateX'
-    | 'pinchTranslateY'
-    | 'pinchScale'
-    | 'shouldDisableTransformationGestures'
-    | 'stopAnimation'
-    | 'onScaleChanged'
+    'canvasSize' | 'zoomScale' | 'zoomRange' | 'offsetX' | 'offsetY' | 'pinchTranslateX' | 'pinchTranslateY' | 'pinchScale' | 'isPagerSwiping' | 'stopAnimation' | 'onScaleChanged'
 >;
 
 const usePinchGesture = ({
@@ -30,7 +20,7 @@ const usePinchGesture = ({
     pinchTranslateX: totalPinchTranslateX,
     pinchTranslateY: totalPinchTranslateY,
     pinchScale,
-    shouldDisableTransformationGestures,
+    isPagerSwiping,
     stopAnimation,
     onScaleChanged,
 }: UsePinchGestureProps): PinchGesture => {
@@ -97,11 +87,10 @@ const usePinchGesture = ({
 
     const pinchGesture = Gesture.Pinch()
         .enabled(pinchEnabled)
-        // The first argument is not used, but must be defined
         // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesDown((_evt, state) => {
             // We don't want to activate pinch gesture when we are swiping in the pager
-            if (!shouldDisableTransformationGestures.value) {
+            if (!isPagerSwiping.value) {
                 return;
             }
 

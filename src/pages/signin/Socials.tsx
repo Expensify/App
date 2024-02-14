@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -9,8 +8,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-const socialsList = [
+type Social = {
+    iconURL: IconAsset;
+    link: string;
+};
+
+const socialList: Social[] = [
     {
         iconURL: Expensicons.Podcast,
         link: CONST.SOCIALS.PODCAST,
@@ -38,12 +43,12 @@ function Socials() {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
-            {_.map(socialsList, (social) => (
+            {socialList.map((social: Social) => (
                 <PressableWithoutFeedback
                     key={social.link}
                     href={social.link}
                     onPress={(e) => {
-                        e.preventDefault();
+                        e?.preventDefault();
                         Link.openExternalLink(social.link);
                     }}
                     accessible={false}

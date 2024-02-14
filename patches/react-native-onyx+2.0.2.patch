@@ -111,16 +111,3 @@ index aabb482..20e17af 100644
      delete callbackToStateMapping[connectionID];
  }
  /**
-diff --git a/node_modules/react-native-onyx/dist/index.d.ts b/node_modules/react-native-onyx/dist/index.d.ts
-index 5a38007..60f9ed2 100644
---- a/node_modules/react-native-onyx/dist/index.d.ts
-+++ b/node_modules/react-native-onyx/dist/index.d.ts
-@@ -1,6 +1,6 @@
- import Onyx, {OnyxUpdate, ConnectOptions} from './Onyx';
--import {CustomTypeOptions, OnyxCollection, OnyxEntry, NullishDeep, KeyValueMapping, OnyxKey, Selector, WithOnyxInstanceState} from './types';
-+import {CustomTypeOptions, OnyxCollection, OnyxEntry, NullishDeep, KeyValueMapping, OnyxKey, Selector} from './types';
- import withOnyx from './withOnyx';
- 
- export default Onyx;
--export {CustomTypeOptions, OnyxCollection, OnyxEntry, OnyxUpdate, withOnyx, ConnectOptions, NullishDeep, KeyValueMapping, OnyxKey, Selector, WithOnyxInstanceState};
-+export {CustomTypeOptions, OnyxCollection, OnyxEntry, OnyxUpdate, withOnyx, ConnectOptions, NullishDeep, KeyValueMapping, OnyxKey, Selector};

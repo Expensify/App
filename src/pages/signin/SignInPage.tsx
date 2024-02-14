@@ -1,9 +1,8 @@
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
 import ThemeProvider from '@components/ThemeProvider';
@@ -24,83 +23,79 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Account, Credentials, Locale} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
+import type {InputHandle} from './LoginForm/types';
 import SignInPageLayout from './SignInPageLayout';
+import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 
-const propTypes = {
+type SignInPageInnerOnyxProps = {
     /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** Error to display when there is an account error returned */
-        errors: PropTypes.objectOf(PropTypes.string),
-
-        /** Whether the account is validated */
-        validated: PropTypes.bool,
-
-        /** The primaryLogin associated with the account */
-        primaryLogin: PropTypes.string,
-
-        /** Does this account require 2FA? */
-        requiresTwoFactorAuth: PropTypes.bool,
-
-        /** Is this account having trouble receiving emails */
-        hasEmailDeliveryFailure: PropTypes.bool,
-
-        /** Whether or not a sign on form is loading (being submitted) */
-        isLoading: PropTypes.bool,
-
-        /** Form that is being loaded */
-        loadingForm: PropTypes.oneOf(_.values(CONST.FORMS)),
-
-        /** Whether or not the user has SAML enabled on their account */
-        isSAMLEnabled: PropTypes.bool,
-
-        /** Whether or not SAML is required on the account */
-        isSAMLRequired: PropTypes.bool,
-    }),
+    account: OnyxEntry<Account>;
 
     /** The credentials of the person signing in */
-    credentials: PropTypes.shape({
-        login: PropTypes.string,
-        twoFactorAuthCode: PropTypes.string,
-        validateCode: PropTypes.string,
-    }),
+    credentials: OnyxEntry<Credentials>;
 
     /** Active Clients connected to ONYX Database */
-    activeClients: PropTypes.arrayOf(PropTypes.string),
+    activeClients: OnyxEntry<string[]>;
 
     /** The user's preferred locale */
-    preferredLocale: PropTypes.string,
+    preferredLocale: OnyxEntry<Locale>;
 };
 
-const defaultProps = {
-    account: {},
-    credentials: {},
-    activeClients: [],
-    preferredLocale: '',
+type SignInPageInnerProps = SignInPageInnerOnyxProps;
+
+type RenderOption = {
+    shouldShowLoginForm: boolean;
+    shouldShowEmailDeliveryFailurePage: boolean;
+    shouldShowUnlinkLoginForm: boolean;
+    shouldShowValidateCodeForm: boolean;
+    shouldShowChooseSSOOrMagicCode: boolean;
+    shouldInitiateSAMLLogin: boolean;
+    shouldShowWelcomeHeader: boolean;
+    shouldShowWelcomeText: boolean;
+};
+
+type GetRenderOptionsParams = {
+    hasLogin: boolean;
+    hasValidateCode: boolean;
+    account: OnyxEntry<Account>;
+    isPrimaryLogin: boolean;
+    isUsingMagicCode: boolean;
+    hasInitiatedSAMLLogin: boolean;
+    shouldShowAnotherLoginPageOpenedMessage: boolean;
 };
 
 /**
- * @param {Boolean} hasLogin
- * @param {Boolean} hasValidateCode
- * @param {Object} account
- * @param {Boolean} isPrimaryLogin
- * @param {Boolean} isUsingMagicCode
- * @param {Boolean} hasInitiatedSAMLLogin
- * @param {Boolean} hasEmailDeliveryFailure
- * @returns {Object}
+ * @param hasLogin
+ * @param hasValidateCode
+ * @param account
+ * @param isPrimaryLogin
+ * @param isUsingMagicCode
+ * @param hasInitiatedSAMLLogin
+ * @param hasEmailDeliveryFailure
  */
-function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, shouldShowAnotherLoginPageOpenedMessage}) {
-    const hasAccount = !_.isEmpty(account);
-    const isSAMLEnabled = Boolean(account.isSAMLEnabled);
-    const isSAMLRequired = Boolean(account.isSAMLRequired);
-    const hasEmailDeliveryFailure = Boolean(account.hasEmailDeliveryFailure);
+function getRenderOptions({
+    hasLogin,
+    hasValidateCode,
+    account,
+    isPrimaryLogin,
+    isUsingMagicCode,
+    hasInitiatedSAMLLogin,
+    shouldShowAnotherLoginPageOpenedMessage,
+}: GetRenderOptionsParams): RenderOption {
+    const hasAccount = !isEmptyObject(account);
+    const isSAMLEnabled = !!account?.isSAMLEnabled;
+    const isSAMLRequired = !!account?.isSAMLRequired;
+    const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
 
-    // True if the user has SAML required and we haven't already initiated SAML for their account
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
+    // True, if the user has SAML required, and we haven't yet initiated SAML for their account
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
     const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
@@ -112,7 +107,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account.validated && !hasEmailDeliveryFailure;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
         hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
@@ -129,14 +124,14 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     };
 }
 
-function SignInPageInner({credentials, account, activeClients, preferredLocale}) {
+function SignInPageInner({credentials, account, activeClients = [], preferredLocale}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const safeAreaInsets = useSafeAreaInsets();
-    const signInPageLayoutRef = useRef();
-    const loginFormRef = useRef();
+    const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
+    const loginFormRef = useRef<InputHandle>(null);
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
@@ -149,7 +144,7 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
-    const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
+    const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
@@ -162,7 +157,7 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
         App.setLocale(Localize.getDevicePreferredLocale());
     }, [preferredLocale]);
     useEffect(() => {
-        if (credentials.login) {
+        if (credentials?.login) {
             return;
         }
 
@@ -173,7 +168,7 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
         if (hasInitiatedSAMLLogin) {
             setHasInitiatedSAMLLogin(false);
         }
-    }, [credentials.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+    }, [credentials?.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
     const {
         shouldShowLoginForm,
@@ -185,10 +180,10 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
     } = getRenderOptions({
-        hasLogin: Boolean(credentials.login),
-        hasValidateCode: Boolean(credentials.validateCode),
+        hasLogin: !!credentials?.login,
+        hasValidateCode: !!credentials?.validateCode,
         account,
-        isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
+        isPrimaryLogin: !account?.primaryLogin || account.primaryLogin === credentials?.login,
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
@@ -210,16 +205,16 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.getStarted');
         welcomeText = shouldUseNarrowLayout ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
-        if (account.requiresTwoFactorAuth) {
+        if (account?.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
-            const userLogin = Str.removeSMSDomain(credentials.login || '');
+            const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
 
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
-            if (account.validated) {
+            if (account?.validated) {
                 welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
                 welcomeText = shouldUseNarrowLayout
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
@@ -243,8 +238,8 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
     }
 
     const navigateFocus = () => {
-        signInPageLayoutRef.current.scrollPageToTop();
-        loginFormRef.current.clearDataAndFocus();
+        signInPageLayoutRef.current?.scrollPageToTop();
+        loginFormRef.current?.clearDataAndFocus();
     };
 
     return (
@@ -267,11 +262,12 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
                 <LoginForm
                     ref={loginFormRef}
                     isVisible={shouldShowLoginForm}
-                    blurOnSubmit={account.validated === false}
-                    scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
+                    blurOnSubmit={account?.validated === false}
+                    scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />
                 {shouldShowValidateCodeForm && (
                     <ValidateCodeForm
+                        // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
                         isVisible={!shouldShowAnotherLoginPageOpenedMessage}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
@@ -288,11 +284,13 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
         </View>
     );
 }
-SignInPageInner.propTypes = propTypes;
-SignInPageInner.defaultProps = defaultProps;
+
 SignInPageInner.displayName = 'SignInPage';
 
-function SignInPage(props) {
+type SignInPageProps = SignInPageInnerProps;
+type SignInPageOnyxProps = SignInPageInnerOnyxProps;
+
+function SignInPage(props: SignInPageProps) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
@@ -308,16 +306,16 @@ function SignInPage(props) {
     );
 }
 
-export default withOnyx({
+export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     /**
-  This variable is only added to make sure the component is re-rendered
-  whenever the activeClients change, so that we call the
-  ActiveClientManager.isClientTheLeader function
-  everytime the leader client changes.
-  We use that function to prevent repeating code that checks which client is the leader.
-  */
+      This variable is only added to make sure the component is re-rendered
+      whenever the activeClients change, so that we call the
+      ActiveClientManager.isClientTheLeader function
+      everytime the leader client changes.
+      We use that function to prevent repeating code that checks which client is the leader.
+    */
     activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
