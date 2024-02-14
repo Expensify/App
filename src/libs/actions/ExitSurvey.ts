@@ -1,29 +1,28 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-type ExitReason = ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+import REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
+import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 
 let exitReason: ExitReason | undefined;
 let exitSurveyResponse: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
-    callback: (value) => (exitReason = value?.[CONST.EXIT_SURVEY.REASON_INPUT_ID]),
+    callback: (value) => (exitReason = value?.[REASON_INPUT_IDS.REASON]),
 });
 Onyx.connect({
     key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM,
-    callback: (value) => (exitSurveyResponse = value?.[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]),
+    callback: (value) => (exitSurveyResponse = value?.[RESPONSE_INPUT_IDS.RESPONSE]),
 });
 
 function saveExitReason(reason: ExitReason) {
-    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {[CONST.EXIT_SURVEY.REASON_INPUT_ID]: reason});
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {[REASON_INPUT_IDS.REASON]: reason});
 }
 
 function saveResponse(response: string) {
-    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: response});
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {[RESPONSE_INPUT_IDS.RESPONSE]: response});
 }
 
 /**
@@ -77,4 +76,3 @@ function switchToOldDot() {
 }
 
 export {saveExitReason, saveResponse, switchToOldDot};
-export type {ExitReason};

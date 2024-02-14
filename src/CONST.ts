@@ -3256,8 +3256,6 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
-        REASON_INPUT_ID: 'reason',
-        RESPONSE_INPUT_ID: 'response',
     },
 } as const;
 

@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +17,6 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import FormUtils from '@libs/FormUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
@@ -28,7 +27,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {ExitSurveyResponseForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
@@ -98,7 +98,7 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
                 validate={() => {
                     const errors: Errors = {};
                     if (!draftResponse?.trim()) {
-                        errors[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID] = 'common.error.fieldRequired';
+                        errors[INPUT_IDS.RESPONSE] = 'common.error.fieldRequired';
                     }
                     return errors;
                 }}
@@ -111,7 +111,7 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
                         <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={CONST.EXIT_SURVEY.RESPONSE_INPUT_ID}
+                            inputID={INPUT_IDS.RESPONSE}
                             label={translate(`exitSurvey.responsePlaceholder`)}
                             accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
                             role={CONST.ROLE.PRESENTATION}
@@ -137,7 +137,7 @@ ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
 export default withOnyx<ExitSurveyResponsePageProps, ExitSurveyResponsePageOnyxProps>({
     draftResponse: {
-        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM),
-        selector: (value: OnyxEntry<OnyxTypes.ExitSurveyResponseForm>) => value?.[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID] ?? '',
+        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT,
+        selector: (value: FormOnyxValues<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>) => value?.[INPUT_IDS.RESPONSE] ?? '',
     },
 })(ExitSurveyResponsePage);

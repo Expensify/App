@@ -15,6 +15,7 @@ import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -163,7 +164,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-        [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+        [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
     };
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: undefined;
 } & ReimbursementAccountNavigatorParamList;

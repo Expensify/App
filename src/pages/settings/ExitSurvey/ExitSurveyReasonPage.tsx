@@ -11,10 +11,11 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as ExitSurvey from '@userActions/ExitSurvey';
-import type {ExitReason} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
+import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
@@ -46,7 +47,7 @@ function ExitSurveyReasonPage() {
                 validate={() => {
                     const errors: Errors = {};
                     if (!reason) {
-                        errors[CONST.EXIT_SURVEY.REASON_INPUT_ID] = 'common.error.fieldRequired';
+                        errors[INPUT_IDS.REASON] = 'common.error.fieldRequired';
                     }
                     return errors;
                 }}
@@ -68,7 +69,7 @@ function ExitSurveyReasonPage() {
                         <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
                         <InputWrapper
                             InputComponent={RadioButtons}
-                            inputID={CONST.EXIT_SURVEY.REASON_INPUT_ID}
+                            inputID={INPUT_IDS.REASON}
                             items={reasons}
                             onPress={(value) => setReason(value as ExitReason)}
                         />
