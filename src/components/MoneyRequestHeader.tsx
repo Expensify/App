@@ -128,7 +128,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     policy={policy}
                     personalDetails={personalDetails}
                     shouldShowBackButton={isSmallScreenWidth}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                    onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
                 {isPending && (
                     <MoneyRequestHeaderStatusBar

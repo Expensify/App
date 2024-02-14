@@ -1,23 +1,27 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import categoryPropTypes from '@components/categoryPropTypes';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
+import tagPropTypes from '@components/tagPropTypes';
 import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {policyPropTypes} from '@src/pages/workspace/withPolicy';
+import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -33,11 +37,23 @@ const propTypes = {
 
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
+
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
+
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** Collection of tags attached to a policy */
+    policyTags: tagPropTypes,
 };
 
 const defaultProps = {
     transaction: {},
     splitDraftTransaction: {},
+    policy: null,
+    policyTags: null,
+    policyCategories: null,
 };
 
 function IOURequestStepDescription({
@@ -46,6 +62,9 @@ function IOURequestStepDescription({
     },
     transaction,
     splitDraftTransaction,
+    policy,
+    policyTags,
+    policyCategories,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -71,8 +90,26 @@ function IOURequestStepDescription({
         }, []),
     );
 
+    /**
+     * @param {Object} values
+     * @param {String} values.title
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
+                'common.error.characterLimitExceedCounter',
+                {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
+            ]);
+        }
+
+        return errors;
+    }, []);
+
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
@@ -98,7 +135,7 @@ function IOURequestStepDescription({
         IOU.setMoneyRequestDescription(transaction.transactionID, newComment, action === CONST.IOU.ACTION.CREATE);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment);
+            IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -115,14 +152,15 @@ function IOURequestStepDescription({
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={updateComment}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
-                        inputID="moneyRequestComment"
-                        name="moneyRequestComment"
+                        inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                        name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={currentDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
@@ -136,7 +174,7 @@ function IOURequestStepDescription({
                         }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        submitOnEnter={!Browser.isMobile()}
+                        shouldSubmitForm
                     />
                 </View>
             </FormProvider>
@@ -157,6 +195,15 @@ export default compose(
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
             },
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepDescription);

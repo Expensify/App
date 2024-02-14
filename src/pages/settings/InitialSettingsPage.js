@@ -219,6 +219,8 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openExternalLink(CONST.NEWHELP_URL);
                     },
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
                 },
                 {
@@ -289,6 +291,8 @@ function InitialSettingsPage(props) {
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
                                 isPaneMenu
+                                iconRight={item.iconRight}
+                                shouldShowRightIcon={item.shouldShowRightIcon}
                             />
                         );
                     })}

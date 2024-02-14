@@ -53,7 +53,7 @@ type CentralPaneNavigatorParamList = {
     };
 
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.WORKSPACE.OVERVIEW]: {
+    [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CARD]: {
@@ -109,10 +109,26 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: undefined;
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
+        /** Currently selected country */
+        country: string;
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
+        /** Currently selected country */
+        country: string;
+        /** domain passed via route /settings/wallet/card/:domain */
+        domain: string;
+    };
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
@@ -124,7 +140,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
-    [SCREENS.WORKSPACE.RATE_AND_UNIT]: undefined;
+    [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
     };
@@ -193,7 +217,9 @@ type RoomMembersNavigatorParamList = {
 };
 
 type RoomInviteNavigatorParamList = {
-    [SCREENS.ROOM_INVITE_ROOT]: undefined;
+    [SCREENS.ROOM_INVITE_ROOT]: {
+        reportID: string;
+    };
 };
 
 type MoneyRequestNavigatorParamList = {
@@ -213,11 +239,12 @@ type MoneyRequestNavigatorParamList = {
         currency: string;
         backTo: string;
     };
-    [SCREENS.MONEY_REQUEST.DATE]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_DATE]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
-        field: string;
-        threadReportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -311,7 +338,12 @@ type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
         reportActionID: string;
     };
-    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: undefined;
+    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
+        field: string;
+        reportID: string;
+        reportActionID: string;
+        currency: string;
+    };
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
 
@@ -327,7 +359,10 @@ type ReimbursementAccountNavigatorParamList = {
 };
 
 type WalletStatementNavigatorParamList = {
-    [SCREENS.WALLET_STATEMENT_ROOT]: undefined;
+    [SCREENS.WALLET_STATEMENT_ROOT]: {
+        /** The statement year and month as one string, i.e. 202110 */
+        yearMonth: string;
+    };
 };
 
 type FlagCommentNavigatorParamList = {
