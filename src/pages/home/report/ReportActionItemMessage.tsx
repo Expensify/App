@@ -58,7 +58,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), action);
+            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action);
         }
     }
 
@@ -88,6 +88,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
                 // formatting.
                 isFragmentContainingDisplayName={index === 0}
+                moderationDecision={action.message?.[0].moderationDecision?.decision}
             />
         ));
 
