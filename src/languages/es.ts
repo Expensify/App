@@ -557,6 +557,7 @@ export default {
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
+        protectedPDFNotSupportedError: 'Spanish message TBD',
     },
     iou: {
         amount: 'Importe',

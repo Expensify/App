@@ -564,6 +564,7 @@ export default {
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
+        protectedPDFNotSupportedError: 'Password protected PDF receipt is not supported.',
     },
     iou: {
         amount: 'Amount',

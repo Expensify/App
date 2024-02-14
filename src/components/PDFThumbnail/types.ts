@@ -9,6 +9,9 @@ type PDFThumbnailProps = {
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired?: boolean;
+
+    /** Callback to call if PDF is password protected */
+    onPassword?: () => void;
 };
 
 export default PDFThumbnailProps;

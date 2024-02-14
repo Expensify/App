@@ -14,7 +14,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     ).toString();
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, onPassword = () => {}}: PDFThumbnailProps) {
     const styles = useThemeStyles();
 
     const thumbnail = useMemo(
@@ -27,12 +27,12 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false}: PD
                     cMapPacked: true,
                 }}
                 externalLinkTarget="_blank"
-                onPassword={() => {}}
+                onPassword={onPassword}
             >
                 <Thumbnail pageIndex={0} />
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL],
+        [isAuthTokenRequired, previewSourceURL, onPassword],
     );
 
     return (

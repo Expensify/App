@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, onPassword = () => {}}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const sizeStyles = [styles.w100, styles.h100];
 
@@ -20,6 +20,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false}: PD
                     source={{uri: isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL.toString()}}
                     singlePage
                     style={sizeStyles}
+                    onError={onPassword}
                 />
             </View>
         </View>
