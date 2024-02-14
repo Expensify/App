@@ -23,24 +23,30 @@ const ToggleSettingOptionRow = ({ Illustration, title, subtitle, onToggle, subMe
     };
   
     return (
-    <View style={styles.workspaceWorkflowContainer}>        
-        <View style={styles.workspaceWorkflowContent}>
-            <View style={styles.workspaceWorkflowsIllustrationContainer}>
-                <Illustration style={styles.workspaceWorkflowsIcon} />
+    <View>   
+        <View style={styles.workspaceWorkflowContainer}>        
+            <View style={styles.workspaceWorkflowContent}>
+                <View>
+                    <Illustration style={styles.workspaceWorkflowsIcon} />
+                </View>
+                <View style={styles.workspaceWorkflowsWrapperText}>
+                    <Text style={styles.workspaceWorkflowsHeading}>{title}</Text>
+                    <Text style={styles.workspaceWorkflowsSubtitle}>{subtitle}</Text>
+                </View>
             </View>
-            <View style={styles.workspaceWorkflowsWrapperText}>
-                <Text style={styles.workspaceWorkflowsHeading}>{title}</Text>
-                <Text style={styles.workspaceWorkflowsSubtitle}>{subtitle}</Text>
+            <View>
+                <Switch
+                    accessibilityLabel={subtitle}
+                    onToggle={toggleSwitch}
+                    isOn={isEnabled}
+                />
             </View>
         </View>
-        <View>
-            <Switch
-                accessibilityLabel={subtitle}
-                onToggle={toggleSwitch}
-                isOn={isEnabled}
-            />
-        </View>
-            {isEnabled && subMenuItems}
+        {isEnabled && (
+            <View>
+                {subMenuItems}
+            </View>
+        )}
     </View>
     );
   };
