@@ -291,9 +291,8 @@ function setMoneyRequestDescription(transactionID: string, comment: string, isDr
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestMerchant_temporaryForRefactor(transactionID: string, merchant: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {merchant: merchant.trim()});
+function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
 }
 
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: PendingFields) {
@@ -3820,10 +3819,6 @@ function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
-function setMoneyRequestMerchant(merchant: string) {
-    Onyx.merge(ONYXKEYS.IOU, {merchant: merchant.trim()});
-}
-
 function setMoneyRequestCategory(category: string) {
     Onyx.merge(ONYXKEYS.IOU, {category});
 }
@@ -3962,7 +3957,6 @@ export {
     setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestDescription,
     setMoneyRequestOriginalCurrency_temporaryForRefactor,
-    setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
     setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
