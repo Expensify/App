@@ -23,6 +23,7 @@ import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacePageWithSectionsOnyxProps = {
     /** From Onyx */
@@ -45,6 +46,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
+
+        /** The icon to display in the header */
+        icon?: IconAsset;
 
         /** The guides call task ID to associate with the workspace page being shown */
         guidesCallTaskID: string;
@@ -83,6 +87,7 @@ function WorkspacePageWithSections({
     backButtonRoute,
     children = () => null,
     footer = null,
+    icon = undefined,
     guidesCallTaskID = '',
     headerText,
     policy,
@@ -155,6 +160,7 @@ function WorkspacePageWithSections({
                     guidesCallTaskID={guidesCallTaskID}
                     shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
+                    icon={icon ?? undefined}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
