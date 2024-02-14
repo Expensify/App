@@ -100,6 +100,9 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Allows to open an image without Attachment Picker. */
+    enablePreview: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -127,6 +130,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
+    enablePreview: false,
 };
 
 function AvatarWithImagePicker({
@@ -152,6 +156,7 @@ function AvatarWithImagePicker({
     avatarStyle,
     disabled,
     onViewPhotoPress,
+    enablePreview,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -330,10 +335,16 @@ function AvatarWithImagePicker({
                         text={translate('avatarWithImagePicker.editImage')}
                     >
                         <PressableWithoutFeedback
-                            onPress={() => setIsMenuVisible((prev) => !prev)}
+                            onPress={() => {
+                                if (disabled && enablePreview && onViewPhotoPress) {
+                                    onViewPhotoPress();
+                                    return;
+                                }
+                                setIsMenuVisible((prev) => !prev);
+                            }}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                            disabled={isAvatarCropModalOpen || disabled}
+                            disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                             disabledStyle={disabledStyle}
                             ref={anchorRef}
                         >

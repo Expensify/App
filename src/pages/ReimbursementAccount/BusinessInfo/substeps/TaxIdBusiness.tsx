@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -12,9 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type TaxIdBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -23,10 +23,10 @@ type TaxIdBusinessOnyxProps = {
 
 type TaxIdBusinessProps = TaxIdBusinessOnyxProps & SubStepProps;
 
-const COMPANY_TAX_ID_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_TAX_ID;
+const COMPANY_TAX_ID_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID;
 const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
 
-const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
@@ -80,6 +80,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
 TaxIdBusiness.displayName = 'TaxIdBusiness';
 
 export default withOnyx<TaxIdBusinessProps, TaxIdBusinessOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
