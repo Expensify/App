@@ -153,6 +153,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
+    SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
@@ -463,6 +464,14 @@ const ROUTES = {
     WORKSPACE_RATE_AND_UNIT: {
         route: 'workspace/:policyID/rateandunit',
         getRoute: (policyID: string) => `workspace/${policyID}/rateandunit` as const,
+    },
+    WORKSPACE_RATE_AND_UNIT_RATE: {
+        route: 'workspace/:policyID/rateandunit/rate',
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit/rate` as const,
+    },
+    WORKSPACE_RATE_AND_UNIT_UNIT: {
+        route: 'workspace/:policyID/rateandunit/unit',
+        getRoute: (policyID: string) => `workspace/${policyID}/rateandunit/unit` as const,
     },
     WORKSPACE_BILLS: {
         route: 'workspace/:policyID/bills',

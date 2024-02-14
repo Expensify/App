@@ -176,6 +176,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                            path: ROUTES.SETTINGS_TROUBLESHOOT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                             exact: true,
@@ -228,6 +232,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: {
+                            path: ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.route,
+                        },
+                        [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: {
+                            path: ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.route,
                         },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,

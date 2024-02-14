@@ -35,6 +35,7 @@ const SCREENS = {
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
+        TROUBLESHOOT: 'Settings_Troubleshoot',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -197,6 +198,8 @@ const SCREENS = {
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
+        RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
+        RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
