@@ -13,22 +13,28 @@ type DeployBlockers = {
     isResolved: boolean;
 };
 
+type PR = {
+    url: string;
+    number: number;
+    isVerified: boolean;
+};
+
+type Label = {
+    id: number;
+    number?: number;
+    isVerified?: boolean;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    node_id: string;
+    url: string;
+    name: string;
+    color: string;
+    default: boolean;
+    description: string;
+};
+
 type ExpectedReponse = {
-    PRList: Array<{
-        url: string;
-        number: number;
-        isVerified: boolean;
-    }>;
-    labels: Array<{
-        color: string;
-        default: boolean;
-        description: string;
-        id: number;
-        name: string;
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        node_id: string;
-        url: string;
-    }>;
+    PRList: PR[];
+    labels: Label[];
     tag: string;
     title: string;
     url: string;
@@ -43,16 +49,7 @@ type ExpectedReponse = {
 type Issue = {
     url: string;
     title: string;
-    labels: Array<{
-        id: number;
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        node_id: string;
-        url: string;
-        name: string;
-        color: string;
-        default: boolean;
-        description: string;
-    }>;
+    labels: Label[];
     body: string;
 };
 
@@ -87,7 +84,6 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     };
 
-    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
 });
 
