@@ -2630,6 +2630,15 @@ function getReportDescriptionText(report: Report): string {
     return parser.htmlToText(report.description);
 }
 
+function getPolicyDescriptionText(policy: Policy): string {
+    if (!policy.description) {
+        return '';
+    }
+
+    const parser = new ExpensiMark();
+    return parser.htmlToText(policy.description);
+}
+
 function buildOptimisticAddCommentReportAction(text?: string, file?: File, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
@@ -4667,6 +4676,10 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
+function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
+    return PolicyUtils.isPolicyAdmin(policy);
+}
+
 /**
  * Checks if report action has error when smart scanning
  */
@@ -5046,6 +5059,8 @@ export {
     getAvailableReportFields,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
+    canEditPolicyDescription,
+    getPolicyDescriptionText,
 };
 
 export type {

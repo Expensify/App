@@ -1,27 +1,29 @@
-import type {ForwardedRef} from 'react';
+import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
 import React, {forwardRef, useContext} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import TextInput from '@components/TextInput';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import FormContext from './FormContext';
-import type {InputWrapperProps, ValidInputs} from './types';
+import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
-const textInputBasedComponents: ValidInputs[] = [TextInput, RoomNameInput];
+const textInputBasedComponents: ComponentType[] = [TextInput, RoomNameInput];
 
-function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>({
+type ComputedComponentSpecificRegistrationParams = {
+    shouldSubmitForm: boolean;
+    shouldSetTouchedOnBlurOnly: boolean;
+    blurOnSubmit: boolean | undefined;
+};
+
+function computeComponentSpecificRegistrationParams({
     InputComponent,
     shouldSubmitForm,
     multiline,
     autoGrowHeight,
     blurOnSubmit,
-}: InputWrapperProps<TInput>): {
-    readonly shouldSubmitForm: boolean;
-    readonly blurOnSubmit: boolean | undefined;
-    readonly shouldSetTouchedOnBlurOnly: boolean;
-} {
+}: InputComponentBaseProps): ComputedComponentSpecificRegistrationParams {
     if (textInputBasedComponents.includes(InputComponent)) {
-        const isEffectivelyMultiline = Boolean(multiline) || Boolean(autoGrowHeight);
+        const isEffectivelyMultiline = !!multiline || !!autoGrowHeight;
 
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
         // (like a Shift+Enter keyboard shortcut). For simplicity, we assume that when there's no touch screen, it's a
@@ -31,7 +33,7 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
         // We want to avoid a situation when the user can't insert a new line. For single-line inputs, it's not a problem and we
         // force-enable form submission. For multi-line inputs, ensure that it was requested to enable form submission for this specific
         // input and that alternative ways exist to add a new line.
-        const shouldReallySubmitForm = isEffectivelyMultiline ? Boolean(shouldSubmitForm) && canUseHardwareKeyboard : true;
+        const shouldReallySubmitForm = isEffectivelyMultiline ? !!shouldSubmitForm && canUseHardwareKeyboard : true;
 
         return {
             // There are inputs that don't have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to
@@ -52,15 +54,28 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     };
 }
 
-function InputWrapper<TInput extends ValidInputs>(props: InputWrapperProps<TInput>, ref: ForwardedRef<AnimatedTextInputRef>) {
-    const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props;
+type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey = ValueTypeKey> = ComponentPropsWithoutRef<TInput> &
+    InputComponentValueProps<TValue> & {
+        InputComponent: TInput;
+        inputID: string;
+        isFocused?: boolean;
+
+        /**
+         * Should the containing form be submitted when this input is submitted itself?
+         * Currently, meaningful only for text inputs.
+         */
+        shouldSubmitForm?: boolean;
+    };
+
+function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>(props: InputWrapperProps<TInput, TValue>, ref: ForwardedRef<AnimatedTextInputRef>) {
+    const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
     const {registerInput} = useContext(FormContext);
 
-    const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props);
+    const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
 
     // TODO: Sometimes we return too many props with register input, so we need to consider if it's better to make the returned type more general and disregard the issue, or we would like to omit the unused props somehow.
-    // eslint-disable-next-line react/jsx-props-no-spreading, @typescript-eslint/no-explicit-any
-    return <InputComponent {...(registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit}) as any)} />;
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <InputComponent {...registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, blurOnSubmit})} />;
 }
 
 InputWrapper.displayName = 'InputWrapper';

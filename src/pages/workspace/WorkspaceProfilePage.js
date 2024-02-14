@@ -54,7 +54,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
+    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) && !!policy.outputCurrency ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy.id)), [policy.id]);
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy.id)), [policy.id]);
@@ -79,6 +79,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                         source={lodashGet(policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.XLARGE}
                         avatarStyle={styles.avatarXLarge}
+                        enablePreview
                         DefaultAvatar={() => (
                             <Avatar
                                 containerStyles={styles.avatarXLarge}
@@ -116,7 +117,22 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                             shouldGreyOutWhenDisabled={false}
                             shouldUseDefaultCursorWhenDisabled
                         />
-
+                    </OfflineWithFeedback>
+                    {(!_.isEmpty(policy.description) || !readOnly) && (
+                        <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.description')}>
+                            <MenuItemWithTopDescription
+                                title={policy.description}
+                                description={translate('workspace.editor.descriptionInputLabel')}
+                                shouldShowRightIcon={!readOnly}
+                                disabled={readOnly}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id))}
+                                shouldGreyOutWhenDisabled={false}
+                                shouldUseDefaultCursorWhenDisabled
+                                shouldRenderAsHTML
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <View>
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}

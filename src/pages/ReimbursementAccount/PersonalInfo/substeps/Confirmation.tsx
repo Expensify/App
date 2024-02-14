@@ -15,7 +15,9 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -27,7 +29,7 @@ type ConfirmationOnyxProps = {
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
-const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.PERSONAL_INFO;
 
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
@@ -127,6 +129,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
 Confirmation.displayName = 'Confirmation';
 
 export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

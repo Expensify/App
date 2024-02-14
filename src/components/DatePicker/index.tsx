@@ -1,105 +1,90 @@
 import {setYear} from 'date-fns';
-import _ from 'lodash';
-import PropTypes from 'prop-types';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import refPropTypes from '@components/refPropTypes';
 import TextInput from '@components/TextInput';
-import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
+import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import CalendarPicker from './CalendarPicker';
 
-const propTypes = {
-    /** React ref being forwarded to the DatePicker input */
-    forwardedRef: refPropTypes,
-
+type DatePickerProps = {
     /**
      * The datepicker supports any value that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
-    value: PropTypes.string,
+    value?: string;
 
     /**
      * The datepicker supports any defaultValue that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
      */
-    defaultValue: PropTypes.string,
+    defaultValue?: string;
 
-    inputID: PropTypes.string.isRequired,
+    inputID: string;
 
     /** A minimum date of calendar to select */
-    minDate: PropTypes.objectOf(Date),
+    minDate?: Date;
 
     /** A maximum date of calendar to select */
-    maxDate: PropTypes.objectOf(Date),
+    maxDate?: Date;
 
     /** A function that is passed by FormWrapper */
-    onInputChange: PropTypes.func.isRequired,
+    onInputChange: (value: Date) => void;
 
     /** A function that is passed by FormWrapper */
-    onTouched: PropTypes.func.isRequired,
+    onTouched: () => void;
 
     /** Saves a draft of the input value when used in a form */
-    shouldSaveDraft: PropTypes.bool,
+    shouldSaveDraft?: boolean;
 
     /** ID of the wrapping form */
-    formID: PropTypes.string,
+    formID?: keyof OnyxFormValuesMapping;
+} & BaseTextInputProps;
 
-    ...baseTextInputPropTypes,
-};
-
-const datePickerDefaultProps = {
-    ...defaultBaseTextInputPropTypes,
-    minDate: setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
-    value: undefined,
-    shouldSaveDraft: false,
-    formID: '',
-};
-
-function DatePicker({
-    forwardedRef,
-    containerStyles,
-    defaultValue,
-    disabled,
-    errorText,
-    inputID,
-    isSmallScreenWidth,
-    label,
-    maxDate,
-    minDate,
-    onInputChange,
-    onTouched,
-    placeholder,
-    value,
-    shouldSaveDraft,
-    formID,
-}) {
+function DatePicker(
+    {
+        containerStyles,
+        defaultValue,
+        disabled,
+        errorText,
+        inputID,
+        label,
+        maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+        minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+        onInputChange,
+        onTouched,
+        placeholder,
+        value,
+        shouldSaveDraft = false,
+        formID,
+    }: DatePickerProps,
+    ref: ForwardedRef<BaseTextInputRef>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
-    const onSelected = (newValue) => {
-        if (_.isFunction(onTouched)) {
-            onTouched();
-        }
-        if (_.isFunction(onInputChange)) {
-            onInputChange(newValue);
-        }
+    const onSelected = (newValue: string) => {
+        onTouched?.();
+        onInputChange?.(newValue);
         setSelectedDate(newValue);
     };
 
     useEffect(() => {
         // Value is provided to input via props and onChange never fires. We have to save draft manually.
-        if (shouldSaveDraft && formID !== '') {
+        if (shouldSaveDraft && !!formID) {
             FormActions.setDraftValues(formID, {[inputID]: selectedDate});
         }
 
-        if (selectedDate === value || _.isUndefined(value)) {
+        if (selectedDate === value || !value) {
             return;
         }
 
@@ -110,7 +95,7 @@ function DatePicker({
         <View style={styles.datePickerRoot}>
             <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
                 <TextInput
-                    ref={forwardedRef}
+                    ref={ref}
                     inputID={inputID}
                     forceActiveLabel
                     icon={Expensicons.Calendar}
@@ -118,7 +103,7 @@ function DatePicker({
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
                     value={selectedDate}
-                    placeholder={placeholder || translate('common.dateFormat')}
+                    placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
                     containerStyles={containerStyles}
                     textInputContainerStyles={[styles.borderColorFocus]}
@@ -139,18 +124,6 @@ function DatePicker({
     );
 }
 
-DatePicker.propTypes = propTypes;
-DatePicker.defaultProps = datePickerDefaultProps;
 DatePicker.displayName = 'DatePicker';
 
-const DatePickerWithRef = forwardRef((props, ref) => (
-    <DatePicker
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-DatePickerWithRef.displayName = 'DatePickerWithRef';
-
-export default DatePickerWithRef;
+export default forwardRef(DatePicker);
