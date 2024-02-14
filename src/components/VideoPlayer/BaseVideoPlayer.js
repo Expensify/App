@@ -29,6 +29,7 @@ function BaseVideoPlayer({
     videoDuration,
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
+    shouldShowVideoControls,
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
@@ -164,10 +165,10 @@ function BaseVideoPlayer({
 
     return (
         <>
-            <View style={[styles.w100, styles.h100]}>
+            <View style={style}>
                 <Hoverable>
                     {(isHovered) => (
-                        <View style={[styles.w100, styles.h100, style]}>
+                        <View style={[styles.w100, styles.h100]}>
                             {shouldUseSharedVideoElement ? (
                                 <>
                                     <View
@@ -201,8 +202,8 @@ function BaseVideoPlayer({
                                     >
                                         <Video
                                             ref={videoPlayerRef}
-                                            style={videoPlayerStyle || [styles.w100, styles.h100]}
-                                            videoStyle={videoStyle || [styles.w100, styles.h100]}
+                                            style={[styles.w100, styles.h100, videoPlayerStyle]}
+                                            videoStyle={[styles.w100, styles.h100, videoStyle]}
                                             source={{
                                                 uri: sourceURL,
                                             }}
@@ -220,7 +221,7 @@ function BaseVideoPlayer({
 
                             {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-                            {!isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                            {shouldShowVideoControls && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
                                     position={position}

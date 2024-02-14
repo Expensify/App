@@ -78,6 +78,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         onVideoLoaded={onVideoLoaded}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
+                        style={[styles.w100, styles.h100]}
                     />
 
                     <IconButton

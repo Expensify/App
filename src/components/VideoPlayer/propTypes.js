@@ -11,10 +11,13 @@ const videoPlayerPropTypes = {
 
     isLooping: PropTypes.bool,
 
+    // style for the whole video player component
     style: stylePropTypes,
 
+    // style for the video player inside the component
     videoPlayerStyle: stylePropTypes,
 
+    // style for the video element inside the video player
     videoStyle: stylePropTypes,
 
     videoControlsStyle: stylePropTypes,
@@ -24,6 +27,8 @@ const videoPlayerPropTypes = {
     shouldUseSharedVideoElement: PropTypes.bool,
 
     shouldUseSmallVideoControls: PropTypes.bool,
+
+    shouldShowVideoControls: PropTypes.bool,
 
     isVideoHovered: PropTypes.bool,
 
@@ -43,6 +48,7 @@ const videoPlayerDefaultProps = {
     videoDuration: 0,
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
+    shouldShowVideoControls: true,
     isVideoHovered: false,
     onFullscreenUpdate: () => {},
     onPlaybackStatusUpdate: () => {},

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const propTypes = {
@@ -23,6 +24,7 @@ const defaultProps = {
 
 function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, videoDuration}) {
     const {isSmallScreen} = useWindowDimensions();
+    const styles = useThemeStyles();
 
     return (
         <VideoPlayer
@@ -30,6 +32,7 @@ function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, vi
             shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreen}
             isVideoHovered={isHovered}
             videoDuration={videoDuration}
+            style={[styles.w100, styles.h100]}
         />
     );
 }
