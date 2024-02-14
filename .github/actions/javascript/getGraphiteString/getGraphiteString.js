@@ -35,7 +35,7 @@ const run = () => {
         .join('\n');
 
     // Set generated graphite string to the github variable
-    core.setOutput('graphiteString', graphiteString);
+    core.setOutput('GRAPHITE_STRING', graphiteString);
 };
 
 if (require.main === module) {

@@ -53,4 +53,4 @@ jobs:
       - name: Send graphite data
         # run only when merged to master
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        run: echo -e "${{ steps.saveGraphiteString.outputs.graphiteString }}" | nc "$GRAFHITE_SERVER" "$GRAFHITE_PORT"
+        run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc "$GRAFHITE_SERVER" "$GRAFHITE_PORT"
