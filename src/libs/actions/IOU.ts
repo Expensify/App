@@ -3569,8 +3569,8 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
-        })
-    };
+        });
+    }
 
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
