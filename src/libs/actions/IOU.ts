@@ -1,4 +1,4 @@
-import {ParamListBase, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
