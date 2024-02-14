@@ -76,7 +76,7 @@ const policyPropTypes = {
          */
         isTaxTrackingEnabled: PropTypes.bool,
 
-        /** When tax tracking is enabled */
+        /** Whether or not the policy has tax tracking enabled */
         tax: PropTypes.shape({
             trackingEnabled: PropTypes.bool,
         }),

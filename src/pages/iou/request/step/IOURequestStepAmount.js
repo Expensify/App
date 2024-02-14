@@ -40,10 +40,14 @@ const propTypes = {
 
     /** The policy of the report */
     policy: PropTypes.shape({
-        /** @deprecated Is Tax tracking Enabled */
+        /**
+         * Whether or not the policy has tax tracking enabled
+         *
+         * @deprecated - use tax.trackingEnabled instead
+         */
         isTaxTrackingEnabled: PropTypes.bool,
 
-        /** Is Tax tracking Enabled */
+        /** Whether or not the policy has tax tracking enabled */
         tax: PropTypes.shape({
             trackingEnabled: PropTypes.bool,
         }),
