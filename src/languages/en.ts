@@ -810,6 +810,7 @@ export default {
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
+            troubleshoot: 'Troubleshoot',
         },
         appDownloadLinks: {
             android: {
@@ -821,6 +822,14 @@ export default {
             desktop: {
                 label: 'macOS',
             },
+        },
+        troubleshoot: {
+            clearCacheAndRestart: 'Clear cache and restart',
+            viewConsole: 'View debug console',
+            description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
+            submitBug: 'submit a bug',
+            confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
+            resetAndRefresh: 'Reset and refresh',
         },
         goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
@@ -1796,6 +1805,7 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
+            descriptionInputLabel: 'Workspace description',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
