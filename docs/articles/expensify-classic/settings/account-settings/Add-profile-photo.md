@@ -17,7 +17,7 @@ description: Add a photo to your Expensify account
 2. Tap the profile picture icon.
 3. Tap the Edit icon next to your name
 4. Tap **Upload Photo** and either:
-    a. Tap the capture button to take a new photo.
+    - Tap the capture button to take a new photo.
     b. Tap the photo icon on the left to select a saved photo.
 {% include end-option.html %}
 
