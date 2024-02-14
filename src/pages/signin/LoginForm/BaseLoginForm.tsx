@@ -36,7 +36,8 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, CloseAccountForm, Credentials} from '@src/types/onyx';
+import type {CloseAccountForm} from '@src/types/form';
+import type {Account, Credentials} from '@src/types/onyx';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 

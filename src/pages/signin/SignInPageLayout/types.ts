@@ -18,9 +18,6 @@ type SignInPageLayoutProps = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader?: boolean;
 
-    /** Whether the sign-in page is being rendered in the RHP modal */
-    shouldShowSmallScreen?: boolean;
-
     /** Override the green headline copy */
     customHeadline?: string;
 

@@ -1,18 +1,19 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
+import useIsSplashHidden from '@hooks/useIsSplashHidden';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import type {SignInPageLayoutProps} from './types';
 
-type SignInHeroImageProps = Pick<SignInPageLayoutProps, 'shouldShowSmallScreen'>;
-
-function SignInHeroImage({shouldShowSmallScreen = false}: SignInHeroImageProps) {
+function SignInHeroImage() {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const imageSize = useMemo(() => {
-        if (isSmallScreenWidth || shouldShowSmallScreen) {
+        if (shouldUseNarrowLayout) {
             return {
                 height: variables.signInHeroImageMobileHeight,
                 width: variables.signInHeroImageMobileWidth,
@@ -23,7 +24,15 @@ function SignInHeroImage({shouldShowSmallScreen = false}: SignInHeroImageProps) 
             height: isMediumScreenWidth ? variables.signInHeroImageTabletHeight : variables.signInHeroImageDesktopHeight,
             width: isMediumScreenWidth ? variables.signInHeroImageTabletWidth : variables.signInHeroImageDesktopWidth,
         };
-    }, [shouldShowSmallScreen, isMediumScreenWidth, isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout, isMediumScreenWidth]);
+
+    const isSplashHidden = useIsSplashHidden();
+    // Prevents rendering of the Lottie animation until the splash screen is hidden
+    // by returning an empty view of the same size as the animation.
+    // See issue: https://github.com/Expensify/App/issues/34696
+    if (!isSplashHidden) {
+        return <View style={[styles.alignSelfCenter, imageSize]} />;
+    }
 
     return (
         <Lottie

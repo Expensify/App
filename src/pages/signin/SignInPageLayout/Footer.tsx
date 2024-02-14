@@ -8,11 +8,12 @@ import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import type {LinkProps, PressProps} from '@components/TextLink';
 import TextLink from '@components/TextLink';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
@@ -142,12 +143,13 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
     },
 ];
 
-function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
+function Footer({navigateFocus}: FooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isMediumScreenWidth} = useWindowDimensions();
     const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;

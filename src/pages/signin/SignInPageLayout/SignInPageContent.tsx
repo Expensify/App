@@ -4,22 +4,19 @@ import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SignInPageForm from '@components/SignInPageForm';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
-import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import variables from '@styles/variables';
 import SignInHeroImage from './SignInHeroImage';
 import type {SignInPageLayoutProps} from './types';
 
-type SignInPageContentProps = Pick<SignInPageLayoutProps, 'welcomeText' | 'welcomeHeader' | 'shouldShowWelcomeText' | 'shouldShowWelcomeHeader' | 'shouldShowSmallScreen'> & {
+type SignInPageContentProps = Pick<SignInPageLayoutProps, 'welcomeText' | 'welcomeHeader' | 'shouldShowWelcomeText' | 'shouldShowWelcomeHeader'> & {
     /** The children to show inside the layout */
     children?: React.ReactNode;
 };
 
-function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText, shouldShowWelcomeText, shouldShowSmallScreen, children}: SignInPageContentProps) {
+function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText, shouldShowWelcomeText, children}: SignInPageContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

@@ -48,7 +48,7 @@ function SignInPageLayout(
             containerStyles: shouldUseNarrowLayout ? [styles.flex1] : [styles.flex1, styles.signInPageInner],
             contentContainerStyles: [styles.flex1, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow],
         }),
-        [shouldShowSmallScreen, styles],
+        [shouldUseNarrowLayout, styles],
     );
 
     // To scroll on both mobile and web, we need to set the container height manually

@@ -48,10 +48,7 @@ type SignInPageInnerOnyxProps = {
     preferredLocale: OnyxEntry<Locale>;
 };
 
-type SignInPageInnerProps = SignInPageInnerOnyxProps & {
-    /** Whether the sign-in page is being rendered in the RHP modal */
-    isInModal?: boolean;
-};
+type SignInPageInnerProps = SignInPageInnerOnyxProps;
 
 type RenderOption = {
     shouldShowLoginForm: boolean;
