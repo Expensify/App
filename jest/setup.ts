@@ -2,12 +2,12 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
-import * as reanimatedJestUtils from 'react-native-reanimated/src/reanimated2/jestUtils';
+import {setUpTests} from 'react-native-reanimated';
 import 'setimmediate';
 import setupMockImages from './setupMockImages';
 
 setupMockImages();
-reanimatedJestUtils.setUpTests();
+setUpTests();
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
