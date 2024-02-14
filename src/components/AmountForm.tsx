@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, TextInput, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
@@ -12,6 +12,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
 type AmountFormProps = {
@@ -50,18 +51,13 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function AmountForm(
-<<<<<<< HEAD
-    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps,
-    forwardedRef: ForwardedRef<TextInput>,
-=======
     {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true}: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
->>>>>>> af1026e (Merge pull request #36497 from shubham1206agra/fix-currency-ui)
 ) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
-    const textInput = useRef<TextInput | null>(null);
+    const textInput = useRef<BaseTextInputRef | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
@@ -195,12 +191,11 @@ function AmountForm(
                 style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
-                    // @ts-expect-error: Migration pending
                     formattedAmount={formattedAmount}
                     onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}
-                    ref={(ref: TextInput) => {
+                    ref={(ref: BaseTextInputRef) => {
                         if (typeof forwardedRef === 'function') {
                             forwardedRef(ref);
                         } else if (forwardedRef && 'current' in forwardedRef) {
