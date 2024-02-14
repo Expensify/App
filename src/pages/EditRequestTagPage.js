@@ -16,10 +16,14 @@ const propTypes = {
     policyID: PropTypes.string.isRequired,
 
     /** The tag name to which the default tag belongs to */
-    tagName: PropTypes.string.isRequired,
+    tagName: PropTypes.string,
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+    tagName: '',
 };
 
 function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
@@ -58,6 +62,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
 }
 
 EditRequestTagPage.propTypes = propTypes;
+EditRequestTagPage.defaultProps = defaultProps;
 EditRequestTagPage.displayName = 'EditRequestTagPage';
 
 export default EditRequestTagPage;
