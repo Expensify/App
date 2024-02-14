@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import pkg from '../../../package.json';
+import pkg from '../../../../package.json';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
