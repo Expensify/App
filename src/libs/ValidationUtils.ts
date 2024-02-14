@@ -4,9 +4,11 @@ import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
@@ -73,8 +75,12 @@ function isValidPastDate(date: string | Date): boolean {
 
 /**
  * Used to validate a value that is "required".
+ * @param value - field value
  */
-function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
+function isRequiredFulfilled(value?: string | boolean | Date): boolean {
+    if (!value) {
+        return false;
+    }
     if (typeof value === 'string') {
         return !StringUtils.isEmptyString(value);
     }
@@ -90,15 +96,20 @@ function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, u
 
 /**
  * Used to add requiredField error to the fields passed.
+ * @param values - all form values
+ * @param requiredFields - required fields for particular form
  */
-function getFieldRequiredErrors(values: OnyxCommon.Errors, requiredFields: string[]) {
-    const errors: OnyxCommon.Errors = {};
+function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
+    const errors: FormInputErrors<TFormID> = {};
+
     requiredFields.forEach((fieldKey) => {
-        if (isRequiredFulfilled(values[fieldKey])) {
+        if (isRequiredFulfilled(values[fieldKey] as keyof FormOnyxValues)) {
             return;
         }
+
         errors[fieldKey] = 'common.error.fieldRequired';
     });
+
     return errors;
 }
 
@@ -361,8 +372,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: Record<string, Report>, policyID: string): boolean {
-    return Object.values(reports).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
+    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**

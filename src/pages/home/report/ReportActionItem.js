@@ -627,7 +627,7 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -639,11 +639,11 @@ function ReportActionItem(props) {
                             </ReportActionItemSingle>
                             <View style={styles.reportHorizontalRule} />
                         </View>
-                    </>
+                    </View>
                 );
             }
             return (
-                <>
+                <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                         <TaskView
@@ -651,7 +651,7 @@ function ReportActionItem(props) {
                             shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                         />
                     </View>
-                </>
+                </View>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
@@ -695,6 +695,13 @@ function ReportActionItem(props) {
         originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         !isSendingMoney
     ) {
+        return null;
+    }
+
+    // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
+    // This is a temporary solution needed for comment-linking.
+    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
+    if (ReportActionsUtils.isWhisperActionTargetedToOthers(props.action)) {
         return null;
     }
 

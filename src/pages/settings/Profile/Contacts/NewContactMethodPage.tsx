@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {LoginList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -113,7 +114,7 @@ function NewContactMethodPage({loginList = {}, route}: NewContactMethodPageProps
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={loginInputRef}
-                        inputID="phoneOrEmail"
+                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
                         autoCapitalize="none"
                         enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}

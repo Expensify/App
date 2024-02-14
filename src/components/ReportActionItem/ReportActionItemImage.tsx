@@ -17,6 +17,8 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
+type IconSize = 'small' | 'medium' | 'large';
+
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
     thumbnail?: string | ImageSourcePropType | null;
@@ -38,6 +40,9 @@ type ReportActionItemImageProps = {
 
     /** Filename of attachment */
     filename?: string;
+
+    /** number of images displayed in the same parent container */
+    iconSize?: IconSize;
 };
 
 /**
@@ -46,7 +51,16 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false, filename}: ReportActionItemImageProps) {
+function ReportActionItemImage({
+    thumbnail,
+    image,
+    enablePreviewModal = false,
+    transaction,
+    canEditReceipt = false,
+    isLocalFile = false,
+    filename,
+    iconSize = 'large',
+}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
@@ -58,7 +72,10 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
     if (isEReceipt) {
         receiptImageComponent = (
             <View style={[styles.w100, styles.h100]}>
-                <EReceiptThumbnail transactionID={transaction.transactionID} />
+                <EReceiptThumbnail
+                    transactionID={transaction.transactionID}
+                    iconSize={iconSize as IconSize}
+                />
             </View>
         );
     } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
@@ -89,7 +106,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                         report={report}
                         isReceiptAttachment
                         canEditReceipt={canEditReceipt}
-                        allowDownload
+                        allowDownload={!isEReceipt}
                         originalFileName={filename}
                     >
                         {({show}) => (

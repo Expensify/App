@@ -48,6 +48,7 @@ import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
+import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
@@ -96,6 +97,7 @@ import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
+import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
@@ -238,6 +240,7 @@ export {
     NewWorkspace,
     Offline,
     OfflineCloud,
+    OldDotWireframe,
     Paperclip,
     Paycheck,
     Pencil,
@@ -278,4 +281,5 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
+    Lightbulb,
 };
