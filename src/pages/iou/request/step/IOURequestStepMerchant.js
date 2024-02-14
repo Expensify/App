@@ -119,7 +119,6 @@ function IOURequestStepMerchant({
         }
         IOU.setMoneyRequestMerchant(transactionID, newMerchant, !isEditing);
         if (isEditing) {
-
             // When creating new money requests newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
