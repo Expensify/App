@@ -367,9 +367,9 @@ function BaseOptionsSelector(props) {
     }, []);
 
     useEffect(() => {
-        if (disableEnterShortCut) {
-            enterSubscription.current();
-        } else {
+        // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+        enterSubscription.current();
+        if (!disableEnterShortCut) {
             subscribeToEnterShortcut();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

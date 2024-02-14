@@ -12,8 +12,7 @@ import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,9 +27,9 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Session} from '@src/types/onyx';
 
-type ShareCodePageOnyxProps = WithCurrentUserPersonalDetailsProps & {
+type ShareCodePageOnyxProps = {
     /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
+    session?: OnyxEntry<Session>;
 
     /** The report currently being looked at */
     report?: OnyxEntry<Report>;
@@ -38,12 +37,13 @@ type ShareCodePageOnyxProps = WithCurrentUserPersonalDetailsProps & {
 
 type ShareCodePageProps = ShareCodePageOnyxProps;
 
-function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodePageProps) {
+function ShareCodePage({report, session}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
     const {isSmallScreenWidth} = useWindowDimensions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
 
@@ -81,7 +81,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : undefined)}
                 shouldShowBackButton={isReport || isSmallScreenWidth}
-                icon={Illustrations.QrCode}
+                icon={Illustrations.QRCode}
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                 <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
@@ -145,4 +145,4 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
 
 ShareCodePage.displayName = 'ShareCodePage';
 
-export default withCurrentUserPersonalDetails(ShareCodePage);
+export default ShareCodePage;
