@@ -115,7 +115,6 @@ type BaseListItemProps<TItem extends User | RadioItem> = CommonListItemProps<TIt
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
-    viewMode?: SelectionListMode;
 };
 
 type Section<TItem extends User | RadioItem> = {
@@ -141,9 +140,6 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Header titles of the section list */
     headerItems?: string[];
-
-    /** The mode of the Selection list: table or list */
-    viewMode?: SelectionListMode;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -247,8 +243,6 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     /** Fired when the list is displayed with the items */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
-
-type SelectionListMode = 'table' | 'list';
 
 type ItemLayout = {
     length: number;

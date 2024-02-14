@@ -16,7 +16,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
                     showTooltip={showTooltip}
                 />
             )}
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
                     text={item.text}

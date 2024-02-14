@@ -33,6 +33,8 @@ function BaseListItem<TItem extends User | RadioItem>({
     const isUserItem = 'icons' in item && item?.icons?.length && item.icons.length > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
+    const isListMode = !isUserItem;
+
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
             return null;
@@ -62,15 +64,28 @@ function BaseListItem<TItem extends User | RadioItem>({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
+                style={[
+                    !isListMode && styles.alignItemsCenter,
+                    !isListMode && styles.flexRow,
+                    !isListMode && styles.ph4,
+                    !isListMode && styles.mh5,
+                    !isListMode && styles.highlightBG,
+                    !isListMode && styles.mb3,
+                    !isListMode && styles.br2,
+                    !isListMode && isFocused && styles.activeComponentBG,
+                    isListMode ? styles.ph0 : styles.pv3,
+                ]}
             >
                 <View
                     style={[
                         styles.flex1,
                         styles.justifyContentBetween,
-                        styles.sidebarLinkInner,
                         styles.userSelectNone,
                         isUserItem ? styles.peopleRow : styles.optionRow,
-                        isFocused && styles.sidebarLinkActive,
+                        isListMode && styles.sidebarLinkInner,
+                        isListMode && isFocused && styles.sidebarLinkActive,
+                        isListMode ? styles.ph5 : styles.ph0,
+                        isListMode && styles.flexRow,
                     ]}
                 >
                     {canSelectMultiple && (
@@ -108,6 +123,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                             styles.sidebarLinkTextBold,
                             styles.pre,
                             item.alternateText ? styles.mb1 : null,
+                            styles.justifyContentCenter,
                         ]}
                         alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         isDisabled={isDisabled}

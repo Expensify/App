@@ -29,7 +29,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     {
         sections,
         headerItems = [],
-        viewMode = CONST.SELECTION_LIST_MODE.LIST,
         canSelectMultiple = false,
         onSelectRow,
         onSelectAll,
@@ -296,7 +295,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
-                viewMode={viewMode}
             />
         );
     };
@@ -434,7 +432,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                         ) : (
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pv3]}
+                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         role="button"
@@ -464,7 +462,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                         </View>
                                     </PressableWithFeedback>}
                                     {!headerMessage && !canSelectMultiple && headerItems && headerItems.length > 0 && (
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.ph9, styles.pv3]}>
                                             {headerItems.map((headerItem, index) => (
                                                 <Text style={[
                                                     styles.searchInputStyle,
