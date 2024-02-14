@@ -13,11 +13,8 @@ export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidation
  * - `null` if we want to go back to the view where the user selects between connecting via Plaid or connecting manually
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
- *
- * @param subStep
- * @returns
  */
-function setBankAccountSubStep(subStep: BankAccountSubStep) {
+function setBankAccountSubStep(subStep: BankAccountSubStep | null) {
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 
@@ -25,13 +22,10 @@ function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
-function setWorkspaceIDForReimbursementAccount(workspaceID: string) {
+function setWorkspaceIDForReimbursementAccount(workspaceID: string | null) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
 }
 
-/**
- * @param bankAccountData
- */
 function updateReimbursementAccountDraft(bankAccountData: ReimbursementAccountForm) {
     Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, bankAccountData);
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {draftStep: undefined});
