@@ -4,6 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -31,15 +33,18 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
+    const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
+
     const isDownloading = download?.isDownloading ?? false;
 
     return (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFeedback
-                    style={style}
+                    style={[style, isOffline && styles.cursorDefault]}
                     onPress={() => {
-                        if (isDownloading) {
+                        if (isDownloading || isOffline) {
                             return;
                         }
                         Download.setDownload(sourceID, true);
@@ -56,7 +61,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                         // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
                         source={sourceURLWithAuth}
                         file={{name: displayName}}
-                        shouldShowDownloadIcon
+                        shouldShowDownloadIcon={!isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                     />
                 </PressableWithoutFeedback>

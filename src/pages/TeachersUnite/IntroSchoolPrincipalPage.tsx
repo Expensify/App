@@ -2,9 +2,10 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -20,13 +21,8 @@ import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
 import type {LoginList} from '@src/types/onyx';
-
-type IntroSchoolPrincipalFormData = {
-    firstName: string;
-    lastName: string;
-    partnerUserID: string;
-};
 
 type IntroSchoolPrincipalPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -42,7 +38,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
-    const onSubmit = (values: IntroSchoolPrincipalFormData) => {
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
         TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
     };
@@ -51,17 +47,13 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
      * @returns - An object containing the errors for each inputID
      */
     const validate = useCallback(
-        (values: IntroSchoolPrincipalFormData) => {
-            const errors = {};
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM> = {};
 
-            if (!ValidationUtils.isValidLegalName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.firstName) {
+            if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
             }
-            if (!ValidationUtils.isValidLegalName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.lastName) {
+            if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
             }
             if (!values.partnerUserID) {
@@ -91,7 +83,6 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
-            {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
@@ -103,10 +94,9 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
-                        inputID="firstName"
-                        name="firstName"
+                        inputID={INPUT_IDS.FIRST_NAME}
+                        name={INPUT_IDS.FIRST_NAME}
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -116,10 +106,9 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 </View>
                 <View style={styles.mv4}>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
-                        inputID="lastName"
-                        name="lastName"
+                        inputID={INPUT_IDS.LAST_NAME}
+                        name={INPUT_IDS.LAST_NAME}
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
@@ -129,10 +118,9 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 </View>
                 <View>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
-                        inputID="partnerUserID"
-                        name="partnerUserID"
+                        inputID={INPUT_IDS.PARTNER_USER_ID}
+                        name={INPUT_IDS.PARTNER_USER_ID}
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
                         role={CONST.ROLE.PRESENTATION}

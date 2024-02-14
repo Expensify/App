@@ -2,6 +2,7 @@ import React from 'react';
 import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';
@@ -10,6 +11,7 @@ function BaseTextInputWithCurrencySymbol(props) {
     const {fromLocaleDigit} = useLocalize();
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
+    const styles = useThemeStyles();
 
     const currencySymbolButton = (
         <CurrencySymbolButton
@@ -39,6 +41,7 @@ function BaseTextInputWithCurrencySymbol(props) {
                 props.onSelectionChange(e);
             }}
             onKeyPress={props.onKeyPress}
+            style={[styles.pr1]}
         />
     );
 

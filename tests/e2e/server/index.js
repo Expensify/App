@@ -84,6 +84,7 @@ const createServerInstance = () => {
     const [testDoneListeners, addTestDoneListener] = createListenerState();
 
     let activeTestConfig;
+    const networkCache = {};
 
     /**
      * @param {TestConfig} testConfig
@@ -143,6 +144,39 @@ const createServerInstance = () => {
                         res.statusCode = 500;
                         res.end('Error executing command');
                     });
+                break;
+            }
+
+            case Routes.testGetNetworkCache: {
+                getPostJSONRequestData(req, res).then((data) => {
+                    const appInstanceId = data && data.appInstanceId;
+                    if (!appInstanceId) {
+                        res.statusCode = 400;
+                        res.end('Invalid request missing appInstanceId');
+                        return;
+                    }
+
+                    const cachedData = networkCache[appInstanceId] || {};
+                    res.end(JSON.stringify(cachedData));
+                });
+
+                break;
+            }
+
+            case Routes.testUpdateNetworkCache: {
+                getPostJSONRequestData(req, res).then((data) => {
+                    const appInstanceId = data && data.appInstanceId;
+                    const cache = data && data.cache;
+                    if (!appInstanceId || !cache) {
+                        res.statusCode = 400;
+                        res.end('Invalid request missing appInstanceId or cache');
+                        return;
+                    }
+
+                    networkCache[appInstanceId] = cache;
+                    res.end('ok');
+                });
+
                 break;
             }
 
