@@ -68,7 +68,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
     const policyName = lodashGet(policy, 'name', '');
     const policyDescription = lodashGet(policy, 'description', '');
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
-    const imageStyle = isSmallScreenWidth ? [styles.mhv8, styles.mhn5] : [styles.mhv8, styles.mhn8];
+    const imageStyle = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
 
     return (
         <WorkspacePageWithSections

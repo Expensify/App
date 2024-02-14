@@ -91,6 +91,10 @@ export default {
         marginVertical: -32,
     },
 
+    mhv12: {
+        marginVertical: -48,
+    },
+
     mr0: {
         marginRight: 0,
     },

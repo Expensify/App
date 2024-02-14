@@ -37,7 +37,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
@@ -2035,7 +2034,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
 function updateWorkspaceDescription(policyID: string, previousValue: string, newValue: string) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
+        Navigation.goBack();
         return;
     }
 
@@ -2066,7 +2065,7 @@ function updateWorkspaceDescription(policyID: string, previousValue: string, new
     const parameters: UpdateWorkspaceDescriptionParams = {policyID, description: parsedDescription};
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, parameters, {optimisticData, failureData, successData});
-    Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
+    Navigation.goBack();
 }
 
 export {
