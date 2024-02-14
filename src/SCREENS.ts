@@ -35,6 +35,7 @@ const SCREENS = {
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
+        TROUBLESHOOT: 'Settings_Troubleshoot',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -208,6 +209,7 @@ const SCREENS = {
         CURRENCY: 'Workspace_Profile_Currency',
         DESCRIPTION: 'Workspace_Profile_Description',
         NAME: 'Workspace_Profile_Name',
+        DESCRIPTION: 'Workspace_Description',
     },
 
     EDIT_REQUEST: {

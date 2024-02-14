@@ -143,6 +143,7 @@ const WRITE_COMMANDS = {
     PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
     PAY_MONEY_REQUEST: 'PayMoneyRequest',
     ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
+    UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -283,6 +284,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]: Parameters.PayMoneyRequestParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST]: Parameters.PayMoneyRequestParams;
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
 };
 
 const READ_COMMANDS = {

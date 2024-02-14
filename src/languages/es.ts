@@ -630,7 +630,7 @@ export default {
             `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
-        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Solicitud de ${formattedAmount}`}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero.`,
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
@@ -805,6 +805,7 @@ export default {
             viewTheCode: 'Ver código',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reportar un error',
+            troubleshoot: 'Solución de problemas',
         },
         appDownloadLinks: {
             android: {
@@ -816,6 +817,14 @@ export default {
             desktop: {
                 label: 'macOS',
             },
+        },
+        troubleshoot: {
+            clearCacheAndRestart: 'Borrar caché y reiniciar',
+            viewConsole: 'Ver la consola de depuración',
+            description: 'Utilice las herramientas que aparecen a continuación para solucionar los problemas de Expensify. Si tiene algún problema, por favor',
+            submitBug: 'envíe un error',
+            confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
+            resetAndRefresh: 'Restablecer y actualizar',
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
@@ -1821,6 +1830,7 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         editor: {
+            descriptionInputLabel: 'Descripción del espacio de trabajo',
             nameInputLabel: 'Nombre',
             descriptionInputLabel: 'Descripción',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
