@@ -159,7 +159,6 @@ function MoneyRequestPreview({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const isMissingDetails = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowAmount = isScanning || !TransactionUtils.isAmountMissing(transaction);
 
     /*
@@ -340,7 +339,7 @@ function MoneyRequestPreview({
                                     </Text>
                                 )}
                             </View>
-                            {isMissingDetails && (
+                            {hasFieldErrors && (
                                 <View style={[styles.flexRow]}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                         <Text
