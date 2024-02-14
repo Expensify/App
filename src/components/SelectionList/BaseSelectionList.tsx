@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import {TextStyle, View} from 'react-native';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
@@ -21,12 +21,14 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useStyleUtils from "@hooks/useStyleUtils";
 import BaseListItem from './BaseListItem';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
 
 function BaseSelectionList<TItem extends User | RadioItem>(
     {
         sections,
+        headerItems = [],
         canSelectMultiple = false,
         onSelectRow,
         onSelectAll,
@@ -64,6 +66,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     inputRef: ForwardedRef<RNTextInput>,
 ) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
     const textInputRef = useRef<RNTextInput | null>(null);
@@ -74,6 +77,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
+
+    const isUserList = sections.length > 0 && 'icons' in sections[0].data[0];
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -426,9 +431,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (
                             <>
-                                {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3]}
+                                {!headerMessage && canSelectMultiple && shouldShowSelectAll && <PressableWithFeedback
+                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pv3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         role="button"
@@ -442,12 +446,21 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                             isChecked={flattenedSections.allSelected}
                                             onPress={selectAllRow}
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                            style={[styles.mr3]}
                                         />
-                                        <View style={[styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                                            {headerItems && headerItems.length > 0 && headerItems.map((headerItem, index) => (
+                                                <Text style={[
+                                                    styles.searchInputStyle,
+                                                    isUserList && StyleUtils.getPaddingLeft(52) as TextStyle
+                                                    // eslint-disable-next-line react/no-array-index-key
+                                                ]} key={index}>{headerItem}</Text>
+                                            ))}
+                                            {!headerItems || headerItems.length === 0 && (
+                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                            )}
                                         </View>
-                                    </PressableWithFeedback>
-                                )}
+                                    </PressableWithFeedback>}
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}

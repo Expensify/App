@@ -302,6 +302,8 @@ export default {
         of: 'of',
         default: 'Default',
         update: 'Update',
+        member: 'Member',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Use current location',

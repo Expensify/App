@@ -138,6 +138,9 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     /** Sections for the section list */
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
+    /** Header titles of the section list */
+    headerItems?: string[];
+
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 

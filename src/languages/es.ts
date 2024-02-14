@@ -292,6 +292,8 @@ export default {
         of: 'de',
         default: 'Predeterminado',
         update: 'Actualizar',
+        member: 'Miembro',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
