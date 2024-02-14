@@ -1,18 +1,14 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
-import type {Ref} from 'react';
+import React, {useEffect, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import Webcam from 'react-webcam';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
+import type {NavigationAwareCameraProps} from './types';
 
-type NavigationAwareCameraProps = {
-    torchOn: boolean;
-    onTorchAvailability?: (torchAvailable: boolean) => void;
-    cameraTabIndex: number;
-    onUserMedia?: (stream: MediaStream) => void;
-};
+
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-const NavigationAwareCamera = forwardRef(({torchOn, onTorchAvailability, cameraTabIndex, ...props}: NavigationAwareCameraProps, ref: Ref<Webcam>) => {
+function NavigationAwareCamera({torchOn, onTorchAvailability, cameraTabIndex, ...props}: NavigationAwareCameraProps, ref: ForwardedRef<Webcam>) {
     const trackRef = useRef<MediaStreamTrack | null>(null);
     const shouldShowCamera = useTabNavigatorFocus({
         tabIndex: cameraTabIndex,
@@ -58,6 +54,8 @@ const NavigationAwareCamera = forwardRef(({torchOn, onTorchAvailability, cameraT
             />
         </View>
     );
-});
+}
 
-export default NavigationAwareCamera;
+NavigationAwareCamera.displayName = 'NavigationAwareCamera';
+
+export default React.forwardRef(NavigationAwareCamera)

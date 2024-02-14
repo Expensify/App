@@ -1,16 +1,12 @@
 import React from 'react';
-import type {Ref} from 'react';
+import type {ForwardedRef} from 'react';
 import {Camera} from 'react-native-vision-camera';
-import type {CameraDevice} from 'react-native-vision-camera';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
+import type {NavigationAwareCameraNativeProps} from './types';
 
-type NavigationAwareCameraProps = {
-    cameraTabIndex: number;
-    device: CameraDevice;
-};
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, ...props}: NavigationAwareCameraProps, ref: Ref<Camera>) => {
+function NavigationAwareCamera({cameraTabIndex, ...props}: NavigationAwareCameraNativeProps, ref: ForwardedRef<Camera>) {
     const isCameraActive = useTabNavigatorFocus({tabIndex: cameraTabIndex});
 
     return (
@@ -20,7 +16,10 @@ const NavigationAwareCamera = React.forwardRef(({cameraTabIndex, ...props}: Navi
             {...props}
             isActive={isCameraActive}
         />
-    );
-});
 
-export default NavigationAwareCamera;
+    );
+}
+
+NavigationAwareCamera.displayName = 'NavigationAwareCamera';
+
+export default React.forwardRef(NavigationAwareCamera)

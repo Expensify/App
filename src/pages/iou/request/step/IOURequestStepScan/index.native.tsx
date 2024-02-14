@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
-import type IOURequestStepProps from './IOURequestStepProps';
+import type IOURequestStepProps from './types';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
 function IOURequestStepScan({

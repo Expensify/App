@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type IOURequestStepProps from './IOURequestStepProps';
+import type IOURequestStepProps from './types';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
 function IOURequestStepScan({
@@ -46,8 +46,8 @@ function IOURequestStepScan({
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState('');
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
 
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -66,7 +66,7 @@ function IOURequestStepScan({
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      */
-    const setUploadReceiptError = (isInvalid: boolean, title: string, reason: string) => {
+    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);
@@ -319,11 +319,11 @@ function IOURequestStepScan({
                     receiptImageTopPosition={receiptImageTopPosition}
                 />
                 <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle as TranslationPaths) : ''}
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                     onConfirm={hideRecieptModal}
                     onCancel={hideRecieptModal}
                     isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason as TranslationPaths) : ''}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                 />
