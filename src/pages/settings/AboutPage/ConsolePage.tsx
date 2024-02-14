@@ -120,7 +120,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
             if (!item) {
                 return null;
             }
-            console.debug({item});
+
             return (
                 <View style={styles.mb2}>
                     <Text family="MONOSPACE">{`${format(new Date(item.time), CONST.DATE.FNS_DB_FORMAT_STRING)} ${item.message}`}</Text>
