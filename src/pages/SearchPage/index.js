@@ -54,7 +54,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
-    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 

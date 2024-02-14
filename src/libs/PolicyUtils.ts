@@ -15,7 +15,9 @@ type UnitRate = {rate: number};
  * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
-    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return Object.values(policies ?? {}).filter<Policy>(
+        (policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
+    );
 }
 
 /**
@@ -106,7 +108,7 @@ function isExpensifyGuideTeam(email: string): boolean {
  */
 const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-const isPolicyMember = (policyID: string, policies: Record<string, Policy>): boolean => Object.values(policies).some((policy) => policy?.id === policyID);
+const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
@@ -263,3 +265,5 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
 };
+
+export type {MemberEmailsToAccountIDs};

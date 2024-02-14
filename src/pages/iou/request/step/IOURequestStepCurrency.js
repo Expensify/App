@@ -99,7 +99,7 @@ function IOURequestStepCurrency({
             return;
         }
 
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**

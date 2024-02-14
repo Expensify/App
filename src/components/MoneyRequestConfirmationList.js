@@ -286,12 +286,12 @@ function MoneyRequestConfirmationList(props) {
     const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -435,7 +435,7 @@ function MoneyRequestConfirmationList(props) {
         IOU.setMoneyRequestPendingFields(props.transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
+        IOU.setMoneyRequestMerchant(props.transactionID, distanceMerchant, false);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
@@ -497,7 +497,6 @@ function MoneyRequestConfirmationList(props) {
 
                 if (props.isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
-                    setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
 
@@ -567,7 +566,7 @@ function MoneyRequestConfirmationList(props) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
                 {button}
@@ -586,7 +585,6 @@ function MoneyRequestConfirmationList(props) {
         formError,
         styles.ph1,
         styles.mb2,
-        translate,
     ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
@@ -705,11 +703,15 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -737,11 +739,15 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}

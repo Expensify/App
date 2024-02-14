@@ -38,7 +38,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
@@ -446,10 +445,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, props.report.ownerAccountID));
-            const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
-
-            children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
@@ -695,6 +691,13 @@ function ReportActionItem(props) {
         originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         !isSendingMoney
     ) {
+        return null;
+    }
+
+    // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
+    // This is a temporary solution needed for comment-linking.
+    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
+    if (ReportActionsUtils.isWhisperActionTargetedToOthers(props.action)) {
         return null;
     }
 
