@@ -10,9 +10,12 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import VideoPlayerControls from './VideoPlayerControls';
+
+const isMobileSafari = Browser.isMobileSafari();
 
 function BaseVideoPlayer({
     url,
@@ -44,18 +47,19 @@ function BaseVideoPlayer({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
+    const [sourceURL] = useState(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url));
+    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const videoPlayerRef = useRef(null);
     const videoPlayerElementParentRef = useRef(null);
     const videoPlayerElementRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
-    const [sourceURL] = useState(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url));
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
+    const videoResumeTryNumber = useRef(0);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
-    const [isExitingFullscreen, setIsExitingFullscreen] = useState(false);
 
     const togglePlayCurrentVideo = useCallback(() => {
+        videoResumeTryNumber.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
         } else if (isPlaying) {
@@ -77,10 +81,13 @@ function BaseVideoPlayer({
     const handlePlaybackStatusUpdate = useCallback(
         (e) => {
             const isVideoPlaying = e.isPlaying || false;
-            if (isExitingFullscreen && !isVideoPlaying) {
-                playVideo();
-                setIsExitingFullscreen(false);
+            if (videoResumeTryNumber.current > 0 && !isVideoPlaying) {
+                if (videoResumeTryNumber.current === 1) {
+                    playVideo();
+                }
+                videoResumeTryNumber.current -= 1;
             }
+
             setIsPlaying(isVideoPlaying);
             setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setIsBuffering(e.isBuffering || false);
@@ -89,7 +96,7 @@ function BaseVideoPlayer({
 
             onPlaybackStatusUpdate(e);
         },
-        [isExitingFullscreen, onPlaybackStatusUpdate, playVideo, videoDuration],
+        [onPlaybackStatusUpdate, playVideo, videoDuration],
     );
 
     const handleFullscreenUpdate = useCallback(
@@ -100,10 +107,14 @@ function BaseVideoPlayer({
             if (!isPlaying || e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 return;
             }
+
+            if (isMobileSafari) {
+                pauseVideo();
+            }
             playVideo();
-            setIsExitingFullscreen(true);
+            videoResumeTryNumber.current = 3;
         },
-        [isPlaying, onFullscreenUpdate, playVideo],
+        [isPlaying, onFullscreenUpdate, pauseVideo, playVideo],
     );
 
     const bindFunctions = useCallback(() => {
