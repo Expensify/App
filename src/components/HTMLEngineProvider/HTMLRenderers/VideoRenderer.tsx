@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import {parseReportRouteParams} from '@libs/ReportUtils';
@@ -8,13 +8,13 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const propTypes = {
-    // eslint-disable-next-line react/forbid-prop-types
-    tnode: PropTypes.object.isRequired,
+type VideoRendererProps = CustomRendererProps<TBlock> & {
+    /** Key of the element */
+    key?: string;
 };
 
-function VideoRenderer(props) {
-    const htmlAttribs = props.tnode.attributes;
+function VideoRenderer({tnode, key}: VideoRendererProps) {
+    const htmlAttribs = tnode.attributes;
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const sourceURL = tryResolveUrlFromApiRoot(attrHref);
     const fileName = FileUtils.getFileName(`${sourceURL}`);
@@ -27,6 +27,7 @@ function VideoRenderer(props) {
 
     return (
         <VideoPlayerPreview
+            key={key}
             videoUrl={sourceURL}
             fileName={fileName}
             thumbnailUrl={thumbnailUrl}
@@ -40,7 +41,6 @@ function VideoRenderer(props) {
     );
 }
 
-VideoRenderer.propTypes = propTypes;
 VideoRenderer.displayName = 'VideoRenderer';
 
 export default VideoRenderer;
