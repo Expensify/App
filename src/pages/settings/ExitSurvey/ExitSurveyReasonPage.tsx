@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -30,6 +30,14 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
     const {isOffline} = useNetwork();
 
     const [reason, setReason] = useState<ExitReason | null>(draftReason);
+    useEffect(() => {
+        // disabling lint because || is fine to use as a logical operator (as opposed to being used to define a default value)
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reason || !draftReason) {
+            return;
+        }
+        setReason(draftReason);
+    }, [reason, draftReason]);
     const reasons: Choice[] = useMemo(
         () =>
             Object.values(CONST.EXIT_SURVEY.REASONS).map((value) => ({
@@ -75,8 +83,10 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
                         <InputWrapper
                             InputComponent={RadioButtons}
                             inputID={INPUT_IDS.REASON}
+                            value={reason as string}
                             items={reasons}
                             onPress={(value) => setReason(value as ExitReason)}
+                            shouldSaveDraft
                         />
                     </>
                 )}
