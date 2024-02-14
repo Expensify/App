@@ -13,12 +13,11 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
 
 type DownloadMenuItem = MenuItemProps & {
     translationKey: TranslationPaths;
-    openAppDownloadLink: () => void;
-    downloadLink: string;
+    action: () => void;
+    link: string;
 };
 
 function AppDownloadLinksPage() {
@@ -29,28 +28,28 @@ function AppDownloadLinksPage() {
     const menuItems: DownloadMenuItem[] = [
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
-            openAppDownloadLink: () => {
+            action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
-            downloadLink: CONST.APP_DOWNLOAD_LINKS.ANDROID,
+            link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
             icon: Expensicons.Android,
             iconRight: Expensicons.NewWindow,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
-            openAppDownloadLink: () => {
+            action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
-            downloadLink: CONST.APP_DOWNLOAD_LINKS.IOS,
+            link: CONST.APP_DOWNLOAD_LINKS.IOS,
             icon: Expensicons.Apple,
             iconRight: Expensicons.NewWindow,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            openAppDownloadLink: () => {
+            action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
             },
-            downloadLink: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
+            link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
             icon: Expensicons.Monitor,
             iconRight: Expensicons.NewWindow,
         },
@@ -60,14 +59,14 @@ function AppDownloadLinksPage() {
         <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.mt3]}>
                 {menuItems.map((item: DownloadMenuItem) => (
                     <MenuItem
                         key={item.translationKey}
-                        onPress={item.openAppDownloadLink}
-                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.downloadLink, popoverAnchor.current)}
+                        onPress={item.action}
+                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current)}
                         ref={popoverAnchor}
                         title={translate(item.translationKey)}
                         icon={item.icon}
