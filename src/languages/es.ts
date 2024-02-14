@@ -805,6 +805,7 @@ export default {
             viewTheCode: 'Ver código',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reportar un error',
+            troubleshoot: 'Solución de problemas',
         },
         appDownloadLinks: {
             android: {
@@ -816,6 +817,14 @@ export default {
             desktop: {
                 label: 'macOS',
             },
+        },
+        troubleshoot: {
+            clearCacheAndRestart: 'Borrar caché y reiniciar',
+            viewConsole: 'Ver la consola de depuración',
+            description: 'Utilice las herramientas que aparecen a continuación para solucionar los problemas de Expensify. Si tiene algún problema, por favor',
+            submitBug: 'envíe un error',
+            confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
+            resetAndRefresh: 'Restablecer y actualizar',
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
@@ -1759,7 +1768,7 @@ export default {
             trackDistanceCopy: 'Configura la tarifa y unidad usadas para medir distancias.',
             trackDistanceRate: 'Tarifa',
             trackDistanceUnit: 'Unidad',
-            trackDistanceChooseUnit: 'Elija una unidad predeterminada para rastrear.',
+            trackDistanceChooseUnit: 'Elige una unidad predeterminada de medida.',
             kilometers: 'Kilómetros',
             miles: 'Millas',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',

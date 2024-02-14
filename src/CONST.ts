@@ -195,45 +195,6 @@ const CONST = {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
-        BANK_INFO_STEP: {
-            INPUT_KEY: {
-                ROUTING_NUMBER: 'routingNumber',
-                ACCOUNT_NUMBER: 'accountNumber',
-                PLAID_MASK: 'plaidMask',
-                IS_SAVINGS: 'isSavings',
-                BANK_NAME: 'bankName',
-                PLAID_ACCOUNT_ID: 'plaidAccountID',
-                PLAID_ACCESS_TOKEN: 'plaidAccessToken',
-            },
-        },
-        PERSONAL_INFO_STEP: {
-            INPUT_KEY: {
-                FIRST_NAME: 'firstName',
-                LAST_NAME: 'lastName',
-                DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
-                STREET: 'requestorAddressStreet',
-                CITY: 'requestorAddressCity',
-                STATE: 'requestorAddressState',
-                ZIP_CODE: 'requestorAddressZipCode',
-            },
-        },
-        BUSINESS_INFO_STEP: {
-            INPUT_KEY: {
-                COMPANY_NAME: 'companyName',
-                COMPANY_TAX_ID: 'companyTaxID',
-                COMPANY_WEBSITE: 'website',
-                COMPANY_PHONE: 'companyPhone',
-                STREET: 'addressStreet',
-                CITY: 'addressCity',
-                STATE: 'addressState',
-                ZIP_CODE: 'addressZipCode',
-                INCORPORATION_TYPE: 'incorporationType',
-                INCORPORATION_DATE: 'incorporationDate',
-                INCORPORATION_STATE: 'incorporationState',
-                HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis',
-            },
-        },
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
                 IS_USER_UBO: 1,
@@ -241,11 +202,6 @@ const CONST = {
                 UBO_DETAILS_FORM: 3,
                 ARE_THERE_MORE_UBOS: 4,
                 UBOS_LIST: 5,
-            },
-            INPUT_KEY: {
-                OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
-                HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
-                BENEFICIAL_OWNERS: 'beneficialOwners',
             },
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -268,13 +224,6 @@ const CONST = {
             EVENTS_NAME: {
                 OPEN: 'OPEN',
                 EXIT: 'EXIT',
-            },
-        },
-        COMPLETE_VERIFICATION: {
-            INPUT_KEY: {
-                IS_AUTHORIZED_TO_USE_BANK_ACCOUNT: 'isAuthorizedToUseBankAccount',
-                CERTIFY_TRUE_INFORMATION: 'certifyTrueInformation',
-                ACCEPT_TERMS_AND_CONDITIONS: 'acceptTermsAndConditions',
             },
         },
         ERROR: {
@@ -1417,9 +1366,9 @@ const CONST = {
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
         REIMBURSEMENT_CHOICES: {
-            REIMBURSEMENT_YES: 'reimburseYes', // Direct
-            REIMBURSEMENT_NO: 'reimburseNo', // None
-            REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
+            REIMBURSEMENT_YES: 'reimburseYes',
+            REIMBURSEMENT_NO: 'reimburseNo',
+            REIMBURSEMENT_MANUAL: 'reimburseManual',
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',

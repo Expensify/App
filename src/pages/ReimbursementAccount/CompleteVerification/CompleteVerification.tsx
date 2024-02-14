@@ -14,7 +14,9 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import ConfirmAgreements from './substeps/ConfirmAgreements';
 
 type CompleteVerificationOnyxProps = {
@@ -30,7 +32,7 @@ type CompleteVerificationProps = CompleteVerificationOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
 const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 
 function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: CompleteVerificationProps) {
@@ -91,6 +93,7 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
 CompleteVerification.displayName = 'CompleteVerification';
 
 export default withOnyx<CompleteVerificationProps, CompleteVerificationOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

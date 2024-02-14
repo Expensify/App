@@ -15,7 +15,9 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccountUtils from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import Confirmation from './substeps/Confirmation';
 import Manual from './substeps/Manual';
 import Plaid from './substeps/Plaid';
@@ -36,7 +38,7 @@ type BankInfoProps = BankInfoOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual, Confirmation];
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
@@ -46,7 +48,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     const styles = useThemeStyles();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
-    const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
 
     let setupType = reimbursementAccount?.achData?.subStep ?? '';
 
@@ -150,6 +152,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
 BankInfo.displayName = 'BankInfo';
 
 export default withOnyx<BankInfoProps, BankInfoOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
