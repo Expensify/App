@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CurrencyList} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -57,7 +58,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                 <>
                     <AvatarWithImagePicker
                         onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? ''))}
-                        source={lodashGet(policy, 'avatar')}
+                        source={policy?.avatar ?? ''}
                         size={CONST.AVATAR_SIZE.XLARGE}
                         avatarStyle={styles.avatarXLarge}
                         enablePreview
@@ -75,12 +76,12 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                         type={CONST.ICON_TYPE_WORKSPACE}
                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                         style={[styles.mb3, styles.mt5, styles.mh5]}
-                        isUsingDefaultAvatar={!lodashGet(policy, 'avatar', null)}
+                        isUsingDefaultAvatar={!(policy?.avatar ?? null)}
                         onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
-                        onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(policy, 'id', ''))}
+                        onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                         editorMaskImage={Expensicons.ImageCropSquareMask}
-                        pendingAction={lodashGet(policy, 'pendingFields.avatar', null)}
-                        errors={lodashGet(policy, 'errorFields.avatar', null)}
+                        pendingAction={policy?.pendingFields?.avatar ?? null}
+                        errors={policy?.errorFields?.avatar ?? null}
                         onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
                         previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
                         headerTitle={translate('workspace.common.workspaceAvatar')}
@@ -89,7 +90,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                         disabledStyle={styles.cursorDefault}
                         errorRowStyles={undefined}
                     />
-                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
+                    <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
                         <MenuItemWithTopDescription
                             title={policy?.name ?? ''}
                             description={translate('workspace.editor.nameInputLabel')}
