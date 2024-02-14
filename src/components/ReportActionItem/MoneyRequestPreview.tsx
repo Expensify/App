@@ -320,6 +320,18 @@ function MoneyRequestPreview({
                                     </View>
                                 )}
                             </View>
+                            {hasFieldErrors && (
+                                <View style={[styles.flexRow]}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text
+                                            style={styles.textHeadline}
+                                            numberOfLines={1}
+                                        >
+                                            {Localize.translateLocal('iou.receiptMissingDetails')}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
                                     {!isCurrentUserManager && shouldShowPendingConversionMessage && (
@@ -339,18 +351,6 @@ function MoneyRequestPreview({
                                     </Text>
                                 )}
                             </View>
-                            {hasFieldErrors && (
-                                <View style={[styles.flexRow]}>
-                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text
-                                            style={styles.textHeadline}
-                                            numberOfLines={1}
-                                        >
-                                            {Localize.translateLocal('iou.receiptMissingDetails')}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
                         </View>
                     )}
                 </View>
