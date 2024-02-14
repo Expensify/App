@@ -27,6 +27,7 @@ function ValidateLoginPage({
     };
 
     useEffect(() => {
+        // Wait till navigation becomes available
         Navigation.isNavigationReady().then(() => {
             if (session?.authToken) {
                 handleNavigation();
