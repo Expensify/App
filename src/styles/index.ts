@@ -4440,7 +4440,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXLarge,
         },
 
-
         videoPlayerControlsContainer: {
             position: 'absolute',
             bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
