@@ -1,5 +1,5 @@
 import execAsync from './execAsync';
-import Logger from './logger';
+import * as Logger from './logger';
 
 /**
  * Installs the app on the currently connected device for the given platform.

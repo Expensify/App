@@ -2,8 +2,8 @@
 import fs from 'node:fs/promises';
 import path from 'path';
 import _ from 'underscore';
-import Logger from '../../utils/logger';
-import format from './format';
+import * as Logger from '../../utils/logger';
+import * as format from './format';
 import markdownTable from './markdownTable';
 
 const tableHeader = ['Name', 'Duration'];

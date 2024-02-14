@@ -14,6 +14,7 @@
  */
 
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
+import {execSync} from 'child_process';
 import fs from 'fs';
 import _ from 'underscore';
 import compare from './compare/compare';
@@ -24,7 +25,7 @@ import execAsync from './utils/execAsync';
 import installApp from './utils/installApp';
 import killApp from './utils/killApp';
 import launchApp from './utils/launchApp';
-import Logger from './utils/logger';
+import * as Logger from './utils/logger';
 import sleep from './utils/sleep';
 import withFailTimeout from './utils/withFailTimeout';
 
@@ -413,13 +414,13 @@ const run = async () => {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
-        require('child_process').execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
-        require('child_process').execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
-        require('child_process').execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
+        execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
+        execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
+        execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
 
-        require('child_process').execSync(`cat ${config.LOG_FILE}`);
+        execSync(`cat ${config.LOG_FILE}`);
         try {
-            require('child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+            execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
         } catch (ignoredError) {
             // the error is ignored, as the file might not exist if the test
             // run wasn't started with an emulator

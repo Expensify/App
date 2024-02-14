@@ -1,7 +1,7 @@
 import {createServer} from 'http';
 import config from '../config';
 import * as nativeCommands from '../nativeCommands';
-import Logger from '../utils/logger';
+import * as Logger from '../utils/logger';
 import Routes from './routes';
 
 const PORT = process.env.PORT || config.SERVER_PORT;

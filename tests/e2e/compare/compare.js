@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import getStats from '../measure/math';
-import math from './math';
+import * as math from './math';
 import printToConsole from './output/console';
 import writeToMarkdown from './output/markdown';
 

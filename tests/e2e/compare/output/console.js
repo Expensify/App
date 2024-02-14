@@ -1,4 +1,4 @@
-import format from './format';
+import * as format from './format';
 
 const printRegularLine = (entry) => {
     console.debug(` - ${entry.name}: ${format.formatDurationDiffChange(entry)}`);

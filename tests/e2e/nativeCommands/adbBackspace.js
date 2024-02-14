@@ -1,5 +1,5 @@
 import execAsync from '../utils/execAsync';
-import Logger from '../utils/logger';
+import * as Logger from '../utils/logger';
 
 const adbBackspace = async () => {
     Logger.log(`🔙 Pressing backspace`);

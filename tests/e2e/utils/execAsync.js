@@ -1,5 +1,5 @@
 import {exec} from 'child_process';
-import Logger from './logger';
+import * as Logger from './logger';
 
 /**
  * Executes a command none-blocking by wrapping it in a promise.
