@@ -124,7 +124,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     </View>
                 </Section>
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    {Object.keys(error).length !== 0 && (
+                    {Object.keys(error).length && (
                         <FormHelpMessage
                             isError
                             message={translate(error as TranslationPaths)}

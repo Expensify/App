@@ -6,7 +6,33 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
-import type StepWrapperPropTypes from './StepWrapperPropTypes';
+
+type StepWrapperProps = {
+    /** Title of the Header */
+    title?: string;
+
+    /** Data to display a step counter in the header */
+    stepCounter?: {
+        /** Current step */
+        step: number;
+        /** Total number of steps */
+        total?: number;
+        /** Text to display next to the step counter */
+        text?: string;
+    };
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress?: () => void;
+
+    /** Called when navigated Screen's transition is finished. It does not fire when user exits the page. */
+    onEntryTransitionEnd?: () => void;
+
+    /** Children components */
+    children?: React.ReactNode;
+
+    /** Flag to indicate if the keyboard avoiding view should be enabled */
+    shouldEnableKeyboardAvoidingView?: boolean;
+};
 
 function StepWrapper({
     title = '',
@@ -15,7 +41,7 @@ function StepWrapper({
     children = null,
     shouldEnableKeyboardAvoidingView = true,
     onEntryTransitionEnd,
-}: StepWrapperPropTypes) {
+}: StepWrapperProps) {
     const styles = useThemeStyles();
     const {animationDirection} = useAnimatedStepContext();
 

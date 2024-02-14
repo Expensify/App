@@ -1,5 +1,5 @@
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
-import type {FC, Ref, RefObject} from 'react';
+import type {FC, RefObject} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +33,7 @@ type MagicCodeInputHandle = {
 function BaseTwoFactorAuthForm({account, autoComplete, ref}: BaseTwoFactorAuthFormProps) {
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const inputRef: Ref<MagicCodeInputHandle> = useRef(null);
+    const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const {translate} = useLocalize();
 
     /**
@@ -105,8 +105,6 @@ const BaseTwoFactorAuthFormWithRef = forwardRef(({ref, ...props}: BaseTwoFactorA
         ref={ref}
     />
 ));
-
-(BaseTwoFactorAuthFormWithRef as FC).displayName = 'BaseTwoFactorAuthFormWithRef';
 
 export default withOnyx<BaseTwoFactorAuthFormProps, TwoFactorAuthStepOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},

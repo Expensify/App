@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-// eslint-disable-next-line
-import lodashGet from 'lodash/get';
+
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
@@ -19,7 +18,7 @@ import type {TwoFactorAuthStepOnyxBothProps, TwoFactorAuthStepProps} from './Two
 
 function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     const route = useRoute();
-    const backTo = lodashGet(route.params, 'backTo', '');
+    const backTo = route.params?.backTo ?? '';
     const [currentStep, setCurrentStep] = useState<TwoFactorAuthStep>(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
     const {setAnimationDirection} = useAnimatedStepContext();
@@ -69,7 +68,7 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     return <TwoFactorAuthContext.Provider value={contextValue}>{renderStep()}</TwoFactorAuthContext.Provider>;
 }
 
-// eslint-disable-next-line rulesdir/onyx-props-must-have-default
+
 export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     session: {key: ONYXKEYS.SESSION},
