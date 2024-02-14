@@ -249,7 +249,7 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
     // A flag for showing tax fields - tax rate and tax amount
-    const shouldShowTax = props.isPolicyExpenseChat && props.policy.isTaxTrackingEnabled;
+    const shouldShowTax = props.isPolicyExpenseChat && lodashGet(props.policy, 'tax.trackingEnabled', props.policy.isTaxTrackingEnabled);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
