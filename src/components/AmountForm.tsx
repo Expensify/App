@@ -217,7 +217,7 @@ function AmountForm(
                 />
                 {!!errorText && (
                     <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb5 : styles.mb3, styles.ph5, styles.w100]}
+                        style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
                         isError
                         message={errorText}
                     />
