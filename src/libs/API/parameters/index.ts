@@ -140,3 +140,4 @@ export type {default as SubmitReportParams} from './SubmitReportParams';
 export type {default as DetachReceiptParams} from './DetachReceiptParams';
 export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
+export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';

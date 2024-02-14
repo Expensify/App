@@ -37,6 +37,7 @@ import type {
     OriginalMessageActionName,
     OriginalMessageCreated,
     OriginalMessageReimbursementDequeued,
+    OriginalMessageRenamed,
     PaymentMethodType,
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
@@ -210,6 +211,9 @@ type OptimisticClosedReportAction = Pick<
 >;
 
 type OptimisticCreatedReportAction = OriginalMessageCreated &
+    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
+
+type OptimisticRenamedReportAction = OriginalMessageRenamed &
     Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
 
 type OptimisticChatReport = Pick<
@@ -1944,6 +1948,13 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 }
 
 /**
+ * Check if report fields are available to use in a report
+ */
+function reportFieldsEnabled(report: Report) {
+    return Permissions.canUseReportFields(allBetas ?? []) && isPaidGroupPolicyExpenseReport(report);
+}
+
+/**
  * Given a report field, check if the field can be edited or not.
  * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
  * For non title fields, its considered disabled if:
@@ -2000,7 +2011,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
-    if (titleReportField && report?.reportName && Permissions.canUseReportFields(allBetas ?? [])) {
+    if (titleReportField && report?.reportName && reportFieldsEnabled(report)) {
         return report.reportName;
     }
 
@@ -3387,6 +3398,10 @@ function buildOptimisticChatReport(
     };
 }
 
+function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
+    return allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
+}
+
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param [created] - Action created time
@@ -3417,8 +3432,50 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the room has been renamed
+ */
+function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string): OptimisticRenamedReportAction {
+    const now = DateUtils.getDBTime();
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: 'You',
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ` renamed this report. New title is '${newName}' (previously '${oldName}').`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        originalMessage: {
+            oldName,
+            newName,
+            html: `Room renamed to ${newName}`,
+            lastModified: now,
+        },
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: now,
         shouldShow: true,
     };
 }
@@ -3452,7 +3509,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string): Optimi
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -3468,7 +3525,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: getCurrentUserAvatarOrDefault(),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -3631,7 +3688,10 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
     const lastReadTime = report.lastReadTime ?? '';
-    return lastReadTime < lastVisibleActionCreated;
+    const lastMentionedTime = report.lastMentionedTime ?? '';
+
+    // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
+    return lastReadTime < lastVisibleActionCreated || lastReadTime < lastMentionedTime;
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): boolean {
@@ -4699,7 +4759,7 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
-function navigateToPrivateNotes(report: Report, session: Session) {
+function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>) {
     if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
@@ -4916,6 +4976,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
+    buildOptimisticRenamedRoomReportAction,
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
@@ -5038,6 +5099,7 @@ export {
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
+    reportFieldsEnabled,
     getAllAncestorReportActionIDs,
 };
 
