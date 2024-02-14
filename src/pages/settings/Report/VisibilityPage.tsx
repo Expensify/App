@@ -1,4 +1,4 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,12 +8,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
-import {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+import type {RoomVisibility} from '@src/types/onyx/Report';
 
 type VisibilityOnyxProps = {
     report: OnyxEntry<Report>;
@@ -38,10 +40,18 @@ function VisibilityPage({report}: VisibilityProps) {
                     keyForList: visibilityOption,
                     isSelected: visibilityOption === report?.visibility,
                 })),
-        [],
+        [translate, report?.visibility],
     );
 
-    const changeVisibility = useCallback(() => {}, []);
+    const changeVisibility = useCallback(
+        (newVisibility: RoomVisibility) => {
+            if (!report) {
+                return;
+            }
+            ReportActions.updateRoomVisibility(report.reportID, report.visibility, newVisibility, true, report);
+        },
+        [report],
+    );
 
     const hideModal = useCallback(() => {
         setShowConfirmModal(false);
@@ -62,14 +72,16 @@ function VisibilityPage({report}: VisibilityProps) {
                     onSelectRow={(option) => {
                         if (option.value === CONST.REPORT.VISIBILITY.PUBLIC) {
                             setShowConfirmModal(true);
+                            return;
                         }
+                        changeVisibility(option.value);
                     }}
                     initiallyFocusedOptionKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
                 />
                 <ConfirmModal
                     isVisible={showConfirmModal}
                     onConfirm={() => {
-                        changeVisibility();
+                        changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
                         hideModal();
                     }}
                     onCancel={hideModal}

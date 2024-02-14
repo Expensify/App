@@ -40,6 +40,7 @@ import type {
     UpdateReportWriteCapabilityParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
+import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
@@ -68,7 +69,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -1435,6 +1436,38 @@ function updateNotificationPreference(
     const parameters: UpdateReportNotificationPreferenceParams = {reportID, notificationPreference: newValue};
 
     API.write(WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE, parameters, {optimisticData, failureData});
+    if (navigate && !isEmptyObject(report)) {
+        ReportUtils.goBackToDetailsPage(report);
+    }
+}
+
+function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | undefined, newValue: RoomVisibility, navigate: boolean, report: OnyxEntry<Report> | EmptyObject = {}) {
+    if (previousValue === newValue) {
+        if (navigate && !isEmptyObject(report) && report.reportID) {
+            ReportUtils.goBackToDetailsPage(report);
+        }
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {visibility: newValue},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {visibility: previousValue},
+        },
+    ];
+
+    const parameters: UpdateRoomVisibilityParams = {reportID, visibility: newValue};
+
+    API.write(WRITE_COMMANDS.UPDATE_ROOM_VISIBILITY, parameters, {optimisticData, failureData});
     if (navigate && !isEmptyObject(report)) {
         ReportUtils.goBackToDetailsPage(report);
     }
@@ -2918,4 +2951,5 @@ export {
     updateReportField,
     updateReportName,
     resolveActionableMentionWhisper,
+    updateRoomVisibility,
 };

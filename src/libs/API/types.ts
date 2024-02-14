@@ -85,6 +85,7 @@ const WRITE_COMMANDS = {
     DELETE_COMMENT: 'DeleteComment',
     UPDATE_COMMENT: 'UpdateComment',
     UPDATE_REPORT_NOTIFICATION_PREFERENCE: 'UpdateReportNotificationPreference',
+    UPDATE_ROOM_VISIBILITY: 'UpdateRoomVisibility',
     UPDATE_ROOM_DESCRIPTION: 'UpdateRoomDescription',
     UPDATE_REPORT_WRITE_CAPABILITY: 'UpdateReportWriteCapability',
     ADD_WORKSPACE_ROOM: 'AddWorkspaceRoom',
