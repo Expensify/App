@@ -11,6 +11,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Policy from '@userActions/Policy';
@@ -29,13 +30,27 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
     const {inputCallbackRef} = useAutoFocusInput();
     const policyDescription = policy?.description ?? '';
 
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
+        const errors = {};
+
+        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        }
+
+        return errors;
+    }, []);
+
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
             if (!policy || policy.isPolicyUpdating) {
                 return;
             }
 
-            Policy.updateWorkspaceDescription(policy.id, policyDescription, values.description);
+            Policy.updateWorkspaceDescription(policy.id, policyDescription, values.description.trim());
         },
         [policy, policyDescription],
     );
@@ -55,6 +70,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                 submitButtonText={translate('workspace.editor.save')}
                 style={[styles.flexGrow1, styles.ph5]}
                 scrollContextEnabled
+                validate={validate}
                 onSubmit={submit}
                 enabledWhenOffline
             >
