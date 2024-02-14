@@ -355,7 +355,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return;
         }
         // Remove the focus if the search input is empty else focus on the first non disabled item
-        const newSelectedIndex = textInputValue !== '' ? 0 : -1;
+        const newSelectedIndex = textInputValue === '' ? -1 : 0;
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
