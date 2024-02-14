@@ -103,6 +103,7 @@ function IOURequestStepMerchant({
      */
     const updateMerchant = (value) => {
         const newMerchant = value.moneyRequestMerchant.trim();
+
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {merchant: newMerchant});
@@ -118,6 +119,7 @@ function IOURequestStepMerchant({
         }
         IOU.setMoneyRequestMerchant(transactionID, newMerchant, !isEditing);
         if (isEditing) {
+
             // When creating new money requests newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
