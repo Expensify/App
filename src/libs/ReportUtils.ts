@@ -15,20 +15,7 @@ import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languag
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {
-    Beta,
-    PersonalDetails,
-    PersonalDetailsList,
-    Policy,
-    PolicyReportField,
-    PolicyReportFields,
-    Report,
-    ReportAction,
-    ReportMetadata,
-    Session,
-    Transaction,
-    TransactionViolation,
-} from '@src/types/onyx';
+import type {Beta, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -461,14 +448,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
-});
-
-let allPolicyReportFields: OnyxCollection<PolicyReportFields> = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicyReportFields = value),
 });
 
 let allBetas: OnyxEntry<Beta[]>;
@@ -1972,7 +1951,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
 /**
  * Given a set of report fields, return the field of type formula
  */
-function getFormulaTypeReportField(reportFields: PolicyReportFields) {
+function getFormulaTypeReportField(reportFields: Record<string, PolicyReportField>) {
     return Object.values(reportFields).find((field) => field.type === 'formula');
 }
 
@@ -1980,7 +1959,7 @@ function getFormulaTypeReportField(reportFields: PolicyReportFields) {
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policyID: string) {
-    return Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === policyID)?.[1];
+    return Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID)?.[1]?.reportFields;
 }
 
 /**

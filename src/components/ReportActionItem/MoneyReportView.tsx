@@ -28,14 +28,11 @@ type MoneyReportViewProps = {
     /** Policy that the report belongs to */
     policy: Policy;
 
-    /** Policy report fields */
-    policyReportFields: PolicyReportField[];
-
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
 };
 
-function MoneyReportView({report, policy, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -59,9 +56,9 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     ];
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
-        const fields = ReportUtils.getAvailableReportFields(report, policyReportFields);
+        const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy.reportFields || {}));
         return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
-    }, [policyReportFields, report]);
+    }, [policy, report]);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>

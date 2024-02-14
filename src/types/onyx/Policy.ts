@@ -45,6 +45,34 @@ type Connection = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
+
+type PolicyReportField = {
+    /** Name of the field */
+    name: string;
+
+    /** Default value assigned to the field */
+    defaultValue: string;
+
+    /** Unique id of the field */
+    fieldID: string;
+
+    /** Position at which the field should show up relative to the other fields */
+    orderWeight: number;
+
+    /** Type of report field */
+    type: PolicyReportFieldType;
+
+    /** Tells if the field is required or not */
+    deletable: boolean;
+
+    /** Value of the field */
+    value: string;
+
+    /** Options to select from if field is of type dropdown */
+    values: string[];
+};
+
 type Policy = {
     /** The ID of the policy */
     id: string;
@@ -179,8 +207,11 @@ type Policy = {
 
     /** All the integration connections attached to the policy */
     connections?: Record<string, Connection>;
+
+    /** Report fields attached to the policy */
+    reportFields?: Record<string, PolicyReportField>;
 };
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate};
+export type {Unit, CustomUnit, Attributes, Rate, PolicyReportField, PolicyReportFieldType};

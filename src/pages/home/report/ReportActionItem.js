@@ -672,7 +672,6 @@ function ReportActionItem(props) {
                     <MoneyReportView
                         report={props.report}
                         policy={props.policy}
-                        policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
                 </OfflineWithFeedback>
@@ -836,10 +835,6 @@ export default compose(
             },
             initialValue: {},
         },
-        policyReportFields: {
-            key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
-            initialValue: [],
-        },
         policy: {
             key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}` : undefined),
             initialValue: {},
@@ -886,7 +881,6 @@ export default compose(
             lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
             _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
             _.isEqual(prevProps.policy, nextProps.policy),
     ),

@@ -9,7 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportFields, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import EditReportFieldDatePage from './EditReportFieldDatePage';
 import EditReportFieldDropdownPage from './EditReportFieldDropdownPage';
 import EditReportFieldTextPage from './EditReportFieldTextPage';
@@ -17,9 +17,6 @@ import EditReportFieldTextPage from './EditReportFieldTextPage';
 type EditReportFieldPageOnyxProps = {
     /** The report object for the expense report */
     report: OnyxEntry<Report>;
-
-    /** Policy report fields */
-    policyReportFields: OnyxEntry<PolicyReportFields>;
 
     /** Policy to which the report belongs to */
     policy: OnyxEntry<Policy>;
@@ -42,8 +39,8 @@ type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
     };
 };
 
-function EditReportFieldPage({route, policy, report, policyReportFields}: EditReportFieldPageProps) {
-    const reportField = report?.reportFields?.[route.params.fieldID] ?? policyReportFields?.[route.params.fieldID];
+function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) {
+    const reportField = report?.reportFields?.[route.params.fieldID] ?? policy?.reportFields?.[route.params.fieldID];
     const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
 
     if (!reportField || !report || isDisabled) {
@@ -120,9 +117,6 @@ EditReportFieldPage.displayName = 'EditReportFieldPage';
 export default withOnyx<EditReportFieldPageProps, EditReportFieldPageOnyxProps>({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    policyReportFields: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${route.params.policyID}`,
     },
     policy: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
