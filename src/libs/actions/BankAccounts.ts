@@ -221,13 +221,6 @@ function addPersonalBankAccount(account: PlaidBankAccount, currentDefaultBankAcc
             },
         ],
     };
-    if (currentDefaultBankAccount?.methodID) {
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-            value: {[currentDefaultBankAccount.methodID]: {isDefault: false}},
-        });
-    }
 
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
