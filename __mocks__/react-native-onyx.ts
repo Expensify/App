@@ -3,6 +3,7 @@
  * because the intent of this file is to mock the usage of react-native-onyx so we will have to mock the connect function
  * as this is a file outside of the lib folder we need to disable it
  */
+
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
