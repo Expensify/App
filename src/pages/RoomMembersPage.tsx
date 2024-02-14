@@ -1,6 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -24,13 +26,22 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
+type RoomMembersPageOnyxProps = {
+    session: OnyxEntry<Session>;
+};
+
+type RoomMembersPageProps = WithReportOrNotFoundProps &
+    WithCurrentUserPersonalDetailsProps &
+    RoomMembersPageOnyxProps &
+    StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
 
 function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();
@@ -274,4 +285,4 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
 RoomMembersPage.displayName = 'RoomMembersPage';
 
-export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));
+export default withReportOrNotFound()(withCurrentUserPersonalDetails(withOnyx<RoomMembersPageProps, RoomMembersPageOnyxProps>({session: {key: ONYXKEYS.SESSION}})(RoomMembersPage)));
