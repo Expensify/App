@@ -42,7 +42,7 @@ type ConsolePageProps = ConsolePageOnyxProps;
  * @param logs Logs captured on the current device
  * @returns CapturedLogs with parsed messages
  */
-const parseStingifiedMessages = (logs: Log[]) => {
+const parseStringifyMessages = (logs: Log[]) => {
     if (isEmpty(logs)) {
         return;
     }
@@ -77,8 +77,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
         }
 
         setLogs((prevLogs) => ({...prevLogs, ...capturedLogs}));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [capturedLogs]);
+    }, [capturedLogs, shouldStoreLogs]);
 
     const executeArbitraryCode = () => {
         const sanitizedInput = sanitizeConsoleInput(input);
@@ -91,14 +90,14 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, executeArbitraryCode);
 
     const saveLogs = () => {
-        const logsWithParsedMessages = parseStingifiedMessages(logsList);
+        const logsWithParsedMessages = parseStringifyMessages(logsList);
 
         localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
     };
 
     const shareLogs = () => {
         setIsGeneratingLogsFile(true);
-        const logsWithParsedMessages = parseStingifiedMessages(logsList);
+        const logsWithParsedMessages = parseStringifyMessages(logsList);
 
         // Generate a file with the logs and pass its path to the list of reports to share it with
         localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path, size}) => {

@@ -1,4 +1,5 @@
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import type LocalFileCreate from './types';
 
 /**
  * Creates a Blob file
@@ -6,7 +7,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
  * @param textContent content of the file
  * @returns path, filename and size of the newly created file
  */
-const localFileCreate = (fileName: string, textContent: string) => {
+const localFileCreate: LocalFileCreate = (fileName, textContent) => {
     const newFileName = FileUtils.appendTimeToFileName(fileName);
     const blob = new Blob([textContent], {type: 'text/plain'});
     const url = URL.createObjectURL(blob);
