@@ -32,6 +32,7 @@ type MultiGestureCanvasVariables = {
     minContentScale: number;
     maxContentScale: number;
     isPagerSwiping: SharedValue<boolean>;
+    isSwipingDownToClose: SharedValue<boolean>;
     zoomScale: SharedValue<number>;
     totalScale: SharedValue<number>;
     pinchScale: SharedValue<number>;

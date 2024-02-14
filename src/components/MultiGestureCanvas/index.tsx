@@ -102,6 +102,7 @@ function MultiGestureCanvas({
 
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
+    const isSwipingDownToClose = useSharedValue(false);
     const panGestureRef = useRef(Gesture.Pan());
 
     const pinchScale = useSharedValue(1);
@@ -186,6 +187,7 @@ function MultiGestureCanvas({
         panTranslateX,
         panTranslateY,
         isPagerSwiping,
+        isSwipingDownToClose,
         stopAnimation,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)

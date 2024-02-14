@@ -13,18 +13,36 @@ const PAN_DECAY_DECELARATION = 0.9915;
 
 type UsePanGestureProps = Pick<
     MultiGestureCanvasVariables,
-    'canvasSize' | 'contentSize' | 'zoomScale' | 'totalScale' | 'offsetX' | 'offsetY' | 'panTranslateX' | 'panTranslateY' | 'isPagerSwiping' | 'stopAnimation'
+    'canvasSize' | 'contentSize' | 'zoomScale' | 'totalScale' | 'offsetX' | 'offsetY' | 'panTranslateX' | 'panTranslateY' | 'isPagerSwiping' | 'isSwipingDownToClose' | 'stopAnimation'
 >;
 
-const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isPagerSwiping, stopAnimation}: UsePanGestureProps): PanGesture => {
+const usePanGesture = ({
+    canvasSize,
+    contentSize,
+    zoomScale,
+    totalScale,
+    offsetX,
+    offsetY,
+    panTranslateX,
+    panTranslateY,
+    isPagerSwiping,
+    isSwipingDownToClose,
+    stopAnimation,
+}: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
+
+    // Used to track previous touch position for the "swipe down to close" gesture
+    const previousTouch = useSharedValue<{x: number; y: number} | null>(null);
 
     // Velocity of the pan gesture
     // We need to keep track of the velocity to properly phase out/decay the pan animation
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
+
+    // Disable "swipe down to close" gesture when content is bigger than the canvas
+    const enableSwipeDownToClose = useDerivedValue(() => canvasSize.height < zoomedContentHeight.value, [canvasSize.height]);
 
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
@@ -117,11 +135,31 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesMove((_evt, state) => {
             // We only allow panning when the content is zoomed in
-            if (zoomScale.value <= 1 || isPagerSwiping.value) {
-                return;
+            if (zoomScale.value > 1) {
+                state.activate();
             }
 
-            state.activate();
+            // TODO: this needs tuning to work properly
+            if (!isPagerSwiping.value && zoomScale.value === 1 && previousTouch.value != null) {
+                const velocityX = Math.abs(_evt.allTouches[0].x - previousTouch.value.x);
+                const velocityY = _evt.allTouches[0].y - previousTouch.value.y;
+
+                if (Math.abs(velocityY) > velocityX && velocityY > 20) {
+                    state.activate();
+
+                    isSwipingDownToClose.value = true;
+                    previousTouch.value = null;
+
+                    return;
+                }
+            }
+
+            if (previousTouch.value == null) {
+                previousTouch.value = {
+                    x: _evt.allTouches[0].x,
+                    y: _evt.allTouches[0].y,
+                };
+            }
         })
         .onStart(() => {
             stopAnimation();
@@ -136,8 +174,13 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             panVelocityX.value = evt.velocityX;
             panVelocityY.value = evt.velocityY;
 
-            panTranslateX.value += evt.changeX;
-            panTranslateY.value += evt.changeY;
+            if (!isSwipingDownToClose.value) {
+                panTranslateX.value += evt.changeX;
+            }
+
+            if (enableSwipeDownToClose.value || isSwipingDownToClose.value) {
+                panTranslateY.value += evt.changeY;
+            }
         })
         .onEnd(() => {
             // Add pan translation to total offset and reset gesture variables
