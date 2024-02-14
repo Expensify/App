@@ -47,11 +47,14 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
+        if (isLoadedRef.current) {
+            isLoadedRef.current = false;
+            setIsImageCached(false);
+        }
         if (isOffline) {
             return;
         }
         setIsLoading(false);
-        setIsImageCached(true);
     };
 
     const imageLoadedSuccessfully = (event: OnLoadNativeEvent) => {
