@@ -14,7 +14,9 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -34,7 +36,7 @@ type PersonalInfoProps = PersonalInfoOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
 function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
@@ -93,6 +95,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
 PersonalInfo.displayName = 'PersonalInfo';
 
 export default withOnyx<PersonalInfoProps, PersonalInfoOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

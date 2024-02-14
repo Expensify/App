@@ -613,3 +613,5 @@ export {
     getRecentTransactions,
     hasViolation,
 };
+
+export type {TransactionChanges};
