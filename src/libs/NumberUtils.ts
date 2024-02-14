@@ -70,7 +70,7 @@ function parseFloatAnyLocale(value: string): number {
 }
 
 /**
- * Given an input number q and another number n, returns the largest number x that's less than p and divisible by q.
+ * Given an input number p and another number q, returns the largest number that's less than p and divisible by q.
  */
 function roundDownToLargestMultiple(p: number, q: number) {
     return Math.floor(p / q) * q;
