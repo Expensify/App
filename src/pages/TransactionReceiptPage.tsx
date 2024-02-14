@@ -15,16 +15,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Report, ReportMetadata, Transaction} from '@src/types/onyx';
 
 type TransactionReceiptOnyxProps = {
     report: OnyxEntry<Report>;
     transaction: OnyxEntry<Transaction>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
 };
 
 type TransactionReceiptProps = TransactionReceiptOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
 
-function TransactionReceipt({transaction, report, route}: TransactionReceiptProps) {
+function TransactionReceipt({transaction, report, reportMetadata = {isLoadingInitialReportActions: true}, route}: TransactionReceiptProps) {
     const receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
 
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image);
@@ -57,7 +58,8 @@ function TransactionReceipt({transaction, report, route}: TransactionReceiptProp
             onModalClose={() => {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
             }}
-            isLoading={!transaction || !report || report.parentReportID !== transaction.reportID}
+            isLoading={reportMetadata?.isLoadingInitialReportActions}
+            shouldShowNotFoundPage={(report?.parentReportID ?? '') !== transaction?.reportID}
         />
     );
 }
@@ -70,5 +72,8 @@ export default withOnyx<TransactionReceiptProps, TransactionReceiptOnyxProps>({
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '0'}`,
+    },
+    reportMetadata: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? '0'}`,
     },
 })(TransactionReceipt);
