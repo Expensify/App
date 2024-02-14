@@ -129,7 +129,7 @@ function MultiGestureCanvas({
         pinchScale.value = 1;
 
         if (animated) {
-            offsetX.value = withSpring(0, SPRING_CONFIG);
+            offsetX.value = 0;
             offsetY.value = 0;
             panTranslateX.value = withSpring(0, SPRING_CONFIG);
             panTranslateY.value = withSpring(0, SPRING_CONFIG);
