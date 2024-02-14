@@ -8,8 +8,8 @@ type Notification = {status: Results; settings: NotificationSettings};
 
 const openLimitedPhotoLibraryPicker: jest.Mock<void> = jest.fn(() => {});
 const openSettings: jest.Mock<void> = jest.fn(() => {});
-const check: jest.Mock<Results> = jest.fn(() => RESULTS.GRANTED as string);
-const request: jest.Mock<Results> = jest.fn(() => RESULTS.GRANTED as string);
+const check = jest.fn(() => RESULTS.GRANTED as string);
+const request = jest.fn(() => RESULTS.GRANTED as string);
 const checkLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 const requestLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 
