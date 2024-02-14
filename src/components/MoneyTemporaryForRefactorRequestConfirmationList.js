@@ -21,6 +21,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -316,6 +317,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
+    const isCategoryRequired = canUseViolations && Boolean(policy.requiresCategory);
+    const isTagRequired = canUseViolations && Boolean(policy.requiresTag);
+
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
             return;
@@ -549,6 +553,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     return;
                 }
 
+                playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm(selectedParticipants);
             }
@@ -624,6 +629,226 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         );
     }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
+    // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
+    // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
+    const classifiedFields = [
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('iou.amount')}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
+                    title={formattedAmount}
+                    description={translate('iou.amount')}
+                    interactive={!isReadOnly}
+                    onPress={() => {
+                        if (isDistanceRequest) {
+                            return;
+                        }
+                        if (isEditingSplitBill) {
+                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    style={[styles.moneyRequestMenuItem, styles.mt2]}
+                    titleStyle={styles.moneyRequestConfirmationAmount}
+                    disabled={didConfirm}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                />
+            ),
+            shouldShow: shouldShowSmartScanFields,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.description')}
+                    shouldShowRightIcon={!isReadOnly}
+                    shouldParseTitle
+                    title={iouComment}
+                    description={translate('common.description')}
+                    onPress={() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    }}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    numberOfLinesTitle={2}
+                />
+            ),
+            shouldShow: true,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.distance')}
+                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    title={iouMerchant}
+                    description={translate('common.distance')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm || !isTypeRequest}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isDistanceRequest,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.merchant')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={isMerchantEmpty ? '' : iouMerchant}
+                    description={translate('common.merchant')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (isEditingSplitBill) {
+                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={merchantError ? translate('common.error.fieldRequired') : ''}
+                />
+            ),
+            shouldShow: shouldShowMerchant,
+            isSupplementary: !isMerchantRequired,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.date')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    description={translate('common.date')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                />
+            ),
+            shouldShow: shouldShowDate,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.category')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={iouCategory}
+                    description={translate('common.category')}
+                    numberOfLinesTitle={2}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
+                />
+            ),
+            shouldShow: shouldShowCategories,
+            isSupplementary: !isCategoryRequired,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.tag')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={PolicyUtils.getCleanedTagName(iouTag)}
+                    description={policyTagListName}
+                    numberOfLinesTitle={2}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
+                    style={[styles.moneyRequestMenuItem]}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
+                />
+            ),
+            shouldShow: shouldShowTags,
+            isSupplementary: !isTagRequired,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={`${policyTaxRates.name}${taxRateTitle}`}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={taxRateTitle}
+                    description={policyTaxRates.name}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: shouldShowTax,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={`${policyTaxRates.name}${formattedTaxAmount}`}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={formattedTaxAmount}
+                    description={policyTaxRates.name}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: shouldShowTax,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                    <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                    <Switch
+                        accessibilityLabel={translate('common.billable')}
+                        isOn={iouIsBillable}
+                        onToggle={onToggleBillable}
+                    />
+                </View>
+            ),
+            shouldShow: shouldShowBillable,
+            isSupplementary: true,
+        },
+    ];
+
+    const primaryFields = _.map(
+        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary),
+        (primaryField) => primaryField.item,
+    );
+
+    const supplementaryFields = _.map(
+        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary),
+        (supplementaryField) => supplementaryField.item,
+    );
+
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
     return (
         <OptionsSelector
@@ -672,65 +897,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     />
                 )
             )}
-            {shouldShowSmartScanFields && (
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
-                    title={formattedAmount}
-                    description={translate('iou.amount')}
-                    interactive={!isReadOnly}
-                    onPress={() => {
-                        if (isDistanceRequest) {
-                            return;
-                        }
-                        if (isEditingSplitBill) {
-                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                    }}
-                    style={[styles.moneyRequestMenuItem, styles.mt2]}
-                    titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
-                />
-            )}
-            <MenuItemWithTopDescription
-                shouldShowRightIcon={!isReadOnly}
-                shouldParseTitle
-                title={iouComment}
-                description={translate('common.description')}
-                onPress={() => {
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                    );
-                }}
-                style={[styles.moneyRequestMenuItem]}
-                titleStyle={styles.flex1}
-                disabled={didConfirm}
-                interactive={!isReadOnly}
-                numberOfLinesTitle={2}
-            />
-            {isMerchantRequired && (
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!isReadOnly}
-                    title={isMerchantEmpty ? '' : iouMerchant}
-                    description={translate('common.merchant')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (isEditingSplitBill) {
-                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                    }}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                    error={merchantError ? translate('common.error.fieldRequired') : ''}
-                />
-            )}
+            {primaryFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
@@ -746,136 +913,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {shouldShowAllFields && (
-                <>
-                    {isDistanceRequest && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                            title={iouMerchant}
-                            description={translate('common.distance')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                            }
-                            disabled={didConfirm || !isTypeRequest}
-                            interactive={!isReadOnly}
-                        />
-                    )}
-                    {!isMerchantRequired && shouldShowMerchant && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={isMerchantEmpty ? '' : iouMerchant}
-                            description={translate('common.merchant')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                            }}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={merchantError ? translate('common.error.fieldRequired') : ''}
-                        />
-                    )}
-                    {shouldShowDate && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
-                            description={translate('common.date')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                            }}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
-                        />
-                    )}
-                    {shouldShowCategories && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={iouCategory}
-                            description={translate('common.category')}
-                            numberOfLinesTitle={2}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                            }
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
-                        />
-                    )}
-                    {shouldShowTags && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={PolicyUtils.getCleanedTagName(iouTag)}
-                            description={policyTagListName}
-                            numberOfLinesTitle={2}
-                            onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                                )
-                            }
-                            style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
-                        />
-                    )}
-                    {shouldShowTax && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={taxRateTitle}
-                            description={policyTaxRates.name}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                            }
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                        />
-                    )}
-
-                    {shouldShowTax && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={formattedTaxAmount}
-                            description={policyTaxRates.name}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                            }
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                        />
-                    )}
-                    {shouldShowBillable && (
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                            <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                            <Switch
-                                accessibilityLabel={translate('common.billable')}
-                                isOn={iouIsBillable}
-                                onToggle={onToggleBillable}
-                            />
-                        </View>
-                    )}
-                </>
-            )}
+            {shouldShowAllFields && <>{supplementaryFields}</>}
         </OptionsSelector>
     );
 }
