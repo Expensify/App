@@ -161,7 +161,7 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.sidebarFooter]}>
+                <View style={[styles.sidebarFooter, styles.mb5]}>
                     <Text
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
