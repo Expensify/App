@@ -21,7 +21,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyReasonPageOnyxProps = {
-    draftReason?: ExitReason;
+    draftReason: ExitReason | null;
 };
 
 function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
@@ -29,7 +29,7 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [reason, setReason] = useState<ExitReason | undefined>(draftReason);
+    const [reason, setReason] = useState<ExitReason | null>(draftReason);
     const reasons: Choice[] = useMemo(
         () =>
             Object.values(CONST.EXIT_SURVEY.REASONS).map((value) => ({
@@ -90,6 +90,6 @@ ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
 export default withOnyx<ExitSurveyReasonPageOnyxProps, ExitSurveyReasonPageOnyxProps>({
     draftReason: {
         key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT,
-        selector: (value) => value?.[INPUT_IDS.REASON],
+        selector: (value) => value?.[INPUT_IDS.REASON] ?? null,
     },
 })(ExitSurveyReasonPage);
