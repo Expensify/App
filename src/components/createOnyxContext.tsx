@@ -4,20 +4,20 @@ import React, {createContext, forwardRef, useContext} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {OnyxCollectionKey, OnyxKey, OnyxKeyValue, OnyxValues} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxKey, OnyxValue} from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type OnyxKeys = (OnyxKey | OnyxCollectionKey) & keyof OnyxValues;
+type OnyxKeys = OnyxKey | OnyxCollectionKey;
 
-type OnyxContextType<TOnyxKey extends OnyxKeys> = (TOnyxKey extends OnyxCollectionKey ? OnyxCollection<OnyxKeyValue<TOnyxKey>> : OnyxKeyValue<TOnyxKey>) | null;
+type OnyxContextType<TOnyxKey extends OnyxKeys> = (TOnyxKey extends OnyxCollectionKey ? OnyxCollection<OnyxValue<TOnyxKey>> : OnyxValue<TOnyxKey>) | null;
 
 // Provider types
-type ProviderOnyxProps<TOnyxKey extends OnyxKeys> = Record<TOnyxKey, OnyxContextType<TOnyxKey>>;
+type ProviderOnyxProps<TOnyxKey extends OnyxKey> = Record<TOnyxKey, OnyxContextType<TOnyxKey>>;
 
-type ProviderPropsWithOnyx<TOnyxKey extends OnyxKeys> = ChildrenProps & ProviderOnyxProps<TOnyxKey>;
+type ProviderPropsWithOnyx<TOnyxKey extends OnyxKey> = ChildrenProps & ProviderOnyxProps<TOnyxKey>;
 
 // withOnyxKey types
-type WithOnyxKeyProps<TOnyxKey extends OnyxKeys, TNewOnyxKey extends string, TTransformedValue> = {
+type WithOnyxKeyProps<TOnyxKey extends OnyxKey, TNewOnyxKey extends string, TTransformedValue> = {
     propName?: TOnyxKey | TNewOnyxKey;
     // It's not possible to infer the type of props of the wrapped component, so we have to use `any` here
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,12 +28,12 @@ type WrapComponentWithConsumer<TNewOnyxKey extends string, TTransformedValue> = 
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ) => ForwardRefExoticComponent<PropsWithoutRef<Omit<TProps, TNewOnyxKey>> & RefAttributes<TRef>>;
 
-type WithOnyxKey<TOnyxKey extends OnyxKeys> = <TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxKeyValue<TOnyxKey>>(
+type WithOnyxKey<TOnyxKey extends OnyxKey> = <TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxValue<TOnyxKey>>(
     props?: WithOnyxKeyProps<TOnyxKey, TNewOnyxKey, TTransformedValue>,
 ) => WrapComponentWithConsumer<TNewOnyxKey, TTransformedValue>;
 
 // createOnyxContext return type
-type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [
+type CreateOnyxContext<TOnyxKey extends OnyxKey> = [
     WithOnyxKey<TOnyxKey>,
     ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>,
     React.Context<OnyxContextType<TOnyxKey>>,
@@ -55,7 +55,7 @@ export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey): CreateOnyxCon
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as Record<TOnyxKey, any>)(Provider);
 
-    function withOnyxKey<TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxKeyValue<TOnyxKey>>({
+    function withOnyxKey<TNewOnyxKey extends string = TOnyxKey, TTransformedValue = OnyxValue<TOnyxKey>>({
         propName,
         transformValue,
     }: WithOnyxKeyProps<TOnyxKey, TNewOnyxKey, TTransformedValue> = {}) {

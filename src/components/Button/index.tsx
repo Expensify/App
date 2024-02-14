@@ -266,14 +266,16 @@ function Button(
 
     return (
         <>
-            <KeyboardShortcutComponent
-                isDisabled={isDisabled}
-                isLoading={isLoading}
-                allowBubble={allowBubble}
-                onPress={onPress}
-                pressOnEnter={pressOnEnter}
-                enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-            />
+            {pressOnEnter && (
+                <KeyboardShortcutComponent
+                    isDisabled={isDisabled}
+                    isLoading={isLoading}
+                    allowBubble={allowBubble}
+                    onPress={onPress}
+                    pressOnEnter={pressOnEnter}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                />
+            )}
             <PressableWithFeedback
                 ref={ref}
                 onPress={(event) => {
