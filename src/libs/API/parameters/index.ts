@@ -2,6 +2,7 @@ export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhy
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
+export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
 export type {default as BankAccountHandlePlaidErrorParams} from './BankAccountHandlePlaidErrorParams';
