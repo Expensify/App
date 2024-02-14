@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -36,16 +36,28 @@ type ExitSurveyResponsePageOnyxProps = {
 
 type ExitSurveyResponsePageProps = ExitSurveyResponsePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
-function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePageProps) {
+function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyResponsePageProps) {
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
-    const {reason} = route.params;
+    const {reason, backTo} = route.params;
+    const {isOffline} = useNetwork({
+        onReconnect: () => {
+            navigation.setParams({
+                backTo: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+            });
+        },
+    });
+    useEffect(() => {
+        if (!isOffline || backTo === ROUTES.SETTINGS) {
+            return;
+        }
+        navigation.setParams({backTo: ROUTES.SETTINGS});
+    }, [backTo, isOffline, navigation]);
 
     const submitForm = useCallback(() => {
         ExitSurvey.saveResponse(draftResponse);
@@ -86,7 +98,7 @@ function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePagePr
         <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_EXIT_SURVEY_REASON)}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}

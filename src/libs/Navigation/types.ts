@@ -172,8 +172,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
         [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+        backTo: Routes;
     };
-    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: undefined;
+    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
+        backTo: Routes;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
