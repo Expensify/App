@@ -6,20 +6,18 @@ import Navigation from '@navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
-import type { Route } from '@src/ROUTES';
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 
 type SuccessStepProps = {
     /** The route where user needs to be redirected after setting up 2FA */
     backTo?: Route;
 };
 
-function SuccessStep({
-    backTo,
-}: SuccessStepProps) {
-    const { setStep } = useTwoFactorAuthContext();
+function SuccessStep({backTo}: SuccessStepProps) {
+    const {setStep} = useTwoFactorAuthContext();
 
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
 
     return (
         <StepWrapper

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { ScrollView, View } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import React, {useEffect, useRef} from 'react';
+import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -15,20 +15,20 @@ import Clipboard from '@libs/Clipboard';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
-import type { TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps } from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import type {TwoFactorAuthStepOnyxBothProps, TwoFactorAuthStepProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
-function VerifyStep({ account, session }: TwoFactorAuthStepProps) {
+function VerifyStep({account, session}: TwoFactorAuthStepProps) {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
 
     const formRef = useRef<HTMLFormElement>(null);
 
-    const { setStep } = useTwoFactorAuthContext();
+    const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
         Session.clearAccountMessages();
@@ -133,6 +133,6 @@ function VerifyStep({ account, session }: TwoFactorAuthStepProps) {
 VerifyStep.displayName = 'VerifyStep';
 
 export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps>({
-    account: { key: ONYXKEYS.ACCOUNT },
-    session: { key: ONYXKEYS.SESSION },
+    account: {key: ONYXKEYS.ACCOUNT},
+    session: {key: ONYXKEYS.SESSION},
 })(VerifyStep);

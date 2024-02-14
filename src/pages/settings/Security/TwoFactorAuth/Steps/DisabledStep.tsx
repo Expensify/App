@@ -11,7 +11,7 @@ import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 
 function DisabledStep() {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
 
     return (
         <StepWrapper title={translate('twoFactorAuth.disableTwoFactorAuth')}>

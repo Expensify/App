@@ -1,30 +1,28 @@
-import { useRoute } from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 // eslint-disable-next-line
 import lodashGet from 'lodash/get';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { withOnyx } from 'react-native-onyx';
-import type { TwoFactorAuthStep } from '@src/types/onyx/Account';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { AnimationDirection } from '@components/AnimatedStep/AnimatedStepContext';
+import type {TwoFactorAuthStep} from '@src/types/onyx/Account';
 import CodesStep from './Steps/CodesStep';
 import DisabledStep from './Steps/DisabledStep';
 import EnabledStep from './Steps/EnabledStep';
 import SuccessStep from './Steps/SuccessStep';
 import VerifyStep from './Steps/VerifyStep';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
-import type { TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps } from './TwoFactorAuthPropTypes';
+import type {TwoFactorAuthStepOnyxBothProps, TwoFactorAuthStepProps} from './TwoFactorAuthPropTypes';
 
-function TwoFactorAuthSteps({
-    account,
-}: TwoFactorAuthStepProps) {
+function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     const route = useRoute();
     const backTo = lodashGet(route.params, 'backTo', '');
     const [currentStep, setCurrentStep] = useState<TwoFactorAuthStep>(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
-    const { setAnimationDirection } = useAnimatedStepContext();
+    const {setAnimationDirection} = useAnimatedStepContext();
 
     useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
 
@@ -49,7 +47,7 @@ function TwoFactorAuthSteps({
         },
         [setAnimationDirection],
     );
-    const contextValue = useMemo(() => ({ setStep: handleSetStep }), [handleSetStep]);
+    const contextValue = useMemo(() => ({setStep: handleSetStep}), [handleSetStep]);
 
     const renderStep = () => {
         switch (currentStep) {
@@ -73,6 +71,6 @@ function TwoFactorAuthSteps({
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps>({
-    account: { key: ONYXKEYS.ACCOUNT },
-    session: { key: ONYXKEYS.SESSION },
+    account: {key: ONYXKEYS.ACCOUNT},
+    session: {key: ONYXKEYS.SESSION},
 })(TwoFactorAuthSteps);

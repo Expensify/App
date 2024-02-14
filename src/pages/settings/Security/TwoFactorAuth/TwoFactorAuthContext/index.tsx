@@ -1,13 +1,13 @@
-import { createContext } from 'react';
-import type { TwoFactorAuthStep } from '@src/types/onyx/Account';
-import type { AnimationDirection } from '@components/AnimatedStep/AnimatedStepContext';
+import {createContext} from 'react';
+import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
+import type {TwoFactorAuthStep} from '@src/types/onyx/Account';
 
 type TwoFactorAuthContextType = {
     setStep: (step: TwoFactorAuthStep, animationDirection?: AnimationDirection) => void;
 };
 
 const TwoFactorAuthContext = createContext<TwoFactorAuthContextType>({
-    setStep: () => { },
+    setStep: () => {},
 });
 
 export default TwoFactorAuthContext;

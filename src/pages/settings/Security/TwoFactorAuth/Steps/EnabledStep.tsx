@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import React, {useState} from 'react';
+import {ScrollView, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -18,9 +18,9 @@ function EnabledStep() {
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
-    const { setStep } = useTwoFactorAuthContext();
+    const {setStep} = useTwoFactorAuthContext();
 
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
 
     return (
         <StepWrapper title={translate('twoFactorAuth.headerTitle')}>

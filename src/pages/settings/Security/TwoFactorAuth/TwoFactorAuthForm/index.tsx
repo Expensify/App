@@ -1,15 +1,12 @@
 import React from 'react';
-import type { RefObject } from 'react';
+import type {RefObject} from 'react';
 import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 
 type TwoFactorAuthFormProps = {
-    innerRef: RefObject<HTMLFormElement> | (() => void),
-}
+    innerRef: RefObject<HTMLFormElement> | (() => void);
+};
 
-function TwoFactorAuthForm(
-    {
-        innerRef
-    }: TwoFactorAuthFormProps,) {
+function TwoFactorAuthForm({innerRef}: TwoFactorAuthFormProps) {
     return (
         <BaseTwoFactorAuthForm
             ref={innerRef}
