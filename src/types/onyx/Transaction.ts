@@ -47,6 +47,7 @@ type Receipt = {
     source?: ReceiptSource;
     filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+    type?: string;
 };
 
 type Route = {
