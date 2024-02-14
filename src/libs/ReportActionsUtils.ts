@@ -459,7 +459,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     return updatedReportAction;
 }
 
-function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): OnyxEntry<ReportAction> {
+function getLastVisibleAction(reportID: string | number, actionsToMerge: OnyxCollection<ReportAction> = {}): OnyxEntry<ReportAction> {
     const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge ?? {}, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
@@ -511,7 +511,7 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | ReportAction[] | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
