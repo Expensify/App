@@ -21,6 +21,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyPropTypes} from '@src/pages/workspace/withPolicy';
+import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -158,8 +159,8 @@ function IOURequestStepDescription({
                 <View style={styles.mb4}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
-                        inputID="moneyRequestComment"
-                        name="moneyRequestComment"
+                        inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                        name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={currentDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
