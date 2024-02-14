@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormRef, OnyxFormValuesFields} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,15 +26,13 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 
-const INPUT_IDS = {
-    EMOJI_CODE: 'emojiCode',
-    STATUS_TEXT: 'statusText',
-} as const;
 type StatusPageOnyxProps = {
     draftStatus: OnyxEntry<Status>;
 };
@@ -48,7 +46,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const formRef = useRef<FormRef>(null);
+    const formRef = useRef<View>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null>('');
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
@@ -76,7 +74,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
             const {emojiCode, statusText} = values;
             const clearAfterTime = draftClearAfter ?? currentUserClearAfter ?? CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
@@ -124,9 +122,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const validateForm = useCallback(() => {
+    const validateForm = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
         if (brickRoadIndicator) {
-            return {clearAfter: ''};
+            return {clearAfter: '' as TranslationPaths};
         }
         return {};
     }, [brickRoadIndicator]);
@@ -169,7 +167,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                         />
                         <InputWrapper
                             InputComponent={TextInput}
-                            ref={inputCallbackRef as unknown}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             label={translate('statusPage.message')}

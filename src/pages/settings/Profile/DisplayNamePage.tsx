@@ -21,7 +21,6 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type DisplayNamePageOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
@@ -42,8 +41,8 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> => {
-        const errors: Errors = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
 
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
