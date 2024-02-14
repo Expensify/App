@@ -11,8 +11,8 @@ import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import Section from '@components/Section';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,9 +27,9 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Session} from '@src/types/onyx';
 
-type ShareCodePageOnyxProps = WithCurrentUserPersonalDetailsProps & {
+type ShareCodePageOnyxProps = {
     /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
+    session?: OnyxEntry<Session>;
 
     /** The report currently being looked at */
     report?: OnyxEntry<Report>;
@@ -37,12 +37,13 @@ type ShareCodePageOnyxProps = WithCurrentUserPersonalDetailsProps & {
 
 type ShareCodePageProps = ShareCodePageOnyxProps;
 
-function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodePageProps) {
+function ShareCodePage({report, session}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
     const {isSmallScreenWidth} = useWindowDimensions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
 
@@ -78,49 +79,64 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
         >
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : undefined)}
                 shouldShowBackButton={isReport || isSmallScreenWidth}
-                icon={Illustrations.QrCode}
+                icon={Illustrations.QRCode}
             />
-            <ScrollView style={[themeStyles.flex1, themeStyles.mt3]}>
-                <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection, themeStyles.ph4]}>
-                    <QRShareWithDownload
-                        ref={qrCodeRef}
-                        url={url}
-                        title={title}
-                        subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
-                    />
-                </View>
+            <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
+                <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
+                    <Section
+                        title={translate('shareCodePage.title')}
+                        subtitle={translate('shareCodePage.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        childrenStyles={themeStyles.pt5}
+                        titleStyles={themeStyles.accountSettingsSectionTitle}
+                    >
+                        <View style={[isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.qrShareSection]}>
+                            <QRShareWithDownload
+                                ref={qrCodeRef}
+                                url={url}
+                                title={title}
+                                subtitle={subtitle}
+                                logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                                logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                                logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                            />
+                        </View>
 
-                <View style={{marginTop: 36}}>
-                    <ContextMenuItem
-                        isAnonymousAction
-                        text={translate('qrCodes.copy')}
-                        icon={Expensicons.Copy}
-                        successIcon={Expensicons.Checkmark}
-                        successText={translate('qrCodes.copied')}
-                        onPress={() => Clipboard.setString(url)}
-                        shouldLimitWidth={false}
-                    />
+                        <View style={{marginTop: 36}}>
+                            <ContextMenuItem
+                                isAnonymousAction
+                                text={translate('qrCodes.copy')}
+                                icon={Expensicons.Copy}
+                                successIcon={Expensicons.Checkmark}
+                                successText={translate('qrCodes.copied')}
+                                onPress={() => Clipboard.setString(url)}
+                                shouldLimitWidth={false}
+                                wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                            />
 
-                    {isNative && (
-                        <MenuItem
-                            isAnonymousAction
-                            title={translate('common.download')}
-                            icon={Expensicons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onPress={() => qrCodeRef.current?.download?.()}
-                        />
-                    )}
+                            {isNative && (
+                                <MenuItem
+                                    isAnonymousAction
+                                    title={translate('common.download')}
+                                    icon={Expensicons.Download}
+                                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                    onPress={() => qrCodeRef.current?.download?.()}
+                                    wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                                />
+                            )}
 
-                    <MenuItem
-                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
-                        icon={Expensicons.Cash}
-                        onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
-                    />
+                            <MenuItem
+                                title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
+                                icon={Expensicons.Cash}
+                                onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
+                                wrapperStyle={themeStyles.sectionMenuItemTopDescription}
+                                shouldShowRightIcon
+                            />
+                        </View>
+                    </Section>
                 </View>
             </ScrollView>
         </ScreenWrapper>
@@ -129,4 +145,4 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
 
 ShareCodePage.displayName = 'ShareCodePage';
 
-export default withCurrentUserPersonalDetails(ShareCodePage);
+export default ShareCodePage;
