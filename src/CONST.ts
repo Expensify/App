@@ -103,7 +103,7 @@ const CONST = {
     },
 
     REPORT_DESCRIPTION: {
-        MAX_LENGTH: 1024,
+        MAX_LENGTH: 500,
     },
 
     PULL_REQUEST_NUMBER,
