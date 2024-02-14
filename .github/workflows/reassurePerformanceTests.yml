@@ -33,6 +33,7 @@ jobs:
       - name: Clean up deleted files
         run: |
             DELETED_FILES=$(git diff --name-only --diff-filter=D "$COMMIT_HASH" "${{ github.sha }}")
+            echo "DELETED_FILES=$DELETED_FILES"
             echo "COMMIT_HASH=$COMMIT_HASH"
             for file in $DELETED_FILES; do
               if [ -n "$file" ]; then
