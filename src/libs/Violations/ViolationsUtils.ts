@@ -93,22 +93,41 @@ const ViolationsUtils = {
         violation: TransactionViolation,
         translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     ): string {
+        const {
+            brokenBankConnection = false,
+            isAdmin = false,
+            email,
+            isTransactionOlderThan7Days = false,
+            member,
+            category,
+            rejectedBy,
+            rejectReason,
+            formattedLimit,
+            surcharge,
+            invoiceMarkup,
+            maxAge = 0,
+            tagName,
+            taxName,
+        } = violation.data ?? {};
+
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
             case 'autoReportedRejectedExpense':
-                return translate('violations.autoReportedRejectedExpense', {
-                    rejectedBy: violation.data?.rejectedBy ?? '',
-                    rejectReason: violation.data?.rejectReason ?? '',
-                });
+                return rejectReason && rejectedBy
+                    ? translate('violations.autoReportedRejectedExpense', {
+                          rejectedBy,
+                          rejectReason,
+                      })
+                    : '';
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
-                return translate('violations.cashExpenseWithNoReceipt', {amount: violation.data?.amount ?? ''});
+                return translate('violations.cashExpenseWithNoReceipt', {formattedLimit});
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
-                return translate('violations.conversionSurcharge', {surcharge: violation.data?.surcharge});
+                return translate('violations.conversionSurcharge', {surcharge});
             case 'customUnitOutOfPolicy':
                 return translate('violations.customUnitOutOfPolicy');
             case 'duplicatedTransaction':
@@ -118,15 +137,15 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'invoiceMarkup':
-                return translate('violations.invoiceMarkup', {invoiceMarkup: violation.data?.invoiceMarkup});
+                return translate('violations.invoiceMarkup', {invoiceMarkup});
             case 'maxAge':
-                return translate('violations.maxAge', {maxAge: violation.data?.maxAge ?? 0});
+                return translate('violations.maxAge', {maxAge});
             case 'missingCategory':
                 return translate('violations.missingCategory');
             case 'missingComment':
                 return translate('violations.missingComment');
             case 'missingTag':
-                return translate('violations.missingTag', {tagName: violation.data?.tagName});
+                return translate('violations.missingTag', {tagName});
             case 'modifiedAmount':
                 return translate('violations.modifiedAmount');
             case 'modifiedDate':
@@ -134,40 +153,37 @@ const ViolationsUtils = {
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
-                return translate('violations.overAutoApprovalLimit', {formattedLimitAmount: violation.data?.formattedLimitAmount ?? ''});
+                return translate('violations.overAutoApprovalLimit', {formattedLimit});
             case 'overCategoryLimit':
-                return translate('violations.overCategoryLimit', {categoryLimit: violation.data?.categoryLimit ?? ''});
+                return translate('violations.overCategoryLimit', {formattedLimit});
             case 'overLimit':
-                return translate('violations.overLimit', {amount: violation.data?.amount ?? ''});
+                return translate('violations.overLimit', {formattedLimit});
             case 'overLimitAttendee':
-                return translate('violations.overLimitAttendee', {amount: violation.data?.amount ?? ''});
+                return translate('violations.overLimitAttendee', {formattedLimit});
             case 'perDayLimit':
-                return translate('violations.perDayLimit', {limit: violation.data?.limit ?? ''});
+                return translate('violations.perDayLimit', {formattedLimit});
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', {
-                    amount: violation.data?.amount ?? '0',
-                    category: violation.data?.category ?? '',
-                });
+                return translate('violations.receiptRequired', {formattedLimit, category});
             case 'rter':
                 return translate('violations.rter', {
-                    brokenBankConnection: violation.data?.brokenBankConnection ?? false,
-                    isAdmin: violation.data?.isAdmin ?? false,
-                    email: violation.data?.email,
-                    isTransactionOlderThan7Days: !!violation.data?.isTransactionOlderThan7Days,
-                    member: violation.data?.member,
+                    brokenBankConnection,
+                    isAdmin,
+                    email,
+                    isTransactionOlderThan7Days,
+                    member,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');
             case 'someTagLevelsRequired':
                 return translate('violations.someTagLevelsRequired');
             case 'tagOutOfPolicy':
-                return translate('violations.tagOutOfPolicy', {tagName: violation.data?.tagName});
+                return translate('violations.tagOutOfPolicy', {tagName});
             case 'taxAmountChanged':
                 return translate('violations.taxAmountChanged');
             case 'taxOutOfPolicy':
-                return translate('violations.taxOutOfPolicy', {taxName: violation.data?.taxName});
+                return translate('violations.taxOutOfPolicy', {taxName});
             case 'taxRateChanged':
                 return translate('violations.taxRateChanged');
             case 'taxRequired':
