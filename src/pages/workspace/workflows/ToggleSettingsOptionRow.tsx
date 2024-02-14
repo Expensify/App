@@ -1,8 +1,6 @@
 import Switch from "@components/Switch";
 import Text from "@components/Text";
-import useLocalize from "@hooks/useLocalize";
 import useThemeStyles from "@hooks/useThemeStyles";
-import { TranslationPaths } from "@src/languages/types";
 import React, { useState } from "react";
 import { View } from "react-native";
 import { SvgProps } from "react-native-svg";
@@ -17,7 +15,6 @@ export type OptionType = {
 
 const ToggleSettingOptionRow = ({ Illustration, title, subtitle, onToggle, subMenuItems }: OptionType) => {
     const [isEnabled, setIsEnabled] = useState(false);
-    const { translate } = useLocalize();
     const styles = useThemeStyles();
   
     const toggleSwitch = () => {
