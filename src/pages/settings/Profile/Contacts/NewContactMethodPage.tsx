@@ -6,7 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,7 +35,7 @@ type NewContactMethodPageOnyxProps = {
 
 type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-const addNewContactMethod = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
+const addNewContactMethod = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
     const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
     const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
     const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
@@ -51,7 +51,7 @@ function NewContactMethodPage({loginList = {}, route}: NewContactMethodPageProps
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
     const validate = React.useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
             const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
             const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
 
