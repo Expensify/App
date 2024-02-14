@@ -272,7 +272,7 @@ function AddressSearch(
 
     const renderHeaderComponent = () => (
         <>
-            {predefinedPlaces?.length && (
+            {(predefinedPlaces?.length ?? 0) > 0 && (
                 <>
                     {/* This will show current location button in list if there are some recent destinations */}
                     {shouldShowCurrentLocationButton && (
@@ -348,7 +348,7 @@ function AddressSearch(
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
                                 <View>
-                                    {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
                                     <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
                                 </View>
                             );
