@@ -4453,10 +4453,11 @@ const styles = (theme: ThemeColors) =>
         workspaceWorkflowContent: {
             flexDirection: 'row', 
             alignItems: 'center',
+            flex: 1,
         },
         workspaceWorkflowContainer: {
             flexDirection: 'row',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'space-between',
         },
         workspaceWorkflowsHeading: {
@@ -4465,16 +4466,29 @@ const styles = (theme: ThemeColors) =>
         },
         workspaceWorkflowsWrapperText: {
             flexDirection: 'column',
-            maxWidth: 486,
+            flex: 1,
         },
         workspaceWorkflowsSubtitle: {
             fontSize: 13,
             color: theme.textSupporting,
             marginTop: 3,
         },
-        workspaceWorkflowsIllustrationContainer: {
-            justifyContent: 'center',
-            alignItems: 'center',
+        workspaceWorkflowsSubMenuContainer: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
+            marginLeft: 29
+        },
+        workspaceWorkflowsSubMenuTitle: {
+            color: theme.textSupporting,
+            fontSize: 13,
+            lineHeight: 16,
+            fontWeight: '400',
+        },
+        workspaceWorkflowsSubMenuDescription: {
+            color: theme.text,
+            fontSize: 15,
+            lineHeight: 20
         },
     } satisfies Styles);
 
