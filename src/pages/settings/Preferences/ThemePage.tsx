@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -13,23 +13,22 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const propTypes = {
+type ThemePageOnyxProps = {
     /** The theme of the app */
-    preferredTheme: PropTypes.string,
+    preferredTheme: OnyxEntry<ValueOf<typeof CONST.THEME>>;
 };
 
-const defaultProps = {
-    preferredTheme: CONST.THEME.DEFAULT,
-};
+type ThemePageProps = ThemePageOnyxProps;
 
-function ThemePage(props) {
+function ThemePage({preferredTheme}: ThemePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const localesToThemes = _.map(_.values(_.omit(CONST.THEME, 'DEFAULT', 'FALLBACK')), (theme) => ({
+    const {DEFAULT, FALLBACK, ...themes} = CONST.THEME;
+    const localesToThemes = Object.values(themes).map((theme) => ({
         value: theme,
         text: translate(`themePage.themes.${theme}.label`),
         keyForList: theme,
-        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === theme,
+        isSelected: (preferredTheme ?? CONST.THEME.DEFAULT) === theme,
     }));
 
     return (
@@ -49,17 +48,15 @@ function ThemePage(props) {
             <SelectionList
                 sections={[{data: localesToThemes}]}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
-                initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}
+                initiallyFocusedOptionKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
             />
         </ScreenWrapper>
     );
 }
 
 ThemePage.displayName = 'ThemePage';
-ThemePage.propTypes = propTypes;
-ThemePage.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<ThemePageProps, ThemePageOnyxProps>({
     preferredTheme: {
         key: ONYXKEYS.PREFERRED_THEME,
     },

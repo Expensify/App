@@ -1,8 +1,8 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -16,33 +16,28 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {User as UserType} from '@src/types/onyx';
 
-const propTypes = {
+type PreferencesPageOnyxProps = {
     /** The chat priority mode */
-    priorityMode: PropTypes.string,
+    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 
     /** The app's color theme */
-    preferredTheme: PropTypes.string,
+    preferredTheme: OnyxEntry<ValueOf<typeof CONST.THEME>>;
 
     /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        isSubscribedToNewsletter: PropTypes.bool,
-    }),
+    user: OnyxEntry<UserType>;
 };
 
-const defaultProps = {
-    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    preferredTheme: CONST.DEFAULT_THEME,
-    user: {},
-};
+type PreferencesPageProps = PreferencesPageOnyxProps;
 
-function PreferencesPage(props) {
+function PreferencesPage({priorityMode, preferredTheme, user}: PreferencesPageProps) {
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
@@ -85,7 +80,7 @@ function PreferencesPage(props) {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                                        isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
+                                        isOn={user?.isSubscribedToNewsletter ?? true}
                                         onToggle={User.updateNewsletterSubscription}
                                     />
                                 </View>
@@ -97,28 +92,28 @@ function PreferencesPage(props) {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
-                                        isOn={lodashGet(props.user, 'isMutedAllSounds', false)}
+                                        isOn={user?.isMutedAllSounds ?? false}
                                         onToggle={User.setMuteAllSounds}
                                     />
                                 </View>
                             </View>
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`priorityModePage.priorityModes.${props.priorityMode}.label`)}
+                                title={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
                                 description={translate('priorityModePage.priorityMode')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`languagePage.languages.${preferredLocale}.label`)}
+                                title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`themePage.themes.${props.preferredTheme || CONST.THEME.DEFAULT}.label`)}
+                                title={translate(`themePage.themes.${preferredTheme ?? CONST.THEME.DEFAULT}.label`)}
                                 description={translate('themePage.theme')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -144,11 +139,9 @@ function PreferencesPage(props) {
     );
 }
 
-PreferencesPage.propTypes = propTypes;
-PreferencesPage.defaultProps = defaultProps;
 PreferencesPage.displayName = 'PreferencesPage';
 
-export default withOnyx({
+export default withOnyx<PreferencesPageProps, PreferencesPageOnyxProps>({
     priorityMode: {
         key: ONYXKEYS.NVP_PRIORITY_MODE,
     },
