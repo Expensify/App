@@ -393,6 +393,12 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    // Ignore markedAsReimbursed action here since we're already display message that explains the request was paid
+    // elsewhere in the IOU reportAction
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
+        return false;
+    }
+
     if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
