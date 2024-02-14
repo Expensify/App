@@ -33,4 +33,5 @@ export type {WorkspaceInviteMessageForm} from './WorkspaceInviteMessageForm';
 export type {WorkspaceRateAndUnitForm} from './WorkspaceRateAndUnitForm';
 export type {WorkspaceSettingsForm} from './WorkspaceSettingsForm';
 export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
+export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
 export type {default as Form} from './Form';
