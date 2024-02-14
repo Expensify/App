@@ -297,6 +297,7 @@ export type {
     ChangeLog,
     OriginalMessageIOU,
     OriginalMessageCreated,
+    OriginalMessageRenamed,
     OriginalMessageAddComment,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,

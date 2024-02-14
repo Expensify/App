@@ -262,8 +262,8 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport?: boolean): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false): number {
+    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
@@ -309,6 +309,13 @@ function getOriginalCurrency(transaction: Transaction): string {
 function getOriginalAmount(transaction: Transaction): number {
     const amount = transaction?.originalAmount ?? 0;
     return Math.abs(amount);
+}
+
+/**
+ * Verify if the transaction is expecting the distance to be calculated on the server
+ */
+function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boolean {
+    return !!transaction?.pendingFields?.waypoints;
 }
 
 /**
@@ -527,7 +534,11 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Check if transaction is on hold
  */
-function isOnHold(transaction: Transaction): boolean {
+function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
     return !!transaction.comment?.hold;
 }
 
@@ -584,6 +595,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,
     isPending,

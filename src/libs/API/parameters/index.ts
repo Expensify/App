@@ -141,3 +141,4 @@ export type {default as DetachReceiptParams} from './DetachReceiptParams';
 export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
 export type {default as HoldMoneyRequestParams} from './HoldMoneyRequestParams';
 export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestParams';
+export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';
