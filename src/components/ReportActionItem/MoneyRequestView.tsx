@@ -395,22 +395,24 @@ function MoneyRequestView({
                 )}
 
                 {shouldShowBillable && (
-                    <>
-                        <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                        <View>
                             <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                            <Switch
-                                accessibilityLabel={translate('common.billable')}
-                                isOn={!!transactionBillable}
-                                onToggle={saveBillable}
-                            />
+                            {getErrorForField('billable') && (
+                                <ViolationMessages
+                                    violations={getViolationsForField('billable')}
+                                    containerStyle={[styles.mt1]}
+                                    textStyle={[styles.ph0]}
+                                    isLast
+                                />
+                            )}
                         </View>
-                        {getErrorForField('billable') && (
-                            <ViolationMessages
-                                violations={getViolationsForField('billable')}
-                                isLast
-                            />
-                        )}
-                    </>
+                        <Switch
+                            accessibilityLabel={translate('common.billable')}
+                            isOn={!!transactionBillable}
+                            onToggle={saveBillable}
+                        />
+                    </View>
                 )}
             </View>
             <SpacerView
