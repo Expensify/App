@@ -17,6 +17,7 @@ function BaseTextInputWithCurrencySymbol(props) {
         <CurrencySymbolButton
             currencySymbol={currencySymbol}
             onCurrencyButtonPress={props.onCurrencyButtonPress}
+            isCurrencyPressable={props.isCurrencyPressable}
         />
     );
 
