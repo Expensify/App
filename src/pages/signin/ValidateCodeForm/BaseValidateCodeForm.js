@@ -19,7 +19,7 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AccountUtils from '@libs/AccountUtils';
+import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';

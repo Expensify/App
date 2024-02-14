@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AccountUtils from '@libs/AccountUtils';
+import AccountUtils from '@libs/AccountUtils';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
