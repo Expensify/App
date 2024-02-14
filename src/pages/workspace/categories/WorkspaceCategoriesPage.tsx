@@ -43,7 +43,7 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-    const data = useMemo(
+    const categoryList = useMemo<PolicyForList[]>(
         () =>
             Object.values(policyCategories ?? {}).map((value) => ({
                 value: value.name,
@@ -75,11 +75,11 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
     };
 
     const toggleAllCategories = () => {
-        const isAllSelected = data.every((category) => category.isSelected);
+        const isAllSelected = categoryList.every((category) => category.isSelected);
         if (isAllSelected) {
             setSelectedCategories([]);
         } else {
-            setSelectedCategories(data.map((item) => item.value));
+            setSelectedCategories(categoryList.map((item) => item.value));
         }
     };
 
@@ -97,7 +97,7 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
             />
             <SelectionList
                 canSelectMultiple
-                sections={[{data, indexOffset: 0, isDisabled: false}]}
+                sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
                 onSelectRow={toggleCategory}
                 onSelectAll={toggleAllCategories}
                 showScrollIndicator
