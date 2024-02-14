@@ -240,6 +240,7 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default withPolicyAndFullscreenLoading(
     withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
