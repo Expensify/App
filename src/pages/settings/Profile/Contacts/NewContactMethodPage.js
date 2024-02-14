@@ -22,6 +22,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -134,7 +135,7 @@ function NewContactMethodPage(props) {
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}
-                        inputID="phoneOrEmail"
+                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
                         autoCapitalize="none"
                         enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}

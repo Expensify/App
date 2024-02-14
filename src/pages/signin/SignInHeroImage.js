@@ -1,30 +1,24 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useIsSplashHidden from '@hooks/useIsSplashHidden';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 
-const propTypes = {
-    ...windowDimensionsPropTypes,
-
-    shouldShowSmallScreen: PropTypes.bool,
-};
-
-const defaultProps = {
-    shouldShowSmallScreen: false,
-};
-
-function SignInHeroImage(props) {
+function SignInHeroImage() {
     const styles = useThemeStyles();
+    const {isMediumScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     let imageSize;
-    if (props.isSmallScreenWidth || props.shouldShowSmallScreen) {
+    if (shouldUseNarrowLayout) {
         imageSize = {
             height: variables.signInHeroImageMobileHeight,
             width: variables.signInHeroImageMobileWidth,
         };
-    } else if (props.isMediumScreenWidth) {
+    } else if (isMediumScreenWidth) {
         imageSize = {
             height: variables.signInHeroImageTabletHeight,
             width: variables.signInHeroImageTabletWidth,
@@ -34,6 +28,14 @@ function SignInHeroImage(props) {
             height: variables.signInHeroImageDesktopHeight,
             width: variables.signInHeroImageDesktopWidth,
         };
+    }
+
+    const isSplashHidden = useIsSplashHidden();
+    // Prevents rendering of the Lottie animation until the splash screen is hidden
+    // by returning an empty view of the same size as the animation.
+    // See issue: https://github.com/Expensify/App/issues/34696
+    if (!isSplashHidden) {
+        return <View style={[styles.alignSelfCenter, imageSize]} />;
     }
 
     return (
@@ -48,7 +50,5 @@ function SignInHeroImage(props) {
 }
 
 SignInHeroImage.displayName = 'SignInHeroImage';
-SignInHeroImage.propTypes = propTypes;
-SignInHeroImage.defaultProps = defaultProps;
 
-export default withWindowDimensions(SignInHeroImage);
+export default SignInHeroImage;

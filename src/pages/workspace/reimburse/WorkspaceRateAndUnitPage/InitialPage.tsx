@@ -163,6 +163,7 @@ WorkspaceRateAndUnitPage.displayName = 'WorkspaceRateAndUnitPage';
 
 export default compose(
     withOnyx<WorkspaceRateAndUnitPageProps, WorkspaceRateAndUnitOnyxProps>({
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
