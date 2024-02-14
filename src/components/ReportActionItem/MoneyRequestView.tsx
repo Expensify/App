@@ -403,13 +403,13 @@ function MoneyRequestView({
                                 isOn={!!transactionBillable}
                                 onToggle={saveBillable}
                             />
-                            {getErrorForField('billable') && (
-                                <ViolationMessages
-                                    violations={getViolationsForField('billable')}
-                                    isLast
-                                />
-                            )}
                         </View>
+                        {getErrorForField('billable') && (
+                            <ViolationMessages
+                                violations={getViolationsForField('billable')}
+                                isLast
+                            />
+                        )}
                     </>
                 )}
             </View>
