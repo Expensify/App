@@ -148,7 +148,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                         >
                                             {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink value={phoneOrEmail}>
+                                        <CommunicationsLink value={phoneOrEmail ?? ''}>
                                             <UserDetailsTooltip accountID={details.accountID}>
                                                 <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : details.login}</Text>
                                             </UserDetailsTooltip>
