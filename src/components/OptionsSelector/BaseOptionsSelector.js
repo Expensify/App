@@ -657,7 +657,7 @@ function BaseOptionsSelector(props) {
             </View>
             {props.shouldShowReferralCTA && (
                 <View style={[themeStyles.ph5, themeStyles.pb5, themeStyles.flexShrink0]}>
-                    <ReferralProgramCTA referralContentType={props.referralContentType}/>
+                    <ReferralProgramCTA referralContentType={props.referralContentType} />
                 </View>
             )}
 
