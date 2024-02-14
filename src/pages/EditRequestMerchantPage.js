@@ -21,7 +21,11 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 
     /** Boolean to enable validation */
-    isPolicyExpenseChat: PropTypes.bool.isRequired,
+    isPolicyExpenseChat: PropTypes.bool,
+};
+
+const defaultProps = {
+    isPolicyExpenseChat: false,
 };
 
 function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat}) {
@@ -75,6 +79,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat
 }
 
 EditRequestMerchantPage.propTypes = propTypes;
+EditRequestMerchantPage.defaultProps = defaultProps;
 EditRequestMerchantPage.displayName = 'EditRequestMerchantPage';
 
 export default EditRequestMerchantPage;
