@@ -33,7 +33,7 @@ type ContactMethodsPageOnyxProps = {
 
 type ContactMethodsPageProps = ContactMethodsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
 
-function ContactMethodsPage({loginList = {}, session, route}: ContactMethodsPageProps) {
+function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const loginNames = Object.keys(loginList ?? {});
@@ -45,8 +45,8 @@ function ContactMethodsPage({loginList = {}, session, route}: ContactMethodsPage
 
     const loginMenuItems = sortedLoginNames.map((loginName) => {
         const login = loginList?.[loginName];
-        const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin;
-        if (!login?.partnerUserID && isEmptyObject(pendingAction)) {
+        const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin ?? undefined;
+        if (!login?.partnerUserID && !pendingAction) {
             return null;
         }
 
@@ -67,12 +67,13 @@ function ContactMethodsPage({loginList = {}, session, route}: ContactMethodsPage
 
         // Default to using login key if we deleted login.partnerUserID optimistically
         // but still need to show the pending login being deleted while offline.
-        const partnerUserID = login?.partnerUserID ?? loginName;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const partnerUserID = login?.partnerUserID || loginName;
         const menuItemTitle = Str.isSMSLogin(partnerUserID) ? formatPhoneNumber(partnerUserID) : partnerUserID;
 
         return (
             <OfflineWithFeedback
-                pendingAction={pendingAction ?? undefined}
+                pendingAction={pendingAction}
                 key={partnerUserID}
             >
                 <MenuItem
@@ -82,7 +83,7 @@ function ContactMethodsPage({loginList = {}, session, route}: ContactMethodsPage
                     brickRoadIndicator={indicator}
                     shouldShowBasicTitle
                     shouldShowRightIcon
-                    disabled={!isEmptyObject(pendingAction)}
+                    disabled={!!pendingAction}
                 />
             </OfflineWithFeedback>
         );

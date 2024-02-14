@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
-import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
+import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -32,6 +32,10 @@ type ValidateCodeFormHandle = {
     focusLastSelected: () => void;
 };
 
+type ValidateCodeFormError = {
+    validateCode?: TranslationPaths;
+};
+
 type BaseValidateCodeFormOnyxProps = {
     /** The details about the account that the user is signing in with */
     account: OnyxEntry<Account>;
@@ -48,7 +52,7 @@ type ValidateCodeFormProps = {
     loginList: LoginList;
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
-    autoComplete?: 'sms-otp' | 'one-time-code';
+    autoComplete?: AutoCompleteVariant;
 
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
@@ -62,13 +66,13 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [formError, setFormError] = useState<Errors>({});
+    const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const loginData = loginList[contactMethod];
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldDisableResendValidateCode = isOffline || account?.isLoading;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+    const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useImperativeHandle(innerRef, () => ({
@@ -174,13 +178,13 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
-                errorText={formError?.validateCode ? translate(formError?.validateCode as TranslationPaths) : ErrorUtils.getLatestErrorMessage(account ?? {})}
+                errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
             />
             <OfflineWithFeedback
-                pendingAction={loginData.pendingFields?.validateCodeSent ?? undefined}
+                pendingAction={loginData.pendingFields?.validateCodeSent}
                 errors={ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
@@ -209,7 +213,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                 </View>
             </OfflineWithFeedback>
             <OfflineWithFeedback
-                pendingAction={loginData.pendingFields?.validateLogin ?? undefined}
+                pendingAction={loginData.pendingFields?.validateLogin}
                 errors={validateLoginError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}

@@ -43,7 +43,7 @@ const addNewContactMethod = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CO
     User.addNewContactMethodAndNavigate(submitDetail);
 };
 
-function NewContactMethodPage({loginList = {}, route}: NewContactMethodPageProps) {
+function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
@@ -57,15 +57,15 @@ function NewContactMethodPage({loginList = {}, route}: NewContactMethodPageProps
 
             const errors = {};
 
-            if (isEmptyObject(values.phoneOrEmail)) {
+            if (!values.phoneOrEmail) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
             }
 
-            if (!isEmptyObject(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
-            if (!isEmptyObject(values.phoneOrEmail) && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
+            if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
             }
 
@@ -105,8 +105,8 @@ function NewContactMethodPage({loginList = {}, route}: NewContactMethodPageProps
                 style={[styles.flexGrow1, styles.mh5]}
                 enabledWhenOffline
             >
-                <Text style={[styles.mb5]}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
-                <View style={[styles.mb6]}>
+                <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
+                <View style={styles.mb6}>
                     <InputWrapper
                         InputComponent={TextInput}
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}

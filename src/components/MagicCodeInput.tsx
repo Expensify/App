@@ -429,5 +429,5 @@ function MagicCodeInput(
 
 MagicCodeInput.displayName = 'MagicCodeInput';
 
-export type {MagicCodeInputHandle};
 export default forwardRef(MagicCodeInput);
+export type {AutoCompleteVariant, MagicCodeInputHandle};

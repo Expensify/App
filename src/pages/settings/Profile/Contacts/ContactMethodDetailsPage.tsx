@@ -52,7 +52,7 @@ type ContactMethodDetailsPageOnyxProps = {
 
 type ContactMethodDetailsPageProps = ContactMethodDetailsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
-function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurityGroups = {}, securityGroups, isLoadingReportData = true, route}: ContactMethodDetailsPageProps) {
+function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, securityGroups, isLoadingReportData = true, route}: ContactMethodDetailsPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -63,13 +63,13 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
     /**
      * Gets the current contact method from the route params
      */
-    const contactMethod = useMemo(() => {
+    const contactMethod: string = useMemo(() => {
         const contactMethodParam = route.params.contactMethod;
 
         // We find the number of times the url is encoded based on the last % sign and remove them.
         const lastPercentIndex = contactMethodParam.lastIndexOf('%');
         const encodePercents = contactMethodParam.substring(lastPercentIndex).match(new RegExp('25', 'g'));
-        let numberEncodePercents = encodePercents ? encodePercents.length : 0;
+        let numberEncodePercents = encodePercents?.length ?? 0;
         const beforeAtSign = contactMethodParam.substring(0, lastPercentIndex).replace(CONST.REGEX.ENCODE_PERCENT_CHARACTER, (match) => {
             if (numberEncodePercents > 0) {
                 numberEncodePercents--;
@@ -187,9 +187,9 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
 
     // Replacing spaces with "hard spaces" to prevent breaking the number
     const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
-    const hasMagicCodeBeenSent = loginList?.[contactMethod].validateCodeSent;
-    const isFailedAddContactMethod = !!loginData?.errorFields?.addedLogin;
-    const isFailedRemovedContactMethod = !!loginData?.errorFields?.deletedLogin;
+    const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
+    const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
+    const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
 
     return (
         <ScreenWrapper
@@ -236,7 +236,7 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
 
                         <ValidateCodeForm
                             contactMethod={contactMethod}
-                            hasMagicCodeBeenSent={!!hasMagicCodeBeenSent}
+                            hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                             loginList={loginList ?? {}}
                             ref={validateCodeFormRef}
                         />
@@ -257,7 +257,7 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
                 ) : null}
                 {isDefaultContactMethod ? (
                     <OfflineWithFeedback
-                        pendingAction={loginData?.pendingFields?.defaultLogin ?? undefined}
+                        pendingAction={loginData.pendingFields?.defaultLogin}
                         errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                         errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
                         onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
@@ -266,7 +266,7 @@ function ContactMethodDetailsPage({loginList = {}, session = {}, myDomainSecurit
                     </OfflineWithFeedback>
                 ) : (
                     <OfflineWithFeedback
-                        pendingAction={loginData?.pendingFields?.deletedLogin ?? undefined}
+                        pendingAction={loginData.pendingFields?.deletedLogin}
                         errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
                         errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
                         onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
