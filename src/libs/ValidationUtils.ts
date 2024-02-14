@@ -37,7 +37,7 @@ function validateCardNumber(value: string): boolean {
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  */
-function isValidAddress(value: FormValueType): boolean {
+function isValidAddress(value: string): boolean {
     if (typeof value !== 'string') {
         return false;
     }
