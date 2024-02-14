@@ -5,6 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,6 +31,7 @@ const STEP_FIELDS = [BANK_INFO_STEP_KEYS.ROUTING_NUMBER, BANK_INFO_STEP_KEYS.ACC
 function Manual({reimbursementAccount, onNext}: ManualProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const defaultValues: FormValues = {
         [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: reimbursementAccount?.achData?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
@@ -78,6 +80,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             <ExampleCheckImage />
             <InputWrapper
                 InputComponent={TextInput}
+                ref={inputCallbackRef}
                 inputID={BANK_INFO_STEP_KEYS.ROUTING_NUMBER}
                 label={translate('bankAccount.routingNumber')}
                 aria-label={translate('bankAccount.routingNumber')}

@@ -67,7 +67,6 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
             />
             <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    onStepSelected={() => {}}
                     startStepIndex={2}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
