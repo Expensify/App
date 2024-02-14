@@ -12,11 +12,13 @@ import Text from '@components/Text';
 import Section from '@components/Section';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ToggleSettingOptionRow, { OptionType } from './ToggleSettingsOptionRow';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import compose from '@libs/compose';
+import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
 
-type WorkspaceWorkflowsPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-const WorkspaceWorkflowsPage: React.FC<WorkspaceWorkflowsPageProps> = ({route}) => {
+function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -27,14 +29,18 @@ const WorkspaceWorkflowsPage: React.FC<WorkspaceWorkflowsPageProps> = ({route}) 
           title: translate('workflowsPage.delaySubmissionTitle'),
           subtitle: translate('workflowsPage.delaySubmissionDescription'),
           onToggle: (isEnabled: boolean) => {
-            // TODO
+              // TODO call API routes && set onyx optimistic data
           },
           subMenuItems: (
-            <MenuItemWithTopDescription
-              title={translate('workflowsPage.delaySubmissionTitle')}
-              onPress={() => {}}
-              shouldShowRightIcon={true}
-            />
+                <MenuItem
+                title={translate('workflowsPage.submissionFrequency')}
+                titleStyle={styles.workspaceWorkflowsSubMenuTitle}
+                descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
+                description={translate('workflowsPage.weeklyFrequency')}
+                onPress={() => {}}
+                shouldShowRightIcon={true}
+                wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
+                />
           ),
         },
         {
@@ -42,13 +48,17 @@ const WorkspaceWorkflowsPage: React.FC<WorkspaceWorkflowsPageProps> = ({route}) 
             title: translate('workflowsPage.addApprovalsTitle'),
             subtitle: translate('workflowsPage.addApprovalsDescription'),
             onToggle: (isEnabled: boolean) => {
-              // TODO
+              // TODO call API routes && set onyx optimistic data
             },
             subMenuItems: (
-              <MenuItemWithTopDescription
-                title={translate('workflowsPage.addApprovalsTitle')}
+              <MenuItem
+                title={translate('workflowsPage.approver')}
+                titleStyle={styles.workspaceWorkflowsSubMenuTitle}
+                descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
+                description={policy?.owner ?? ''}
                 onPress={() => {}}
                 shouldShowRightIcon={true}
+                wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
               />
             ),
           },
@@ -57,13 +67,15 @@ const WorkspaceWorkflowsPage: React.FC<WorkspaceWorkflowsPageProps> = ({route}) 
             title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
             subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
             onToggle: (isEnabled: boolean) => {
-              // TODO
+              // TODO call API routes && set onyx optimistic data
             },
             subMenuItems: (
-              <MenuItemWithTopDescription
-                title={translate('workflowsPage.makeOrTrackPaymentsTitle')}
+                <MenuItem
+                descriptionTextStyle={[styles.workspaceWorkflowsSubMenuDescription, styles.textSupporting]}
+                description={translate('workflowsPage.connectBankAccount')}
                 onPress={() => {}}
                 shouldShowRightIcon={true}
+                wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
               />
             ),
           },
@@ -110,4 +122,6 @@ const WorkspaceWorkflowsPage: React.FC<WorkspaceWorkflowsPageProps> = ({route}) 
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-export default WorkspaceWorkflowsPage;
+export default compose(
+    withPolicy,
+)(WorkspaceWorkflowsPage);
