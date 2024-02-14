@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -271,7 +271,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
+    const shouldShowTax = isPolicyExpenseChat && policy && lodashGet(policy, 'isTaxTrackingEnabled', false);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -309,8 +309,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && Boolean(policy.requiresCategory);
-    const isTagRequired = canUseViolations && Boolean(policy.requiresTag);
+    const isCategoryRequired = canUseViolations && Boolean(lodashGet(policy, 'requiresCategory', false));
+    const isTagRequired = canUseViolations && Boolean(lodashGet(policy, 'requiresTag', false));
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
@@ -753,14 +753,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
+                    rightLabel={canUseViolations && Boolean(lodashGet(policy, 'requiresCategory', false)) ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        {
-            item: _.map(policyTagLists, ({name}, index) => (
+        ..._.map(policyTagLists, ({name}, index) => ({
+            item: (
                 <MenuItemWithTopDescription
                     key={name}
                     shouldShowRightIcon={!isReadOnly}
@@ -777,10 +777,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                     rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
                 />
-            )),
+            ),
             shouldShow: shouldShowTags,
             isSupplementary: !isTagRequired,
-        },
+        })),
         {
             item: (
                 <MenuItemWithTopDescription
