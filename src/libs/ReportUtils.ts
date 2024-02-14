@@ -568,7 +568,7 @@ function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, retu
 
     const parentReport = getRootParentReport(report);
 
-    // Public rooms send back the policy name with the reportSummary,
+    // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
@@ -2630,6 +2630,15 @@ function getReportDescriptionText(report: Report): string {
     return parser.htmlToText(report.description);
 }
 
+function getPolicyDescriptionText(policy: Policy): string {
+    if (!policy.description) {
+        return '';
+    }
+
+    const parser = new ExpensiMark();
+    return parser.htmlToText(policy.description);
+}
+
 function buildOptimisticAddCommentReportAction(text?: string, file?: File, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
@@ -3634,7 +3643,10 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
     const lastReadTime = report.lastReadTime ?? '';
-    return lastReadTime < lastVisibleActionCreated;
+    const lastMentionedTime = report.lastMentionedTime ?? '';
+
+    // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
+    return lastReadTime < lastVisibleActionCreated || lastReadTime < lastMentionedTime;
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): boolean {
@@ -4664,6 +4676,10 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
+function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
+    return PolicyUtils.isPolicyAdmin(policy);
+}
+
 /**
  * Checks if report action has error when smart scanning
  */
@@ -5043,6 +5059,8 @@ export {
     getAvailableReportFields,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
+    canEditPolicyDescription,
+    getPolicyDescriptionText,
 };
 
 export type {

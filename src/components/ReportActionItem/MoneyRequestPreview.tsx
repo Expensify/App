@@ -275,7 +275,7 @@ function MoneyRequestPreview({
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
-                        <View style={styles.expenseAndReportPreviewBoxBody}>
+                        <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipt ? styles.mtn1 : {}]}>
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
@@ -329,7 +329,7 @@ function MoneyRequestPreview({
                                                 {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                                     <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                                 )}
-                                                {shouldShowDescription && <RenderHTML html={parser.replace(merchantOrDescription)} />}
+                                                {shouldShowDescription && <RenderHTML html={`<muted-text>${parser.replace(merchantOrDescription)}</muted-text>`} />}
                                                 {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                             </View>
                                             {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (

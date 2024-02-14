@@ -227,6 +227,10 @@ export default {
         marginTop: 'auto',
     },
 
+    mtn1: {
+        marginTop: -4,
+    },
+
     mtn2: {
         marginTop: -8,
     },
