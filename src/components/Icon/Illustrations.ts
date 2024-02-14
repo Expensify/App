@@ -66,6 +66,7 @@ import TreasureChest from '@assets/images/simple-illustrations/simple-illustrati
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
+import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 
 export {
     Abracadabra,
@@ -136,4 +137,5 @@ export {
     ReceiptEnvelope,
     Approval,
     WalletAlt,
+    Workflows,
 };
