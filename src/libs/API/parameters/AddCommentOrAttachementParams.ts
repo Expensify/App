@@ -5,7 +5,7 @@ type AddCommentOrAttachementParams = {
     reportActionID?: string;
     commentReportActionID?: string | null;
     reportComment?: string;
-    file?: Partial<FileObject>;
+    file?: FileObject;
     timezone?: string;
     shouldAllowActionableMentionWhispers?: boolean;
     clientCreatedTime?: string;

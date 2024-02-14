@@ -43,6 +43,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
+import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
 
 type ComposerRef = {
@@ -71,36 +72,19 @@ type ReportActionComposeOnyxProps = {
 };
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
-    WithCurrentUserPersonalDetailsProps & {
+    WithCurrentUserPersonalDetailsProps &
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
         onSubmit: (newComment: string | undefined) => void;
 
-        /** The ID of the report actions will be created for */
-        reportID: string;
-
         /** The report currently being looked at */
         report: OnyxEntry<OnyxTypes.Report>;
-
-        /** Is composer full size */
-        isComposerFullSize?: boolean;
-
-        /** Whether user interactions should be disabled */
-        disabled?: boolean;
-
-        /** Height of the list which the composer is part of */
-        listHeight?: number;
 
         /** The type of action that's pending  */
         pendingAction?: OnyxCommon.PendingAction;
 
         /** Whether the report is ready for display */
         isReportReadyForDisplay?: boolean;
-
-        /** Whether the chat is empty */
-        isEmptyChat?: boolean;
-
-        /** The last report action */
-        lastReportAction?: OnyxTypes.ReportAction;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -268,7 +252,7 @@ function ReportActionCompose({
     }, []);
 
     const addAttachment = useCallback(
-        (file: Partial<FileObject>) => {
+        (file: FileObject) => {
             playSound(SOUNDS.DONE);
             const newComment = composerRef?.current?.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);

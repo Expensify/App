@@ -2631,7 +2631,7 @@ function getReportDescriptionText(report: Report): string {
     return parser.htmlToText(report.description);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: Partial<FileObject>, actorAccountID?: number): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
     const isAttachment = !text && file !== undefined;

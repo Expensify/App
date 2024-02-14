@@ -169,7 +169,7 @@ type ReportActionBase = {
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: Partial<FileObject> | EmptyObject;
+    attachmentInfo?: FileObject | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;

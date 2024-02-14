@@ -43,5 +43,6 @@ SilentCommentUpdater.displayName = 'SilentCommentUpdater';
 export default withOnyx<SilentCommentUpdaterProps, SilentCommentUpdaterOnyxProps>({
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        initialValue: '',
     },
 })(SilentCommentUpdater);

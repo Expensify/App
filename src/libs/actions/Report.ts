@@ -353,7 +353,7 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
  */
-function addActions(reportID: string, text = '', file?: Partial<FileObject>) {
+function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -512,7 +512,7 @@ function addActions(reportID: string, text = '', file?: Partial<FileObject>) {
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: Partial<FileObject>, text = '') {
+function addAttachment(reportID: string, file: FileObject, text = '') {
     addActions(reportID, text, file);
 }
 

@@ -214,6 +214,7 @@ function ComposerWithSuggestions(
         onFocus,
         onBlur,
         onValueChange,
+
         // Composer
         isComposerFullSize,
         isMenuVisible,
@@ -232,11 +233,13 @@ function ComposerWithSuggestions(
         listHeight,
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
+
         // Refs
         suggestionsRef,
         animatedRef,
         isNextModalWillOpenRef,
         editFocused,
+
         // For testing
         children,
     }: ComposerWithSuggestionsProps,
@@ -278,7 +281,7 @@ function ComposerWithSuggestions(
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
-    const suggestions = suggestionsRef.current?.getSuggestions() ?? (() => []);
+    const suggestions = suggestionsRef.current?.getSuggestions() ?? [];
 
     const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions?.length ?? 0);
 
@@ -457,7 +460,7 @@ function ComposerWithSuggestions(
         [reportID, numberOfLines],
     );
 
-    const prepareCommentAndResetComposer = useCallback(() => {
+    const prepareCommentAndResetComposer = useCallback((): string => {
         const trimmedComment = commentRef.current.trim();
         const commentLength = ReportUtils.getCommentLength(trimmedComment);
 
@@ -575,7 +578,6 @@ function ComposerWithSuggestions(
     /**
      * Focus the composer text input
      * @param [shouldDelay=false] Impose delay before focusing the composer
-     * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
@@ -614,7 +616,7 @@ function ComposerWithSuggestions(
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA'].includes((e.target as Element)?.nodeName)) {
+            if (['INPUT', 'TEXTAREA'].includes((e.target as Element | null)?.nodeName ?? '')) {
                 return;
             }
 
