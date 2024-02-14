@@ -29,6 +29,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     {
         sections,
         headerItems = [],
+        viewMode = CONST.SELECTION_LIST_MODE.LIST,
         canSelectMultiple = false,
         onSelectRow,
         onSelectAll,
@@ -295,6 +296,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                viewMode={viewMode}
             />
         );
     };
