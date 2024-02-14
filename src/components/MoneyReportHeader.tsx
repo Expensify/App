@@ -67,10 +67,11 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const cancelPayment = useCallback(() => {
-        if (chatReport) {
-            IOU.cancelPayment(moneyRequestReport, chatReport);
-            setIsConfirmModalVisible(false);
+        if (!chatReport) {
+            return;
         }
+        IOU.cancelPayment(moneyRequestReport, chatReport);
+        setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport]);
 
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
