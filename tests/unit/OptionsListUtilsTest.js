@@ -1,4 +1,3 @@
-import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
@@ -138,6 +137,7 @@ describe('OptionsListUtils', () => {
             accountID: 1,
             displayName: 'Mister Fantastic',
             login: 'reedrichards@expensify.com',
+            isSelected: true,
         },
         2: {
             accountID: 2,
@@ -2144,7 +2144,7 @@ describe('OptionsListUtils', () => {
     });
 
     it('formatMemberForList()', () => {
-        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, {isSelected: key === '1'}));
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
         expect(formattedMembers[0].text).toBe('Mister Fantastic');
@@ -2159,12 +2159,5 @@ describe('OptionsListUtils', () => {
 
         // `isDisabled` is always false
         expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
-
-        // `rightElement` is always null
-        expect(_.every(formattedMembers, (personalDetail) => personalDetail.rightElement === null)).toBe(true);
-
-        // Passing a config should override the other keys
-        const formattedMembersWithRightElement = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, {rightElement: <View />}));
-        expect(_.every(formattedMembersWithRightElement, (personalDetail) => Boolean(personalDetail.rightElement))).toBe(true);
     });
 });
