@@ -1,7 +1,7 @@
 import {setYear} from 'date-fns';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {forwardRef, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 
@@ -42,6 +43,12 @@ const propTypes = {
     /** A function that is passed by FormWrapper */
     onTouched: PropTypes.func.isRequired,
 
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
+
+    /** ID of the wrapping form */
+    formID: PropTypes.string,
+
     ...baseTextInputPropTypes,
 };
 
@@ -50,9 +57,28 @@ const datePickerDefaultProps = {
     minDate: setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
     maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     value: undefined,
+    shouldSaveDraft: false,
+    formID: '',
 };
 
-function DatePicker({forwardedRef, containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, value}) {
+function DatePicker({
+    forwardedRef,
+    containerStyles,
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    isSmallScreenWidth,
+    label,
+    maxDate,
+    minDate,
+    onInputChange,
+    onTouched,
+    placeholder,
+    value,
+    shouldSaveDraft,
+    formID,
+}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
@@ -66,6 +92,19 @@ function DatePicker({forwardedRef, containerStyles, defaultValue, disabled, erro
         }
         setSelectedDate(newValue);
     };
+
+    useEffect(() => {
+        // Value is provided to input via props and onChange never fires. We have to save draft manually.
+        if (shouldSaveDraft && formID !== '') {
+            FormActions.setDraftValues(formID, {[inputID]: selectedDate});
+        }
+
+        if (selectedDate === value || _.isUndefined(value)) {
+            return;
+        }
+
+        setSelectedDate(value);
+    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
     return (
         <View style={styles.datePickerRoot}>
