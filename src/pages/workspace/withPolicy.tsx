@@ -69,7 +69,7 @@ const policyPropTypes = {
         /** Whether or not the policy has multiple tag lists */
         hasMultipleTagLists: PropTypes.bool,
 
-        /** 
+        /**
          * Whether or not the policy has tax tracking enabled
          *
          * @deprecated - use tax.trackingEnabled instead
