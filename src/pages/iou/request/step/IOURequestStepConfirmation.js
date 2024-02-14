@@ -128,6 +128,14 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    useEffect(() => {
+        if (!transaction.category) {
+            return;
+        }
+        if (policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
+            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        }
+    }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
         _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
         'defaultCategory',
