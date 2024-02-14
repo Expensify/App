@@ -1,8 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
@@ -17,43 +16,25 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Account, Credentials} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
-const propTypes = {
-    /* Onyx Props */
-
+type ChooseSSOOrMagicCodeOnyxProps = {
     /** The credentials of the logged in person */
-    credentials: PropTypes.shape({
-        /** The email/phone the user logged in with */
-        login: PropTypes.string,
-    }),
+    credentials: OnyxEntry<Credentials>;
 
     /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** Whether or not a sign on form is loading (being submitted) */
-        isLoading: PropTypes.bool,
+    account: OnyxEntry<Account>;
+};
 
-        /** Form that is being loaded */
-        loadingForm: PropTypes.oneOf(_.values(CONST.FORMS)),
-
-        /** Whether this account has 2FA enabled or not */
-        requiresTwoFactorAuth: PropTypes.bool,
-
-        /** Server-side errors in the submitted authentication code */
-        errors: PropTypes.objectOf(PropTypes.string),
-    }),
-
+type ChooseSSOOrMagicCodeProps = ChooseSSOOrMagicCodeOnyxProps & {
     /** Function that returns whether the user is using SAML or magic codes to log in */
-    setIsUsingMagicCode: PropTypes.func.isRequired,
+    setIsUsingMagicCode: (value: boolean) => void;
 };
 
-const defaultProps = {
-    credentials: {},
-    account: {},
-};
-
-function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
+function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
@@ -77,7 +58,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
                     success
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useSingleSignOn')}
-                    isLoading={account.isLoading}
+                    isLoading={account?.isLoading}
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}
@@ -93,14 +74,17 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
                     isDisabled={isOffline}
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useMagicCode')}
-                    isLoading={account.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
+                    isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
-                        Session.resendValidateCode(credentials.login);
+                        Session.resendValidateCode(credentials?.login);
                         setIsUsingMagicCode(true);
                     }}
                 />
-                {Boolean(account) && !_.isEmpty(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
-                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+                {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
+                <ChangeExpensifyLoginLink
+                    // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
+                    onPress={() => Session.clearSignInData()}
+                />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
@@ -109,11 +93,9 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
     );
 }
 
-ChooseSSOOrMagicCode.propTypes = propTypes;
-ChooseSSOOrMagicCode.defaultProps = defaultProps;
 ChooseSSOOrMagicCode.displayName = 'ChooseSSOOrMagicCode';
 
-export default withOnyx({
+export default withOnyx<ChooseSSOOrMagicCodeProps, ChooseSSOOrMagicCodeOnyxProps>({
     credentials: {key: ONYXKEYS.CREDENTIALS},
     account: {key: ONYXKEYS.ACCOUNT},
 })(ChooseSSOOrMagicCode);

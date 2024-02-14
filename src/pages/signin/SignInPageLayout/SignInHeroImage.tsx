@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
@@ -12,23 +12,19 @@ function SignInHeroImage() {
     const styles = useThemeStyles();
     const {isMediumScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    let imageSize;
-    if (shouldUseNarrowLayout) {
-        imageSize = {
-            height: variables.signInHeroImageMobileHeight,
-            width: variables.signInHeroImageMobileWidth,
+    const imageSize = useMemo(() => {
+        if (shouldUseNarrowLayout) {
+            return {
+                height: variables.signInHeroImageMobileHeight,
+                width: variables.signInHeroImageMobileWidth,
+            };
+        }
+
+        return {
+            height: isMediumScreenWidth ? variables.signInHeroImageTabletHeight : variables.signInHeroImageDesktopHeight,
+            width: isMediumScreenWidth ? variables.signInHeroImageTabletWidth : variables.signInHeroImageDesktopWidth,
         };
-    } else if (isMediumScreenWidth) {
-        imageSize = {
-            height: variables.signInHeroImageTabletHeight,
-            width: variables.signInHeroImageTabletWidth,
-        };
-    } else {
-        imageSize = {
-            height: variables.signInHeroImageDesktopHeight,
-            width: variables.signInHeroImageDesktopWidth,
-        };
-    }
+    }, [shouldUseNarrowLayout, isMediumScreenWidth]);
 
     const isSplashHidden = useIsSplashHidden();
     // Prevents rendering of the Lottie animation until the splash screen is hidden
