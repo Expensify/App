@@ -317,8 +317,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && Boolean(policy.requiresCategory);
-    const isTagRequired = canUseViolations && Boolean(policy.requiresTag);
+    const isCategoryRequired = canUseViolations && lodashGet(policy, 'requiresCategory', false);
+    const isTagRequired = canUseViolations && lodashGet(policy, 'requiresTag', false);
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
@@ -443,7 +443,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else {
             const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
-                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
             }));
             sections.push({
                 title: translate('common.to'),
@@ -508,12 +508,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      * @param {Object} option
      */
     const navigateToReportOrUserDetail = (option) => {
-        if (option.accountID) {
-            const activeRoute = Navigation.getActiveRouteWithoutParams();
+        const activeRoute = Navigation.getActiveRouteWithoutParams();
 
+        if (option.accountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
         }
     };
 
@@ -761,7 +761,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
+                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
@@ -783,7 +783,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
+                    rightLabel={isTagRequired ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowTags,
