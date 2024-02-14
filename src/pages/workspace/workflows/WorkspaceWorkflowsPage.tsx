@@ -85,6 +85,7 @@ const WorkspaceWorkflowsPage: React.FC<WorkspaceWorkflowsPageProps> = ({route}) 
         <WorkspacePageWithSections
             shouldUseScrollView
             headerText={translate('workspace.common.workflows')}
+            icon={Illustrations.Workflows}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
             shouldShowOfflineIndicatorInWideScreen
