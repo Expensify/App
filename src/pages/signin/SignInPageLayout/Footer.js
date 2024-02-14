@@ -9,6 +9,7 @@ import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,11 +21,6 @@ import CONST from '@src/CONST';
 const propTypes = {
     ...withLocalizePropTypes,
     navigateFocus: PropTypes.func.isRequired,
-    shouldShowSmallScreen: PropTypes.bool,
-};
-
-const defaultProps = {
-    shouldShowSmallScreen: false,
 };
 
 const columns = ({navigateFocus}) => [
@@ -142,7 +138,8 @@ function Footer(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isVertical = props.shouldShowSmallScreen;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
@@ -219,6 +216,5 @@ function Footer(props) {
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
-Footer.defaultProps = defaultProps;
 
 export default withLocalize(Footer);
