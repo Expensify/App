@@ -153,6 +153,12 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
+    SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
+    SETTINGS_CONSOLE: 'settings/troubleshoot/console',
+    SETTINGS_SHARE_LOG: {
+        route: 'settings/troubleshoot/console/share-log',
+        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
+    },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
     SETTINGS_EXIT_SURVEY_RESPONSE: {
@@ -206,7 +212,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string) => `r/${reportID}/details` as const,
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
@@ -454,6 +460,10 @@ const ROUTES = {
     WORKSPACE_PROFILE_NAME: {
         route: 'workspace/:policyID/profile/name',
         getRoute: (policyID: string) => `workspace/${policyID}/profile/name` as const,
+    },
+    WORKSPACE_DESCRIPTION: {
+        route: 'workspace/:policyID/description',
+        getRoute: (policyID: string) => `workspace/${policyID}/description` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',

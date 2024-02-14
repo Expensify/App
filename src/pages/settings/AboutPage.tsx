@@ -87,6 +87,11 @@ function AboutPage() {
                 link: CONST.UPWORK_URL,
             },
             {
+                translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+                icon: Expensicons.Lightbulb,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT)),
+            },
+            {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
                 action: waitForNavigate(Report.navigateToConciergeChat),
@@ -156,7 +161,7 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.sidebarFooter]}>
+                <View style={[styles.sidebarFooter, styles.mb5]}>
                     <Text
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}

@@ -28,6 +28,7 @@ import type {
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
@@ -635,7 +636,7 @@ export default {
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
-        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'request'}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money.`,
         categorySelection: 'Select a category to add additional organization to your money.',
@@ -810,6 +811,7 @@ export default {
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
+            troubleshoot: 'Troubleshoot',
         },
         appDownloadLinks: {
             android: {
@@ -821,6 +823,23 @@ export default {
             desktop: {
                 label: 'macOS',
             },
+        },
+        troubleshoot: {
+            clearCacheAndRestart: 'Clear cache and restart',
+            viewConsole: 'View debug console',
+            debugConsole: 'Debug console',
+            description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
+            submitBug: 'submit a bug',
+            confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
+            resetAndRefresh: 'Reset and refresh',
+        },
+        debugConsole: {
+            saveLog: 'Save log',
+            shareLog: 'Share log',
+            enterCommand: 'Enter command',
+            execute: 'Execute',
+            noLogsAvailable: 'No logs available',
+            logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -1795,6 +1814,7 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
+            descriptionInputLabel: 'Workspace description',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',

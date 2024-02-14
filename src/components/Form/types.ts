@@ -21,7 +21,7 @@ import type {BaseForm} from '@src/types/form/Form';
  * when adding new inputs or removing old ones.
  *
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
+ * EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
  */
 type ValidInputs =
     | typeof TextInput
