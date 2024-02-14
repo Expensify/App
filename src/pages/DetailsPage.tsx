@@ -1,10 +1,9 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
@@ -18,77 +17,51 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
+import type {DetailsNavigatorParamList} from '@navigation/types';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import personalDetailsPropType from './personalDetailsPropType';
+import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails, PersonalDetailsList, Session} from '@src/types/onyx';
 
-const matchType = PropTypes.shape({
-    params: PropTypes.shape({
-        /** login passed via route /details/:login */
-        login: PropTypes.string,
-
-        /** report ID passed */
-        reportID: PropTypes.string,
-    }),
-});
-
-const propTypes = {
-    /* Onyx Props */
-
+type DetailsPageOnyxProps = {
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType,
-
-    /** Route params */
-    route: matchType.isRequired,
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
-
-    ...withLocalizePropTypes,
+    session: OnyxEntry<Session>;
 };
 
-const defaultProps = {
-    // When opening someone else's profile (via deep link) before login, this is empty
-    personalDetails: {},
-    session: {
-        accountID: 0,
-    },
-};
+type DetailsPageProps = DetailsPageOnyxProps & StackScreenProps<DetailsNavigatorParamList, typeof SCREENS.DETAILS_ROOT>;
 
 /**
  * Gets the phone number to display for SMS logins
- *
- * @param {Object} details
- * @param {String} details.login
- * @param {String} details.displayName
- * @returns {String}
  */
-const getPhoneNumber = (details) => {
+const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails): string | undefined => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    const parsedPhoneNumber = parsePhoneNumber(details.displayName);
+    const parsedPhoneNumber = parsePhoneNumber(displayName);
     if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber.number.e164;
+        return parsedPhoneNumber?.number?.e164;
     }
 
     // If the user has set a displayName, get the phone number from the SMS login
-    return details.login ? Str.removeSMSDomain(details.login) : '';
+    return login ? Str.removeSMSDomain(login) : '';
 };
 
-function DetailsPage(props) {
+function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
     const styles = useThemeStyles();
-    const login = lodashGet(props.route.params, 'login', '');
-    let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
+    const {translate, formatPhoneNumber} = useLocalize();
+    const login = route.params?.login ?? '';
+    const sessionAccountID = session?.accountID ?? 0;
+
+    let details = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === login.toLowerCase());
 
     if (!details) {
         if (login === CONST.EMAIL.CONCIERGE) {
@@ -116,44 +89,44 @@ function DetailsPage(props) {
 
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-        pronouns = props.translate(`pronouns.${localeKey}`);
+        pronouns = translate(`pronouns.${localeKey}` as TranslationPaths);
     }
 
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, '', false);
 
-    const isCurrentUser = props.session.accountID === details.accountID;
+    const isCurrentUser = sessionAccountID === details.accountID;
 
     return (
         <ScreenWrapper testID={DetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
-                <HeaderWithBackButton title={props.translate('common.details')} />
+            <FullPageNotFoundView shouldShow={!login}>
+                <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {details ? (
                         <ScrollView>
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={displayName}
-                                    source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
+                                    source={UserUtils.getFullSizeAvatar(details?.avatar, details.accountID)}
                                     isAuthTokenRequired
                                     originalFileName={details.originalFileName}
                                     maybeIcon
                                 >
                                     {({show}) => (
                                         <PressableWithoutFocus
-                                            style={[styles.noOutline]}
+                                            style={styles.noOutline}
                                             onPress={show}
-                                            accessibilityLabel={props.translate('common.details')}
+                                            accessibilityLabel={translate('common.details')}
                                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                         >
-                                            <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                                            <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                                 <Avatar
-                                                    containerStyles={[styles.avatarXLarge, styles.mb3]}
-                                                    imageStyles={[styles.avatarXLarge]}
-                                                    source={UserUtils.getAvatar(details.avatar, details.accountID)}
-                                                    size={CONST.AVATAR_SIZE.XLARGE}
-                                                    fallbackIcon={details.fallbackIcon}
+                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={UserUtils.getAvatar(details?.avatar, details?.accountID)}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                    fallbackIcon={details?.fallbackIcon}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFocus>
@@ -173,11 +146,11 @@ function DetailsPage(props) {
                                             style={[styles.textLabelSupporting, styles.mb1]}
                                             numberOfLines={1}
                                         >
-                                            {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                            {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink value={phoneOrEmail}>
+                                        <CommunicationsLink value={phoneOrEmail ?? ''}>
                                             <UserDetailsTooltip accountID={details.accountID}>
-                                                <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : details.login}</Text>
+                                                <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : details.login}</Text>
                                             </UserDetailsTooltip>
                                         </CommunicationsLink>
                                     </View>
@@ -188,16 +161,16 @@ function DetailsPage(props) {
                                             style={[styles.textLabelSupporting, styles.mb1]}
                                             numberOfLines={1}
                                         >
-                                            {props.translate('profilePage.preferredPronouns')}
+                                            {translate('profilePage.preferredPronouns')}
                                         </Text>
                                         <Text numberOfLines={1}>{pronouns}</Text>
                                     </View>
                                 ) : null}
-                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={details?.timezone ?? {}} />}
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${props.translate('common.message')}${displayName}`}
+                                    title={`${translate('common.message')}${displayName}`}
                                     titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
@@ -213,18 +186,13 @@ function DetailsPage(props) {
     );
 }
 
-DetailsPage.propTypes = propTypes;
-DetailsPage.defaultProps = defaultProps;
 DetailsPage.displayName = 'DetailsPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(DetailsPage);
+export default withOnyx<DetailsPageProps, DetailsPageOnyxProps>({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(DetailsPage);
