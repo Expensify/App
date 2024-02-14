@@ -17,7 +17,7 @@ jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 // and we only want to mock the storage layer, not the whole Onyx module.
 jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 
-// Mock NativeEventEmitter as its needed to provide mocks of libraries which include it
+// Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
