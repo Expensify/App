@@ -83,7 +83,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         };
     }, [attachmentCarouselPagerContext, isPagerScrollingFallback, uri]);
 
-    /** Whether the Lightbox is used within an attachmnet carousel and there are more than one page in the carousel */
+    /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
     const isActive = page === activePage;
 

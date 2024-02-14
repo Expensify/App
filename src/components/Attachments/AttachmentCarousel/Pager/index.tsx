@@ -67,9 +67,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
         activePage.value = initialPage;
     }, [activePage, initialPage]);
 
-    /**
-     * The pager uses the source index and current active state to render the pages.
-     */
+    /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
     const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageIndex})), [activePageIndex, items]);
 
     /**
