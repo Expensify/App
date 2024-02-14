@@ -311,6 +311,8 @@ const ONYXKEYS = {
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
+        WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
+        WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
@@ -415,6 +417,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: FormTypes.ReportFieldEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
+    [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
 };
 
 type OnyxFormDraftValuesMapping = {
