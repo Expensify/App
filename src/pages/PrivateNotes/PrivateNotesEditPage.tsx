@@ -15,12 +15,14 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -35,7 +37,8 @@ type PrivateNotesEditPageOnyxProps = {
     personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
-type PrivateNotesEditPageProps = PrivateNotesEditPageOnyxProps &
+type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
+    PrivateNotesEditPageOnyxProps &
     StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
         /** The report currently being looked at */
         report: Report;
@@ -66,6 +69,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
     // To focus on the input field when the page loads
     const privateNotesInput = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useHtmlPaste(privateNotesInput);
 
     useFocusEffect(
         useCallback(() => {

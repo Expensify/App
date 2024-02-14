@@ -68,7 +68,6 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.handleReferralModal = this.handleReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
@@ -91,7 +90,6 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
             disableEnterShortCut: false,
@@ -116,7 +114,10 @@ class BaseOptionsSelector extends Component {
     componentDidUpdate(prevProps, prevState) {
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
             if (this.state.disableEnterShortCut) {
-                this.unsubscribeEnter();
+                if (this.unsubscribeEnter) {
+                    this.unsubscribeEnter();
+                    this.unsubscribeEnter = undefined;
+                }
             } else {
                 this.subscribeToEnterShortcut();
             }
@@ -215,11 +216,7 @@ class BaseOptionsSelector extends Component {
 
         const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
 
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
+        return indexOfInitiallyFocusedOption;
     }
 
     /**
@@ -259,15 +256,11 @@ class BaseOptionsSelector extends Component {
     updateSearchValue(value) {
         this.setState({
             paginationPage: 1,
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage: value.length > this.props.maxLength ? ['common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}] : '',
             value,
         });
 
         this.props.onChangeText(value);
-    }
-
-    handleReferralModal() {
-        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
     handleFocusIn() {
@@ -300,6 +293,9 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeToEnterShortcut() {
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
+        }
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -312,6 +308,9 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeToCtrlEnterShortcut() {
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -337,10 +336,12 @@ class BaseOptionsSelector extends Component {
     unSubscribeFromKeyboardShortcut() {
         if (this.unsubscribeEnter) {
             this.unsubscribeEnter();
+            this.unsubscribeEnter = undefined;
         }
 
         if (this.unsubscribeCTRLEnter) {
             this.unsubscribeCTRLEnter();
+            this.unsubscribeCTRLEnter = undefined;
         }
     }
 
@@ -524,6 +525,7 @@ class BaseOptionsSelector extends Component {
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
+                iconLeft={this.props.textIconLeft}
                 testID="options-selector-input"
             />
         );
@@ -534,6 +536,7 @@ class BaseOptionsSelector extends Component {
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}
+                disableFocusOptions={this.props.disableFocusOptions}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
@@ -566,7 +569,7 @@ class BaseOptionsSelector extends Component {
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
                 bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
-                renderFooterContent={() =>
+                renderFooterContent={
                     shouldShowShowMoreButton && (
                         <ShowMoreButton
                             containerStyle={{...this.props.themeStyles.mt2, ...this.props.themeStyles.mb5}}
@@ -650,12 +653,9 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
+                {this.props.shouldShowReferralCTA && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA
-                            referralContentType={this.props.referralContentType}
-                            onCloseButtonPress={this.handleReferralModal}
-                        />
+                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
                     </View>
                 )}
 
