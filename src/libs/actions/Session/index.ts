@@ -505,6 +505,26 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
     });
 }
 
+function handleExitToNavigation(exitTo: Routes | HybridAppRoute) {
+    InteractionManager.runAfterInteractions(() => {
+        waitForUserSignIn().then(() => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+            });
+        });
+    });
+}
+
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '', exitTo?: Routes | HybridAppRoute) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    if (exitTo) {
+        handleExitToNavigation(exitTo);
+    } else {
+        Navigation.navigate(ROUTES.HOME);
+    }
+}
+
 /**
  * Initializes the state of the automatic authentication when the user clicks on a magic link.
  *
@@ -878,23 +898,6 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     return false;
 };
 
-/**
- * navigate to exitTo path after signin
- *
- * @param {Routes | HybridAppRoute} exitTo
- */
-
-const handleExitToNavigation = (exitTo: Routes | HybridAppRoute) => {
-    InteractionManager.runAfterInteractions(() => {
-        waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
-            });
-        });
-    });
-};
-
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -903,6 +906,8 @@ export {
     checkIfActionIsAllowed,
     signIn,
     signInWithValidateCode,
+    handleExitToNavigation,
+    signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
     cleanupSession,
@@ -924,5 +929,4 @@ export {
     validateTwoFactorAuth,
     waitForUserSignIn,
     canAccessRouteByAnonymousUser,
-    handleExitToNavigation,
 };

@@ -5,7 +5,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
@@ -14,26 +13,15 @@ function ValidateLoginPage({
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
-    const handleNavigation = () => {
-        if (exitTo) {
-            Session.handleExitToNavigation(exitTo);
-        } else if (session?.authToken) {
-            // If already signed in, do not show the validate code if not on web,
-            // because we don't want to block the user with the interstitial page.
-            Navigation.goBack();
-        } else {
-            Navigation.navigate(ROUTES.HOME);
-        }
-    };
-
     useEffect(() => {
         // Wait till navigation becomes available
         Navigation.isNavigationReady().then(() => {
             if (session?.authToken) {
-                handleNavigation();
+                // If already signed in, do not show the validate code if not on web,
+                // because we don't want to block the user with the interstitial page.
+                Navigation.goBack();
             } else {
-                Session.signInWithValidateCode(Number(accountID), validateCode);
-                handleNavigation();
+                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
