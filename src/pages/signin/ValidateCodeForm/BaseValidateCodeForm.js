@@ -326,7 +326,7 @@ function BaseValidateCodeForm(props) {
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.RECOVERY_CODE_LENGTH}
                             label={props.translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError.recoveryCode ? props.translate(formError.recoveryCode) : ''}
+                            errorText={formError.recoveryCode || ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
@@ -342,7 +342,7 @@ function BaseValidateCodeForm(props) {
                             onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
                             onFulfill={validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
+                            errorText={formError.twoFactorAuthCode || ''}
                             hasError={hasError}
                             autoFocus
                             key="twoFactorAuthCode"
@@ -372,7 +372,7 @@ function BaseValidateCodeForm(props) {
                         value={validateCode}
                         onChangeText={(text) => onTextInput(text, 'validateCode')}
                         onFulfill={validateAndSubmitForm}
-                        errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
+                        errorText={formError.validateCode || ''}
                         hasError={hasError}
                         autoFocus
                         key="validateCode"

@@ -67,7 +67,7 @@ type CustomBaseTextInputProps = {
     hideFocusedState?: boolean;
 
     /** Hint text to display below the TextInput */
-    hint?: string;
+    hint?: MaybePhraseKey;
 
     /** Prefix character */
     prefixCharacter?: string;
@@ -87,9 +87,6 @@ type CustomBaseTextInputProps = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus?: boolean;
-
-    /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
-    submitOnEnter?: boolean;
 
     /** Indicate whether input is multiline */
     multiline?: boolean;

@@ -1,12 +1,7 @@
-import type {OnyxFormKeyWithoutDraft} from '@components/Form/types';
-import CONST from '@src/CONST';
-import type {Account} from '@src/types/onyx';
+import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 
-const isValidateCodeFormSubmitting = (account: Account) =>
-    account.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
-
-function getDraftKey(formID: OnyxFormKeyWithoutDraft): `${OnyxFormKeyWithoutDraft}Draft` {
+function getDraftKey(formID: OnyxFormKey): OnyxFormDraftKey {
     return `${formID}Draft`;
 }
 
-export default {getDraftKey, isValidateCodeFormSubmitting};
+export default {getDraftKey};
