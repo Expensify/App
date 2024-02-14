@@ -70,6 +70,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     /**
      * Remove selected users from the room
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         if (report) {
