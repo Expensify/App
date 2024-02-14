@@ -20,7 +20,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -82,7 +82,7 @@ function DisplayNamePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('displayNamePage.headerTitle')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {props.isLoadingApp ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -101,7 +101,7 @@ function DisplayNamePage(props) {
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="firstName"
+                            inputID={INPUT_IDS.FIRST_NAME}
                             name="fname"
                             label={props.translate('common.firstName')}
                             aria-label={props.translate('common.firstName')}
@@ -114,7 +114,7 @@ function DisplayNamePage(props) {
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="lastName"
+                            inputID={INPUT_IDS.LAST_NAME}
                             name="lname"
                             label={props.translate('common.lastName')}
                             aria-label={props.translate('common.lastName')}

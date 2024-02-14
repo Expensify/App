@@ -5,13 +5,18 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import {translatableTextPropTypes} from '@libs/Localize';
+import type {BottomTabNavigatorParamList, CentralPaneNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyRoute = RouteProp<{params: {policyID: string}}>;
+type WorkspaceParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList;
+type PolicyRoute = RouteProp<WorkspaceParamList, ValueOf<typeof SCREENS.WORKSPACE>>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
@@ -53,7 +58,7 @@ const policyPropTypes = {
          *     }
          * }
          */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Whether or not the policy requires tags */
         requiresTag: PropTypes.bool,
@@ -131,4 +136,4 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
 }
 
 export {policyPropTypes, policyDefaultProps};
-export type {WithPolicyOnyxProps, WithPolicyProps};
+export type {WithPolicyOnyxProps, WithPolicyProps, PolicyRoute};

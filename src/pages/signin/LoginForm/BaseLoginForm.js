@@ -15,8 +15,8 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
@@ -28,6 +28,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as Session from '@userActions/Session';
@@ -70,12 +71,7 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     isVisible: PropTypes.bool.isRequired,
-
-    ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -88,8 +84,9 @@ const defaultProps = {
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
-    isInModal: false,
 };
+
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function LoginForm(props) {
     const styles = useThemeStyles();
@@ -100,6 +97,7 @@ function LoginForm(props) {
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
+    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
 
     const {translate} = props;
 
@@ -159,7 +157,7 @@ function LoginForm(props) {
     );
 
     function getSignInWithStyles() {
-        return props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
+        return shouldUseNarrowLayout ? [styles.mt1] : [styles.mt5, styles.mb5];
     }
 
     /**
@@ -213,7 +211,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (props.isInModal) {
+        if (isInModal) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();
@@ -256,9 +254,8 @@ function LoginForm(props) {
         },
     }));
 
-    const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
-    const shouldShowServerError = !_.isEmpty(serverErrorText) && _.isEmpty(formErrorText);
+    const shouldShowServerError = !_.isEmpty(serverErrorText) && _.isEmpty(formError);
 
     return (
         <>
@@ -277,30 +274,39 @@ function LoginForm(props) {
                     id="username"
                     name="username"
                     testID="username"
-                    onBlur={() => {
-                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                            return;
-                        }
-                        firstBlurred.current = true;
-                        validate(login);
-                    }}
+                    onBlur={
+                        // As we have only two signin buttons (Apple/Google) other than the text input,
+                        // for natives onBlur is called only when the buttons are pressed and we don't need
+                        // to validate in those case as the user has opted for other signin flow.
+                        willBlurTextInputOnTapOutside
+                            ? () =>
+                                  // This delay is to avoid the validate being called before google iframe is rendered to
+                                  // avoid error message appearing after pressing google signin button.
+                                  setTimeout(() => {
+                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                          return;
+                                      }
+                                      firstBlurred.current = true;
+                                      validate(login);
+                                  }, 500)
+                            : undefined
+                    }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formErrorText}
+                    errorText={formError || ''}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
             {!_.isEmpty(props.closeAccount.success || props.account.message) && (
-                // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    messages={{0: props.closeAccount.success || props.account.message}}
+                    messages={{0: props.closeAccount.success ? [props.closeAccount.success, {isTranslated: true}] : props.account.message}}
                 />
             )}
             {
@@ -332,11 +338,11 @@ function LoginForm(props) {
                                         {props.translate('common.signInWith')}
                                     </Text>
 
-                                    <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                    <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
+                                        <View>
                                             <AppleSignIn />
                                         </View>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <GoogleSignIn />
                                         </View>
                                     </View>
@@ -370,7 +376,6 @@ export default compose(
         credentials: {key: ONYXKEYS.CREDENTIALS},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
-    withWindowDimensions,
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
