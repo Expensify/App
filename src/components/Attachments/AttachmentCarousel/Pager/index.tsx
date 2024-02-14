@@ -25,24 +25,16 @@ type Attachment = {
 };
 
 type AttachmentCarouselPagerProps = {
-    /**
-     * The attachments to be rendered in the pager.
-     */
+    /** The attachments to be rendered in the pager. */
     items: Attachment[];
 
-    /**
-     * The source (URL) of the currently active attachment.
-     */
+    /** The source (URL) of the currently active attachment. */
     activeSource: string;
 
-    /**
-     * The index of the initial page to be rendered.
-     */
+    /** The index of the initial page to be rendered. */
     initialPage: number;
 
-    /**
-     * A callback to be called when the page is changed.
-     */
+    /** A callback to be called when the page is changed. */
     onPageSelected: () => void;
 
     /**
@@ -147,7 +139,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
         [],
     );
 
-    const Content = useMemo(
+    const carouselItems = useMemo(
         () =>
             items.map((item, index) => (
                 <View
@@ -178,7 +170,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
                 animatedProps={animatedProps}
                 ref={pagerRef}
             >
-                {Content}
+                {carouselItems}
             </AnimatedPagerView>
         </AttachmentCarouselPagerContext.Provider>
     );
