@@ -5,6 +5,8 @@ type ConnectBankAccountWithPlaidParams = {
     bank?: string;
     plaidAccountID: string;
     plaidAccessToken: string;
+    canUseNewVbbaFlow?: boolean;
+    policyID?: string;
 };
 
 export default ConnectBankAccountWithPlaidParams;

@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 
@@ -8,7 +9,7 @@ type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | 
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
-type Errors = Record<string, string>;
+type Errors = Record<string, MaybePhraseKey | null>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
@@ -27,6 +28,9 @@ type Icon = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
+
+    /** Fill color of the icon */
+    fill?: string;
 };
 
 export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};

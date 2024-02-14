@@ -1,0 +1,123 @@
+import {useNavigation} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {useCallback, useEffect} from 'react';
+import type UseHtmlPaste from './types';
+
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
+    const navigation = useNavigation();
+
+    /**
+     * Set pasted text to clipboard
+     * @param {String} text
+     */
+    const paste = useCallback((text: string) => {
+        try {
+            document.execCommand('insertText', false, text);
+
+            // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
+            textInputRef.current?.blur();
+            textInputRef.current?.focus();
+            // eslint-disable-next-line no-empty
+        } catch (e) {}
+        // We only need to set the callback once.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    /**
+     * Manually place the pasted HTML into Composer
+     *
+     * @param {String} html - pasted HTML
+     */
+    const handlePastedHTML = useCallback(
+        (html: string) => {
+            const parser = new ExpensiMark();
+            paste(parser.htmlToMarkdown(html));
+        },
+        [paste],
+    );
+
+    /**
+     * Paste the plaintext content into Composer.
+     *
+     * @param {ClipboardEvent} event
+     */
+    const handlePastePlainText = useCallback(
+        (event: ClipboardEvent) => {
+            const plainText = event.clipboardData?.getData('text/plain');
+            if (plainText) {
+                paste(plainText);
+            }
+        },
+        [paste],
+    );
+
+    const handlePaste = useCallback(
+        (event: ClipboardEvent) => {
+            if (!textInputRef.current) {
+                return;
+            }
+
+            if (preHtmlPasteCallback?.(event)) {
+                return;
+            }
+
+            const isFocused = textInputRef.current?.isFocused();
+
+            if (!isFocused) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const types = event.clipboardData?.types;
+            const TEXT_HTML = 'text/html';
+
+            // If paste contains HTML
+            if (types && types.includes(TEXT_HTML)) {
+                const pastedHTML = event.clipboardData.getData(TEXT_HTML);
+
+                const domparser = new DOMParser();
+                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+
+                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
+                if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                    // If HTML has emoji, then treat this as plain text.
+                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                        handlePastePlainText(event);
+                        return;
+                    }
+                }
+                handlePastedHTML(pastedHTML);
+                return;
+            }
+            handlePastePlainText(event);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
+    );
+
+    useEffect(() => {
+        // we need to re-register listener on navigation focus/blur if the component (like Composer) is not unmounting
+        // when navigating away to different screen (report) to avoid paste event on other screen being wrongly handled
+        // by current screen paste listener
+        let unsubscribeFocus: () => void;
+        let unsubscribeBlur: () => void;
+        if (removeListenerOnScreenBlur) {
+            unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
+            unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+        }
+
+        document.addEventListener('paste', handlePaste);
+
+        return () => {
+            if (removeListenerOnScreenBlur) {
+                unsubscribeFocus();
+                unsubscribeBlur();
+            }
+            document.removeEventListener('paste', handlePaste);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+};
+
+export default useHtmlPaste;

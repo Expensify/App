@@ -1,6 +1,5 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {TextInputProps} from 'react-native';
 import {TextInput} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -34,5 +33,4 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<AnimatedTex
 RNTextInputWithRef.displayName = 'RNTextInputWithRef';
 
 export default React.forwardRef(RNTextInputWithRef);
-
 export type {AnimatedTextInputRef};
