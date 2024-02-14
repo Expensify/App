@@ -102,6 +102,7 @@ export default withOnyx<ConnectBankAccountProps, ConnectBankAccountOnyxProps>({
     policy: {
         key: ({reimbursementAccount}) => `${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`,
     },
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

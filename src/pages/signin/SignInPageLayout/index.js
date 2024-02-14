@@ -6,6 +6,7 @@ import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import ImageSVG from '@components/ImageSVG';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,9 +41,6 @@ const propTypes = {
     /** A reference so we can expose scrollPageToTop */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    shouldShowSmallScreen: PropTypes.bool,
-
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
 
@@ -54,7 +52,6 @@ const propTypes = {
 
 const defaultProps = {
     innerRef: () => {},
-    shouldShowSmallScreen: false,
     customHeadline: '',
     customHeroBody: '',
 };
@@ -68,11 +65,12 @@ function SignInPageLayout(props) {
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
     const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = windowHeight - props.insets.top - props.insets.bottom;
 
-    if (props.shouldShowSmallScreen) {
+    if (shouldUseNarrowLayout) {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
@@ -102,7 +100,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {!props.shouldShowSmallScreen ? (
+            {!shouldUseNarrowLayout ? (
                 <View style={contentContainerStyles}>
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
@@ -114,7 +112,6 @@ function SignInPageLayout(props) {
                             welcomeText={props.welcomeText}
                             shouldShowWelcomeText={props.shouldShowWelcomeText}
                             shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
-                            shouldShowSmallScreen={props.shouldShowSmallScreen}
                         >
                             {props.children}
                         </SignInPageContent>
@@ -179,16 +176,12 @@ function SignInPageLayout(props) {
                             welcomeText={props.welcomeText}
                             shouldShowWelcomeText={props.shouldShowWelcomeText}
                             shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
-                            shouldShowSmallScreen={props.shouldShowSmallScreen}
                         >
                             {props.children}
                         </SignInPageContent>
                     </View>
                     <View style={[styles.flex0]}>
-                        <Footer
-                            navigateFocus={props.navigateFocus}
-                            shouldShowSmallScreen
-                        />
+                        <Footer navigateFocus={props.navigateFocus} />
                     </View>
                 </ScrollView>
             )}
