@@ -80,20 +80,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         );
     }
 
-<<<<<<< HEAD:src/pages/EditSplitBillPage.js
-=======
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-        return (
-            <EditRequestMerchantPage
-                defaultMerchant={transactionMerchant ?? ''}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
-                }}
-            />
-        );
-    }
-
->>>>>>> main:src/pages/EditSplitBillPage.tsx
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
         return (
             <EditRequestCategoryPage
