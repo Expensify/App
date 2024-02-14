@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,12 +20,16 @@ import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-function ExitSurveyReasonPage() {
+type ExitSurveyReasonPageOnyxProps = {
+    draftReason?: ExitReason;
+};
+
+function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [reason, setReason] = useState<ExitReason>();
+    const [reason, setReason] = useState<ExitReason | undefined>(draftReason);
     const reasons: Choice[] = useMemo(
         () =>
             Object.values(CONST.EXIT_SURVEY.REASONS).map((value) => ({
@@ -82,4 +87,9 @@ function ExitSurveyReasonPage() {
 
 ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
 
-export default ExitSurveyReasonPage;
+export default withOnyx<ExitSurveyReasonPageOnyxProps, ExitSurveyReasonPageOnyxProps>({
+    draftReason: {
+        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT,
+        selector: (value) => value?.[INPUT_IDS.REASON],
+    },
+})(ExitSurveyReasonPage);
