@@ -1,6 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
@@ -9,16 +10,67 @@ import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
 import Text from './Text';
+import VideoPlayer from './VideoPlayer';
+
+const BASE_VIDEO_WIDTH = 640;
+const BASE_VIDEO_ASPECT_RATIO = 2;
+
+const MODAL_PADDING = 16;
+
+type VideoLoadedEvent = {
+    srcElement: {
+        videoWidth: number;
+        videoHeight: number;
+    };
+};
 
 function OnboardingWelcomeVideoModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth, windowHeight, windowWidth} = useWindowDimensions();
     const [isModalOpen, setIsModalOpen] = useState(true);
+    const [videoAspectRatio, setVideoAspectRatio] = useState(BASE_VIDEO_ASPECT_RATIO);
+    const {isOffline} = useNetwork();
 
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
     }, []);
+
+    const onVideoLoaded = (e: VideoLoadedEvent) => {
+        setVideoAspectRatio(e.srcElement.videoWidth / e.srcElement.videoHeight);
+    };
+
+    const getWelcomeVideo = () => {
+        if (!isOffline) {
+            let videoWidth = isSmallScreenWidth ? windowWidth - MODAL_PADDING : BASE_VIDEO_WIDTH;
+
+            if (!videoWidth) {
+                videoWidth = BASE_VIDEO_WIDTH;
+            }
+
+            return (
+                <View style={[styles.pRelative, styles.onboardingVideoContainer]}>
+                    <VideoPlayer
+                        url="https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4"
+                        videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
+                        onVideoLoaded={onVideoLoaded}
+                        shouldPlay
+                    />
+                </View>
+            );
+        }
+        return (
+            <View style={[styles.onboardingVideoContainer]}>
+                <Lottie
+                    source={LottieAnimations.Hands}
+                    style={styles.w100}
+                    webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
+                    autoPlay
+                    loop
+                />
+            </View>
+        );
+    };
 
     return (
         <Modal
@@ -30,15 +82,7 @@ function OnboardingWelcomeVideoModal() {
         >
             <View style={{maxHeight: windowHeight}}>
                 <View style={[styles.w100, styles.p2, styles.pb5]}>
-                    <View style={[styles.onboardingWelcomeVideo]}>
-                        <Lottie
-                            source={LottieAnimations.Hands}
-                            style={styles.w100}
-                            webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
-                            autoPlay
-                            loop
-                        />
-                    </View>
+                    {getWelcomeVideo()}
                     <View style={[styles.pt5, isSmallScreenWidth ? styles.ph3 : styles.ph6]}>
                         <Text style={[styles.textHeadline]}>{translate('onboarding.welcomeVideo.title')}</Text>
                         <Text style={[styles.textSupporting, styles.pb8]}>{translate('onboarding.welcomeVideo.description')}</Text>
