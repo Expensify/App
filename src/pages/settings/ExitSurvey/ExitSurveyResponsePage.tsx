@@ -3,7 +3,6 @@ import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ExitSurveyResponseForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
@@ -137,7 +135,7 @@ ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
 export default withOnyx<ExitSurveyResponsePageProps, ExitSurveyResponsePageOnyxProps>({
     draftResponse: {
-        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT,
-        selector: (value: FormOnyxValues<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>) => value?.[INPUT_IDS.RESPONSE] ?? '',
+        key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT,
+        selector: (value) => value?.[INPUT_IDS.RESPONSE] ?? '',
     },
 })(ExitSurveyResponsePage);
