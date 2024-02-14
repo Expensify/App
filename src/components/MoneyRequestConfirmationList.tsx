@@ -77,6 +77,9 @@ type MoneyRequestConfirmationListOnyxProps = {
 
     /** The policy of root parent report */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The session of the logged in user */
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
@@ -818,7 +821,7 @@ function MoneyRequestConfirmationList({
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
                                         CONST.IOU.ACTION.CREATE,
-                                        CONST.IOU.TYPE.SEND,
+                                        iouType,
                                         transaction?.transactionID ?? '',
                                         reportID ?? '',
                                         Navigation.getActiveRouteWithoutParams(),
@@ -904,6 +907,9 @@ export default withCurrentUserPersonalDetails(
         },
         iou: {
             key: ONYXKEYS.IOU,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     })(MoneyRequestConfirmationList),
 );
