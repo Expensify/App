@@ -103,6 +103,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: undefined;
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
@@ -462,6 +463,7 @@ type PublicScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
+        exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
