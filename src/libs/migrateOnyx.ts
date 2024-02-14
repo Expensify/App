@@ -15,14 +15,12 @@ export default function (): Promise<void> {
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.
         /* eslint-disable arrow-body-style */
-            migrationPromises.reduce(
-            (previousPromise, migrationPromise) => {
+        migrationPromises
+            .reduce((previousPromise, migrationPromise) => {
                 return previousPromise.then(() => {
                     return migrationPromise();
                 });
-            },
-            Promise.resolve(),
-        )
+            }, Promise.resolve())
 
             // Once all migrations are done, resolve the main promise
             .then(() => {
