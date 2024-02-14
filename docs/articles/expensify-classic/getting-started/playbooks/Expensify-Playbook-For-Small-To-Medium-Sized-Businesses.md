@@ -38,7 +38,7 @@ To create your Control Workspace:
 2. Select *Group* and click the button that says *New Workspace*
 3. Click *Select* under Control
 
-The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your workspace's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and in your company’s workspace settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
+The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your workspace's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and in your company’s workspace settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Visa® Commercial Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. Adopting the Expensify Card with an Annual Subscription gives a 75% discount off the unbundled price.
 
 ## Step 3: Connect your accounting system
 As a small to medium-sized business, it's important to maintain proper spend management to ensure the success and stability of your organization. This requires paying close attention to your expenses, streamlining your financial processes, and making sure that your financial information is accurate, compliant, and transparent. Include best practices such as:
@@ -143,7 +143,7 @@ Let’s walk through the process of linking your business bank account:
 4. Once that’s done, we’ll collect all of the necessary information on your business, such as your legal business name and address
 5. We’ll then collect your personal information, and a photo ID to confirm your identity
 
-You only need to do this once: you are fully set up for not only reimbursing expense reports, but issuing Expensify Cards, collecting customer invoice payments online (if applicable), as well as paying supplier bills online.
+You only need to do this once: you are fully set up for not only reimbursing expense reports, but granting Expensify Cards, collecting customer invoice payments online (if applicable), as well as paying supplier bills online.
 
 ## Step 9: Invite employees and set an approval workflow
 *Select an Approval Mode*
@@ -194,8 +194,8 @@ As mentioned above, we’ll be able to pull in transactions as they post (daily)
 ### If you don't have a corporate card, use the Expensify Card (US only)
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back
-- [SmartLimits](https://help.expensify.com/articles/expensify-classic/expensify-card/Card-Settings) to control what each individual cardholder can spend
+- Up to 2% cash back (_Applies to USD purchases only._)
+- [SmartLimits]([https://help.expensify.com/articles/expensify-classic/expensify-card/Card-Settings](https://community.expensify.com/discussion/4851/deep-dive-what-are-smart-limits?utm_source=community-search&utm_medium=organic-search&utm_term=smart+limits)) to control what each individual cardholder can spend
 - A stable, unbreakable real-time connection (third-party bank feeds can run into connectivity issues)
 - Receipt compliance - informing notifications (e.g. add a receipt!) for users *as soon as the card is swiped*
 - Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
@@ -225,7 +225,7 @@ As a small business, managing bills and invoices can be a complex and time-consu
 
 Here are some of the key benefits of using Expensify for bill payments and invoicing:
 - Flexible payment options: Expensify allows you to pay your bills via ACH, credit card, or check, so you can choose the option that works best for you (US businesses only).
-- Free, No Fees: The bill pay and invoicing features come included with every workspace and workspace, so you won't need to pay any additional fees.
+- No Cost Feature: The bill pay and invoicing features come included with every workspace and plan.
 - Integration with your business bank account: With your business bank account verified, you can easily link your finances to receive payment from customers when invoices are paid.
 
 Let’s first chat through how Bill Pay works

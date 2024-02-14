@@ -9,15 +9,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import type {AnchorAlignment} from './Popover/types';
 import PopoverMenu from './PopoverMenu';
 
+type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+
 type DropdownOption = {
-    value: string;
+    value: PaymentType;
     text: string;
     icon: IconAsset;
     iconWidth?: number;
@@ -30,7 +33,10 @@ type ButtonWithDropdownMenuProps = {
     menuHeaderText?: string;
 
     /** Callback to execute when the main button is pressed */
-    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: string) => void;
+    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: PaymentType) => void;
+
+    /** Callback to execute when a dropdown option is selected */
+    onOptionSelected?: (option: DropdownOption) => void;
 
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
@@ -56,6 +62,9 @@ type ButtonWithDropdownMenuProps = {
 
     /* ref for the button */
     buttonRef: RefObject<View>;
+
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
 };
 
 function ButtonWithDropdownMenu({
@@ -72,6 +81,8 @@ function ButtonWithDropdownMenu({
     buttonRef,
     onPress,
     options,
+    onOptionSelected,
+    enterKeyEventListenerPriority = 0,
 }: ButtonWithDropdownMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -122,6 +133,7 @@ function ButtonWithDropdownMenu({
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton]}
+                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     />
 
                     <Button
@@ -134,6 +146,7 @@ function ButtonWithDropdownMenu({
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
                         innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
+                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     >
                         <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                             <View style={[styles.buttonDivider]} />
@@ -159,6 +172,7 @@ function ButtonWithDropdownMenu({
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
             {options.length > 1 && popoverAnchorPosition && (
@@ -174,6 +188,7 @@ function ButtonWithDropdownMenu({
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: () => {
+                            onOptionSelected?.(item);
                             setSelectedItemIndex(index);
                         },
                     }))}
