@@ -3,6 +3,7 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -82,6 +83,10 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
             setSelectedCategories(categoryList.map((item) => item.value));
         }
     };
+
+    if (Object.keys(policyCategories ?? {}).length === 0) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper
