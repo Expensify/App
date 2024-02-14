@@ -14,24 +14,25 @@ function ValidateLoginPage({
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
+    const handleNavigation = () => {
+        if (exitTo) {
+            Session.handleExitToNavigation(exitTo);
+        } else if (session?.authToken) {
+            // If already signed in, do not show the validate code if not on web,
+            // because we don't want to block the user with the interstitial page.
+            Navigation.goBack();
+        } else {
+            Navigation.navigate(ROUTES.HOME);
+        }
+    };
+
     useEffect(() => {
-        // Wait till navigation becomes available
         Navigation.isNavigationReady().then(() => {
             if (session?.authToken) {
-                // If already signed in, do not show the validate code if not on web,
-                // because we don't want to block the user with the interstitial page.
-                if (exitTo) {
-                    Session.handleExitToNavigation(exitTo);
-                } else {
-                    Navigation.goBack();
-                }
+                handleNavigation();
             } else {
                 Session.signInWithValidateCode(Number(accountID), validateCode);
-                if (exitTo) {
-                    Session.handleExitToNavigation(exitTo);
-                } else {
-                    Navigation.navigate(ROUTES.HOME);
-                }
+                handleNavigation();
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
