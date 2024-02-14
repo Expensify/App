@@ -20,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type BankAccount from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -206,6 +207,9 @@ function addPersonalBankAccount(account: PlaidBankAccount, currentDefaultBankAcc
                     shouldShowSuccess: true,
                 },
             },
+            ...(currentDefaultBankAccount?.methodID
+                ? [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[currentDefaultBankAccount.methodID]: {isDefault: false}}}]
+                : []),
         ],
         failureData: [
             {
