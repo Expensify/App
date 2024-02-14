@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
@@ -30,7 +30,7 @@ type AmountTextInputProps = {
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Function to call to handle key presses in the text input */
-    onKeyPress?: () => void;
+    onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
 };
 
 function AmountTextInput(
@@ -54,7 +54,7 @@ function AmountTextInput(
             selection={selection}
             onSelectionChange={onSelectionChange}
             role={CONST.ROLE.PRESENTATION}
-            onKeyPress={onKeyPress}
+            onKeyPress={onKeyPress as (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
         />
     );

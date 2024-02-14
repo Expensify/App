@@ -21,10 +21,10 @@ type TextInputWithCurrencySymbolProps = {
     selection?: TextSelection;
 
     /** Function to call when selection in text input is changed */
-    onSelectionChange?: (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
+    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
 
     /** Function to call to handle key presses in the text input */
-    onKeyPress?: () => void;
+    onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
 };
 
 export default TextInputWithCurrencySymbolProps;
