@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -46,7 +46,7 @@ function IOURequestStepMerchant({
     const isMerchantRequired = _.some(participants, (participant) => Boolean(participant.isPolicyExpenseChat));
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
@@ -93,8 +93,8 @@ function IOURequestStepMerchant({
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID="moneyRequestMerchant"
-                        name="moneyRequestMerchant"
+                        inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                        name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         defaultValue={isEmptyMerchant ? '' : merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}

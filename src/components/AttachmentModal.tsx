@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -130,6 +130,9 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar?: boolean;
 
+    /** Denotes whether it can be an icon (ex: SVG) */
+    maybeIcon?: boolean;
+
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
 
@@ -154,6 +157,7 @@ function AttachmentModal({
     onCarouselAttachmentChange = () => {},
     isReceiptAttachment = false,
     isWorkspaceAvatar = false,
+    maybeIcon = false,
     transaction,
     parentReport,
     parentReportActions,
@@ -279,7 +283,7 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(transaction?.transactionID);
+        IOU.detachReceipt(transaction?.transactionID ?? '');
         setIsDeleteReceiptConfirmModalVisible(false);
         Navigation.dismissModal(report?.reportID);
     }, [transaction, report]);
@@ -432,7 +436,7 @@ function AttachmentModal({
                 },
             });
         }
-        if (!isOffline) {
+        if (!isOffline && allowDownload) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
@@ -531,6 +535,7 @@ function AttachmentModal({
                                     file={file}
                                     onToggleKeyboard={updateConfirmButtonVisibility}
                                     isWorkspaceAvatar={isWorkspaceAvatar}
+                                    maybeIcon={maybeIcon}
                                     fallbackSource={fallbackSource}
                                     isUsedInAttachmentModal
                                     transactionID={transaction?.transactionID}
@@ -610,6 +615,6 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
     },
-})(AttachmentModal);
+})(memo(AttachmentModal));
 
 export type {Attachment};

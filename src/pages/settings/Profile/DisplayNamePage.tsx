@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +20,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type DisplayNamePageOnyxProps = {
@@ -32,7 +32,7 @@ type DisplayNamePageProps = DisplayNamePageOnyxProps & WithCurrentUserPersonalDe
 /**
  * Submit form to update user's first and last name (and display name)
  */
-const updateDisplayName = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
+const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
     PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 };
 
@@ -42,7 +42,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
-    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> => {
         const errors: Errors = {};
 
         // First we validate the first name field
@@ -70,7 +70,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
         >
             <HeaderWithBackButton
                 title={translate('displayNamePage.headerTitle')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingApp ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -89,7 +89,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="firstName"
+                            inputID={INPUT_IDS.FIRST_NAME}
                             name="fname"
                             label={translate('common.firstName')}
                             aria-label={translate('common.firstName')}
@@ -102,7 +102,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="lastName"
+                            inputID={INPUT_IDS.LAST_NAME}
                             name="lname"
                             label={translate('common.lastName')}
                             aria-label={translate('common.lastName')}

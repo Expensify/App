@@ -140,9 +140,9 @@ describe('Sidebar', () => {
                         const displayNames = screen.queryAllByLabelText(hintText);
 
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('One, Two');
                     })
             );
         });
@@ -189,9 +189,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
                     })
             );
         });
@@ -236,9 +236,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
                     })
             );
         });
@@ -286,10 +286,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe(taskReportName);
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe(taskReportName);
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children', 0])).toBe('One, Two');
                     })
             );
         });
@@ -346,10 +346,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children', 0])).toBe('One, Two');
                     })
             );
         });
@@ -410,10 +410,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Workspace owes $100.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Five');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Workspace owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Email Five');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children', 0])).toBe('One, Two');
                     })
             );
         });
@@ -465,9 +465,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('One, Two');
                     })
             );
         });
@@ -607,9 +607,9 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
                     })
             );
         });
@@ -653,9 +653,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
                     })
 
                     // When a new report is added
@@ -666,10 +666,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Seven, Eight');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Seven, Eight');
+                        expect(lodashGet(displayNames, [3, 'props', 'children', 0])).toBe('Three, Four');
                     })
             );
         });
@@ -713,9 +713,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
                     })
 
                     // When a new report is added
@@ -726,10 +726,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Seven, Eight');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Seven, Eight');
+                        expect(lodashGet(displayNames, [3, 'props', 'children', 0])).toBe('Three, Four');
                     })
             );
         });
@@ -773,9 +773,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Report (archived)');
                     })
             );
         });
@@ -810,9 +810,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
                     })
 
                     // When a new report is added
@@ -823,10 +823,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Seven, Eight');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Seven, Eight');
+                        expect(lodashGet(displayNames, [3, 'props', 'children', 0])).toBe('Three, Four');
                     })
             );
         });
@@ -865,9 +865,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Report (archived)');
                     })
             );
         });
@@ -1000,11 +1000,11 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Five owes $100.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Four owes $1,000.00');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Six owes $100.00');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Email Three owes $100.00');
-                        expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('Email Two owes $100.00');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Email Five owes $100.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('Email Four owes $1,000.00');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Email Six owes $100.00');
+                        expect(lodashGet(displayNames, [3, 'props', 'children', 0])).toBe('Email Three owes $100.00');
+                        expect(lodashGet(displayNames, [4, 'props', 'children', 0])).toBe('Email Two owes $100.00');
                     })
             );
         });
@@ -1050,9 +1050,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Five, Six');
+                        expect(lodashGet(displayNames, [1, 'props', 'children', 0])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [2, 'props', 'children', 0])).toBe('Three, Four');
                     })
             );
         });

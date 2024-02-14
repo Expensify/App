@@ -74,7 +74,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
+    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
             const {emojiCode, statusText} = values;

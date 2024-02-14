@@ -38,7 +38,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
         <ScreenWrapper testID={TimezoneInitialPage.displayName}>
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={styles.flex1}>
                 <View style={[styles.ph5]}>

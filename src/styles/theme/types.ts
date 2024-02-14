@@ -17,12 +17,14 @@ type ThemeColors = {
     icon: Color;
     iconMenu: Color;
     iconHovered: Color;
+    iconMenuHovered: Color;
     iconSuccessFill: Color;
     iconReversed: Color;
     iconColorfulBackground: Color;
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    syntax: Color;
     link: Color;
     linkHover: Color;
     buttonDefaultBG: Color;
