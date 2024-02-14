@@ -19,10 +19,10 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
@@ -106,7 +106,7 @@ function BaseValidateCodeForm(props) {
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors) && !needToClearError;
     const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
-    const isValidateCodeFormSubmitting = FormUtils.isValidateCodeFormSubmitting(props.account);
+    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(props.account);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {

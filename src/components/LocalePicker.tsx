@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import FormUtils from '@libs/FormUtils';
+import * as AccountUtils from '@libs/AccountUtils';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,7 +35,7 @@ function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 
         keyForList: language,
         isSelected: preferredLocale === language,
     }));
-    const shouldDisablePicker = FormUtils.isValidateCodeFormSubmitting(account ?? {});
+    const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account ?? {});
 
     return (
         <Picker
