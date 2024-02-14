@@ -1,42 +1,61 @@
 import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as App from '@userActions/App';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LoginList, PersonalDetails as PersonalDetailsType, User} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
-    user: OnyxEntry<User>;
+    /** User's private personal details */
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
 
 type ProfilePageProps = ProfilePageOnyxProps & WithCurrentUserPersonalDetailsProps;
 
-function ProfilePage({loginList, user, currentUserPersonalDetails}: ProfilePageProps) {
+function ProfilePage({
+    loginList,
+    privatePersonalDetails = {
+        legalFirstName: '',
+        legalLastName: '',
+        dob: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    },
+    currentUserPersonalDetails,
+}: ProfilePageProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
-
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -44,11 +63,13 @@ function ProfilePage({loginList, user, currentUserPersonalDetails}: ProfilePageP
     };
 
     const contactMethodBrickRoadIndicator = loginList ? UserUtils.getLoginListBrickRoadIndicator(loginList) : undefined;
-    const avatarURL = currentUserPersonalDetails?.avatar ?? '';
-    const accountID = currentUserPersonalDetails?.accountID ?? '';
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    usePrivatePersonalDetails();
+    const privateDetails = privatePersonalDetails ?? {};
+    const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
-    const profileSettingsOptions = [
+    const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
             title: currentUserPersonalDetails?.displayName ?? '',
@@ -78,67 +99,89 @@ function ProfilePage({loginList, user, currentUserPersonalDetails}: ProfilePageP
     ];
 
     useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetailsType);
+        App.openProfile(currentUserPersonalDetails as PersonalDetails);
     }, [currentUserPersonalDetails]);
+
+    const privateOptions = [
+        {
+            description: translate('privatePersonalDetails.legalName'),
+            title: legalName,
+            pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
+        },
+        {
+            description: translate('common.dob'),
+            title: privateDetails.dob ?? '',
+            pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
+        },
+        {
+            description: translate('privatePersonalDetails.address'),
+            title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
+            pageRoute: ROUTES.SETTINGS_ADDRESS,
+        },
+    ];
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={ProfilePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack()}
+                shouldShowBackButton={isSmallScreenWidth}
+                icon={Illustrations.Profile}
             />
-            <ScrollView>
-                <AvatarWithImagePicker
-                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                    source={UserUtils.getAvatar(avatarURL, accountID)}
-                    onImageSelected={PersonalDetails.updateAvatar}
-                    onImageRemoved={PersonalDetails.deleteAvatar}
-                    anchorPosition={styles.createMenuPositionProfile(windowWidth)}
-                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                    size={CONST.AVATAR_SIZE.LARGE}
-                    pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? null}
-                    errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                    errorRowStyles={[styles.mt6]}
-                    onErrorClose={PersonalDetails.clearAvatarErrors}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                    originalFileName={currentUserPersonalDetails?.originalFileName}
-                    headerTitle={translate('profilePage.profileAvatar')}
-                    style={[styles.mh5]}
-                    fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                />
-                <View style={[styles.mt4]}>
-                    {profileSettingsOptions.map((detail, index) => (
-                        <MenuItemWithTopDescription
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${detail.title}_${index}`}
-                            shouldShowRightIcon
-                            title={detail.title}
-                            description={detail.description}
-                            onPress={() => Navigation.navigate(detail.pageRoute)}
-                            brickRoadIndicator={detail.brickRoadIndicator}
-                        />
-                    ))}
+            <ScrollView style={styles.pt3}>
+                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('profilePage.publicSection.title')}
+                        subtitle={translate('profilePage.publicSection.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        childrenStyles={styles.pt5}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                    >
+                        {publicOptions.map((detail, index) => (
+                            <MenuItemWithTopDescription
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${detail.title}_${index}`}
+                                shouldShowRightIcon
+                                title={detail.title}
+                                description={detail.description}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                onPress={() => Navigation.navigate(detail.pageRoute)}
+                                brickRoadIndicator={detail.brickRoadIndicator}
+                            />
+                        ))}
+                    </Section>
+                    <Section
+                        title={translate('profilePage.privateSection.title')}
+                        subtitle={translate('profilePage.privateSection.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        childrenStyles={styles.pt3}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                    >
+                        {isLoadingPersonalDetails ? (
+                            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                        ) : (
+                            <>
+                                {privateOptions.map((detail, index) => (
+                                    <MenuItemWithTopDescription
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${detail.title}_${index}`}
+                                        shouldShowRightIcon
+                                        title={detail.title}
+                                        description={detail.description}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    />
+                                ))}
+                            </>
+                        )}
+                    </Section>
                 </View>
-                <MenuItem
-                    title={translate('privatePersonalDetails.personalDetails')}
-                    icon={Expensicons.User}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                    shouldShowRightIcon
-                />
-                {user?.hasLoungeAccess && (
-                    <MenuItem
-                        title={translate('loungeAccessPage.loungeAccess')}
-                        icon={Expensicons.LoungeAccess as IconAsset}
-                        iconWidth={40}
-                        iconHeight={40}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LOUNGE_ACCESS)}
-                        shouldShowRightIcon
-                    />
-                )}
             </ScrollView>
         </ScreenWrapper>
     );
@@ -151,8 +194,8 @@ export default withCurrentUserPersonalDetails(
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
         },
-        user: {
-            key: ONYXKEYS.USER,
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
         },
     })(ProfilePage),
 );
