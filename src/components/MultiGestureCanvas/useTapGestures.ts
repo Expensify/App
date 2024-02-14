@@ -9,19 +9,7 @@ import * as MultiGestureCanvasUtils from './utils';
 
 type UseTapGesturesProps = Pick<
     MultiGestureCanvasVariables,
-    | 'canvasSize'
-    | 'contentSize'
-    | 'minContentScale'
-    | 'maxContentScale'
-    | 'offsetX'
-    | 'offsetY'
-    | 'pinchScale'
-    | 'zoomScale'
-    | 'shouldDisableTransformationGestures'
-    | 'reset'
-    | 'stopAnimation'
-    | 'onScaleChanged'
-    | 'onTap'
+    'canvasSize' | 'contentSize' | 'minContentScale' | 'maxContentScale' | 'offsetX' | 'offsetY' | 'pinchScale' | 'zoomScale' | 'reset' | 'stopAnimation' | 'onScaleChanged' | 'onTap'
 >;
 
 const useTapGestures = ({
@@ -35,7 +23,6 @@ const useTapGestures = ({
     zoomScale,
     reset,
     stopAnimation,
-    shouldDisableTransformationGestures,
     onScaleChanged,
     onTap,
 }: UseTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
@@ -120,15 +107,6 @@ const useTapGestures = ({
     );
 
     const doubleTapGesture = Gesture.Tap()
-        // The first argument is not used, but must be defined
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        .onTouchesDown((_evt, state) => {
-            if (!shouldDisableTransformationGestures.value) {
-                return;
-            }
-
-            state.fail();
-        })
         .numberOfTaps(2)
         .maxDelay(150)
         .maxDistance(20)

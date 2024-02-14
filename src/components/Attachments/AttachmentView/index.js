@@ -87,6 +87,9 @@ function AttachmentView({
     translate,
     isFocused,
     isUsedInCarousel,
+    isSingleCarouselItem,
+    carouselItemIndex,
+    carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
     maybeIcon,
@@ -164,6 +167,8 @@ function AttachmentView({
                     isFocused={isFocused}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
+                    carouselItemIndex={carouselItemIndex}
+                    carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
@@ -192,6 +197,9 @@ function AttachmentView({
                 loadComplete={loadComplete}
                 isFocused={isFocused}
                 isUsedInCarousel={isUsedInCarousel}
+                isSingleCarouselItem={isSingleCarouselItem}
+                carouselItemIndex={carouselItemIndex}
+                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onError={() => {
