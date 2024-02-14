@@ -24,7 +24,10 @@ jobs:
             git config --global user.email "test@test.com"
             git config --global user.name "Test"
 
-      - name: Clenaup deleted files
+      - name: Fetch all objects
+        run: git fetch --all
+
+      - name: Clean up deleted files
         run: |
           DELETED_FILES=$(git diff --name-only --diff-filter=D ${{ github.event.before }} ${{ github.sha }})
           for file in $DELETED_FILES; do
