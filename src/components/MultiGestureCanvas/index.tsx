@@ -1,16 +1,14 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
-import type PagerView from 'react-native-pager-view';
-import type {SharedValue} from 'react-native-reanimated';
 import Animated, {cancelAnimation, runOnUI, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnTapCallback, ZoomRange} from './types';
+import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
@@ -36,17 +34,8 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
 
-    /** A shared value of type boolean, that indicates disabled the transformation gestures (pinch, pan, double tap) */
-    shouldDisableTransformationGestures?: SharedValue<boolean>;
-
-    /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
-    pagerRef?: ForwardedRef<PagerView>; // TODO: For TS migration: Exclude<GestureRef, number>
-
     /** Handles scale changed event */
     onScaleChanged?: OnScaleChangedCallback;
-
-    /** Handles scale changed event */
-    onTap?: OnTapCallback;
 };
 
 function MultiGestureCanvas({
@@ -55,16 +44,41 @@ function MultiGestureCanvas({
     zoomRange: zoomRangeProp,
     isActive = true,
     children,
-    pagerRef,
-    shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
-    onTap,
-    onScaleChanged,
+    onScaleChanged: onScaleChangedProp,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const shouldDisableTransformationGesturesFallback = useSharedValue(false);
-    const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp ?? shouldDisableTransformationGesturesFallback;
+    const isSwipingInPagerFallback = useSharedValue(false);
+
+    // If the MultiGestureCanvas used inside a AttachmentCarouselPager, we need to adapt the behaviour based on the pager state
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {
+        onTap,
+        onScaleChanged: onScaleChangedContext,
+        isPagerScrolling: isPagerSwiping,
+        pagerRef,
+    } = useMemo(
+        () =>
+            attachmentCarouselPagerContext ?? {
+                onTap: () => {},
+                onScaleChanged: () => {},
+                pagerRef: undefined,
+                isPagerScrolling: isSwipingInPagerFallback,
+            },
+        [attachmentCarouselPagerContext, isSwipingInPagerFallback],
+    );
+
+    /**
+     * Calls the onScaleChanged callback from the both props and the pager context
+     */
+    const onScaleChanged = useCallback(
+        (newScale: number) => {
+            onScaleChangedProp?.(newScale);
+            onScaleChangedContext(newScale);
+        },
+        [onScaleChangedContext, onScaleChangedProp],
+    );
 
     const zoomRange = useMemo(
         () => ({
@@ -112,6 +126,8 @@ function MultiGestureCanvas({
     const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
         stopAnimation();
 
+        pinchScale.value = 1;
+
         if (animated) {
             offsetX.value = withSpring(0, SPRING_CONFIG);
             offsetY.value = withSpring(0, SPRING_CONFIG);
@@ -139,7 +155,7 @@ function MultiGestureCanvas({
         callback();
     });
 
-    const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({
+    const {singleTapGesture: basicSingleTapGesture, doubleTapGesture} = useTapGestures({
         canvasSize,
         contentSize,
         minContentScale,
@@ -152,9 +168,8 @@ function MultiGestureCanvas({
         stopAnimation,
         onScaleChanged,
         onTap,
-        shouldDisableTransformationGestures,
     });
-    const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
+    const singleTapGesture = basicSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGestureSimultaneousList = useMemo(
         () => (pagerRef === undefined ? [singleTapGesture, doubleTapGesture] : [pagerRef as unknown as Exclude<GestureRef, number>, singleTapGesture, doubleTapGesture]),
@@ -170,8 +185,8 @@ function MultiGestureCanvas({
         offsetY,
         panTranslateX,
         panTranslateY,
+        isPagerSwiping,
         stopAnimation,
-        shouldDisableTransformationGestures,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
         .withRef(panGestureRef);
@@ -185,9 +200,9 @@ function MultiGestureCanvas({
         pinchTranslateX,
         pinchTranslateY,
         pinchScale,
+        isPagerSwiping,
         stopAnimation,
         onScaleChanged,
-        shouldDisableTransformationGestures,
     }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
 
     // Trigger a reset when the canvas gets inactive, but only if it was already mounted before
