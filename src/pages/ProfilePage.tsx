@@ -69,7 +69,7 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
     return login ? Str.removeSMSDomain(login) : '';
 };
 
-function ProfilePage({personalDetails = {}, route, session, report}: ProfilePageProps) {
+function ProfilePage({personalDetails, route, session, report}: ProfilePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
@@ -97,8 +97,7 @@ function ProfilePage({personalDetails = {}, route, session, report}: ProfilePage
 
     const isCurrentUser = session?.accountID === accountID;
     const hasMinimumDetails = !isEmptyObject(details.avatar);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = details?.isLoading || false || isEmptyObject(details);
+    const isLoading = Boolean(details?.isLoading) || false || isEmptyObject(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
@@ -257,8 +256,7 @@ export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
             const accountID = Number(route.params?.accountID ?? 0);
             const reportID = ReportUtils.getChatByParticipants([accountID])?.reportID ?? '';
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if ((session && Number(session.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+            if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
                 return `${ONYXKEYS.COLLECTION.REPORT}0`;
             }
 
