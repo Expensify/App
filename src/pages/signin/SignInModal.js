@@ -30,7 +30,7 @@ function SignInModal() {
             testID={SignInModal.displayName}
         >
             <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
-            <SignInPage isInModal />
+            <SignInPage />
         </ScreenWrapper>
     );
 }
