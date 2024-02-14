@@ -77,6 +77,8 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
                 defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableInputs}
+                autoFocus
+                shouldDelayFocus
                 shouldSaveDraft
                 shouldUseDefaultValue={shouldDisableInputs}
             />
