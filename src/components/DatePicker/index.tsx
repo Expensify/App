@@ -1,6 +1,6 @@
 import {setYear} from 'date-fns';
-import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
@@ -8,7 +8,9 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import CalendarPicker from './CalendarPicker';
 
 type DatePickerProps = {
@@ -37,6 +39,12 @@ type DatePickerProps = {
 
     /** A function that is passed by FormWrapper */
     onTouched: () => void;
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft?: boolean;
+
+    /** ID of the wrapping form */
+    formID?: keyof OnyxFormValuesMapping;
 } & BaseTextInputProps;
 
 function DatePicker(
@@ -53,6 +61,8 @@ function DatePicker(
         onTouched,
         placeholder,
         value,
+        shouldSaveDraft = false,
+        formID,
     }: DatePickerProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -67,6 +77,19 @@ function DatePicker(
         onInputChange?.(newValue);
         setSelectedDate(newValue);
     };
+
+    useEffect(() => {
+        // Value is provided to input via props and onChange never fires. We have to save draft manually.
+        if (shouldSaveDraft && formID) {
+            FormActions.setDraftValues(formID, {[inputID]: selectedDate});
+        }
+
+        if (selectedDate === value || !value) {
+            return;
+        }
+
+        setSelectedDate(value);
+    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
     return (
         <View style={styles.datePickerRoot}>
