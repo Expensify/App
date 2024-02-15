@@ -1,8 +1,8 @@
 import React, {memo} from 'react';
+import type {BaseAttachmentViewPdfProps} from './BaseAttachmentViewPdf';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
-import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
-function AttachmentViewPdf(props) {
+function AttachmentViewPdf(props: BaseAttachmentViewPdfProps) {
     return (
         <BaseAttachmentViewPdf
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -10,8 +10,5 @@ function AttachmentViewPdf(props) {
         />
     );
 }
-
-AttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
-AttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
 
 export default memo(AttachmentViewPdf);

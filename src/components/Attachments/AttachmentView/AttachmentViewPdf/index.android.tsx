@@ -5,13 +5,13 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
-import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
+import type AttachmentViewPdfProps from './types';
 
 // If the user pans less than this threshold, we'll not enable/disable the pager scroll, since the thouch will most probably be a tap.
 // If the user moves their finger more than this threshold in the X direction, we'll enable the pager scroll. Otherwise if in the Y direction, we'll disable it.
 const SCROLL_THRESHOLD = 10;
 
-function AttachmentViewPdf(props) {
+function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const styles = useThemeStyles();
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const scale = useSharedValue(1);
@@ -53,6 +53,9 @@ function AttachmentViewPdf(props) {
         })
         .onTouchesUp(() => {
             isPanGestureActive.value = false;
+            if (!isScrollEnabled) {
+                return;
+            }
             isScrollEnabled.value = true;
         });
 
@@ -92,8 +95,5 @@ function AttachmentViewPdf(props) {
         </View>
     );
 }
-
-AttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
-AttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
 
 export default memo(AttachmentViewPdf);

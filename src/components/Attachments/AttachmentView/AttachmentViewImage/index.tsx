@@ -1,16 +1,18 @@
 import React, {memo} from 'react';
+import type AttachmentViewBaseProps from '@components/Attachments/AttachmentView/types';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import CONST from '@src/CONST';
-import {attachmentViewImageDefaultProps, attachmentViewImagePropTypes} from './propTypes';
 
-const propTypes = {
-    ...attachmentViewImagePropTypes,
-    ...withLocalizePropTypes,
-};
+type AttachmentViewImageProps = {
+    url: string | number;
+
+    loadComplete: boolean;
+
+    isImage: boolean;
+} & AttachmentViewBaseProps;
 
 function AttachmentViewImage({
     url,
@@ -20,21 +22,19 @@ function AttachmentViewImage({
     isSingleCarouselItem,
     carouselItemIndex,
     carouselActiveItemIndex,
-    isFocused,
     loadComplete,
     onPress,
     onError,
     isImage,
-    translate,
-}) {
+}: AttachmentViewImageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const children = (
         <ImageView
             onError={onError}
             url={url}
-            fileName={file.name}
+            fileName={file?.name ?? ''}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            isFocused={isFocused}
             isUsedInCarousel={isUsedInCarousel}
             isSingleCarouselItem={isSingleCarouselItem}
             carouselItemIndex={carouselItemIndex}
@@ -48,7 +48,7 @@ function AttachmentViewImage({
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-            accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}
+            accessibilityLabel={file?.name ?? translate('attachmentView.unknownFilename')}
         >
             {children}
         </PressableWithoutFeedback>
@@ -57,8 +57,6 @@ function AttachmentViewImage({
     );
 }
 
-AttachmentViewImage.propTypes = propTypes;
-AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
 AttachmentViewImage.displayName = 'AttachmentViewImage';
 
-export default compose(memo, withLocalize)(AttachmentViewImage);
+export default memo(AttachmentViewImage);

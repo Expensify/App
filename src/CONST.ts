@@ -437,7 +437,7 @@ const CONST = {
             },
         },
         ARROW_LEFT: {
-            descriptionKey: null,
+            descriptionKey: 'arrowLeft',
             shortcutKey: 'ArrowLeft',
             modifiers: [],
             trigger: {
@@ -447,7 +447,7 @@ const CONST = {
             },
         },
         ARROW_RIGHT: {
-            descriptionKey: null,
+            descriptionKey: 'arrowRight',
             shortcutKey: 'ArrowRight',
             modifiers: [],
             trigger: {

@@ -6,7 +6,7 @@ type ImageViewProps = {
     isAuthTokenRequired?: boolean;
 
     /** URL to full-sized image */
-    url: string;
+    url: string | number;
 
     /** image file name */
     fileName: string;
