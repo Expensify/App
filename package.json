@@ -88,7 +88,7 @@
     "@react-navigation/native": "6.1.8",
     "@react-navigation/stack": "6.3.16",
     "@react-ng/bounds-observer": "^0.2.1",
-    "@rnmapbox/maps": "10.1.5",
+    "@rnmapbox/maps": "10.1.13",
     "@shopify/flash-list": "github:WoLewicki/flash-list#b08252185d238bd8ac01d921a5122f5ddecbf5b0",
     "@ua/react-native-airship": "^15.3.1",
     "@vue/preload-webpack-plugin": "^2.0.0",
