@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo,TextStyle} from 'react-native';
@@ -16,6 +15,7 @@ import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -354,18 +354,17 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         }, [shouldShowTextInput]),
     );
 
+    const prevTextInputValue = usePrevious(textInputValue);
     useEffect(() => {
-        // do not change focus on the first render, as it should focus on the selected item
-        if (isInitialSectionListRender) {
+        // Avoid changing focus if the textInputValue remains unchanged.
+        if (prevTextInputValue === textInputValue || flattenedSections.allOptions.length === 0) {
             return;
         }
+        // Remove the focus if the search input is empty else focus on the first non disabled item
+        const newSelectedIndex = textInputValue === '' ? -1 : 0;
 
-        // set the focus on the first item when the sections list is changed
-        if (sections.length > 0) {
-            updateAndScrollToFocusedIndex(0);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sections]);
+        updateAndScrollToFocusedIndex(newSelectedIndex);
+    }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {

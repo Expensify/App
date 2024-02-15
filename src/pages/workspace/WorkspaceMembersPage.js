@@ -180,6 +180,7 @@ function WorkspaceMembersPage(props) {
 
     /**
      * Remove selected users from the workspace
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         if (!_.isEmpty(errors)) {
