@@ -4449,6 +4449,8 @@ const styles = (theme: ThemeColors) =>
             height: 48,
             width: 48,
             marginRight: 12,
+            zIndex: 2,
+            paddingBottom: 15,
         },
         workspaceWorkflowContent: {
             flexDirection: 'row', 
@@ -4489,6 +4491,14 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             fontSize: 15,
             lineHeight: 20
+        },
+        workspaceWorkflowsTimelineOverride: {
+            backgroundColor: theme.cardBG, 
+            zIndex: 1, 
+            height: 19, 
+            width: 19, 
+            position: 'absolute', 
+            left:0,
         },
     } satisfies Styles);
 
