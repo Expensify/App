@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,9 +16,11 @@ import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as Task from '@userActions/Task';
+import type {FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
@@ -46,7 +47,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     }, []);
 
     const submit = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
             if (values.title !== report?.reportName && !isEmptyObject(report)) {
                 // Set the title of the report in the store and then call EditTask API
                 // to update the title of the report on the server
@@ -93,11 +94,11 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
-                                inputID="title"
-                                name="title"
+                                inputID={INPUT_IDS.TITLE}
+                                name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={report?.reportName ?? ''}
+                                defaultValue={(report?.reportName) ?? ''}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;

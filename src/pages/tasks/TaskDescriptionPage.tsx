@@ -25,6 +25,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
@@ -114,11 +115,11 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID="description"
-                            name="description"
+                            inputID={INPUT_IDS.DESCRIPTION}
+                            name={INPUT_IDS.DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            defaultValue={parser.htmlToMarkdown((report && parser.replace(report?.description ?? '')) ?? '')}
+                            defaultValue={parser.htmlToMarkdown((report && parser.replace(report?.description ?? '')) || '')}
                             ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;
