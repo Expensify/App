@@ -142,7 +142,7 @@ function ProfilePage(props) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={_.isEmpty(login) || shouldShowBlockingView}>
+            <FullPageNotFoundView shouldShow={_.isEmpty(login) || shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
                 <HeaderWithBackButton
                     title={props.translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}

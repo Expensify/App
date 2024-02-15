@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -17,9 +18,9 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 type ConfirmationBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -33,10 +34,10 @@ type ConfirmationBusinessProps = ConfirmationBusinessOnyxProps & SubStepProps;
 
 type States = keyof typeof COMMON_CONST.STATES;
 
-const BUSINESS_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
+const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
 const BUSINESS_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.BUSINESS_INFO;
 
-const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
 
     if (!values.hasNoConnectionToCannabis) {
@@ -153,6 +154,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
 ConfirmationBusiness.displayName = 'ConfirmationBusiness';
 
 export default withOnyx<ConfirmationBusinessProps, ConfirmationBusinessOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
