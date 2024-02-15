@@ -25,6 +25,7 @@ function BaseListItem<TItem extends User | RadioItem>({
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
+    viewMode = CONST.SELECTION_LIST_VIEW_MODE.LIST
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -33,7 +34,7 @@ function BaseListItem<TItem extends User | RadioItem>({
     const isUserItem = 'icons' in item && item?.icons?.length && item.icons.length > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
-    const isListMode = !isUserItem;
+    const isListMode = viewMode === CONST.SELECTION_LIST_VIEW_MODE.LIST;
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -129,6 +130,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                         isDisabled={isDisabled}
                         onSelectRow={() => onSelectRow(item)}
                         showTooltip={showTooltip}
+                        wrapperStyle={isListMode && styles.optionRow}
                     />
 
                     {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (

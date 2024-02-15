@@ -3194,6 +3194,11 @@ const CONST = {
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    SELECTION_LIST_VIEW_MODE: {
+        LIST: 'list',
+        TABLE: 'table',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

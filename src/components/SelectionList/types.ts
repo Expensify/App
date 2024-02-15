@@ -81,6 +81,9 @@ type UserListItemProps = CommonListItemProps<User> & {
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
+
+    /** Additional styles to apply to the wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type RadioItem = {
@@ -115,6 +118,7 @@ type BaseListItemProps<TItem extends User | RadioItem> = CommonListItemProps<TIt
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
+    viewMode?: 'list' | 'table';
 };
 
 type Section<TItem extends User | RadioItem> = {
@@ -140,6 +144,9 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Header titles of the section list */
     headerItems?: string[];
+
+    /** Whether to use list or table view mode */
+    viewMode?: 'list' | 'table';
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;

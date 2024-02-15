@@ -5,7 +5,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {UserListItemProps} from './types';
 
-function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style}: UserListItemProps) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style, wrapperStyle}: UserListItemProps) {
     const styles = useThemeStyles();
     return (
         <>
@@ -16,7 +16,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
                     showTooltip={showTooltip}
                 />
             )}
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, wrapperStyle]}>
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
                     text={item.text}

@@ -330,7 +330,7 @@ function WorkspaceMembersPage(props) {
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = (
-                    <View style={[styles.badge, styles.peopleBadge]}>
+                    <View style={[styles.badge, styles.peopleBadge, styles.mr4]}>
                         <Text style={styles.peopleBadgeText}>
                             {isOwner ? props.translate('common.owner') : props.translate('common.admin')}
                         </Text>
@@ -475,6 +475,7 @@ function WorkspaceMembersPage(props) {
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         inputRef={textInputRef}
+                        viewMode={CONST.SELECTION_LIST_VIEW_MODE.TABLE}
                     />
                 </View>
             </FullPageNotFoundView>

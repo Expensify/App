@@ -29,6 +29,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     {
         sections,
         headerItems = [],
+        viewMode = CONST.SELECTION_LIST_VIEW_MODE.LIST,
         canSelectMultiple = false,
         onSelectRow,
         onSelectAll,
@@ -78,7 +79,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
 
-    const isUserList = sections.length > 0 && 'icons' in sections[0].data[0];
+    const isTableView = viewMode === CONST.SELECTION_LIST_VIEW_MODE.TABLE;
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -295,6 +296,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                viewMode={viewMode}
             />
         );
     };
@@ -452,7 +454,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                             {headerItems && headerItems.length > 0 && headerItems.map((headerItem, index) => (
                                                 <Text style={[
                                                     styles.searchInputStyle,
-                                                    isUserList && StyleUtils.getPaddingLeft(52) as TextStyle
+                                                    isTableView && StyleUtils.getPaddingLeft(52) as TextStyle
                                                     // eslint-disable-next-line react/no-array-index-key
                                                 ]} key={index}>{headerItem}</Text>
                                             ))}
@@ -466,7 +468,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                             {headerItems.map((headerItem, index) => (
                                                 <Text style={[
                                                     styles.searchInputStyle,
-                                                    isUserList && StyleUtils.getPaddingLeft(52) as TextStyle
+                                                    isTableView && StyleUtils.getPaddingLeft(52) as TextStyle
                                                     // eslint-disable-next-line react/no-array-index-key
                                                 ]} key={index}>{headerItem}</Text>
                                             ))}
