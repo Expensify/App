@@ -13951,7 +13951,7 @@ const CONST = __importStar(__nccwpck_require__(4097));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(9338));
 const VERSION_UPDATER = __importStar(__nccwpck_require__(8007));
 /**
- * When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
 function fetchTag(tag, shallowExcludeTag = '') {
     let shouldRetry = true;
