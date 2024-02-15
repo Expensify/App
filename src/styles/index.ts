@@ -4194,6 +4194,15 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
             marginHorizontal: 20,
         },
+        selectionListPressableItemWrapper: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 16,
+            marginHorizontal: 20,
+            marginBottom: 12,
+            backgroundColor: theme.highlightBG,
+            borderRadius: 8,
+        },
 
         draggableTopBar: {
             height: 30,

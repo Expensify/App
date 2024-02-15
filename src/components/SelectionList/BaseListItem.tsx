@@ -66,13 +66,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
                 style={[
-                    !isListMode && styles.alignItemsCenter,
-                    !isListMode && styles.flexRow,
-                    !isListMode && styles.ph4,
-                    !isListMode && styles.mh5,
-                    !isListMode && styles.highlightBG,
-                    !isListMode && styles.mb3,
-                    !isListMode && styles.br2,
+                    !isListMode && styles.selectionListPressableItemWrapper,
                     !isListMode && isFocused && styles.activeComponentBG,
                     isListMode ? styles.ph0 : styles.pv3,
                 ]}
@@ -84,9 +78,9 @@ function BaseListItem<TItem extends User | RadioItem>({
                         styles.userSelectNone,
                         isUserItem ? styles.peopleRow : styles.optionRow,
                         isListMode && styles.sidebarLinkInner,
+                        isListMode && styles.flexRow,
                         isListMode && isFocused && styles.sidebarLinkActive,
                         isListMode ? styles.ph5 : styles.ph0,
-                        isListMode && styles.flexRow,
                     ]}
                 >
                     {canSelectMultiple && (
