@@ -27,7 +27,6 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepProps from './types';

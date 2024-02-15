@@ -29,7 +29,6 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepProps from './types';
 
