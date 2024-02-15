@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -53,6 +53,7 @@ function WorkspaceAccountingPage({
 }: WorkspaceAccountingPageProps) {
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
+    const [isProgressModalClosed, setIsProgressModalClosed] = useState<boolean>(false);
 
     const quickbooksOnlineSyncStatus = integrationImportStatus?.quickbooksOnline ?? null;
     
@@ -77,7 +78,12 @@ function WorkspaceAccountingPage({
             {policy !== null && (
                 <>
                     {!policy?.connections?.quickbooksOnline &&
-                        <Button onPress={() => Link.openLink(getQuickBooksOnlineSetupLink(`https://dev.new.expensify.com:8082/workspace/${policy.id}/accounting`, policy.id), environmentURL, false)}>
+                        <Button
+                            onPress={() => {
+                                setIsProgressModalClosed(false);
+                                Link.openLink(getQuickBooksOnlineSetupLink(`https://dev.new.expensify.com:8082/workspace/${policy.id}/accounting`, policy.id), environmentURL, false);
+                            }}
+                        >
                             <Text>Quickbooks Online Setup</Text>
                         </Button>
                     }
@@ -96,8 +102,11 @@ function WorkspaceAccountingPage({
                     )}
                 </>
             )}
-            {quickbooksOnlineSyncStatus !== null && (
-                <IntegrationSyncProgress syncStatus={quickbooksOnlineSyncStatus} />
+            {quickbooksOnlineSyncStatus !== null && !isProgressModalClosed && (
+                <IntegrationSyncProgress
+                    syncStatus={quickbooksOnlineSyncStatus}
+                    onClose={() => setIsProgressModalClosed(true)}
+                />
             )}
         </ScreenWrapper>
     );
