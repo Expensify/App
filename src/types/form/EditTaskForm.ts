@@ -6,8 +6,8 @@ const INPUT_IDS = {
 } as const;
 
 type EditTaskForm = Form<{
-    [INPUT_IDS.TITLE]: string;
-    [INPUT_IDS.DESCRIPTION]: string;
+    [INPUT_IDS.TITLE]?: string;
+    [INPUT_IDS.DESCRIPTION]?: string;
 }>;
 
 export type {EditTaskForm};

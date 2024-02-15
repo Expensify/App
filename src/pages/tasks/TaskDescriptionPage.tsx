@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,18 +24,10 @@ import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNot
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
-
-type Values = {
-    description: string;
-};
-
-type Errors = {
-    description?: string;
-};
 
 const parser = new ExpensiMark();
 
@@ -43,10 +35,10 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback((values: Values): Errors => {
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
         const errors = {};
 
-        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+        if (values?.description && values.description?.length > CONST.DESCRIPTION_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
         }
 
@@ -54,7 +46,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     }, []);
 
     const submit = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
             // report.description might contain CRLF from the server
             if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(report?.description) && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API

@@ -1,18 +1,18 @@
 /* eslint-disable es/no-optional-chaining */
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState, useMemo} from 'react';
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type { RouteProp} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import type {RadioItem, User} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import SelectionList from '@components/SelectionList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report, Task} from '@src/types/onyx';
+import type {Report, Task} from '@src/types/onyx';
 
 type TaskAssigneeSelectorModalOnyxProps = {
     /** All reports shared with the user */
@@ -40,9 +40,7 @@ type UseOptionsProps = {
     reports: OnyxCollection<Report>;
 };
 
-type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps &
-    WithCurrentUserPersonalDetailsProps &
-    StackScreenProps<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>;
+type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps;
 
 function useOptions({reports}: UseOptionsProps) {
     const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -69,7 +67,11 @@ function useOptions({reports}: UseOptionsProps) {
             true,
         );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || Boolean(currentUserOption), Boolean(userToInvite), debouncedSearchValue);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            recentReports?.length + personalDetails?.length !== 0 || Boolean(currentUserOption),
+            Boolean(userToInvite),
+            debouncedSearchValue,
+        );
 
         if (isLoading) {
             setIsLoading(false);
@@ -93,7 +95,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     const {translate} = useLocalize();
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions({reports, task});
+    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions({reports});
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -153,7 +155,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
     }, [currentUserOption, personalDetails, recentReports, translate, userToInvite]);
 
     const selectReport = useCallback(
-        (option: PersonalDetails) => {
+        (option: User & RadioItem) => {
             if (!option) {
                 return;
             }
@@ -161,7 +163,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = TaskActions.setAssigneeValue(option?.login ?? '', option.accountID, report.reportID, OptionsListUtils.isCurrentUser(option));
+                    const assigneeChatReport = TaskActions.setAssigneeValue(option?.login ?? '', option?.accountID ?? 0, report.reportID, OptionsListUtils.isCurrentUser(option));
 
                     // Pass through the selected assignee
                     TaskActions.editTaskAssignee(report, session?.accountID ?? 0, option?.login ?? '', option.accountID, assigneeChatReport);
@@ -176,7 +178,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
         [session?.accountID, task?.shareDestination, report],
     );
 
-    const handleBackButtonPress = useCallback(() => (lodashGet(route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
+    const handleBackButtonPress = useCallback(() => (route.params?.reportID ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = TaskActions.canModifyTask(report, currentUserPersonalDetails.accountID);

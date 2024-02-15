@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,28 +17,19 @@ import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as Task from '@userActions/Task';
-import type {FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
-
-type Values = {
-    title: string;
-};
-
-type Errors = {
-    title?: string;
-};
 
 function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(({title}: Values): Errors => {
-        const errors: Errors = {};
+    const validate = useCallback(({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
         if (!title) {
             errors.title = 'newTaskPage.pleaseEnterTaskName';
@@ -98,7 +90,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={(report?.reportName) ?? ''}
+                                defaultValue={report?.reportName ?? ''}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;

@@ -1,11 +1,10 @@
-import type { OnyxEntry } from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
-
 
 /**
  * This is a file containing constants for all the top level keys in our store
@@ -396,8 +395,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.HOME_ADDRESS_FORM]: FormTypes.Form;
     [ONYXKEYS.FORMS.NEW_ROOM_FORM]: FormTypes.NewRoomForm;
     [ONYXKEYS.FORMS.ROOM_SETTINGS_FORM]: FormTypes.Form;
+    [ONYXKEYS.FORMS.NEW_TASK_FORM]: FormTypes.Form;
     [ONYXKEYS.FORMS.EDIT_TASK_FORM]: FormTypes.EditTaskForm;
-    [ONYXKEYS.FORMS.EDIT_TASK_FORM_DRAFT]: FormTypes.EditTaskForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: FormTypes.Form;
     [ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM]: FormTypes.Form;
     [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM]: FormTypes.Form;
