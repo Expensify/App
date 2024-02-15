@@ -174,7 +174,7 @@ class BaseOptionsSelector extends Component {
             {
                 sections: newSections,
                 allOptions: newOptions,
-                focusedIndex: prevFocusedOptionIndex || _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
+                focusedIndex: prevFocusedOptionIndex || (_.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex),
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
