@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -123,121 +124,123 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <HeaderWithBackButton
-                title={translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
-            />
-            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                {hasMinimumDetails && (
-                    <ScrollView>
-                        <View style={styles.avatarSectionWrapper}>
-                            <PressableWithoutFocus
-                                style={[styles.noOutline]}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                                accessibilityLabel={translate('common.profile')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                            >
-                                <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                                    <Avatar
-                                        containerStyles={[styles.avatarXLarge, styles.mb3]}
-                                        imageStyles={[styles.avatarXLarge]}
-                                        source={UserUtils.getAvatar(avatar, accountID)}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
-                                        fallbackIcon={fallbackIcon}
-                                    />
-                                </OfflineWithFeedback>
-                            </PressableWithoutFocus>
-                            {Boolean(displayName) && (
-                                <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
-                                    numberOfLines={1}
+            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                />
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                    {hasMinimumDetails && (
+                        <ScrollView>
+                            <View style={styles.avatarSectionWrapper}>
+                                <PressableWithoutFocus
+                                    style={[styles.noOutline]}
+                                    onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                    accessibilityLabel={translate('common.profile')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                 >
-                                    {displayName}
-                                </Text>
-                            )}
-                            {hasStatus && (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
+                                    <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
+                                        <Avatar
+                                            containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                            imageStyles={[styles.avatarXLarge]}
+                                            source={UserUtils.getAvatar(avatar, accountID)}
+                                            size={CONST.AVATAR_SIZE.XLARGE}
+                                            fallbackIcon={fallbackIcon}
+                                        />
+                                    </OfflineWithFeedback>
+                                </PressableWithoutFocus>
+                                {Boolean(displayName) && (
                                     <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                         numberOfLines={1}
                                     >
-                                        {translate('statusPage.status')}
+                                        {displayName}
                                     </Text>
-                                    <Text>{statusContent}</Text>
-                                </View>
-                            )}
+                                )}
+                                {hasStatus && (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate('statusPage.status')}
+                                        </Text>
+                                        <Text>{statusContent}</Text>
+                                    </View>
+                                )}
 
-                            {login ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                    </Text>
-                                    <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details.accountID}>
-                                            <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
-                                        </UserDetailsTooltip>
-                                    </CommunicationsLink>
-                                </View>
-                            ) : null}
-                            {pronouns ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>{pronouns}</Text>
-                                </View>
-                            ) : null}
-                            {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
-                        </View>
-                        {shouldShowNotificationPreference && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={notificationPreference}
-                                description={translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
-                                wrapperStyle={[styles.mtn6, styles.mb5]}
-                            />
-                        )}
-                        {!isCurrentUser && !SessionActions.isAnonymousUser() && (
-                            <MenuItem
-                                title={`${translate('common.message')}${displayName}`}
-                                titleStyle={styles.flex1}
-                                icon={Expensicons.ChatBubble}
-                                onPress={() => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID])}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
-                            />
-                        )}
-                        {!isEmptyObject(report) && (
-                            <MenuItem
-                                title={`${translate('privateNotes.title')}`}
-                                titleStyle={styles.flex1}
-                                icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session)}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
-                                brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
-                        )}
-                    </ScrollView>
-                )}
-                {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                {shouldShowBlockingView && (
-                    <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
-                        iconWidth={variables.modalTopIconWidth}
-                        iconHeight={variables.modalTopIconHeight}
-                        title={translate('notFound.notHere')}
-                        shouldShowLink
-                    />
-                )}
-            </View>
+                                {login ? (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        </Text>
+                                        <CommunicationsLink value={phoneOrEmail ?? ''}>
+                                            <UserDetailsTooltip accountID={details.accountID}>
+                                                <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber) : login}</Text>
+                                            </UserDetailsTooltip>
+                                        </CommunicationsLink>
+                                    </View>
+                                ) : null}
+                                {pronouns ? (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate('profilePage.preferredPronouns')}
+                                        </Text>
+                                        <Text numberOfLines={1}>{pronouns}</Text>
+                                    </View>
+                                ) : null}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
+                            </View>
+                            {shouldShowNotificationPreference && (
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={notificationPreference}
+                                    description={translate('notificationPreferencesPage.label')}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
+                                    wrapperStyle={[styles.mtn6, styles.mb5]}
+                                />
+                            )}
+                            {!isCurrentUser && !SessionActions.isAnonymousUser() && (
+                                <MenuItem
+                                    title={`${translate('common.message')}${displayName}`}
+                                    titleStyle={styles.flex1}
+                                    icon={Expensicons.ChatBubble}
+                                    onPress={() => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID])}
+                                    wrapperStyle={styles.breakAll}
+                                    shouldShowRightIcon
+                                />
+                            )}
+                            {!isEmptyObject(report) && (
+                                <MenuItem
+                                    title={`${translate('privateNotes.title')}`}
+                                    titleStyle={styles.flex1}
+                                    icon={Expensicons.Pencil}
+                                    onPress={() => ReportUtils.navigateToPrivateNotes(report, session)}
+                                    wrapperStyle={styles.breakAll}
+                                    shouldShowRightIcon
+                                    brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            )}
+                        </ScrollView>
+                    )}
+                    {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                    {shouldShowBlockingView && (
+                        <BlockingView
+                            icon={Illustrations.ToddBehindCloud}
+                            iconWidth={variables.modalTopIconWidth}
+                            iconHeight={variables.modalTopIconHeight}
+                            title={translate('notFound.notHere')}
+                            shouldShowLink
+                        />
+                    )}
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
