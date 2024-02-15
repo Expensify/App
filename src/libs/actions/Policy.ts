@@ -41,7 +41,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyMember,
-    PolicyTags,
+    PolicyTagList,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
@@ -175,7 +175,7 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
-let allPolicyTags: OnyxCollection<PolicyTags> = {};
+let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -1633,20 +1633,26 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, tag?: string): RecentlyUsedTags {
-    if (!policyID || !tag) {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, reportTags?: string): RecentlyUsedTags {
+    if (!policyID || !reportTags) {
         return {};
     }
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-    const tagListKey = Object.keys(policyTags)[0];
+    const policyTagKeys = Object.keys(policyTags);
     const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
+    const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
-    return {
-        ...policyRecentlyUsedTags,
-        [tagListKey]: lodashUnion([tag], policyRecentlyUsedTags?.[tagListKey] ?? []),
-    };
+    reportTags.split(CONST.COLON).forEach((tag, index) => {
+        if (!tag) {
+            return;
+        }
+
+        const tagListKey = policyTagKeys[index];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([...tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
+    });
+
+    return newOptimisticPolicyRecentlyUsedTags;
 }
 
 /**

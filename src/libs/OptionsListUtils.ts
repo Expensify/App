@@ -19,6 +19,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
+    PolicyTagList,
     Report,
     ReportAction,
     ReportActions,
@@ -1160,6 +1161,15 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     return tagSections;
 }
 
+/**
+ * Verifies that there is at least one enabled tag
+ */
+function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+
+    return hasEnabledOptions(policyTagValueList);
+}
+
 type PolicyTaxRateWithDefault = {
     name: string;
     defaultExternalID: string;
@@ -2025,6 +2035,7 @@ export {
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
+    hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
