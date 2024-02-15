@@ -400,16 +400,17 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                                         return null;
                                                     }
 
-                                                    if (hasActivatedWallet) {
+                                                    if (true) {
                                                         return (
                                                             <MenuItem
                                                                 ref={buttonRef}
                                                                 title={translate('common.transferBalance')}
                                                                 icon={Expensicons.Transfer}
                                                                 onPress={triggerKYCFlow}
+                                                                hoverAndPressStyle={styles.hoveredComponentBG}
                                                                 shouldShowRightIcon
                                                                 disabled={network.isOffline}
-                                                                wrapperStyle={styles.transferBalance}
+                                                                wrapperStyle={[styles.transferBalance, styles.sectionMenuItemTopDescription]}
                                                             />
                                                         );
                                                     }
