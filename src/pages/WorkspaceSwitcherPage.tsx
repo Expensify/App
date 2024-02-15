@@ -11,6 +11,7 @@ import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -212,23 +213,25 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                             {translate('common.workspaces')}
                         </Text>
                     </View>
-                    <PressableWithFeedback
-                        accessible={false}
-                        role={CONST.ROLE.BUTTON}
-                        onPress={() => {
-                            App.createWorkspaceWithPolicyDraftAndNavigateToIt();
-                        }}
-                    >
-                        {({hovered}) => (
-                            <Icon
-                                src={Expensicons.Plus}
-                                width={12}
-                                height={12}
-                                additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
-                                fill={theme.icon}
-                            />
-                        )}
-                    </PressableWithFeedback>
+                    <Tooltip text={translate('workspace.new.newWorkspace')}>
+                        <PressableWithFeedback
+                            accessible={false}
+                            role={CONST.ROLE.BUTTON}
+                            onPress={() => {
+                                App.createWorkspaceWithPolicyDraftAndNavigateToIt();
+                            }}
+                        >
+                            {({hovered}) => (
+                                <Icon
+                                    src={Expensicons.Plus}
+                                    width={12}
+                                    height={12}
+                                    additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
+                                    fill={theme.icon}
+                                />
+                            )}
+                        </PressableWithFeedback>
+                    </Tooltip>
                 </View>
 
                 {usersWorkspaces.length > 0 ? (
