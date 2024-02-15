@@ -15,11 +15,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import withPaidPolicyAccessOrNotFound from '@pages/workspace/withPaidPolicyAccessOrNotFound';
+import type {WithPaidPolicyAccessOrNotFoundProps} from '@pages/workspace/withPaidPolicyAccessOrNotFound';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import withPaidPolicyAccessOrNotFound from './withPaidPolicyAccessOrNotFound';
-import type {WithPaidPolicyAccessProps} from './withPaidPolicyAccessOrNotFound';
 
 type PolicyForList = {
     value: string;
@@ -34,7 +34,7 @@ type WorkspaceCategoriesOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & WithPaidPolicyAccessProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & WithPaidPolicyAccessOrNotFoundProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();

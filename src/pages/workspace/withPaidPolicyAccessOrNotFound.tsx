@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WithPaidPolicyAccessOnyxProps = {
+type WithPaidPolicyAccessOrNotFoundOnyxProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -22,7 +22,7 @@ type WithPaidPolicyAccessOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithPaidPolicyAccessProps = WithPaidPolicyAccessOnyxProps & {
+type WithPaidPolicyAccessOrNotFoundProps = WithPaidPolicyAccessOrNotFoundOnyxProps & {
     /** The report currently being looked at */
     route: {params: {policyID: string}};
 
@@ -30,11 +30,11 @@ type WithPaidPolicyAccessProps = WithPaidPolicyAccessOnyxProps & {
     policy: OnyxTypes.Policy;
 };
 
-export default function (): <TProps extends WithPaidPolicyAccessProps, TRef>(
+export default function (): <TProps extends WithPaidPolicyAccessOrNotFoundProps, TRef>(
     WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
-) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithPaidPolicyAccessOnyxProps>> {
-    return function <TProps extends WithPaidPolicyAccessProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
-        function WithWorkspaceAccess(props: TProps, ref: ForwardedRef<TRef>) {
+) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithPaidPolicyAccessOrNotFoundOnyxProps>> {
+    return function <TProps extends WithPaidPolicyAccessOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
+        function WithPaidPolicyAccessOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const isPolicyIDInRoute = !!props.route.params.policyID?.length;
 
             useEffect(() => {
@@ -68,17 +68,17 @@ export default function (): <TProps extends WithPaidPolicyAccessProps, TRef>(
             );
         }
 
-        WithWorkspaceAccess.displayName = `withPaidPolicyAccess(${getComponentDisplayName(WrappedComponent)})`;
+        WithPaidPolicyAccessOrNotFound.displayName = `withPaidPolicyAccessOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        return withOnyx<TProps & RefAttributes<TRef>, WithPaidPolicyAccessOnyxProps>({
+        return withOnyx<TProps & RefAttributes<TRef>, WithPaidPolicyAccessOrNotFoundOnyxProps>({
             policy: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? ''}`,
             },
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
-        })(React.forwardRef(WithWorkspaceAccess));
+        })(React.forwardRef(WithPaidPolicyAccessOrNotFound));
     };
 }
 
-export type {WithPaidPolicyAccessProps};
+export type {WithPaidPolicyAccessOrNotFoundProps};
