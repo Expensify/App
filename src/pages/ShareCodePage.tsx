@@ -99,7 +99,11 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                                 url={url}
                                 title={title}
                                 subtitle={subtitle}
-                                logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                                logo={
+                                    isReport
+                                        ? expensifyLogo
+                                        : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID, true) as ImageSourcePropType)
+                                }
                                 logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                                 logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                             />

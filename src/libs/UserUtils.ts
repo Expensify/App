@@ -117,15 +117,17 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
 
 /**
  * Helper method to return default avatar URL associated with login
+ * @param accountID
+ * @param shouldUseAccountID - Flag to use accountID instead of login/email
  */
-function getDefaultAvatarURL(accountID: string | number = ''): string {
+function getDefaultAvatarURL(accountID: string | number = '', shouldUseAccountID = false): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
     // To ensure that the avatar remains unchanged and matches the one returned by the backend,
     // utilize an optimistic ID generated from the email instead of directly using the user ID.
     const email = allPersonalDetails?.[accountID]?.login;
-    const originalOptimisticAccountID = email ? generateAccountID(email) : accountID;
+    const originalOptimisticAccountID = email && !shouldUseAccountID ? generateAccountID(email) : accountID;
 
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
     const accountIDHashBucket = (Number(originalOptimisticAccountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
@@ -175,9 +177,10 @@ function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSourc
  *
  * @param avatarURL - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
+ * @param shouldUseAccountID - Flag to use accountID instead of login/email
  */
-function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID) : avatarSource;
+function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number, shouldUseAccountID = false): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID, shouldUseAccountID) : avatarSource;
 }
 
 /**
