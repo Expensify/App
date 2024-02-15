@@ -34,7 +34,6 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -924,7 +923,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     });
 }
 
-function updateDescription(policyID: string, description: string, currentDescription: string) {
+function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string) {
     if (description === currentDescription) {
         return;
     }
@@ -2087,43 +2086,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     return policyID;
 }
 
-function updateWorkspaceDescription(policyID: string, previousValue: string, newValue: string) {
-    // No change needed, navigate back
-    if (previousValue === newValue) {
-        Navigation.goBack();
-        return;
-    }
-
-    const parsedDescription = ReportUtils.getParsedComment(newValue);
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {description: parsedDescription, pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {description: previousValue, pendingFields: {description: null}},
-        },
-    ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {pendingFields: {description: null}},
-        },
-    ];
-
-    const parameters: UpdateWorkspaceDescriptionParams = {policyID, description: parsedDescription};
-
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, parameters, {optimisticData, failureData, successData});
-    Navigation.goBack();
-}
-
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -2165,5 +2127,4 @@ export {
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
     updateWorkspaceDescription,
-    updateDescription,
 };

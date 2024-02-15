@@ -1,14 +1,13 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import InputWrapperWithRef from '@components/Form/InputWrapper';
+import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -27,8 +26,7 @@ const parser = new ExpensiMark();
 function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
-    const policyDescription = policy?.description ?? '';
+    const [description, setDescription] = useState(() => parser.htmlToMarkdown(policy?.description ?? ''));
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -50,9 +48,11 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                 return;
             }
 
-            Policy.updateWorkspaceDescription(policy.id, policyDescription, values.description.trim());
+            Policy.updateWorkspaceDescription(policy.id, values.description.trim(), policy.description ?? '');
+            Keyboard.dismiss();
+            Navigation.goBack();
         },
-        [policy, policyDescription],
+        [policy],
     );
 
     return (
@@ -62,32 +62,35 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
             testID={WorkspaceProfileDescriptionPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('common.description')}
+                title={translate('workspace.editor.descriptionInputLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
+
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM}
                 submitButtonText={translate('workspace.editor.save')}
                 style={[styles.flexGrow1, styles.ph5]}
                 scrollContextEnabled
-                validate={validate}
                 onSubmit={submit}
+                validate={validate}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <InputWrapperWithRef
+                    <InputWrapper
                         InputComponent={TextInput}
-                        defaultValue={parser.htmlToMarkdown(parser.replace(policyDescription))}
-                        inputID="description"
-                        label={translate('common.description')}
-                        accessibilityLabel={translate('common.description')}
                         role={CONST.ROLE.PRESENTATION}
-                        ref={(el: AnimatedTextInputRef) => {
-                            inputCallbackRef(el);
+                        inputID="description"
+                        label={translate('workspace.editor.descriptionInputLabel')}
+                        accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                        value={description}
+                        maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
+                        spellCheck={false}
+                        autoFocus
+                        onChangeText={setDescription}
+                        autoGrowHeight
+                        ref={(el: BaseTextInputRef | null): void => {
                             updateMultilineInputRange(el);
                         }}
-                        autoGrowHeight
-                        shouldSubmitForm
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                     />
                 </View>

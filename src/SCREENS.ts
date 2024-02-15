@@ -209,7 +209,6 @@ const SCREENS = {
         CURRENCY: 'Workspace_Profile_Currency',
         DESCRIPTION: 'Workspace_Profile_Description',
         NAME: 'Workspace_Profile_Name',
-        DESCRIPTION: 'Workspace_Description',
     },
 
     EDIT_REQUEST: {

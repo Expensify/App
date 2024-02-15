@@ -135,30 +135,23 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
                                 />
-                                {(!_.isEmpty(policy.description) || !readOnly) && (
-                                    <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.description')}>
-                                        <MenuItemWithTopDescription
-                                            title={policy.description}
-                                            description={translate('workspace.editor.descriptionInputLabel')}
-                                            shouldShowRightIcon={!readOnly}
-                                            disabled={readOnly}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id))}
-                                            shouldGreyOutWhenDisabled={false}
-                                            shouldUseDefaultCursorWhenDisabled
-                                            shouldRenderAsHTML
-                                        />
-                                    </OfflineWithFeedback>
-                                )}
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
-                                    shouldShowRightIcon={!readOnly}
-                                    disabled={readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
-                                />
+                            </OfflineWithFeedback>
+                            {(!_.isEmpty(policy.description) || !readOnly) && (
+                                <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.description')}>
+                                    <MenuItemWithTopDescription
+                                        title={policyDescription}
+                                        description={translate('workspace.editor.descriptionInputLabel')}
+                                        shouldShowRightIcon={!readOnly}
+                                        disabled={readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressDescription}
+                                        shouldGreyOutWhenDisabled={false}
+                                        shouldUseDefaultCursorWhenDisabled
+                                        shouldRenderAsHTML
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                            <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedCurrency}

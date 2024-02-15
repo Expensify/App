@@ -143,7 +143,6 @@ const WRITE_COMMANDS = {
     PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
     PAY_MONEY_REQUEST: 'PayMoneyRequest',
     ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
-    UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
