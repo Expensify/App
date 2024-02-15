@@ -17,7 +17,7 @@ type BigNumberPadProps = {
     id?: string;
 
     /** Whether long press is disabled */
-    isLongPressDisabled: boolean;
+    isLongPressDisabled?: boolean;
 };
 
 const padNumbers = [
