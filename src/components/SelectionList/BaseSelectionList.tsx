@@ -1,7 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo,TextStyle} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';

@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -331,7 +330,7 @@ function WorkspaceMembersPage(props) {
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = (
-                    <View style={[styles.badge, styles.peopleBadge, styles.mr4, styles.mnw60]}>
+                    <View style={[styles.badge, styles.peopleBadge, styles.mr4, styles.mnw6]}>
                         <Text style={styles.peopleBadgeText}>
                             {isOwner ? props.translate('common.owner') : props.translate('common.admin')}
                         </Text>
@@ -423,7 +422,7 @@ function WorkspaceMembersPage(props) {
         <View>
             <Text style={styles.searchInputStyle}>{props.translate('common.member')}</Text>
         </View>,
-        <View style={[styles.mnw60, styles.mr3]}>
+        <View style={[styles.mnw6, styles.mr3]}>
             <Text style={styles.searchInputStyle}>{props.translate('common.role')}</Text>
         </View>,
     ]
