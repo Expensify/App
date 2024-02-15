@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,8 +12,7 @@ import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,28 +25,26 @@ import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report, Session} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
-type ShareCodePageOnyxProps = WithCurrentUserPersonalDetailsProps & {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-
+type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
     report?: OnyxEntry<Report>;
 };
 
 type ShareCodePageProps = ShareCodePageOnyxProps;
 
-function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodePageProps) {
+function ShareCodePage({report}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
     const {isSmallScreenWidth} = useWindowDimensions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
 
-    const getSubtitle = () => {
+    const subtitle = useMemo(() => {
         if (isReport) {
             if (ReportUtils.isExpenseReport(report)) {
                 return ReportUtils.getPolicyName(report);
@@ -62,13 +59,14 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
             return ReportUtils.getParentNavigationSubtitle(report).workspaceName ?? ReportUtils.getChatRoomSubtitle(report);
         }
 
-        return session?.email;
-    };
+        return currentUserPersonalDetails.login;
+    }, [report, currentUserPersonalDetails, isReport]);
 
     const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
-    const subtitle = getSubtitle();
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
-    const url = isReport ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}` : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(session?.accountID ?? '')}`;
+    const url = isReport
+        ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
+        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '')}`;
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
@@ -149,4 +147,4 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
 
 ShareCodePage.displayName = 'ShareCodePage';
 
-export default withCurrentUserPersonalDetails(ShareCodePage);
+export default ShareCodePage;
