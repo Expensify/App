@@ -43,6 +43,7 @@ const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, inde
 function BaseReactionList({hasUserReacted = false, users, isVisible = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
+
     if (!isVisible) {
         return null;
     }
