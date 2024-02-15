@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
-import MarkdownTextInput from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -68,7 +68,7 @@ function Composer(
     const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
-        <MarkdownTextInput
+        <RNMarkdownTextInput
             multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
