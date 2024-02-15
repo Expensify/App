@@ -17,6 +17,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import withPaidPolicyAccessOrNotFound from '@pages/workspace/withPaidPolicyAccessOrNotFound';
 import type {WithPaidPolicyAccessOrNotFoundProps} from '@pages/workspace/withPaidPolicyAccessOrNotFound';
+import withTeamPolicyAccessOrNotFound from '@pages/workspace/withTeamPolicyAccessOrNotFound';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -108,10 +109,12 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
 
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
-export default withPaidPolicyAccessOrNotFound()(
-    withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
-        policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-        },
-    })(WorkspaceCategoriesPage),
+export default withTeamPolicyAccessOrNotFound()(
+    withPaidPolicyAccessOrNotFound()(
+        withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
+            policyCategories: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
+            },
+        })(WorkspaceCategoriesPage),
+    ),
 );

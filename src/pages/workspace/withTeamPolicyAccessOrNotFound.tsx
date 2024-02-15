@@ -9,12 +9,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WithPaidPolicyAccessOrNotFoundOnyxProps = {
+type WithTeamPolicyAccessOrNotFoundOnyxProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -22,7 +23,7 @@ type WithPaidPolicyAccessOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithPaidPolicyAccessOrNotFoundProps = WithPaidPolicyAccessOrNotFoundOnyxProps & {
+type WithTeamPolicyAccessOrNotFoundProps = WithTeamPolicyAccessOrNotFoundOnyxProps & {
     /** The report currently being looked at */
     route: {params: {policyID: string}};
 
@@ -30,11 +31,11 @@ type WithPaidPolicyAccessOrNotFoundProps = WithPaidPolicyAccessOrNotFoundOnyxPro
     policy: OnyxTypes.Policy;
 };
 
-export default function (): <TProps extends WithPaidPolicyAccessOrNotFoundProps, TRef>(
+export default function (): <TProps extends WithTeamPolicyAccessOrNotFoundProps, TRef>(
     WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
-) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithPaidPolicyAccessOrNotFoundOnyxProps>> {
-    return function <TProps extends WithPaidPolicyAccessOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
-        function WithPaidPolicyAccessOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithTeamPolicyAccessOrNotFoundOnyxProps>> {
+    return function <TProps extends WithTeamPolicyAccessOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
+        function WithTeamPolicyAccessOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const isPolicyIDInRoute = !!props.route.params.policyID?.length;
 
             useEffect(() => {
@@ -49,7 +50,7 @@ export default function (): <TProps extends WithPaidPolicyAccessOrNotFoundProps,
 
             const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
-            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyAdmin(props.policy) || !props.policy.isPolicyExpenseChatEnabled;
+            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || props.policy.type !== CONST.POLICY.TYPE.TEAM || !PolicyUtils.isPolicyAdmin(props.policy);
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <FullscreenLoadingIndicator />;
@@ -68,17 +69,17 @@ export default function (): <TProps extends WithPaidPolicyAccessOrNotFoundProps,
             );
         }
 
-        WithPaidPolicyAccessOrNotFound.displayName = `withPaidPolicyAccessOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+        WithTeamPolicyAccessOrNotFound.displayName = `withTeamPolicyAccessOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        return withOnyx<TProps & RefAttributes<TRef>, WithPaidPolicyAccessOrNotFoundOnyxProps>({
+        return withOnyx<TProps & RefAttributes<TRef>, WithTeamPolicyAccessOrNotFoundOnyxProps>({
             policy: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? ''}`,
             },
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
-        })(React.forwardRef(WithPaidPolicyAccessOrNotFound));
+        })(React.forwardRef(WithTeamPolicyAccessOrNotFound));
     };
 }
 
-export type {WithPaidPolicyAccessOrNotFoundProps};
+export type {WithTeamPolicyAccessOrNotFoundProps};
