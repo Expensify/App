@@ -307,7 +307,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         pageIndex: number;
-        backTo: string;
+        backTo: Routes;
     };
 };
 

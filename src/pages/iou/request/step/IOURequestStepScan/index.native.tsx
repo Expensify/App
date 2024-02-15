@@ -161,7 +161,7 @@ function IOURequestStepScan({
 
     const navigateToConfirmationStep = useCallback(() => {
         if (backTo) {
-            Navigation.goBack(backTo as Route);
+            Navigation.goBack(backTo);
             return;
         }
 

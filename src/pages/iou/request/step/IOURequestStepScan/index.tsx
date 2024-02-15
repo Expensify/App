@@ -94,12 +94,12 @@ function IOURequestStepScan({
     }
 
     const navigateBack = () => {
-        Navigation.goBack(backTo as Route);
+        Navigation.goBack(backTo);
     };
 
     const navigateToConfirmationStep = useCallback(() => {
         if (backTo) {
-            Navigation.goBack(backTo as Route);
+            Navigation.goBack(backTo);
             return;
         }
 
