@@ -78,6 +78,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
               />
             ),
+            isEndOptionRow: true,
           },
     ];
 
@@ -89,6 +90,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle={item.subtitle}                    
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
+                isEndOptionRow={item.isEndOptionRow}
             />
         </View>
     );
@@ -111,7 +113,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 data={items}
                                 renderItem={renderItem}
                                 keyExtractor={(item: OptionType) => item.title}
-                            />                            
+                            />          
                         </View>
                     </Section>
                 </View>
