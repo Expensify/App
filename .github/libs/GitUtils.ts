@@ -10,7 +10,7 @@ type CommitType = {
 };
 
 /**
- * When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
 function fetchTag(tag: string, shallowExcludeTag = '') {
     let shouldRetry = true;
