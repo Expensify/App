@@ -10,7 +10,7 @@ import type {Receipt} from './Transaction';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
-    type?: string;
+    type: string;
 
     /** The text content of the fragment. */
     text: string;
