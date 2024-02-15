@@ -138,12 +138,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             routeName: SCREENS.WORKSPACE.MEMBERS,
         },
         {
-            translationKey: 'workspace.common.categories',
-            icon: Expensicons.Folder,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.CATEGORIES,
-        },
-        {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
             action: () =>
@@ -153,6 +147,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
+
+    if (policy?.isPolicyExpenseChatEnabled) {
+        protectedMenuItems.push({
+            translationKey: 'workspace.common.categories',
+            icon: Expensicons.Folder,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.CATEGORIES,
+        });
+    }
 
     const menuItems: WorkspaceMenuItem[] = [
         {

@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WithWorkspaceAccessOnyxProps = {
+type WithPaidPolicyAccessOnyxProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -22,7 +22,7 @@ type WithWorkspaceAccessOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithWorkspaceAccessProps = WithWorkspaceAccessOnyxProps & {
+type WithPaidPolicyAccessProps = WithPaidPolicyAccessOnyxProps & {
     /** The report currently being looked at */
     route: {params: {policyID: string}};
 
@@ -30,10 +30,10 @@ type WithWorkspaceAccessProps = WithWorkspaceAccessOnyxProps & {
     policy: OnyxTypes.Policy;
 };
 
-export default function (): <TProps extends WithWorkspaceAccessProps, TRef>(
+export default function (): <TProps extends WithPaidPolicyAccessProps, TRef>(
     WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
-) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithWorkspaceAccessOnyxProps>> {
-    return function <TProps extends WithWorkspaceAccessProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
+) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithPaidPolicyAccessOnyxProps>> {
+    return function <TProps extends WithPaidPolicyAccessProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
         function WithWorkspaceAccess(props: TProps, ref: ForwardedRef<TRef>) {
             const isPolicyIDInRoute = !!props.route.params.policyID?.length;
 
@@ -49,7 +49,7 @@ export default function (): <TProps extends WithWorkspaceAccessProps, TRef>(
 
             const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
-            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyAdmin(props.policy);
+            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyAdmin(props.policy) || !props.policy.isPolicyExpenseChatEnabled;
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <FullscreenLoadingIndicator />;
@@ -68,9 +68,9 @@ export default function (): <TProps extends WithWorkspaceAccessProps, TRef>(
             );
         }
 
-        WithWorkspaceAccess.displayName = `withWorkspaceAccess(${getComponentDisplayName(WrappedComponent)})`;
+        WithWorkspaceAccess.displayName = `withPaidPolicyAccess(${getComponentDisplayName(WrappedComponent)})`;
 
-        return withOnyx<TProps & RefAttributes<TRef>, WithWorkspaceAccessOnyxProps>({
+        return withOnyx<TProps & RefAttributes<TRef>, WithPaidPolicyAccessOnyxProps>({
             policy: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? ''}`,
             },
@@ -81,4 +81,4 @@ export default function (): <TProps extends WithWorkspaceAccessProps, TRef>(
     };
 }
 
-export type {WithWorkspaceAccessProps};
+export type {WithPaidPolicyAccessProps};

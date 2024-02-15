@@ -3,7 +3,6 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,8 +18,8 @@ import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import withPolicyAccessOrNotFound from './withPolicyAccessOrNotFound';
-import type {WithWorkspaceAccessProps} from './withPolicyAccessOrNotFound';
+import withPaidPolicyAccessOrNotFound from './withPaidPolicyAccessOrNotFound';
+import type {WithPaidPolicyAccessProps} from './withPaidPolicyAccessOrNotFound';
 
 type PolicyForList = {
     value: string;
@@ -35,9 +34,9 @@ type WorkspaceCategoriesOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & WithWorkspaceAccessProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & WithPaidPolicyAccessProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
-function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProps) {
+function WorkspaceCategoriesPage({policyCategories, policy}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -84,10 +83,6 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
         }
     };
 
-    if (Object.keys(policyCategories ?? {}).length === 0) {
-        return <FullScreenLoadingIndicator />;
-    }
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -113,7 +108,7 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
 
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
-export default withPolicyAccessOrNotFound()(
+export default withPaidPolicyAccessOrNotFound()(
     withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
         policyCategories: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
