@@ -36,7 +36,7 @@ type WorkspaceCategoriesOnyxProps = {
 
 type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & WithPaidPolicyAccessProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
-function WorkspaceCategoriesPage({policyCategories, policy}: WorkspaceCategoriesPageProps) {
+function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -53,7 +53,7 @@ function WorkspaceCategoriesPage({policyCategories, policy}: WorkspaceCategories
                 rightElement: (
                     <View style={styles.flexRow}>
                         <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>
-                        <View style={styles.p1}>
+                        <View style={[styles.p1, styles.pl2]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
                                 fill={theme.icon}
@@ -62,7 +62,7 @@ function WorkspaceCategoriesPage({policyCategories, policy}: WorkspaceCategories
                     </View>
                 ),
             })),
-        [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, theme.icon, translate],
+        [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
     );
 
     const toggleCategory = (category: PolicyForList) => {
