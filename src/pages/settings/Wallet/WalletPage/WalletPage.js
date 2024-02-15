@@ -410,7 +410,11 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                                                 shouldShowRightIcon
                                                                 disabled={network.isOffline}
-                                                                wrapperStyle={[styles.transferBalance, styles.sectionMenuItemTopDescription]}
+                                                                wrapperStyle={[
+                                                                    styles.transferBalance,
+                                                                    isSmallScreenWidth ? styles.mhn5 : styles.mhn8,
+                                                                    isSmallScreenWidth ? styles.ph5 : styles.ph8,
+                                                                ]}
                                                             />
                                                         );
                                                     }
