@@ -755,7 +755,6 @@ function MoneyRequestConfirmationList(props) {
                                     ? translate('common.error.enterMerchant')
                                     : ''
                             }
-                            rightLabel={translate('common.required')}
                         />
                     )}
                     {shouldShowCategories && (
