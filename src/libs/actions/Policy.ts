@@ -854,7 +854,7 @@ function removeWorkspaceIntegration(policyID: string, connectionName: string) {
         //     },
         // },
     ];
-    API.write('RemoveWorkspaceIntegration', {policyID, connectionName}, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_INTEGRATION, {policyID, connectionName}, {optimisticData, finallyData, failureData});
 }
 
 /**

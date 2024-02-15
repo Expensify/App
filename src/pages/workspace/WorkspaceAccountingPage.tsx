@@ -4,7 +4,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import * as Link from '@userActions/Link';
 import Button from '@components/Button';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {Policy, WorkspaceIntegrationImportStatus} from '@src/types/onyx';
 import { getQuickBooksOnlineSetupLink } from '@libs/actions/Integrations/QuickBooksOnline';
 import useLocalize from '@hooks/useLocalize';
@@ -13,12 +12,9 @@ import { removeWorkspaceIntegration } from '@libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type { OnyxEntry} from 'react-native-onyx';
 import { withOnyx } from 'react-native-onyx';
-import { ActivityIndicator, View } from 'react-native';
-import Icon from '@components/Icon';
-import useTheme from '@hooks/useTheme';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type { WithPolicyAndFullscreenLoadingProps } from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import IntegrationSyncProgress from './integrations/IntegrationSyncProgress';
 
 // type QBOResponse = {
 //     oauthToken: {
@@ -56,9 +52,7 @@ function WorkspaceAccountingPage({
     integrationImportStatus,
 }: WorkspaceAccountingPageProps) {
     const {environmentURL} = useEnvironment();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const quickbooksOnlineSyncStatus = integrationImportStatus?.quickbooksOnline ?? null;
     
@@ -102,27 +96,8 @@ function WorkspaceAccountingPage({
                     )}
                 </>
             )}
-            {quickbooksOnlineSyncStatus != null && (
-                <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
-                    <Text style={styles.textLarge}>{quickbooksOnlineSyncStatus.percentage} %</Text>
-                    <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{quickbooksOnlineSyncStatus.status}</Text>
-                    {quickbooksOnlineSyncStatus.stagesCompleted.map(stateCompleted => 
-                        <View style={styles.flexRow}>
-                            <Text>{stateCompleted}</Text>
-                            <Icon 
-                                fill={theme.success}
-                                src={Expensicons.Checkmark}
-                            />
-                        </View>
-                    )}
-                    <View style={styles.flexRow}>
-                        <Text style={styles.textAlignCenter}>{quickbooksOnlineSyncStatus.status}</Text>
-                        {quickbooksOnlineSyncStatus.status === 'progress' && <ActivityIndicator
-                            color={theme.success}
-                            size="small"
-                        />}
-                    </View>
-                </View>
+            {quickbooksOnlineSyncStatus !== null && (
+                <IntegrationSyncProgress syncStatus={quickbooksOnlineSyncStatus} />
             )}
         </ScreenWrapper>
     );
