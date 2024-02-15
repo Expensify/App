@@ -91,7 +91,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
-        country: string;
+        country?: string;
     };
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
         backTo?: string;

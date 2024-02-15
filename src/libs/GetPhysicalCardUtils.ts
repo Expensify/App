@@ -83,7 +83,15 @@ function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCard
         legalFirstName,
         legalLastName,
         phoneNumber,
-        address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
+        address: {
+            street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2),
+            city,
+            country,
+            state,
+            zip: zipPostCode,
+            addressLine1: addressLine1 ?? '',
+            zipPostCode: zipPostCode ?? '',
+        },
     };
 }
 

@@ -180,14 +180,10 @@ function getStreetLines(street = '') {
  * @returns - formatted address
  */
 function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): string {
-    const [street1, street2] = getStreetLines(privatePersonalDetails?.address?.street);
+    const {address} = privatePersonalDetails ?? {};
+    const [street1, street2] = getStreetLines(address?.street);
     const formattedAddress =
-        formatPiece(street1) +
-        formatPiece(street2) +
-        formatPiece(privatePersonalDetails?.address?.city) +
-        formatPiece(privatePersonalDetails?.address?.state) +
-        formatPiece(privatePersonalDetails?.address?.zip) +
-        formatPiece(privatePersonalDetails?.address?.country);
+        formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
 
     // Remove the last comma of the address
     return formattedAddress.trim().replace(/,$/, '');

@@ -67,7 +67,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 shouldShowBackButton
                 onBackButtonPress={() => {
                     const backTo = route.params.backTo ?? '';
-                    const backToRoute = backTo ? (`${backTo}?country=${currentCountry}` as const) : undefined;
+                    const backToRoute = backTo ? (`${backTo}?country=${currentCountry}` as const) : '';
                     Navigation.goBack(backToRoute as Route);
                 }}
             />
