@@ -17,7 +17,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import withPaidPolicyAccessOrNotFound from '@pages/workspace/withAdminPolicyAccessOrNotFound';
 import type {WithAdminPolicyAccessOrNotFoundProps} from '@pages/workspace/withAdminPolicyAccessOrNotFound';
-import withTeamPolicyAccessOrNotFound from '@pages/workspace/withTeamPolicyAccessOrNotFound';
+import withTeamPolicyAccessOrNotFound from '@pages/workspace/withPaidPolicyAccessOrNotFound';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';

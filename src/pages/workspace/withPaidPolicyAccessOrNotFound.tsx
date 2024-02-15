@@ -9,13 +9,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Policy from '@userActions/Policy';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WithTeamPolicyAccessOrNotFoundOnyxProps = {
+type WithPaidPolicyAccessOrNotFoundOnyxProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -23,7 +22,7 @@ type WithTeamPolicyAccessOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithTeamPolicyAccessOrNotFoundProps = WithTeamPolicyAccessOrNotFoundOnyxProps & {
+type WithPaidPolicyAccessOrNotFoundProps = WithPaidPolicyAccessOrNotFoundOnyxProps & {
     /** The report currently being looked at */
     route: {params: {policyID: string}};
 
@@ -31,11 +30,11 @@ type WithTeamPolicyAccessOrNotFoundProps = WithTeamPolicyAccessOrNotFoundOnyxPro
     policy: OnyxTypes.Policy;
 };
 
-export default function (): <TProps extends WithTeamPolicyAccessOrNotFoundProps, TRef>(
+export default function (): <TProps extends WithPaidPolicyAccessOrNotFoundProps, TRef>(
     WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
-) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithTeamPolicyAccessOrNotFoundOnyxProps>> {
-    return function <TProps extends WithTeamPolicyAccessOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
-        function WithTeamPolicyAccessOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithPaidPolicyAccessOrNotFoundOnyxProps>> {
+    return function <TProps extends WithPaidPolicyAccessOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) {
+        function WithPaidPolicyAccessOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const isPolicyIDInRoute = !!props.route.params.policyID?.length;
 
             useEffect(() => {
@@ -50,7 +49,7 @@ export default function (): <TProps extends WithTeamPolicyAccessOrNotFoundProps,
 
             const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
-            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || props.policy.type !== CONST.POLICY.TYPE.TEAM || !PolicyUtils.isPolicyAdmin(props.policy);
+            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPaidGroupPolicy(props.policy) || !props.policy.isPolicyExpenseChatEnabled;
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <FullscreenLoadingIndicator />;
@@ -69,17 +68,17 @@ export default function (): <TProps extends WithTeamPolicyAccessOrNotFoundProps,
             );
         }
 
-        WithTeamPolicyAccessOrNotFound.displayName = `withTeamPolicyAccessOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+        WithPaidPolicyAccessOrNotFound.displayName = `withPaidPolicyAccessOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        return withOnyx<TProps & RefAttributes<TRef>, WithTeamPolicyAccessOrNotFoundOnyxProps>({
+        return withOnyx<TProps & RefAttributes<TRef>, WithPaidPolicyAccessOrNotFoundOnyxProps>({
             policy: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? ''}`,
             },
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
-        })(React.forwardRef(WithTeamPolicyAccessOrNotFound));
+        })(React.forwardRef(WithPaidPolicyAccessOrNotFound));
     };
 }
 
-export type {WithTeamPolicyAccessOrNotFoundProps};
+export type {WithPaidPolicyAccessOrNotFoundProps};
