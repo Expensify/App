@@ -339,8 +339,8 @@ function MoneyRequestView({
                                     ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
                                 )
                             }
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant && isPolicyExpenseChat) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={getErrorForField('merchant')}
                         />
                     </OfflineWithFeedback>
                 )}
