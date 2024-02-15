@@ -1,13 +1,9 @@
 import Str from 'expensify-common/lib/str';
-import _ from 'lodash';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
@@ -17,12 +13,6 @@ type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 
 type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = _.isEmpty(val) ? {} : val),
-});
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -116,19 +106,15 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
 }
 
 /**
- * Helper method to return default avatar URL associated with login
+ * Helper method to return default avatar URL associated with the accountID
  */
 function getDefaultAvatarURL(accountID: string | number = ''): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
-    // To ensure that the avatar remains unchanged and matches the one returned by the backend,
-    // utilize an optimistic ID generated from the email instead of directly using the user ID.
-    const email = allPersonalDetails?.[accountID]?.login;
-    const originalOptimisticAccountID = email ? generateAccountID(email) : accountID;
 
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const accountIDHashBucket = (Number(originalOptimisticAccountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
+    const accountIDHashBucket = (Number(accountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
     const avatarPrefix = `default-avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
@@ -184,7 +170,7 @@ function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number)
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: AvatarSource, accountID: number): AvatarSource {
+function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -218,8 +204,8 @@ function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): Ava
 /**
  * Gets the secondary phone login number
  */
-function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
-    const parsedLoginList = Object.keys(loginList).map((login) => Str.removeSMSDomain(login));
+function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined {
+    const parsedLoginList = Object.keys(loginList ?? {}).map((login) => Str.removeSMSDomain(login));
     return parsedLoginList.find((login) => Str.isValidPhone(login));
 }
 

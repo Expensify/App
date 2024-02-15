@@ -44,7 +44,6 @@ function NewDistanceRequestPage({iou, report, route}: NewDistanceRequestPageProp
 
     return (
         <DistanceRequest
-            // @ts-expect-error TODO: Remove this once DistanceRequest (https://github.com/Expensify/App/issues/31979) is migrated to TypeScript.
             report={report}
             route={route}
             isEditingNewRequest={isEditingNewRequest}
