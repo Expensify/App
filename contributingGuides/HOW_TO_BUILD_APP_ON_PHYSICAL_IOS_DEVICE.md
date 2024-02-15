@@ -27,10 +27,10 @@
 >Please be aware that the app built with your own bundle id doesn't support authenticated services like push notification, apple signin, deeplinking etc. which should be only available in Expensify developer account.
    
    2.5. Scroll down and Remove Associated Domains, Communication Notifications, Push Notifications, and Sign In With Apple capabilities
-   
-   2.6. Go to the `NotificationService` target and repeat Steps 2.2-2.4
-   
+
    ![Step 2.6 Screenshot](https://github.com/Expensify/App/assets/104348397/850d35ac-ca49-4d44-8e3b-0b4ad10509d3)
+
+   2.6. Go to the `NotificationService` target and repeat Steps 2.2-2.4
    
    2.7. Go to the `Tests` target and repeat Steps 2.2-2.4
    
