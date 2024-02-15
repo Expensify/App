@@ -6,6 +6,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import Button from '@components/Button';
@@ -96,6 +97,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
 
     /** What to do when a menu item is pressed */
     onPress: (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, accountData?: AccountData, icon?: IconAsset, isDefault?: boolean, methodID?: number) => void;
+
+    /** List item style */
+    listItemStyle: StyleProp<ViewStyle>;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -109,6 +113,8 @@ type PaymentMethodItem = PaymentMethod & {
     interactive?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     errors?: Errors;
+    iconRight?: React.FC<SvgProps>;
+    isMethodActive?: boolean;
 } & BankIcon;
 
 function dismissError(item: PaymentMethod) {
@@ -173,6 +179,7 @@ function PaymentMethodList({
     onListContentSizeChange = () => {},
     shouldEnableScroll = true,
     style = {},
+    listItemStyle = {},
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -236,6 +243,9 @@ function PaymentMethodList({
                 onPress: (e: GestureResponderEvent) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.icon, paymentMethod.isDefault, paymentMethod.methodID),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isMethodActive,
+                iconRight: Expensicons.ThreeDots,
+                shouldShowRightIcon: true,
             };
         });
 
@@ -253,12 +263,13 @@ function PaymentMethodList({
                 onPress={onPress}
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
-                wrapperStyle={styles.paymentMethod}
+                wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                hoverAndPressStyle={styles.hoveredComponentBG}
                 ref={buttonRef}
             />
         ),
 
-        [onPress, styles.paymentMethod, translate, buttonRef],
+        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef],
     );
 
     /**
@@ -280,23 +291,25 @@ function PaymentMethodList({
                     icon={item.icon}
                     disabled={item.disabled}
                     displayInDefaultIconColor
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    iconHeight={item.iconHeight || item.iconSize}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    iconWidth={item.iconWidth || item.iconSize}
+                    iconHeight={item.iconHeight ?? item.iconSize}
+                    iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : undefined}
-                    wrapperStyle={styles.paymentMethod}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    iconRight={item.iconRight}
+                    badgeStyle={styles.badgeBordered}
+                    hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
+                    success={item.isMethodActive}
                 />
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.hoveredComponentBG, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

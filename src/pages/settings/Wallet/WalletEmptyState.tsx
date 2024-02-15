@@ -1,4 +1,5 @@
 import React from 'react';
+import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -16,7 +17,7 @@ type WalletEmptyStateProps = {
     onAddPaymentMethod: () => void;
 };
 
-const WALLET_FEATURES = [
+const WALLET_FEATURES: FeatureListItem[] = [
     {
         icon: Illustrations.MoneyIntoWallet,
         translationKey: 'walletPage.getPaidBackFaster',
@@ -45,10 +46,10 @@ function WalletEmptyState({onAddPaymentMethod}: WalletEmptyStateProps) {
             shouldShowBackButton={isSmallScreenWidth}
             shouldShowOfflineIndicatorInWideScreen
             style={isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection}
+            testID={WalletEmptyState.displayName}
         >
             <FeatureList
                 menuItems={WALLET_FEATURES}
-                // @ts-expect-error TODO: Remove once FeatureList (https://github.com/Expensify/App/issues/25039) is migrated to TS
                 illustration={LottieAnimations.FastMoney}
                 illustrationBackgroundColor={theme.fallbackIconColor}
                 title={translate('walletPage.getPaidFaster')}
