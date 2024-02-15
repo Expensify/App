@@ -130,7 +130,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     description={translate('workspace.editor.nameInputLabel')}
                                     shouldShowRightIcon={!readOnly}
                                     disabled={readOnly}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, isSmallScreenWidth ? styles.mt1 : {}]}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, isSmallScreenWidth ? styles.mt3 : {}]}
                                     onPress={onPressName}
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
