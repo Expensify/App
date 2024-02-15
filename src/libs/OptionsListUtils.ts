@@ -91,6 +91,7 @@ type GetOptionsConfig = {
     includeMultipleParticipantReports?: boolean;
     includePersonalDetails?: boolean;
     includeRecentReports?: boolean;
+    includeSelfDM?: boolean;
     sortByReportTypeInSearch?: boolean;
     searchInputValue?: string;
     showChatPreviewLine?: boolean;
@@ -1350,6 +1351,7 @@ function getOptions(
         transactionViolations = {},
         includePolicyTaxRates,
         policyTaxRates,
+        includeSelfDM = true,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1454,6 +1456,7 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+        const isSelfDM = ReportUtils.isSelfDM(report);
         const accountIDs = report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
@@ -1462,6 +1465,10 @@ function getOptions(
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
+            return;
+        }
+
+        if (isSelfDM && !includeSelfDM) {
             return;
         }
 
@@ -1786,6 +1793,7 @@ function getFilteredOptions(
     includeSelectedOptions = false,
     includePolicyTaxRates = false,
     policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
+    includeSelfDM = true,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1807,6 +1815,7 @@ function getFilteredOptions(
         includeSelectedOptions,
         includePolicyTaxRates,
         policyTaxRates,
+        includeSelfDM,
     });
 }
 

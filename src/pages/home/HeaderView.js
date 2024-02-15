@@ -97,6 +97,10 @@ function HeaderView(props) {
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+
+    if(ReportUtils.isSelfDM(props.report)){
+        displayNamesWithTooltips[0].displayName += ` (${translate('common.you')})`
+    }
     const isChatThread = ReportUtils.isChatThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);

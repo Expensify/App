@@ -132,8 +132,9 @@ function ProfilePage(props) {
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo');
+    const isSelfDM = ReportUtils.isSelfDM(props.report);
 
-    const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && !isSelfDM;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -227,7 +228,7 @@ function ProfilePage(props) {
                                     wrapperStyle={[styles.mtn6, styles.mb5]}
                                 />
                             )}
-                            {!isCurrentUser && !Session.isAnonymousUser() && (
+                            {!isCurrentUser && !Session.isAnonymousUser() && !isSelfDM && (
                                 <MenuItem
                                     title={`${props.translate('common.message')}${displayName}`}
                                     titleStyle={styles.flex1}

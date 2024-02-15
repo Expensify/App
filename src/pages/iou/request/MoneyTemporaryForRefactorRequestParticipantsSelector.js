@@ -132,6 +132,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // This functionality is being built here: https://github.com/Expensify/App/issues/23291
             iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
+            undefined,
+            undefined,
+            false,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -144,6 +147,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             personalDetails,
             true,
         );
+
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
 

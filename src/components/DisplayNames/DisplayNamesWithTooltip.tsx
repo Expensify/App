@@ -47,6 +47,8 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     }, []);
 
+    console.log('DisplayNamesWithToolTip', {shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles, numberOfLines, renderAdditionalText});
+
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text

@@ -901,6 +901,10 @@ function isDM(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && !getChatType(report);
 }
 
+function isSelfDM(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
+}
+
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
@@ -2630,7 +2634,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
 
-    if (isOneOnOneChat(report)) {
+    if (isOneOnOneChat(report) || isSelfDM(report)) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
         return;
     }
@@ -4133,7 +4137,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
  */
 function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
     // User cannot request money in chat thread or in task report or in chat room
-    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report) || isSelfDM(report)) {
         return false;
     }
 
@@ -4213,7 +4217,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
     // Your own workspace chats will have the split bill option.
-    if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)) {
+    if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat) && !isSelfDM(report)) {
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
@@ -4222,7 +4226,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     // Send money option should be visible only in 1:1 DMs
-    if (isDM(report) && hasSingleOtherParticipantInReport) {
+    if (isDM(report) && hasSingleOtherParticipantInReport && !isSelfDM(report)) {
         options = [...options, CONST.IOU.TYPE.SEND];
     }
 
@@ -5061,6 +5065,7 @@ export {
     getAddWorkspaceRoomOrChatReportErrors,
     getReportOfflinePendingActionAndErrors,
     isDM,
+    isSelfDM,
     getPolicy,
     getPolicyExpenseChatReportIDByOwner,
     getWorkspaceChats,
