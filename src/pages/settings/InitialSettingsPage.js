@@ -138,7 +138,7 @@ function InitialSettingsPage(props) {
             items: [
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
-                    icon: Expensicons.NewExpensify,
+                    icon: Expensicons.ExpensifyLogoNew,
                     routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                 },
                 {
@@ -373,7 +373,7 @@ function InitialSettingsPage(props) {
             title={translate('initialSettingsPage.accountSettings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.justifyContentCenter]}
-            onBackButtonPress={() => Navigation.closeFullScreen()}
+            onBackButtonPress={() => Navigation.dismissModal()}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
             childrenContainerStyles={[styles.m0, styles.p0]}
             testID={InitialSettingsPage.displayName}

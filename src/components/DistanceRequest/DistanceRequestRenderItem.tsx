@@ -1,59 +1,41 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import type {TranslationPaths} from '@src/languages/types';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-const propTypes = {
+type DistanceRequestProps = {
     /** The waypoints for the distance request */
-    waypoints: PropTypes.objectOf(
-        PropTypes.shape({
-            lat: PropTypes.number,
-            lng: PropTypes.number,
-            address: PropTypes.string,
-            name: PropTypes.string,
-        }),
-    ),
+    waypoints?: WaypointCollection;
 
     /** The index of the item */
-    item: PropTypes.string,
+    item?: string;
 
     /** Function to call when the secondary interaction is triggered */
-    onSecondaryInteraction: PropTypes.func,
+    onSecondaryInteraction?: () => void;
 
     /** Function to get the index of the item */
-    getIndex: PropTypes.func,
+    getIndex?: () => number;
 
     /** Whether the item is active */
-    isActive: PropTypes.bool,
+    isActive?: boolean;
 
     /** Function to call when the user clicks the item */
-    onPress: PropTypes.func,
+    onPress?: (index: number) => void;
 
     /** Whether the item is disabled */
-    disabled: PropTypes.bool,
+    disabled?: boolean;
 };
 
-const defaultProps = {
-    waypoints: {},
-    item: '',
-    onSecondaryInteraction: () => {},
-    getIndex: () => {},
-    isActive: false,
-    onPress: () => {},
-    disabled: false,
-};
-
-function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, getIndex, isActive, onPress, disabled}) {
+function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
-    const numberOfWaypoints = _.size(waypoints);
+    const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
 
-    const index = getIndex();
+    const index = getIndex?.() ?? -1;
     let descriptionKey = 'distance.waypointDescription.';
     let waypointIcon;
     if (index === 0) {
@@ -67,12 +49,13 @@ function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, get
         waypointIcon = Expensicons.DotIndicator;
     }
 
-    const waypoint = lodashGet(waypoints, [`waypoint${index}`], {});
+    const waypoint = waypoints?.[`waypoint${index}`] ?? {};
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const title = waypoint.name || waypoint.address;
 
     return (
         <MenuItemWithTopDescription
-            description={translate(descriptionKey)}
+            description={translate(descriptionKey as TranslationPaths)}
             title={title}
             icon={Expensicons.DragHandles}
             iconFill={theme.icon}
@@ -89,7 +72,5 @@ function DistanceRequestRenderItem({waypoints, item, onSecondaryInteraction, get
 }
 
 DistanceRequestRenderItem.displayName = 'DistanceRequestRenderItem';
-DistanceRequestRenderItem.propTypes = propTypes;
-DistanceRequestRenderItem.defaultProps = defaultProps;
 
 export default DistanceRequestRenderItem;

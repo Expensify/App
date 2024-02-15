@@ -1,77 +1,61 @@
-import lodashGet from 'lodash/get';
-import lodashIsNil from 'lodash/isNil';
-import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
-import transactionPropTypes from '@components/transactionPropTypes';
+import type {WayPoint} from '@components/MapView/MapViewTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MapboxAccessToken} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 const MAX_WAYPOINTS = 25;
 
-const propTypes = {
+type DistanceRequestFooterOnyxProps = {
+    /** Data about Mapbox token for calling Mapbox API */
+    mapboxAccessToken: OnyxEntry<MapboxAccessToken>;
+};
+
+type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
     /** The waypoints for the distance request */
-    waypoints: PropTypes.objectOf(
-        PropTypes.shape({
-            lat: PropTypes.number,
-            lng: PropTypes.number,
-            address: PropTypes.string,
-            name: PropTypes.string,
-        }),
-    ),
+    waypoints?: WaypointCollection;
 
     /** Function to call when the user wants to add a new waypoint */
-    navigateToWaypointEditPage: PropTypes.func.isRequired,
-
-    /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: PropTypes.shape({
-        /** Temporary token for Mapbox API */
-        token: PropTypes.string,
-
-        /** Time when the token will expire in ISO 8601 */
-        expiration: PropTypes.string,
-    }),
+    navigateToWaypointEditPage: (index: number) => void;
 
     /** The transaction being interacted with */
-    transaction: transactionPropTypes,
+    transaction: OnyxEntry<Transaction>;
 };
 
-const defaultProps = {
-    waypoints: {},
-    mapboxAccessToken: {
-        token: '',
-    },
-    transaction: {},
-};
-function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}) {
+function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}: DistanceRequestFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const numberOfWaypoints = _.size(waypoints);
-    const numberOfFilledWaypoints = _.size(_.filter(waypoints, (waypoint) => !_.isEmpty(waypoint)));
+    const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
+    const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => Object.keys(waypoint).length).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const waypointMarkers = useMemo(
         () =>
-            _.filter(
-                _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
+            Object.entries(waypoints ?? {})
+                .map(([key, waypoint]) => {
+                    if (!waypoint?.lat || !waypoint?.lng) {
                         return;
                     }
 
                     const index = TransactionUtils.getWaypointIndex(key);
-                    let MarkerComponent;
+                    let MarkerComponent: IconAsset;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
@@ -82,8 +66,8 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
 
                     return {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat],
-                        markerComponent: () => (
+                        coordinate: [waypoint.lng, waypoint.lat] as const,
+                        markerComponent: (): ReactNode => (
                             <ImageSVG
                                 src={MarkerComponent}
                                 width={CONST.MAP_MARKER_SIZE}
@@ -92,9 +76,8 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                             />
                         ),
                     };
-                }),
-                (waypoint) => waypoint,
-            ),
+                })
+                .filter((waypoint): waypoint is WayPoint => !!waypoint),
         [waypoints, lastWaypointIndex, theme.icon],
     );
 
@@ -105,7 +88,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                     <Button
                         small
                         icon={Expensicons.Plus}
-                        onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                        onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
                         text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                         innerStyles={[styles.ph10]}
@@ -114,14 +97,14 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
             )}
             <View style={styles.mapViewContainer}>
                 <DistanceMapView
-                    accessToken={mapboxAccessToken.token}
+                    accessToken={mapboxAccessToken?.token ?? ''}
                     mapPadding={CONST.MAPBOX.PADDING}
                     pitchEnabled={false}
                     initialState={{
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
+                        location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
                     }}
-                    directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
+                    directionCoordinates={(transaction?.routes?.route0?.geometry?.coordinates as Array<[number, number]>) ?? []}
                     style={[styles.mapView, styles.mapEditView]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
@@ -133,10 +116,8 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
 }
 
 DistanceRequestFooter.displayName = 'DistanceRequestFooter';
-DistanceRequestFooter.propTypes = propTypes;
-DistanceRequestFooter.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<DistanceRequestFooterProps, DistanceRequestFooterOnyxProps>({
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },
