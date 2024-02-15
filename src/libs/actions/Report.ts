@@ -1692,9 +1692,11 @@ function navigateToConciergeChat(ignoreConciergeReportID = false, shouldDismissM
     if (!conciergeChatReportID || ignoreConciergeReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
-        Welcome.serverDataIsReadyPromise().then(() => {
-            // If we don't have a chat with Concierge then create it
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+        Welcome.onServerDataReady({
+            onReady: () => {
+                // If we don't have a chat with Concierge then create it
+                navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+            },
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);

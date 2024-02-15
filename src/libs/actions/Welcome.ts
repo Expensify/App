@@ -1,28 +1,79 @@
-import type {NavigationState} from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import type {RootStackParamList} from '@navigation/types';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import * as Policy from './Policy';
 
-let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
-let isReadyPromise = new Promise<void>((resolve) => {
-    resolveIsReadyPromise = resolve;
-});
-
+let hasSelectedPurpose: boolean | undefined;
+let hasProvidedPersonalDetails: boolean | undefined;
+let currentUserAccountID: number | undefined;
 let isFirstTimeNewExpensifyUser: boolean | undefined;
 let hasDismissedModal: boolean | undefined;
 let hasSelectedChoice: boolean | undefined;
 let isLoadingReportData = true;
-let currentUserAccountID: number | undefined;
+
+type ServerDataReadyProps = {
+    onReady: () => void;
+};
+
+type DetermineOnboardingStatusProps = {
+    onAble?: () => void;
+    onNotAble?: () => void;
+};
+
+type HasCompletedOnboardingFlowProps = {
+    onCompleted?: () => void;
+    onNotCompleted?: () => void;
+};
+
+let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
+const isServerDataReadyPromise = new Promise<void>((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
+
+let resolveOnboardingFlowStatus: (value?: Promise<void>) => void | undefined;
+const isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
+    resolveOnboardingFlowStatus = resolve;
+});
+
+function onServerDataReady({onReady}: ServerDataReadyProps): Promise<void> {
+    return isServerDataReadyPromise.then(() => {
+        onReady();
+    });
+}
+
+/**
+ * Checks if Onyx keys required to determine the
+ * onboarding flow status have been loaded (namely,
+ * are not undefined).
+ */
+function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineOnboardingStatusProps) {
+    const hasRequiredOnyxKeysBeenLoaded = [hasProvidedPersonalDetails, hasSelectedPurpose].every((value) => value !== undefined);
+
+    if (hasRequiredOnyxKeysBeenLoaded) {
+        onAble?.();
+    } else {
+        onNotAble?.();
+    }
+}
+
+/**
+ * A promise returning the onboarding flow status.
+ * Returns true if user has completed the onboarding
+ * flow, false otherwise.
+ */
+function isOnboardingFlowCompletedAsync({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
+    isOnboardingFlowStatusKnownPromise.then(() => {
+        const onboardingFlowCompleted = hasProvidedPersonalDetails && hasSelectedPurpose;
+
+        if (onboardingFlowCompleted) {
+            onCompleted?.();
+        } else {
+            onNotCompleted?.();
+        }
+    });
+}
 
 /**
  * Check that a few requests have completed so that the welcome action can proceed:
@@ -32,7 +83,9 @@ let currentUserAccountID: number | undefined;
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    if (isFirstTimeNewExpensifyUser === undefined || isLoadingReportData || hasSelectedChoice === undefined || hasDismissedModal === undefined) {
+    const hasRequiredOnyxKeysBeenLoaded = [isFirstTimeNewExpensifyUser, hasSelectedChoice, hasDismissedModal].every((value) => value !== undefined);
+
+    if (isLoadingReportData || !hasRequiredOnyxKeysBeenLoaded) {
         return;
     }
 
@@ -56,9 +109,8 @@ Onyx.connect({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     initWithStoredValues: true,
     callback: (value) => {
-        hasSelectedChoice = !!value;
-
-        checkOnReady();
+        hasSelectedPurpose = !!value;
+        isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
     },
 });
 
@@ -119,76 +171,20 @@ Onyx.connect({
         }
 
         currentUserAccountID = val.accountID;
+
+        Onyx.connect({
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            initWithStoredValues: true,
+            callback: (value) => {
+                if (!value || !currentUserAccountID) {
+                    return;
+                }
+
+                hasProvidedPersonalDetails = !!value[currentUserAccountID]?.firstName && !!value[currentUserAccountID]?.lastName;
+                isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
+            },
+        });
     },
 });
 
-/**
- * Shows a welcome action on first login
- */
-function show(routes: NavigationState<RootStackParamList>['routes'], showEngagementModal = () => {}) {
-    isReadyPromise.then(() => {
-        if (!isFirstTimeNewExpensifyUser) {
-            return;
-        }
-
-        // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
-        // create menu right now. We should also stay on the workspace page if that is our destination.
-        const transitionRoute = routes.find(
-            (route): route is NavigationState<Pick<RootStackParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>>['routes'][number] => route.name === SCREENS.TRANSITION_BETWEEN_APPS,
-        );
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
-        const isOnWorkspaceOverviewPage = activeRoute?.startsWith('/workspace') && activeRoute?.endsWith('/overview');
-        const isExitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
-
-        // If we already opened the workspace settings or want the admin room to stay open, do not
-        // navigate away to the workspace chat report
-        const shouldNavigateToWorkspaceChat = !isExitingToWorkspaceRoute && !isOnWorkspaceOverviewPage;
-
-        const workspaceChatReport = Object.values(allReports ?? {}).find((report) => {
-            if (report) {
-                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED;
-            }
-            return false;
-        });
-
-        if (workspaceChatReport) {
-            // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
-            Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
-        }
-
-        if (shouldNavigateToWorkspaceChat && workspaceChatReport) {
-            if (workspaceChatReport.reportID !== null) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReport.reportID));
-            }
-
-            // New user has been redirected to their workspace chat, and we won't show them the engagement modal.
-            // So we update isFirstTimeNewExpensifyUser to prevent the Welcome logic from running again
-            isFirstTimeNewExpensifyUser = false;
-
-            return;
-        }
-
-        // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
-        // we will show the engagement modal.
-        if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isExitingToWorkspaceRoute && !hasSelectedChoice && !hasDismissedModal && Object.keys(allPolicies ?? {}).length === 1) {
-            showEngagementModal();
-        }
-
-        // Update isFirstTimeNewExpensifyUser so the Welcome logic doesn't run again
-        isFirstTimeNewExpensifyUser = false;
-    });
-}
-
-function resetReadyCheck() {
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
-    isFirstTimeNewExpensifyUser = undefined;
-    isLoadingReportData = true;
-}
-
-function serverDataIsReadyPromise(): Promise<void> {
-    return isReadyPromise;
-}
-
-export {show, serverDataIsReadyPromise, resetReadyCheck};
+export {onServerDataReady, isOnboardingFlowCompletedAsync};
