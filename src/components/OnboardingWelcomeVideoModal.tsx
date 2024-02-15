@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,43 +17,75 @@ const BASE_VIDEO_ASPECT_RATIO = 2;
 
 const MODAL_PADDING = 16;
 
-type VideoLoadedEvent = {
+type VideoLoadedEventType = {
     srcElement: {
         videoWidth: number;
         videoHeight: number;
     };
 };
 
+type VideoPlaybackStatusEventType = {
+    isLoaded: boolean;
+};
+
+type VideoStatus = 'video' | 'animation';
+
 function OnboardingWelcomeVideoModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight, windowWidth} = useWindowDimensions();
     const [isModalOpen, setIsModalOpen] = useState(true);
+    const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
+    const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
+    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(BASE_VIDEO_ASPECT_RATIO);
     const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        if (isWelcomeVideoStatusLocked) {
+            return;
+        }
+
+        if (isOffline) {
+            setWelcomeVideoStatus('animation');
+            setIsWelcomeVideoStatusLocked(true);
+        } else if (!isOffline && isVideoLoaded) {
+            setWelcomeVideoStatus('video');
+            setIsWelcomeVideoStatusLocked(true);
+        }
+    }, [isOffline, isVideoLoaded, isWelcomeVideoStatusLocked]);
 
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
     }, []);
 
-    const onVideoLoaded = (e: VideoLoadedEvent) => {
+    const onVideoLoaded = (e: VideoLoadedEventType) => {
         setVideoAspectRatio(e.srcElement.videoWidth / e.srcElement.videoHeight);
     };
 
+    const onPlaybackStatusUpdate = (e: VideoPlaybackStatusEventType) => {
+        if (e.isLoaded === isVideoLoaded) {
+            return;
+        }
+        setIsVideoLoaded(e.isLoaded);
+    };
+
     const getWelcomeVideo = () => {
-        if (!isOffline) {
+        if (welcomeVideoStatus === 'video') {
             let videoWidth = isSmallScreenWidth ? windowWidth - MODAL_PADDING : BASE_VIDEO_WIDTH;
 
             if (!videoWidth) {
                 videoWidth = BASE_VIDEO_WIDTH;
             }
 
+            // Temporary file supplied for testing purposes, to be changed when correct one gets uploaded on backend
             return (
                 <View style={[styles.pRelative, styles.onboardingVideoContainer]}>
                     <VideoPlayer
                         url="https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4"
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
                         onVideoLoaded={onVideoLoaded}
+                        onPlaybackStatusUpdate={onPlaybackStatusUpdate}
                         shouldPlay
                     />
                 </View>
