@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Country} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -11,7 +12,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** Callback called when the country changes. */
     onInputChange: (value?: string) => void;
@@ -47,7 +48,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange}: Co
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRouteWithoutParams();
-                    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
+                    Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
                 }}
             />
             <View style={styles.ml5}>
