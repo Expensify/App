@@ -400,7 +400,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                                         return null;
                                                     }
 
-                                                    if (true) {
+                                                    if (hasActivatedWallet) {
                                                         return (
                                                             <MenuItem
                                                                 ref={buttonRef}
