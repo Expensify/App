@@ -627,6 +627,28 @@ function ReportActionItem(props) {
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
+            if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                return (
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                            <OfflineWithFeedback pendingAction={lodashGet(parentReportAction, 'pendingAction', null)}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader
+                                    report={props.report}
+                                >
+                                    <RenderHTML
+                                        html={`<comment>${props.translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
+                                    />
+                                </ReportActionItemSingle>
+                            </OfflineWithFeedback>
+                        </View>
+                        <View style={styles.threadDividerLine} />
+                    </View>
+                );
+            }
             return (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
@@ -649,8 +671,8 @@ function ReportActionItem(props) {
                             >
                                 <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
                             </ReportActionItemSingle>
-                            <View style={styles.reportHorizontalRule} />
                         </View>
+                        <View style={styles.reportHorizontalRule} />
                     </View>
                 );
             }
@@ -857,9 +879,10 @@ export default compose(
         },
     }),
 )(
-    memo(
-        ReportActionItem,
-        (prevProps, nextProps) =>
+    memo(ReportActionItem, (prevProps, nextProps) => {
+        const prevParentReportAction = prevProps.parentReportActions[prevProps.report.parentReportActionID];
+        const nextParentReportAction = nextProps.parentReportActions[nextProps.report.parentReportActionID];
+        return (
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
@@ -888,6 +911,8 @@ export default compose(
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
             _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
-            _.isEqual(prevProps.policy, nextProps.policy),
-    ),
+            _.isEqual(prevProps.policy, nextProps.policy) &&
+            _.isEqual(prevParentReportAction, nextParentReportAction)
+        );
+    }),
 );
