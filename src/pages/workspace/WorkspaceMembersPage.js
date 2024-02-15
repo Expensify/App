@@ -9,6 +9,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
@@ -186,6 +188,7 @@ function WorkspaceMembersPage(props) {
 
     /**
      * Remove selected users from the workspace
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         if (!_.isEmpty(errors)) {
@@ -415,6 +418,29 @@ function WorkspaceMembersPage(props) {
         );
     };
 
+    const getHeaderButtons = () => (
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <Button
+                medium
+                success
+                onPress={inviteUser}
+                text={props.translate('workspace.invite.member')}
+                icon={Expensicons.Plus}
+                iconStyles={{transform: [{scale: 0.6}]}}
+                innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
+                style={[isSmallScreenWidth && styles.flexGrow1]}
+            />
+            <Button
+                medium
+                danger
+                style={[styles.ml2, isSmallScreenWidth && styles.w50]}
+                isDisabled={selectedEmployees.length === 0}
+                text={props.translate('common.remove')}
+                onPress={askForConfirmationToRemove}
+            />
+        </View>
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -429,13 +455,17 @@ function WorkspaceMembersPage(props) {
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
+                    icon={Illustrations.ReceiptWrangler}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack();
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                />
+                >
+                    {!isSmallScreenWidth && getHeaderButtons()}
+                </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     danger
                     title={props.translate('workspace.people.removeMembersTitle')}
@@ -454,45 +484,27 @@ function WorkspaceMembersPage(props) {
                         })
                     }
                 />
-                <View style={[styles.w100, styles.flex1, styles.mt3]}>
-                    <View style={[styles.w100, styles.flexRow, styles.ph5]}>
-                        <Button
-                            medium
-                            success
-                            text={props.translate('common.invite')}
-                            onPress={inviteUser}
-                        />
-                        <Button
-                            medium
-                            danger
-                            style={[styles.ml2]}
-                            isDisabled={selectedEmployees.length === 0}
-                            text={props.translate('common.remove')}
-                            onPress={askForConfirmationToRemove}
-                        />
-                    </View>
-                    <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data, indexOffset: 0, isDisabled: false}]}
-                            textInputLabel={props.translate('optionsSelector.findMember')}
-                            textInputValue={searchValue}
-                            onChangeText={(value) => {
-                                SearchInputManager.searchInput = value;
-                                setSearchValue(value);
-                            }}
-                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                            headerMessage={getHeaderMessage()}
-                            headerContent={getHeaderContent()}
-                            onSelectRow={(item) => toggleUser(item.accountID)}
-                            onSelectAll={() => toggleAllUsers(data)}
-                            onDismissError={dismissError}
-                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
-                            showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            inputRef={textInputRef}
-                        />
-                    </View>
+                <View style={[styles.w100, styles.flex1]}>
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        textInputLabel={props.translate('optionsSelector.findMember')}
+                        textInputValue={searchValue}
+                        onChangeText={(value) => {
+                            SearchInputManager.searchInput = value;
+                            setSearchValue(value);
+                        }}
+                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                        headerMessage={getHeaderMessage()}
+                        headerContent={getHeaderContent()}
+                        onSelectRow={(item) => toggleUser(item.accountID)}
+                        onSelectAll={() => toggleAllUsers(data)}
+                        onDismissError={dismissError}
+                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
+                        showScrollIndicator
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        inputRef={textInputRef}
+                    />
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>

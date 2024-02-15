@@ -196,26 +196,17 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             }
 
             const newWaypoints: WaypointCollection = {};
-            let emptyWaypointIndex = -1;
             data.forEach((waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = waypoints?.[waypoint] ?? {};
-                // Find waypoint that BECOMES empty after dragging
-                if (Object.keys(newWaypoints[`waypoint${index}`]).length === 0 && Object.keys(waypoints[`waypoint${index}`] ?? {}).length !== 0) {
-                    emptyWaypointIndex = index;
-                }
             });
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Promise.all([
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                TransactionUserActions.removeWaypoint(transaction as Transaction, emptyWaypointIndex.toString(), true),
-                TransactionUserActions.updateWaypoints(transactionID, newWaypoints, true),
-            ]).then(() => {
+            TransactionUserActions.updateWaypoints(transactionID, newWaypoints).then(() => {
                 setOptimisticWaypoints(undefined);
             });
         },
-        [transactionID, transaction, waypoints, waypointsList],
+        [transactionID, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {
