@@ -301,6 +301,7 @@ export type {
     OriginalMessageCreated,
     OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
