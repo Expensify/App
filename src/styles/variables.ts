@@ -216,4 +216,5 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
+    workspaceProfileName: 20,
 } as const;
