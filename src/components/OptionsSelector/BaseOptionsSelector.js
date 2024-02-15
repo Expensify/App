@@ -113,19 +113,19 @@ class BaseOptionsSelector extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
-            if (this.state.disableEnterShortCut) {
-                this.unsubscribeEnter();
-            } else {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unsubscribeEnter();
+            if (!this.state.disableEnterShortCut) {
                 this.subscribeToEnterShortcut();
             }
         }
 
         if (prevProps.isFocused !== this.props.isFocused) {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unSubscribeFromKeyboardShortcut();
             if (this.props.isFocused) {
                 this.subscribeToEnterShortcut();
                 this.subscribeToCtrlEnterShortcut();
-            } else {
-                this.unSubscribeFromKeyboardShortcut();
             }
         }
 
@@ -253,7 +253,7 @@ class BaseOptionsSelector extends Component {
     updateSearchValue(value) {
         this.setState({
             paginationPage: 1,
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage: value.length > this.props.maxLength ? ['common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}] : '',
             value,
         });
 

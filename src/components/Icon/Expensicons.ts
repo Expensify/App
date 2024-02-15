@@ -48,6 +48,7 @@ import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
+import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
@@ -110,6 +111,7 @@ import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
 import Rotate from '@assets/images/rotate-image.svg';
+import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
@@ -252,6 +254,7 @@ export {
     Receipt,
     ReceiptSearch,
     Rotate,
+    RotateLeft,
     Scan,
     Send,
     Shield,
@@ -278,4 +281,5 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
+    Lightbulb,
 };
