@@ -398,7 +398,7 @@ function MoneyRequestView({
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
                             <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                            {getErrorForField('billable') && (
+                            {!!getErrorForField('billable') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}
                                     containerStyle={[styles.mt1]}
