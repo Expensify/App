@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import useKeyboardState from '@hooks/useKeyboardState';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -23,7 +22,6 @@ function BaseModal(
         isVisible,
         onClose,
         shouldSetModalVisibility = true,
-        shouldForceHideBackdrop = false,
         onModalHide = () => {},
         type,
         popoverAnchorPosition = {},
@@ -50,7 +48,6 @@ function BaseModal(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -150,9 +147,8 @@ function BaseModal(
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
-                shouldUseNarrowLayout,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseNarrowLayout],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
@@ -195,7 +191,7 @@ function BaseModal(
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}
-            backdropOpacity={(!shouldUseCustomBackdrop && hideBackdrop) || shouldForceHideBackdrop ? 0 : variables.overlayOpacity}
+            backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}
             coverScreen={fullscreen}
