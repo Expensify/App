@@ -229,6 +229,7 @@ function IOURequestStepWaypoint({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
+                    submitFlexEnabled={false}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
