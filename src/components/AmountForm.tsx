@@ -33,6 +33,9 @@ type AmountFormProps = {
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress?: () => void;
+
+    /** Whether the currency symbol is pressable */
+    isCurrencyPressable?: boolean;
 };
 
 /**
@@ -48,7 +51,7 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function AmountForm(
-    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress}: AmountFormProps,
+    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true}: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -210,10 +213,11 @@ function AmountForm(
                         setSelection(e.nativeEvent.selection);
                     }}
                     onKeyPress={textInputKeyPress}
+                    isCurrencyPressable={isCurrencyPressable}
                 />
                 {!!errorText && (
                     <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.w100]}
+                        style={[styles.pAbsolute, styles.b0, canUseTouchScreen ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
                         isError
                         message={errorText}
                     />
