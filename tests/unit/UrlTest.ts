@@ -1,4 +1,4 @@
-import * as Url from '../../src/libs/Url';
+import * as Url from '@src/libs/Url';
 
 describe('Url', () => {
     describe('getPathFromURL()', () => {
