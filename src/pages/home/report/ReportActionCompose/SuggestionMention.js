@@ -60,7 +60,7 @@ function SuggestionMention({
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
-        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedMentions.length, isAutoSuggestionPickerLarge),
+        maxIndex: suggestionValues.suggestedMentions.length - 1,
         shouldExcludeTextAreaNodes: false,
     });
 
@@ -148,6 +148,10 @@ function SuggestionMention({
             const filteredPersonalDetails = _.filter(_.values(personalDetailsParam), (detail) => {
                 // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
                 if (!detail.login || detail.isOptimisticPersonalDetail) {
+                    return false;
+                }
+                // We don't want to mention system emails like notifications@expensify.com
+                if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
                 const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);

@@ -1,21 +1,21 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -45,21 +45,6 @@ Onyx.connect({
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
-    },
-});
-
-// Session can remain stale because the only way for the current user to change is to
-// sign out and sign in, which would clear out all the Onyx
-// data anyway and cause SidebarLinks to rerender.
-let currentUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        if (!session) {
-            return;
-        }
-
-        currentUserAccountID = session.accountID;
     },
 });
 
@@ -102,12 +87,32 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
+    allReportActions: OnyxCollection<ReportAction[]>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentPolicyID = '',
+    policyMemberAccountIDs: number[] = [],
 ): string[] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
+
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
+    let reportsToDisplay = allReportsDictValues.filter((report) => {
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
+        const parentReportActions = allReportActions?.[parentReportActionsKey];
+        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const doesReportHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: currentReportId ?? '',
+            isInGSDMode,
+            betas,
+            policies,
+            excludeEmptyChats: true,
+            doesReportHaveViolations,
+        });
+    });
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -131,6 +136,9 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
 
+    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
+    }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
@@ -140,7 +148,7 @@ function getOrderedReportIDs(
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(report, allReports).totalDisplaySpend;
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
@@ -178,24 +186,26 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
-type ActorDetails = {
-    displayName?: string;
-    firstName?: string;
-    lastName?: string;
-    accountID?: number;
-};
-
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
-function getOptionData(
-    report: Report,
-    reportActions: Record<string, ReportAction>,
-    personalDetails: Record<number, PersonalDetails>,
-    preferredLocale: ValueOf<typeof CONST.LOCALES>,
-    policy: Policy,
-    parentReportAction: ReportAction,
-): ReportUtils.OptionData | undefined {
+function getOptionData({
+    report,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    policy,
+    parentReportAction,
+    hasViolations,
+}: {
+    report: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
+    policy: OnyxEntry<Policy> | undefined;
+    parentReportAction: OnyxEntry<ReportAction> | undefined;
+    hasViolations: boolean;
+}): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -206,7 +216,7 @@ function getOptionData(
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: null,
+        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -233,8 +243,10 @@ function getOptionData(
         isAllowedToComment: true,
         isDeletedParentAction: false,
     };
-    const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
+
+    const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
+    const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -246,8 +258,7 @@ function getOptionData(
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
-    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
-    result.brickRoadIndicator = Object.keys(result.allReportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -278,12 +289,12 @@ function getOptionData(
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
-    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report);
 
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails: ActorDetails | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+    let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
@@ -294,31 +305,12 @@ function getOptionData(
             : null;
     }
 
-    const shouldShowDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID;
-    const lastActorName = lastActorDetails?.firstName ?? lastActorDetails?.displayName;
-    const lastActorDisplayName = shouldShowDisplayName ? lastActorName : '';
+    const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
 
     let lastMessageText = lastMessageTextFromReport;
 
     const reportAction = lastReportActions?.[report.reportID];
-    if (result.isArchivedRoom) {
-        const archiveReason = (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && reportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-
-        switch (archiveReason) {
-            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
-            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
-            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
-                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    policyName: ReportUtils.getPolicyName(report, false, policy),
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-                });
-                break;
-            }
-            default: {
-                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
-            }
-        }
-    }
 
     const isThreadMessage =
         ReportUtils.isThread(report) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -343,7 +335,7 @@ function getOptionData(
                     ? Localize.translate(preferredLocale, 'workspace.invite.invited')
                     : Localize.translate(preferredLocale, 'workspace.invite.removed');
             const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
+            result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDs.length} ${users}`.trim();
 
             const roomName = lastAction?.originalMessage?.roomName ?? '';
             if (roomName) {
@@ -387,12 +379,12 @@ function getOptionData(
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
-    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result as Report);
+    result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result as Report).totalDisplaySpend;
 
     if (!hasMultipleParticipants) {
-        result.accountID = personalDetail.accountID;
-        result.login = personalDetail.login;
-        result.phoneNumber = personalDetail.phoneNumber;
+        result.accountID = personalDetail?.accountID;
+        result.login = personalDetail?.login;
+        result.phoneNumber = personalDetail?.phoneNumber;
     }
 
     const reportName = ReportUtils.getReportName(report, policy);
@@ -401,7 +393,7 @@ function getOptionData(
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail?.avatar ?? {}, personalDetail?.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 

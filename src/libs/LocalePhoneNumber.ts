@@ -1,7 +1,7 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
 Onyx.connect({
@@ -13,7 +13,7 @@ Onyx.connect({
  * Returns a locally converted phone number for numbers from the same region
  * and an internationally converted phone number with the country code for numbers from other regions
  */
-function formatPhoneNumber(number: string): string {
+function formatPhoneNumber(number: string | undefined): string {
     if (!number) {
         return '';
     }

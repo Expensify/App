@@ -23,6 +23,7 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
+    dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
 }));
 
@@ -683,7 +684,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction.pendingAction).toBeFalsy();
                                         expect(transaction.errors).toBeTruthy();
-                                        expect(_.values(transaction.errors)[0]).toBe('iou.error.genericCreateFailureMessage');
+                                        expect(_.values(transaction.errors)[0]).toEqual(expect.arrayContaining(['iou.error.genericCreateFailureMessage', {isTranslated: false}]));
                                         resolve();
                                     },
                                 });
@@ -1237,9 +1238,8 @@ describe('actions/IOU', () => {
                                     expect(chatReport.pendingFields).toBeFalsy();
                                     expect(iouReport.pendingFields).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.SUBMITTED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1306,9 +1306,8 @@ describe('actions/IOU', () => {
 
                                     expect(chatReport.iouReportID).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.MANUALREIMBURSED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1356,9 +1355,8 @@ describe('actions/IOU', () => {
 
                                     expect(chatReport.iouReportID).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.MANUALREIMBURSED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1631,7 +1629,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = _.find(allActions, (reportAction) => !_.isEmpty(reportAction));
                                     expect(updatedAction.actionName).toEqual('MODIFIEDEXPENSE');
-                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining(['iou.error.genericEditFailureMessage']));
+                                    expect(_.values(updatedAction.errors)).toEqual(expect.arrayContaining([['iou.error.genericEditFailureMessage', {isTranslated: false}]]));
                                     resolve();
                                 },
                             });
@@ -1770,9 +1768,8 @@ describe('actions/IOU', () => {
                                         expect.objectContaining({
                                             lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
                                             lastMessageText: `paid $${amount / 100}.00 with Expensify`,
-                                            state: CONST.REPORT.STATE.SUBMITTED,
-                                            statusNum: CONST.REPORT.STATUS.REIMBURSED,
-                                            stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+                                            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                                            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
@@ -1846,7 +1843,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const erroredAction = _.find(_.values(allActions), (action) => !_.isEmpty(action.errors));
-                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining(['iou.error.other']));
+                                    expect(_.values(erroredAction.errors)).toEqual(expect.arrayContaining([['iou.error.other', {isTranslated: false}]]));
                                     resolve();
                                 },
                             });
