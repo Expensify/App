@@ -11,7 +11,7 @@ import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
@@ -55,6 +55,8 @@ type ReportActionItemFragmentProps = {
 
     /** The pending action for the report action */
     pendingAction?: OnyxCommon.PendingAction;
+
+    moderationDecision?: DecisionName;
 };
 
 function ReportActionItemFragment({
@@ -71,6 +73,7 @@ function ReportActionItemFragment({
     isApprovedOrSubmittedReportAction = false,
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
+    moderationDecision,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -86,6 +89,10 @@ function ReportActionItemFragment({
 
             if ((!isOffline && isThreadParentMessage && isPendingDelete) || fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${translate('parentReportAction.deletedMessage')}</comment>`} />;
+            }
+
+            if (isThreadParentMessage && moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+                return <RenderHTML html={`<comment>${translate('parentReportAction.hiddenMessage')}</comment>`} />;
             }
 
             if (ReportUtils.isReportMessageAttachment(fragment)) {

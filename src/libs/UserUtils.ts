@@ -176,15 +176,15 @@ function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSourc
  * @param avatarURL - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatarUrl(avatarURL: string, accountID: number): string {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(accountID) : avatarURL;
+function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID) : avatarSource;
 }
 
 /**
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: AvatarSource, accountID: number): AvatarSource {
+function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -218,8 +218,8 @@ function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): Ava
 /**
  * Gets the secondary phone login number
  */
-function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
-    const parsedLoginList = Object.keys(loginList).map((login) => Str.removeSMSDomain(login));
+function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined {
+    const parsedLoginList = Object.keys(loginList ?? {}).map((login) => Str.removeSMSDomain(login));
     return parsedLoginList.find((login) => Str.isValidPhone(login));
 }
 

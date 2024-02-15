@@ -10,12 +10,25 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyTag,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -52,6 +65,7 @@ type PayeePersonalDetails = {
     descriptiveText: string;
     login: string;
     accountID: number;
+    keyForList: string;
 };
 
 type CategorySection = {
@@ -103,15 +117,15 @@ type GetOptionsConfig = {
 
 type MemberForList = {
     text: string;
-    alternateText: string | null;
-    keyForList: string | null;
+    alternateText: string;
+    keyForList: string;
     isSelected: boolean;
-    isDisabled: boolean | null;
+    isDisabled: boolean;
     accountID?: number | null;
-    login: string | null;
-    rightElement: React.ReactNode | null;
+    login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
+    reportID: string;
 };
 
 type SectionForSearchTerm = {
@@ -547,9 +561,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
+        lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
@@ -779,8 +795,8 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories): boolean {
-    return Object.values(options).some((option) => option.enabled);
+function hasEnabledOptions(options: PolicyCategory[] | PolicyTag[]): boolean {
+    return options.some((option) => option.enabled);
 }
 
 /**
@@ -984,7 +1000,7 @@ function getCategoryListSections(
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -1702,6 +1718,19 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
     return options;
 }
 
+function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
+    return getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        sortByReportTypeInSearch: true,
+        includePersonalDetails: true,
+        forcePolicyNamePreview: true,
+        includeOwnedWorkspaceChats: true,
+    });
+}
+
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
@@ -1721,6 +1750,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
         descriptiveText: amountText,
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
+        keyForList: String(personalDetail.accountID),
     };
 }
 
@@ -1738,7 +1768,7 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: Record<string, Report>,
+    reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
@@ -1819,11 +1849,7 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
-    if (!member) {
-        return undefined;
-    }
-
+function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
     const accountID = member.accountID;
 
     return {
@@ -1833,14 +1859,13 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         keyForList: member.keyForList || String(accountID ?? 0) || '',
-        isSelected: false,
-        isDisabled: false,
+        isSelected: member.isSelected ?? false,
+        isDisabled: member.isDisabled ?? false,
         accountID,
         login: member.login ?? '',
-        rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
-        ...config,
+        reportID: member.reportID,
     };
 }
 
@@ -1922,15 +1947,16 @@ function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
-    filteredPersonalDetails: PersonalDetails[],
+    filteredPersonalDetails: ReportUtils.OptionData[],
+    maxOptionsSelected: boolean,
+    indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
-    indexOffset = 0,
 ): SectionForSearchTerm {
-    // We show the selected participants at the top of the list when there is no search term
+    // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '') {
+    if (searchTerm === '' || maxOptionsSelected) {
         return {
             section: {
                 title: undefined,
@@ -2002,4 +2028,7 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
+    getShareLogOptions,
 };
+
+export type {MemberForList, CategorySection, GetOptions};
