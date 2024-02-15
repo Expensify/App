@@ -1,10 +1,5 @@
 const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
-/**
- * @typedef TestConfig
- * @property {string} name
- */
-
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
@@ -30,6 +25,10 @@ module.exports = {
     DELTA_APP_PATH: './app-e2edeltaRelease.apk',
 
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
+
+    // The path to the activity within the app that we want to launch.
+    // Note: even though we have different package _names_, this path doesn't change.
+    ACTIVITY_PATH: 'com.expensify.chat.MainActivity',
 
     // The port of the testing server that communicates with the app
     SERVER_PORT: 4723,
@@ -78,9 +77,13 @@ module.exports = {
             reportScreen: {
                 autoFocus: true,
             },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
         },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
+            // #announce Chat with many messages
+            reportID: '5421294415618529',
         },
     },
 };

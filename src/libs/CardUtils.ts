@@ -1,9 +1,10 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
+import type {Card, CardList} from '@src/types/onyx';
 import * as Localize from './Localize';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
@@ -69,13 +70,29 @@ function getYearFromExpirationDateString(expirationDateString: string) {
 }
 
 /**
+ * @returns string with a month in MM/YYYY format
+ */
+function formatCardExpiration(expirationDateString: string) {
+    // already matches MM/YYYY format
+    const dateFormat = /^\d{2}\/\d{4}$/;
+    if (dateFormat.test(expirationDateString)) {
+        return expirationDateString;
+    }
+
+    const expirationMonth = getMonthFromExpirationDateString(expirationDateString);
+    const expirationYear = getYearFromExpirationDateString(expirationDateString);
+
+    return `${expirationMonth}/${expirationYear}`;
+}
+
+/**
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
-function getDomainCards(cardList: Record<string, Card>) {
+function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
     // Check for domainName to filter out personal credit cards.
-    // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-    const activeCards = lodash.filter(cardList, (card) => !!card.domainName && (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<Card['state']>).includes(card.state));
+    const activeCards = Object.values(cardList ?? {}).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
+
     return lodash.groupBy(activeCards, (card) => card.domainName);
 }
 
@@ -120,6 +137,7 @@ export {
     isExpensifyCard,
     isCorporateCard,
     getDomainCards,
+    formatCardExpiration,
     getMonthFromExpirationDateString,
     getYearFromExpirationDateString,
     maskCard,
