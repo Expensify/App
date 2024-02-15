@@ -2325,4 +2325,13 @@ export default {
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
     },
+    videoPlayer: {
+        play: 'Play',
+        pause: 'Pause',
+        fullscreen: 'Fullscreen',
+        playbackSpeed: 'Playback speed',
+        expand: 'Expand',
+        mute: 'Mute',
+        unmute: 'Unmute',
+    },
 } satisfies TranslationBase;

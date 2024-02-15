@@ -989,6 +989,10 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
+    ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
+    ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
+    ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
+    ATTACHMENT_DURATION_ATTRIBUTE: 'data-expensify-duration',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -3208,6 +3212,29 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+    },
+
+    THUMBNAIL_IMAGE: {
+        SMALL_SCREEN: {
+            SIZE: 250,
+        },
+        WIDE_SCREEN: {
+            SIZE: 350,
+        },
+        NAN_ASPECT_RATIO: 1.5,
+    },
+
+    VIDEO_PLAYER: {
+        POPOVER_Y_OFFSET: -30,
+        PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2],
+        HIDE_TIME_TEXT_WIDTH: 250,
+        MIN_WIDTH: 170,
+        MIN_HEIGHT: 120,
+        CONTROLS_POSITION: {
+            NATIVE: 32,
+            NORMAL: 8,
+        },
+        DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
     },
 
     INTRO_CHOICES: {
