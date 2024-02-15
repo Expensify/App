@@ -141,6 +141,9 @@ const WRITE_COMMANDS = {
     DETACH_RECEIPT: 'DetachReceipt',
     PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
     PAY_MONEY_REQUEST: 'PayMoneyRequest',
+    CANCEL_PAYMENT: 'CancelPayment',
+    ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
+    UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -279,6 +282,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DETACH_RECEIPT]: Parameters.DetachReceiptParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]: Parameters.PayMoneyRequestParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST]: Parameters.PayMoneyRequestParams;
+    [WRITE_COMMANDS.CANCEL_PAYMENT]: Parameters.CancelPaymentParams;
+    [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
 };
 
 const READ_COMMANDS = {
@@ -287,7 +293,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
-    OPEN_PERSONAL_DETAILS_PAGE: 'OpenPersonalDetailsPage',
+    OPEN_PERSONAL_DETAILS: 'OpenPersonalDetailsPage',
     OPEN_PUBLIC_PROFILE_PAGE: 'OpenPublicProfilePage',
     OPEN_PLAID_BANK_LOGIN: 'OpenPlaidBankLogin',
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
@@ -321,7 +327,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: EmptyObject;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: EmptyObject;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: EmptyObject;
-    [READ_COMMANDS.OPEN_PERSONAL_DETAILS_PAGE]: EmptyObject;
+    [READ_COMMANDS.OPEN_PERSONAL_DETAILS]: EmptyObject;
     [READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE]: Parameters.OpenPublicProfilePageParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_LOGIN]: Parameters.OpenPlaidBankLoginParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_ACCOUNT_SELECTOR]: Parameters.OpenPlaidBankAccountSelectorParams;
