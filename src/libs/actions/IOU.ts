@@ -377,7 +377,7 @@ function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
 /**
  * Return the object to update hasOutstandingChildRequest
  */
-function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report) {
+function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report): OutstandingChildRequest {
     if (!needsToBeManuallySubmitted(iouReport)) {
         return {
             hasOutstandingChildRequest: false,
