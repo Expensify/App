@@ -162,8 +162,8 @@ function ReportActionItemSingle({
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
-            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action?.delegateAccountID) : actorAccountID ?? -1)),
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? 0) ||
+            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
         [action, isWorkspaceActor, actorAccountID],
     );
 

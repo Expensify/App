@@ -357,6 +357,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
+                } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
+                    const {expenseReportID} = reportAction.originalMessage;
+                    const expenseReport = ReportUtils.getReport(expenseReportID);
+                    const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
+                    Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
@@ -366,6 +371,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
+                } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
+                    const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
+                    setClipboardMessage(mentionWhisperMessage);
                 } else if (content) {
                     setClipboardMessage(content);
                 } else if (messageText) {

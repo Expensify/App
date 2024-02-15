@@ -33,12 +33,12 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
@@ -180,11 +180,16 @@ function ReportActionItem({
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
     const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
+
+    const reportScrollManager = useReportScrollManager();
+
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
         [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
     );
+
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
+    const prevActionResolution = usePrevious(action.originalMessage.resolution ?? null);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isIOUReport(action) && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails;
@@ -319,6 +324,18 @@ function ReportActionItem({
         [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
     );
 
+    // Handles manual scrolling to the bottom of the chat when the last message is an actionable mention whisper and it's resolved.
+    // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
+    useEffect(() => {
+        if (index !== 0 || !ReportActionsUtils.isActionableMentionWhisper(action)) {
+            return;
+        }
+
+        if (prevActionResolution !== action.originalMessage.resolution ??null) {
+            reportScrollManager.scrollToIndex(index);
+        }
+    }, [index, action, prevActionResolution, reportScrollManager]);
+
     const toggleReaction = useCallback(
         (emoji: Emoji) => {
             Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions);
@@ -337,7 +354,7 @@ function ReportActionItem({
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!(action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && (!action?.originalMessage.resolution ?? null))) {
+        if (!(ReportActionsUtils.isActionableMentionWhisper(action) && !action.originalMessage?.resolution ??null)) {
             return [];
         }
         return [
@@ -353,7 +370,7 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, report]);
+    }, [action, report.reportID]);
 
     /**
      * Get the content of ReportActionItem
@@ -471,10 +488,7 @@ function ReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID ?? -1]);
-            const amount = CurrencyUtils.convertToDisplayString(report.total, report.currency);
-
-            children = <ReportActionItemBasicMessage message={translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
@@ -708,6 +722,11 @@ function ReportActionItem({
     // For the `pay` IOU action on non-send money flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
     if (isIOUReport(action) && !!report?.isWaitingOnBankAccount && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+        return null;
+    }
+
+    // if action is actionable mention whisper and resolved by user, then we don't want to render anything
+    if (ReportActionsUtils.isActionableMentionWhisper(props.action) && lodashGet(props.action, 'originalMessage.resolution', null)) {
         return null;
     }
 
