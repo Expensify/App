@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
-import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
+import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -12,56 +12,31 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
-    item: PropTypes.shape({
-        /** Report action ID of the attachment */
-        reportActionID: PropTypes.string,
-
-        /** Whether source URL requires authentication */
-        isAuthTokenRequired: PropTypes.bool,
-
-        /** URL to full-sized attachment or SVG function */
-        source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-        /** Additional information about the attachment file */
-        file: PropTypes.shape({
-            /** File name of the attachment */
-            name: PropTypes.string.isRequired,
-        }).isRequired,
-
-        /** Whether the attachment has been flagged */
-        hasBeenFlagged: PropTypes.bool,
-
-        /** The id of the transaction related to the attachment */
-        transactionID: PropTypes.string,
-    }).isRequired,
+    item: Attachment;
 
     /** Whether there is only one element in the attachment carousel */
-    isSingleItem: PropTypes.bool.isRequired,
+    isSingleItem: boolean;
 
     /** The index of the carousel item */
-    index: PropTypes.number.isRequired,
+    index?: number;
 
     /** The index of the currently active carousel item */
-    activeIndex: PropTypes.number.isRequired,
+    activeIndex?: number;
 
     /** onPress callback */
-    onPress: PropTypes.func,
+    onPress?: () => void;
 };
 
-const defaultProps = {
-    onPress: undefined,
-};
-
-function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
+function CarouselItem({item, index, activeIndex, isSingleItem, onPress}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const [isHidden, setIsHidden] = useState(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const [isHidden, setIsHidden] = useState(() => (item.reportActionID ? isAttachmentHidden(item.reportActionID) : item.hasBeenFlagged));
 
-    const renderButton = (style) => (
+    const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
             small
             style={style}
@@ -109,7 +84,7 @@ function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
                     carouselItemIndex={index}
                     carouselActiveItemIndex={activeIndex}
                     onPress={onPress}
-                    transactionID={item.transactionID}
+                    transactionID={item.transactionID ?? ''}
                 />
             </View>
 
@@ -122,8 +97,6 @@ function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
     );
 }
 
-CarouselItem.propTypes = propTypes;
-CarouselItem.defaultProps = defaultProps;
 CarouselItem.displayName = 'CarouselItem';
 
 export default CarouselItem;

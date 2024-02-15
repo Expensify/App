@@ -1,24 +1,19 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import {useEffect} from 'react';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type CarouselActionsProps = {
     /** Callback to cycle through attachments */
-    onCycleThroughAttachments: PropTypes.func.isRequired,
+    onCycleThroughAttachments: (deltaSlide: number) => void;
 };
 
-function CarouselActions({onCycleThroughAttachments}) {
+function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
     useEffect(() => {
         const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
         const unsubscribeLeftKey = KeyboardShortcut.subscribe(
             shortcutLeftConfig.shortcutKey,
-            (e) => {
-                if (lodashGet(e, 'target.blur')) {
-                    // prevents focus from highlighting around the modal
-                    e.target.blur();
-                }
+            (e?: KeyboardEvent) => {
+                (e as unknown as React.FocusEvent<HTMLElement>)?.target?.blur();
 
                 onCycleThroughAttachments(-1);
             },
@@ -30,10 +25,7 @@ function CarouselActions({onCycleThroughAttachments}) {
         const unsubscribeRightKey = KeyboardShortcut.subscribe(
             shortcutRightConfig.shortcutKey,
             (e) => {
-                if (lodashGet(e, 'target.blur')) {
-                    // prevents focus from highlighting around the modal
-                    e.target.blur();
-                }
+                (e as unknown as React.FocusEvent<HTMLElement>)?.target?.blur();
 
                 onCycleThroughAttachments(1);
             },
@@ -49,7 +41,5 @@ function CarouselActions({onCycleThroughAttachments}) {
 
     return null;
 }
-
-CarouselActions.propTypes = propTypes;
 
 export default CarouselActions;
