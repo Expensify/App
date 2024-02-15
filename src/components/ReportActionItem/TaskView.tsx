@@ -142,7 +142,7 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                         shouldParseTitle
                         description={translate('task.description')}
                         title={report.description ?? ''}
-                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -151,8 +151,8 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                         interactive={!isDisableInteractive}
                     />
                 </OfflineWithFeedback>
-                {report.managerID ? (
-                    <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
+                <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
+                    {report.managerID ? (
                         <MenuItem
                             label={translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
@@ -169,18 +169,18 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                             interactive={!isDisableInteractive}
                             titleWithTooltips={assigneeTooltipDetails}
                         />
-                    </OfflineWithFeedback>
-                ) : (
-                    <MenuItemWithTopDescription
-                        description={translate('task.assignee')}
-                        onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
-                        shouldShowRightIcon={isOpen}
-                        disabled={disableState}
-                        wrapperStyle={[styles.pv2]}
-                        shouldGreyOutWhenDisabled={false}
-                        interactive={!isDisableInteractive}
-                    />
-                )}
+                    ) : (
+                        <MenuItemWithTopDescription
+                            description={translate('task.assignee')}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
+                            shouldShowRightIcon={isOpen}
+                            disabled={disableState}
+                            wrapperStyle={[styles.pv2]}
+                            shouldGreyOutWhenDisabled={false}
+                            interactive={!isDisableInteractive}
+                        />
+                    )}
+                </OfflineWithFeedback>
             </OfflineWithFeedback>
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
