@@ -12,7 +12,7 @@ type BaseForm = {
     errorFields?: OnyxCommon.ErrorFields | null;
 };
 
-type FormValues<TInputs extends string> = Partial<Record<TInputs, FormValue>>;
+type FormValues<TInputs extends string> = Record<TInputs, FormValue>;
 type Form<TInputs extends string = string, TFormValues extends FormValues<TInputs> = FormValues<TInputs>> = TFormValues & BaseForm;
 
 export default Form;

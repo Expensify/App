@@ -363,7 +363,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
  * Updates the bank account in the database with the company step data
  * @param params - Business step form data
  */
-function updateCompanyInformationForBankAccount(bankAccountID: number, params: CompanyStepProps) {
+function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>) {
     API.write(
         WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {
@@ -379,7 +379,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: C
  * Add beneficial owners for the bank account and verify the accuracy of the information provided
  * @param params - Beneficial Owners step form params
  */
-function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: BeneficialOwnersStepProps) {
+function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Partial<BeneficialOwnersStepProps>) {
     API.write(
         WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT,
         {
