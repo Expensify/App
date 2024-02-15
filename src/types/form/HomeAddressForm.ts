@@ -10,10 +10,10 @@ const INPUT_IDS = {
     ZIP_POST_CODE: 'zipPostCode',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type HomeAddressForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.ADDRESS_LINE_1]: string;
         [INPUT_IDS.ADDRESS_LINE_2]: string;

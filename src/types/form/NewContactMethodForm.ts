@@ -5,10 +5,10 @@ const INPUT_IDS = {
     PHONE_OR_EMAIL: 'phoneOrEmail',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type NewContactMethodForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.PHONE_OR_EMAIL]: string;
     }

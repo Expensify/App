@@ -9,10 +9,10 @@ const INPUT_IDS = {
     VISIBILITY: 'visibility',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type NewRoomForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.ROOM_NAME]: string;
         [INPUT_IDS.REPORT_DESCRIPTION]: string;

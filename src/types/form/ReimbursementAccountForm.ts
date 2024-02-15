@@ -120,7 +120,7 @@ type ReimbursementAccountProps = {
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
-    Form<InputIDs, BeneficialOwnersStepBaseProps & BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps>;
+    Form<InputID, BeneficialOwnersStepBaseProps & BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps>;
 
 export type {
     ReimbursementAccountForm,

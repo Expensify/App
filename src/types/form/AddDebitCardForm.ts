@@ -13,10 +13,10 @@ const INPUT_IDS = {
     ACCEPT_TERMS: 'acceptTerms',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type AddDebitCardForm = Form<
-    InputIDs,
+    InputID,
     {
         /** Whether the form has been submitted */
         [INPUT_IDS.SETUP_COMPLETE]: boolean;

@@ -6,10 +6,10 @@ const INPUT_IDS = {
     MONEY_REQUEST_CREATED: 'moneyRequestCreated',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type MoneyRequestDateForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.CREATED]: string;
         [INPUT_IDS.MONEY_REQUEST_CREATED]: string;

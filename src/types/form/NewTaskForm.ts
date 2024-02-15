@@ -6,10 +6,10 @@ const INPUT_IDS = {
     TASK_DESCRIPTION: 'taskDescription',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type NewTaskForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.TASK_TITLE]: string;
         [INPUT_IDS.TASK_DESCRIPTION]: string;

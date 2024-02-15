@@ -5,10 +5,10 @@ const INPUT_IDS = {
     ROOM_NAME: 'roomName',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type RoomNameForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.ROOM_NAME]: string;
     }

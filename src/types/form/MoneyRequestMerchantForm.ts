@@ -6,10 +6,10 @@ const INPUT_IDS = {
     MONEY_REQUEST_MERCHANT: 'moneyRequestMerchant',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type MoneyRequestMerchantForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.MERCHANT]: string;
         [INPUT_IDS.MONEY_REQUEST_MERCHANT]: string;

@@ -7,10 +7,10 @@ const INPUT_IDS = {
     PARTNER_USER_ID: 'partnerUserID',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type IKnowTeacherForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.FIRST_NAME]: string;
         [INPUT_IDS.LAST_NAME]: string;

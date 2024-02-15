@@ -5,10 +5,10 @@ const INPUT_IDS = {
     DATE_TIME: 'dateTime',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type SettingsStatusClearDateForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.DATE_TIME]: string;
     }

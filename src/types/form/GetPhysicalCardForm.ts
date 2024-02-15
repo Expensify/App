@@ -9,10 +9,10 @@ const INPUT_IDS = {
     PHONE_NUMBER: 'phoneNumber',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type GetPhysicalCardForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.ADDRESS_LINE_1]: string;
         [INPUT_IDS.ADDRESS_LINE_2]: string;

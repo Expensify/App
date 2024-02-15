@@ -5,10 +5,10 @@ const INPUT_IDS = {
     WELCOME_MESSAGE: 'welcomeMessage',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type WorkspaceInviteMessageForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.WELCOME_MESSAGE]: string;
     }

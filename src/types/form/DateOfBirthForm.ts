@@ -5,10 +5,10 @@ const INPUT_IDS = {
     DOB: 'dob',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type DateOfBirthForm = Form<
-    InputIDs,
+    InputID,
     {
         /** Date of birth */
         [INPUT_IDS.DOB]: string;

@@ -6,10 +6,10 @@ const INPUT_IDS = {
     UNIT: 'unit',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type WorkspaceRateAndUnitForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.RATE]: string;
         [INPUT_IDS.UNIT]: string;

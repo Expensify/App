@@ -7,10 +7,10 @@ const INPUT_IDS = {
     SUCCESS: 'success',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type CloseAccountForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.REASON_FOR_LEAVING]: string;
         [INPUT_IDS.PHONE_OR_EMAIL]: string;

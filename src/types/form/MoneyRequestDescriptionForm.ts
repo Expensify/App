@@ -6,10 +6,10 @@ const INPUT_IDS = {
     MONEY_REQUEST_COMMENT: 'moneyRequestComment',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type MoneyRequestDescriptionForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.COMMENT]: string;
         [INPUT_IDS.MONEY_REQUEST_COMMENT]: string;

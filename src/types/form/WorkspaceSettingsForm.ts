@@ -5,10 +5,10 @@ const INPUT_IDS = {
     NAME: 'name',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type WorkspaceSettingsForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.NAME]: string;
     }

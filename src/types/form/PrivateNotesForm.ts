@@ -5,10 +5,10 @@ const INPUT_IDS = {
     PRIVATE_NOTES: 'privateNotes',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type PrivateNotesForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.PRIVATE_NOTES]: string;
     }

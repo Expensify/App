@@ -6,10 +6,10 @@ const INPUT_IDS = {
     LAST_NAME: 'lastName',
 } as const;
 
-type InputIDs = ValueOf<typeof INPUT_IDS>;
+type InputID = ValueOf<typeof INPUT_IDS>;
 
 type DisplayNameForm = Form<
-    InputIDs,
+    InputID,
     {
         [INPUT_IDS.FIRST_NAME]: string;
         [INPUT_IDS.LAST_NAME]: string;
