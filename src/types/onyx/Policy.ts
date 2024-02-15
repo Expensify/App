@@ -165,8 +165,17 @@ type Policy = {
     /** Whether the workspace has multiple levels of tags enabled */
     hasMultipleTagLists?: boolean;
 
-    /** When tax tracking is enabled */
+    /**
+     * Whether or not the policy has tax tracking enabled
+     *
+     * @deprecated - use tax.trackingEnabled instead
+     */
     isTaxTrackingEnabled?: boolean;
+
+    /** Whether or not the policy has tax tracking enabled */
+    tax?: {
+        trackingEnabled: boolean;
+    };
 
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;

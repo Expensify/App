@@ -6,6 +6,7 @@ import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
+import type Log from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
@@ -151,4 +152,5 @@ export type {
     PaymentMethodType,
     PolicyTaxRate,
     PolicyTaxRates,
+    Log,
 };
