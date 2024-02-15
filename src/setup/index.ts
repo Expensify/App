@@ -1,16 +1,16 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
+import getPlatform from '@libs/getPlatform';
 import intlPolyfill from '@libs/IntlPolyfill';
 import * as Metrics from '@libs/Metrics';
 import * as Device from '@userActions/Device';
 import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getPlatform from '@libs/getPlatform';
 import platformSetup from './platformSetup';
 
 function initializeLastVisitedPath(): string | undefined {
-    if(!(getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS)){
+    if (!(getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS)) {
         return;
     }
     return '';
@@ -49,7 +49,7 @@ export default function () {
                 willAlertModalBecomeVisible: false,
             },
             // Always open the home route on app startup for native platforms by clearing the lastVisitedPath
-            [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath()
+            [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath(),
         },
     });
 
