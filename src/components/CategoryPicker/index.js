@@ -84,7 +84,7 @@ CategoryPicker.defaultProps = defaultProps;
 
 export default withOnyx({
     policyCategories: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${"062D53707053B5B9"}`,
     },
     policyRecentlyUsedCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
