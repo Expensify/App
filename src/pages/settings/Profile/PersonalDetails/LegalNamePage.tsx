@@ -44,26 +44,33 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
         const errors: Errors = {};
 
-        if (!ValidationUtils.isValidLegalName(values.legalFirstName ?? '')) {
-            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (!values.legalFirstName) {
-            errors.legalFirstName = 'common.error.fieldRequired';
-        } else if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
-        }
-        if (ValidationUtils.doesContainReservedWord(values.legalFirstName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
+        if (typeof values.legalFirstName === 'string') {
+            if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+                ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (!values.legalFirstName) {
+                errors.legalFirstName = 'common.error.fieldRequired';
+            } else if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'legalFirstName', [
+                    'common.error.characterLimitExceedCounter',
+                    {length: values.legalFirstName.length, limit: CONST.TITLE_CHARACTER_LIMIT},
+                ]);
+            }
+            if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
+            }
         }
 
-        if (!ValidationUtils.isValidLegalName(values.legalLastName ?? '')) {
-            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (!values.legalLastName) {
-            errors.legalLastName = 'common.error.fieldRequired';
-        } else if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
-        }
-        if (ValidationUtils.doesContainReservedWord(values.legalLastName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
+        if (typeof values.legalLastName === 'string') {
+            if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+                ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (!values.legalLastName) {
+                errors.legalLastName = 'common.error.fieldRequired';
+            } else if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            }
+            if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
+            }
         }
 
         return errors;

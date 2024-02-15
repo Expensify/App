@@ -6,12 +6,13 @@ import type AmountForm from '@components/AmountForm';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountrySelector from '@components/CountrySelector';
+import type DatePicker from '@components/DatePicker';
 import type Picker from '@components/Picker';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
-import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
 
@@ -32,7 +33,8 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof AmountForm
     | typeof BusinessTypePicker
-    | typeof StatePicker;
+    | typeof StatePicker
+    | typeof DatePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {
@@ -120,6 +122,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
-type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, TranslationPaths>>;
+type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, MaybePhraseKey>>;
 
 export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, ValueTypeMap};

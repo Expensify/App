@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +18,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
-import {PrivatePersonalDetails} from '@src/types/onyx';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 type DateOfBirthPageOnyxProps = {
     /** User's private personal details */
@@ -34,9 +35,9 @@ function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
     /**
      * @returns An object containing the errors for each inputID
      */
-    const validate = useCallback((values: PrivatePersonalDetails) => {
-        const requiredFields = ['dob'];
-        const errors = ValidationUtils.getFieldRequiredErrors(values as Error, requiredFields);
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
+        const requiredFields = ['dob' as const];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
@@ -76,6 +77,8 @@ function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
                         defaultValue={privatePersonalDetails?.dob ?? ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                         maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                        onInputChange={() => {}}
+                        onTouched={() => {}}
                     />
                 </FormProvider>
             )}
