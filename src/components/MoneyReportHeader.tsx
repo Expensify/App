@@ -88,8 +88,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !(policy.harvesting?.enabled ?? policy.isHarvestingEnabled),
-        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled, policy.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !policy.harvesting?.enabled,
+        [chatReport?.isOwnPolicyExpenseChat, policy.harvesting?.enabled],
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
@@ -104,7 +104,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 policy={policy}
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
                 shouldShowThreeDotsButton
