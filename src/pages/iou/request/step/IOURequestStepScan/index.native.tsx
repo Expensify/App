@@ -102,9 +102,9 @@ function IOURequestStepScan({
         });
 
     useEffect(() => {
-        const refreshCameraPermissionStatus = () => {
+        const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
             CameraPermission.getCameraPermissionStatus()
-                .then((res) => {
+                .then((res: string) => {
                     // In android device app data, the status is not set to blocked until denied twice,
                     // due to that the app will ask for permission twice whenever users opens uses the scan tab
                     setCameraPermissionStatus(res);
@@ -229,9 +229,14 @@ function IOURequestStepScan({
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
                 if (action === CONST.IOU.ACTION.EDIT) {
-                    FileUtils.readFileAsync(source, photo.path, (file) => {
-                        updateScanAndNavigate(file, source);
-                    });
+                    FileUtils.readFileAsync(
+                        source,
+                        photo.path,
+                        (file) => {
+                            updateScanAndNavigate(file, source);
+                        },
+                        showCameraAlert,
+                    );
                     return;
                 }
 

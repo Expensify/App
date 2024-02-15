@@ -12,6 +12,9 @@ type NavigationAwareCameraProps = {
 
     /** Callback function passing torch/flashlight capability as bool param of the browser */
     onUserMedia?: (stream: MediaStream) => void;
+
+    /** Callback function when media stream becomes available - user granted camera permissions and camera starts to work */
+    onUserMediaError: (error: string | DOMException) => void;
 };
 
 type NavigationAwareCameraNativeProps = {
