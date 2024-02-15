@@ -186,7 +186,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     icon: Expensicons.RotateLeft,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
-                    action: () => NativeModules.HybridAppModule.closeReactNativeApp() as void,
+                    action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
                 },
                 ...defaultMenu.items,
             ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic');
