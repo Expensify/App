@@ -65,7 +65,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
-    displayInDefaultIconColor = false,
+    displayInDefaultIconColor = true,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -91,9 +91,8 @@ function Avatar({
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-
     const avatarSource = imageError ? fallbackAvatar : source;
-
+    const fillColor = imageError ? theme.offline : iconFillColor;
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
             {typeof avatarSource === 'function' || typeof avatarSource === 'number' ? (
@@ -103,7 +102,7 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={displayInDefaultIconColor ? undefined : imageError ? theme.offline : iconFillColor}
+                        fill={displayInDefaultIconColor ? undefined : fillColor}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(size, type),
                             isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),

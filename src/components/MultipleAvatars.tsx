@@ -157,7 +157,6 @@ function MultipleAvatars({
                         name={icons[0].name}
                         type={icons[0].type}
                         fallbackIcon={icons[0].fallbackIcon}
-                        displayInDefaultIconColor
                     />
                 </View>
             </UserDetailsTooltip>
