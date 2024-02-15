@@ -320,6 +320,11 @@ export default compose(
             key: ONYXKEYS.BETAS,
             initialValue: [],
         },
+        allReportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            selector: reportActionsSelector,
+            initialValue: {},
+        },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
