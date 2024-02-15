@@ -48,6 +48,7 @@ import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
+import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
@@ -58,6 +59,7 @@ import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
 import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
+import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -91,7 +93,6 @@ import Menu from '@assets/images/menu.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import Monitor from '@assets/images/monitor.svg';
-import NewExpensify from '@assets/images/new-expensify.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -234,7 +235,7 @@ export {
     MoneyBag,
     MoneyCircle,
     Monitor,
-    NewExpensify,
+    ExpensifyLogoNew,
     NewWindow,
     NewWorkspace,
     Offline,
@@ -280,4 +281,5 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
+    Lightbulb,
 };
