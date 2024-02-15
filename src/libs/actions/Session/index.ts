@@ -1,7 +1,7 @@
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {Linking} from 'react-native';
+import {InteractionManager, Linking, NativeModules} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -45,6 +45,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -504,11 +505,6 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '') {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
-    Navigation.navigate(ROUTES.HOME);
-}
-
 /**
  * Initializes the state of the automatic authentication when the user clicks on a magic link.
  *
@@ -855,6 +851,26 @@ function waitForUserSignIn(): Promise<boolean> {
     });
 }
 
+function handleExitToNavigation(exitTo: Routes | HybridAppRoute) {
+    InteractionManager.runAfterInteractions(() => {
+        waitForUserSignIn().then(() => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+            });
+        });
+    });
+}
+
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '', exitTo?: Routes | HybridAppRoute) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+    if (exitTo) {
+        handleExitToNavigation(exitTo);
+    } else {
+        Navigation.navigate(ROUTES.HOME);
+    }
+}
+
 /**
  * check if the route can be accessed by anonymous user
  *
@@ -890,6 +906,7 @@ export {
     checkIfActionIsAllowed,
     signIn,
     signInWithValidateCode,
+    handleExitToNavigation,
     signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,

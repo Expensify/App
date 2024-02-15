@@ -21,7 +21,7 @@ const lightTheme = {
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
-    syntax: colors.productLight600,
+    syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
     buttonDefaultBG: colors.productLight400,
@@ -105,8 +105,8 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-            backgroundColor: colors.blue500,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.WORKSPACES]: {
             backgroundColor: colors.productLight100,
@@ -114,10 +114,6 @@ const lightTheme = {
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
             backgroundColor: colors.productLight100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
-        },
-        [SCREENS.SETTINGS.SECURITY]: {
-            backgroundColor: colors.ice500,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.PROFILE.STATUS]: {
@@ -132,8 +128,8 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.SETTINGS.ABOUT]: {
-            backgroundColor: colors.yellow600,
+        [SCREENS.SETTINGS.TROUBLESHOOT]: {
+            backgroundColor: colors.blue700,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.REFERRAL_DETAILS]: {
