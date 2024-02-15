@@ -41,11 +41,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isThumbnail, setIsThumbnail] = useState(true);
-    const [measuredDimenstions, setMeasuredDimenstions] = useState(videoDimensions);
-    const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimenstions.width, measuredDimenstions.height);
+    const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
+    const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
 
     const onVideoLoaded = (e) => {
-        setMeasuredDimenstions({width: e.srcElement.videoWidth, height: e.srcElement.videoHeight});
+        setMeasuredDimensions({width: e.srcElement.videoWidth, height: e.srcElement.videoHeight});
     };
 
     const handleOnPress = () => {
