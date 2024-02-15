@@ -630,7 +630,7 @@ function ReportActionItem(props) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={lodashGet(parentReportAction, 'pendingAction', null)}>
@@ -645,7 +645,6 @@ function ReportActionItem(props) {
                                 </ReportActionItemSingle>
                             </OfflineWithFeedback>
                         </View>
-                        <View style={styles.threadDividerLine} />
                     </View>
                 );
             }
