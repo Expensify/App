@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -13,6 +14,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -85,11 +87,13 @@ function BaseValidateCodeForm(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isFocused = useIsFocused();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [timeRemaining, setTimeRemaining] = useState(30);
     const [recoveryCode, setRecoveryCode] = useState('');
+    const [needToClearError, setNeedToClearError] = useState(props.account.errors);
 
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(props.credentials.validateCode);
@@ -98,7 +102,7 @@ function BaseValidateCodeForm(props) {
     const input2FARef = useRef();
     const timerRef = useRef();
 
-    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors) && !needToClearError;
     const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
     const isValidateCodeFormSubmitting =
@@ -112,11 +116,11 @@ function BaseValidateCodeForm(props) {
     }, [props.account.isLoading, props.session.autoAuthState, hasError]);
 
     useEffect(() => {
-        if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus()) {
+        if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !props.isVisible || !isFocused) {
             return;
         }
         inputValidateCodeRef.current.focus();
-    }, []);
+    }, [props.isVisible, isFocused]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
@@ -211,6 +215,18 @@ function BaseValidateCodeForm(props) {
         clearLocalSignInData();
         Session.clearSignInData();
     };
+
+    useEffect(() => {
+        if (!needToClearError) {
+            return;
+        }
+
+        if (props.account.errors) {
+            Session.clearAccountMessages();
+            return;
+        }
+        setNeedToClearError(false);
+    }, [props.account.errors, needToClearError]);
 
     /**
      * Switches between 2fa and recovery code, clears inputs and errors
@@ -310,7 +326,7 @@ function BaseValidateCodeForm(props) {
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.RECOVERY_CODE_LENGTH}
                             label={props.translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError.recoveryCode ? props.translate(formError.recoveryCode) : ''}
+                            errorText={formError.recoveryCode || ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
@@ -326,7 +342,7 @@ function BaseValidateCodeForm(props) {
                             onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
                             onFulfill={validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
+                            errorText={formError.twoFactorAuthCode || ''}
                             hasError={hasError}
                             autoFocus
                             key="twoFactorAuthCode"
@@ -356,10 +372,11 @@ function BaseValidateCodeForm(props) {
                         value={validateCode}
                         onChangeText={(text) => onTextInput(text, 'validateCode')}
                         onFulfill={validateAndSubmitForm}
-                        errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
+                        errorText={formError.validateCode || ''}
                         hasError={hasError}
                         autoFocus
                         key="validateCode"
+                        testID="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>
@@ -417,4 +434,5 @@ export default compose(
         session: {key: ONYXKEYS.SESSION},
     }),
     withNetwork(),
+    withToggleVisibilityView,
 )(BaseValidateCodeForm);

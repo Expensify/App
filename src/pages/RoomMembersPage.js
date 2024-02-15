@@ -100,6 +100,7 @@ function RoomMembersPage(props) {
 
     /**
      * Remove selected users from the room
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         Report.removeFromRoom(props.report.reportID, selectedMembers);
@@ -218,6 +219,7 @@ function RoomMembersPage(props) {
                         source: UserUtils.getAvatar(details.avatar, accountID),
                         name: details.login,
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: Number(accountID),
                     },
                 ],
             });
@@ -282,6 +284,7 @@ function RoomMembersPage(props) {
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}

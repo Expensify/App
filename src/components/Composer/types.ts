@@ -6,6 +6,12 @@ type TextSelection = {
 };
 
 type ComposerProps = {
+    /** identify id in the text input */
+    id?: string;
+
+    /** Indicate whether input is multiline */
+    multiline?: boolean;
+
     /** Maximum number of lines in the text input */
     maxLines?: number;
 
@@ -17,6 +23,9 @@ type ComposerProps = {
 
     /** Number of lines for the comment */
     numberOfLines?: number;
+
+    /** Callback method handle when the input is changed  */
+    onChangeText?: (numberOfLines: string) => void;
 
     /** Callback method to update number of lines for the comment */
     onNumberOfLinesChange?: (numberOfLines: number) => void;
@@ -68,6 +77,8 @@ type ComposerProps = {
     onKeyPress?: (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
 
     onFocus?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+
+    onBlur?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;

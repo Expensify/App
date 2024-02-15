@@ -81,7 +81,7 @@ const defaultProps = {
 function IOURequestStepWaypoint({
     recentWaypoints,
     route: {
-        params: {iouType, pageIndex, reportID, transactionID},
+        params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
     userLocation,
@@ -113,8 +113,8 @@ function IOURequestStepWaypoint({
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
-    // Hide the menu when there is only start and finish waypoint
-    const shouldShowThreeDotsButton = waypointCount > 2;
+    // Hide the menu when there is only start and finish waypoint or the current waypoint is empty
+    const shouldShowThreeDotsButton = waypointCount > 2 && waypointAddress;
     const shouldDisableEditor =
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
@@ -135,7 +135,7 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
 
     const submit = (values) => {
         const waypointValue = values[`waypoint${pageIndex}`] || '';
@@ -180,7 +180,11 @@ function IOURequestStepWaypoint({
             address: values.address,
             name: values.name || null,
         };
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
@@ -199,6 +203,7 @@ function IOURequestStepWaypoint({
                         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
                     }}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                    shouldSetModalVisibility={false}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                     threeDotsMenuItems={[
                         {
@@ -213,6 +218,7 @@ function IOURequestStepWaypoint({
                     isVisible={isDeleteStopModalOpen}
                     onConfirm={deleteStopAndHideModal}
                     onCancel={() => setIsDeleteStopModalOpen(false)}
+                    shouldSetModalVisibility={false}
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

@@ -306,7 +306,7 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
@@ -370,7 +370,7 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceAndExtractEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
@@ -548,6 +548,23 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
     };
 };
 
+/**
+ * Given an emoji code, returns an base emoji code without skin tone
+ */
+const getRemovedSkinToneEmoji = (emoji: string) => emoji.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+
+function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
+    const spacersIndexes: number[] = [];
+    allEmojis.forEach((emoji, index) => {
+        if (!(CONST.EMOJI_PICKER_ITEM_TYPES.SPACER in emoji)) {
+            return;
+        }
+
+        spacersIndexes.push(index);
+    });
+    return spacersIndexes;
+}
+
 export {
     findEmojiByName,
     findEmojiByCode,
@@ -570,4 +587,6 @@ export {
     getAddedEmojis,
     isFirstLetterEmoji,
     hasAccountIDEmojiReacted,
+    getRemovedSkinToneEmoji,
+    getSpacersIndexes,
 };

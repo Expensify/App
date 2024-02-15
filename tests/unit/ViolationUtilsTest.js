@@ -1,6 +1,6 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
-import ViolationsUtils from '@libs/ViolationsUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const categoryOutOfPolicyViolation = {
@@ -128,7 +128,13 @@ describe('getViolationsOnyxData', () => {
     describe('policyRequiresTags', () => {
         beforeEach(() => {
             policyRequiresTags = true;
-            policyTags = {Lunch: {enabled: true}, Dinner: {enabled: true}};
+            policyTags = {
+                Tag: {
+                    name: 'Tag',
+                    required: true,
+                    tags: {Lunch: {enabled: true}, Dinner: {enabled: true}},
+                },
+            };
             transaction.tag = 'Lunch';
         });
 

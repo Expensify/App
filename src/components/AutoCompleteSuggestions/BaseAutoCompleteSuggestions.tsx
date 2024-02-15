@@ -107,7 +107,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                     keyExtractor={keyExtractor}
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.value}
-                    extraData={highlightedSuggestionIndex}
+                    extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
                 />
             </ColorSchemeWrapper>
         </Animated.View>

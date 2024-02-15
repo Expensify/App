@@ -1,30 +1,25 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {InteractionManager, ScrollView, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ShowMoreButton from '@components/ShowMoreButton';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withNavigation from '@components/withNavigation';
+import withNavigationFocus from '@components/withNavigationFocus';
 import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -39,6 +34,9 @@ const propTypes = {
 
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 
     /** Whether referral CTA should be displayed */
     shouldShowReferralCTA: PropTypes.bool,
@@ -70,78 +68,76 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
-        this.handleReferralModal = this.handleReferralModal.bind(this);
         this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.addToSelection = this.addToSelection.bind(this);
         this.updateSearchValue = this.updateSearchValue.bind(this);
         this.incrementPage = this.incrementPage.bind(this);
         this.sliceSections = this.sliceSections.bind(this);
         this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
-        this.onLayout = this.onLayout.bind(this);
-        this.setListRef = this.setListRef.bind(this);
+        this.handleFocusIn = this.handleFocusIn.bind(this);
+        this.handleFocusOut = this.handleFocusOut.bind(this);
         this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
+        this.accessibilityRoles = _.values(CONST.ROLE);
+        this.isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
-        this.focusListener = null;
-        this.blurListener = null;
-        this.isFocused = false;
+        const allOptions = this.flattenSections();
+        const sections = this.sliceSections();
+        const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
 
         this.state = {
-            sections: [],
-            allOptions: [],
-            focusedIndex: 0,
+            sections,
+            allOptions,
+            focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: false,
             errorMessage: '',
             paginationPage: 1,
+            disableEnterShortCut: false,
             value: '',
         };
     }
 
     componentDidMount() {
-        this.focusListener = this.props.navigation.addListener('focus', () => {
-            // Screen coming back into focus, for example
-            // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
-            // Only applies to platforms that support keyboard shortcuts
-            if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
-                this.subscribeToKeyboardShortcut();
-            }
+        this.subscribeToEnterShortcut();
+        this.subscribeToCtrlEnterShortcut();
+        this.subscribeActiveElement();
 
-            if (this.props.autoFocus && this.textInput) {
-                this.focusTimeout = setTimeout(() => {
-                    this.textInput.focus();
-                }, CONST.ANIMATED_TRANSITION);
-            }
+        if (this.props.isFocused && this.props.autoFocus && this.textInput) {
+            this.focusTimeout = setTimeout(() => {
+                this.textInput.focus();
+            }, CONST.ANIMATED_TRANSITION);
+        }
 
-            this.isFocused = true;
-        });
-
-        this.blurListener = this.props.navigation.addListener('blur', () => {
-            if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
-                this.unSubscribeFromKeyboardShortcut();
-            }
-            this.isFocused = false;
-        });
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
-
-        /**
-         * Execute the following code after all interactions have been completed.
-         * Which means once we are sure that all navigation animations are done,
-         * we will execute the callback passed to `runAfterInteractions`.
-         */
-        this.interactionTask = InteractionManager.runAfterInteractions(() => {
-            const allOptions = this.flattenSections();
-            const sections = this.sliceSections();
-            const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
-            this.setState({
-                sections,
-                allOptions,
-                focusedIndex,
-            });
-        });
     }
 
     componentDidUpdate(prevProps, prevState) {
+        if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unsubscribeEnter();
+            if (!this.state.disableEnterShortCut) {
+                this.subscribeToEnterShortcut();
+            }
+        }
+
+        if (prevProps.isFocused !== this.props.isFocused) {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unSubscribeFromKeyboardShortcut();
+            if (this.props.isFocused) {
+                this.subscribeToEnterShortcut();
+                this.subscribeToCtrlEnterShortcut();
+            }
+        }
+
+        // Screen coming back into focus, for example
+        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
+        // Only applies to platforms that support keyboard shortcuts
+        if (this.isWebOrDesktop && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
+            setTimeout(() => {
+                this.textInput.focus();
+            }, CONST.ANIMATED_TRANSITION);
+        }
+
         if (prevState.paginationPage !== this.state.paginationPage) {
             const newSections = this.sliceSections();
 
@@ -191,24 +187,11 @@ class BaseOptionsSelector extends Component {
     }
 
     componentWillUnmount() {
-        if (this.interactionTask) {
-            this.interactionTask.cancel();
-        }
-        this.focusListener();
-        this.blurListener();
         if (this.focusTimeout) {
             clearTimeout(this.focusTimeout);
         }
-    }
 
-    onLayout() {
-        if (this.props.selectedOptions.length === 0) {
-            this.scrollToIndex(this.state.focusedIndex, false);
-        }
-
-        if (this.props.onLayout) {
-            this.props.onLayout();
-        }
+        this.unSubscribeFromKeyboardShortcut();
     }
 
     /**
@@ -230,15 +213,7 @@ class BaseOptionsSelector extends Component {
 
         const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
 
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
-    }
-
-    setListRef(ref) {
-        this.list = ref;
+        return indexOfInitiallyFocusedOption;
     }
 
     /**
@@ -278,18 +253,43 @@ class BaseOptionsSelector extends Component {
     updateSearchValue(value) {
         this.setState({
             paginationPage: 1,
-            errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            errorMessage: value.length > this.props.maxLength ? ['common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}] : '',
             value,
         });
 
         this.props.onChangeText(value);
     }
 
-    handleReferralModal() {
-        this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
     }
 
-    subscribeToKeyboardShortcut() {
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
+    }
+
+    subscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.addEventListener('focusin', this.handleFocusIn);
+        document.addEventListener('focusout', this.handleFocusOut);
+    }
+
+    unSubscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.removeEventListener('focusin', this.handleFocusIn);
+        document.removeEventListener('focusout', this.handleFocusOut);
+    }
+
+    subscribeToEnterShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -299,7 +299,9 @@ class BaseOptionsSelector extends Component {
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
         );
+    }
 
+    subscribeToCtrlEnterShortcut() {
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -336,7 +338,7 @@ class BaseOptionsSelector extends Component {
         const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
         const focusedOption = focusedItemKey ? _.find(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
 
-        if (!focusedOption || !this.isFocused) {
+        if (!focusedOption || !this.props.isFocused) {
             return;
         }
 
@@ -421,17 +423,7 @@ class BaseOptionsSelector extends Component {
             return;
         }
 
-        // Note: react-native's SectionList automatically strips out any empty sections.
-        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-        let adjustedSectionIndex = sectionIndex;
-        for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(this.state.sections, `[${i}].data`))) {
-                adjustedSectionIndex--;
-            }
-        }
-
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+        this.list.scrollToLocation({sectionIndex, itemIndex, animated});
     }
 
     /**
@@ -522,16 +514,18 @@ class BaseOptionsSelector extends Component {
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
+                iconLeft={this.props.textIconLeft}
                 testID="options-selector-input"
             />
         );
         const optionsList = (
             <OptionsList
-                ref={this.setListRef}
+                ref={(el) => (this.list = el)}
                 optionHoveredStyle={optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}
+                disableFocusOptions={this.props.disableFocusOptions}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
@@ -544,9 +538,16 @@ class BaseOptionsSelector extends Component {
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
                 highlightSelectedOptions={this.props.highlightSelectedOptions}
-                onLayout={this.onLayout}
-                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                contentContainerStyles={this.props.contentContainerStyles}
+                onLayout={() => {
+                    if (this.props.selectedOptions.length === 0) {
+                        this.scrollToIndex(this.state.focusedIndex, false);
+                    }
+
+                    if (this.props.onLayout) {
+                        this.props.onLayout();
+                    }
+                }}
+                contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 sectionHeaderStyle={this.props.sectionHeaderStyle}
                 listContainerStyles={listContainerStyles}
                 listStyles={this.props.listStyles}
@@ -557,7 +558,7 @@ class BaseOptionsSelector extends Component {
                 shouldPreventDefaultFocusOnSelectRow={this.props.shouldPreventDefaultFocusOnSelectRow}
                 nestedScrollEnabled={this.props.nestedScrollEnabled}
                 bounces={!this.props.shouldTextInputAppearBelowOptions || !this.props.shouldAllowScrollingChildren}
-                renderFooterContent={() =>
+                renderFooterContent={
                     shouldShowShowMoreButton && (
                         <ShowMoreButton
                             containerStyle={{...this.props.themeStyles.mt2, ...this.props.themeStyles.mb5}}
@@ -643,39 +644,7 @@ class BaseOptionsSelector extends Component {
                 </View>
                 {this.props.shouldShowReferralCTA && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
-                            }}
-                            style={[
-                                this.props.themeStyles.p5,
-                                this.props.themeStyles.w100,
-                                this.props.themeStyles.br2,
-                                this.props.themeStyles.highlightBG,
-                                this.props.themeStyles.flexRow,
-                                this.props.themeStyles.justifyContentBetween,
-                                this.props.themeStyles.alignItemsCenter,
-                                {gap: 10},
-                            ]}
-                            accessibilityLabel="referral"
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        >
-                            <Text>
-                                {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
-                                <Text
-                                    color={this.props.theme.success}
-                                    style={this.props.themeStyles.textStrong}
-                                >
-                                    {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
-                                </Text>
-                            </Text>
-                            <Icon
-                                src={Info}
-                                height={20}
-                                width={20}
-                                fill={this.props.theme.icon}
-                            />
-                        </PressableWithoutFeedback>
+                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
                     </View>
                 )}
 
@@ -702,4 +671,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default compose(withLocalize, withNavigation, withThemeStyles, withTheme)(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus, withThemeStyles, withTheme)(BaseOptionsSelector);

@@ -21,6 +21,7 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -94,7 +95,7 @@ function IOURequestStepDistance({
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
@@ -102,7 +103,9 @@ function IOURequestStepDistance({
      * @param {Number} index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(iouType, transactionID, reportID, index));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, transactionID, report.reportID, index, Navigation.getActiveRouteWithoutParams()),
+        );
     };
 
     const navigateToNextStep = useCallback(() => {
@@ -136,7 +139,7 @@ function IOURequestStepDistance({
         }
 
         if (_.size(validatedWaypoints) < 2) {
-            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
+            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
     };
 

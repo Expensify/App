@@ -30,8 +30,9 @@ function EnvironmentBadge() {
             error={environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC}
             text={text}
             badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge]}
-            textStyles={[styles.headerEnvBadgeText]}
+            textStyles={[styles.headerEnvBadgeText, {fontWeight: '700'}]}
             environment={environment}
+            pressable
         />
     );
 }

@@ -1,16 +1,22 @@
 import lodashClamp from 'lodash/clamp';
-import React, {useCallback, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {Dimensions, View} from 'react-native';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import variables from '@styles/variables';
+import type IconAsset from '@src/types/utils/IconAsset';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {
     /** Source URL for the preview image */
-    previewSourceURL: string;
+    previewSourceURL: string | ImageSourcePropType;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
@@ -23,6 +29,12 @@ type ThumbnailImageProps = {
 
     /** Height of the thumbnail image */
     imageHeight?: number;
+
+    /** If the image fails to load – show the provided fallback icon */
+    fallbackIcon?: IconAsset;
+
+    /** The size of the fallback icon */
+    fallbackIconSize?: number;
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
@@ -71,19 +83,34 @@ function calculateThumbnailImageSize(width: number, height: number, windowHeight
     return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
 }
 
-function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth = 200, imageHeight = 200, shouldDynamicallyResize = true}: ThumbnailImageProps) {
+function ThumbnailImage({
+    previewSourceURL,
+    style,
+    isAuthTokenRequired,
+    imageWidth = 200,
+    imageHeight = 200,
+    shouldDynamicallyResize = true,
+    fallbackIcon = Expensicons.Gallery,
+    fallbackIconSize = variables.iconSizeSuperLarge,
+}: ThumbnailImageProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
     const {windowHeight} = useWindowDimensions();
     const initialDimensions = calculateThumbnailImageSize(imageWidth, imageHeight, windowHeight);
     const [currentImageWidth, setCurrentImageWidth] = useState(initialDimensions.thumbnailWidth);
     const [currentImageHeight, setCurrentImageHeight] = useState(initialDimensions.thumbnailHeight);
+    const [failedToLoad, setFailedToLoad] = useState(false);
+
+    useEffect(() => {
+        setFailedToLoad(false);
+    }, [isOffline, previewSourceURL]);
 
     /**
      * Update the state with the computed thumbnail sizes.
      * @param Params - width and height of the original image.
      */
-
     const updateImageSize = useCallback(
         ({width, height}: UpdateImageSizeParams) => {
             const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, windowHeight);
@@ -96,12 +123,28 @@ function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidt
 
     const sizeStyles = shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(currentImageWidth ?? 0, currentImageHeight)] : [styles.w100, styles.h100];
 
+    if (failedToLoad) {
+        return (
+            <View style={[style, styles.overflowHidden, styles.hoveredComponentBG]}>
+                <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
+                        height={fallbackIconSize}
+                        width={fallbackIconSize}
+                        fill={theme.border}
+                    />
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View style={[style, styles.overflowHidden]}>
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     onMeasure={updateImageSize}
+                    onLoadFailure={() => setFailedToLoad(true)}
                     isAuthTokenRequired={isAuthTokenRequired}
                 />
             </View>

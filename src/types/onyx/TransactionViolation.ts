@@ -13,12 +13,11 @@ type TransactionViolation = {
     data?: {
         rejectedBy?: string;
         rejectReason?: string;
-        amount?: string;
+        formattedLimit?: string;
         surcharge?: number;
         invoiceMarkup?: number;
         maxAge?: number;
         tagName?: string;
-        formattedLimitAmount?: string;
         categoryLimit?: string;
         limit?: string;
         category?: string;
@@ -31,4 +30,7 @@ type TransactionViolation = {
     };
 };
 
+type TransactionViolations = TransactionViolation[];
+
 export type {TransactionViolation, ViolationName};
+export default TransactionViolations;

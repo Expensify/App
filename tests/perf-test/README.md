@@ -32,7 +32,6 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 - **Render count**: If the number of renders increases by one compared to the baseline, it will be considered a performance regression, leading to a failed test. This metric helps detect unexpected changes in component rendering behavior. *NOTE: sometimes regressions are intentional. For instance, if a new functionality is added to the tested component, causing an additional re-render, this regression is expected.*
 - **Render duration**: A performance regression will occur if the measured rendering time is 20% higher than the baseline, resulting in a failed test. This threshold allows for reasonable fluctuations and accounts for changes that may lead to longer rendering times.
 
-
 ## Tips for Performance Testing with Reassure
 
 - Before you start using Reassure, take a bit of time to learn what it does [docs](https://callstack.github.io/reassure/).
@@ -40,6 +39,28 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 - Mocking is a crucial part of performance testing. To achieve more accurate and meaningful results, mock and use as much data as possible.
 - Inside each test, there is a defined scenario function that represents the specific user interaction you want to measure (HINT: there is no need to add assertions in performance tests).
 - More runs generally lead to better and more reliable results by averaging out variations. Additionally, consider adjusting the number of runs per series for each specific test to achieve more granular insights.
+- There's no need to mock Onyx before every test that uses `measureFunction()` because it doesn't need to be reset between each test case and we can just configure it once before running the tests.
+
+## Why reassure test may fail:
+
+- **Wrong mocking**:
+
+    - Double-check and ensure that the mocks are accurate and aligned with the expected behavior.
+    - Review the test cases and adjust the mocking accordingly.
+- **Timeouts**:
+
+    - The performance test takes much longer than regular tests. This is because we run each test scenario multiple times (10 by default) and repeat this for two branches of code.
+    - This may lead to timeouts, especially if the Onyx mockup has extensive data.
+    - Be mindful of the number of test runs. While repetition is essential, find the optimal balance to avoid unnecessarily extended test durations.
+- **Render count error**:
+
+    -  If the number of renders increases, the test on CI will fail with the following error:
+
+		```Render count difference exceeded the allowed deviation of  0. Current difference: 1```
+
+    - Investigate the code changes that might be causing this and address them to maintain a stable render count. More info [here](https://github.com/Expensify/App/blob/fe9e9e3e31bae27c2398678aa632e808af2690b5/tests/perf-test/README.md?plain=1#L32).
+    - It is important to run Reassure tests locally and see if our changes caused a regression.
+    - One of the potential factors that may influence variation in the number of renders is adding unnecesary providers to the component we want to test using ```<ComposeProviders>``` . Ensure that all providers are necessary for running the test.
 
 ## What can be tested (scenarios)
 
