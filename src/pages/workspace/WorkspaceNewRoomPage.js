@@ -111,7 +111,7 @@ function WorkspaceNewRoomPage(props) {
             _.map(
                 _.filter(PolicyUtils.getActivePolicies(props.policies), (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL),
                 (policy) => ({
-                    text: policy.name,
+                    label: policy.name,
                     value: policy.id,
                 }),
             ).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())),
@@ -228,7 +228,7 @@ function WorkspaceNewRoomPage(props) {
         () =>
             _.map(CONST.REPORT.WRITE_CAPABILITIES, (value) => ({
                 value,
-                text: translate(`writeCapabilityPage.writeCapability.${value}`),
+                label: translate(`writeCapabilityPage.writeCapability.${value}`),
             })),
         [translate],
     );
@@ -238,9 +238,9 @@ function WorkspaceNewRoomPage(props) {
             _.map(
                 _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
                 (visibilityOption) => ({
-                    text: translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+                    label: translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
                     value: visibilityOption,
-                    alternateText: translate(`newRoomPage.${visibilityOption}Description`),
+                    description: translate(`newRoomPage.${visibilityOption}Description`),
                 }),
             ),
         [translate],

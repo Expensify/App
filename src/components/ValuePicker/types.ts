@@ -1,8 +1,14 @@
 import type {ListItem} from '@components/SelectionList/types';
 import type {MaybePhraseKey} from '@libs/Localize';
 
-type ValuePickerItem = ListItem & {
+type ValuePickerListItem = ListItem & {
     value?: string;
+};
+
+type ValuePickerItem = {
+    label?: string;
+    value?: string;
+    description?: string;
 };
 
 type ValueSelectorModalProps = {
@@ -19,7 +25,7 @@ type ValueSelectorModalProps = {
     label?: string;
 
     /** Function to call when the user selects a item */
-    onItemSelected?: (item: ValuePickerItem) => void;
+    onItemSelected?: (item: ValuePickerListItem) => void;
 
     /** Function to call when the user closes the modal */
     onClose?: () => void;
@@ -54,4 +60,4 @@ type ValuePickerProps = {
     shouldShowTooltips?: boolean;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps};
+export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem};
