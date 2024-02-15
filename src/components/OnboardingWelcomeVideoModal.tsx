@@ -87,6 +87,7 @@ function OnboardingWelcomeVideoModal() {
                         onVideoLoaded={onVideoLoaded}
                         onPlaybackStatusUpdate={onPlaybackStatusUpdate}
                         shouldPlay
+                        isLooping
                     />
                 </View>
             );
