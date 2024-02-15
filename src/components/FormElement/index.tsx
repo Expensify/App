@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useRef, useEffect} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import type {ViewProps} from 'react-native';
 import {View} from 'react-native';
 import * as ComponentUtils from '@libs/ComponentUtils';
@@ -17,7 +17,7 @@ function FormElement(props: ViewProps, outerRef: ForwardedRef<View>) {
 
     useEffect(() => {
         const formCurrent = formRef.current;
-        
+
         if (!formCurrent) {
             return;
         }
