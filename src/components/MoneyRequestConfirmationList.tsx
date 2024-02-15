@@ -262,7 +262,7 @@ function MoneyRequestConfirmationList({
     const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledOptions(Object.values(policyTagList ?? {})));
 
     // A flag for showing tax fields - tax rate and tax amount
-    const shouldShowTax = isPolicyExpenseChat && policy?.isTaxTrackingEnabled;
+    const shouldShowTax = isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled);
 
     // A flag for showing the billable field
     const shouldShowBillable = !policy?.disabledFields?.defaultBillable ?? true;
@@ -457,7 +457,7 @@ function MoneyRequestConfirmationList({
             translate,
             toLocaleDigit,
         );
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID ?? '', distanceMerchant);
+        IOU.setMoneyRequestMerchant(transactionID ?? '', distanceMerchant, false);
     }, [hasRoute, distance, mileageRate?.unit, mileageRate?.rate, mileageRate?.currency, translate, toLocaleDigit, isDistanceRequest, transactionID, isDistanceRequestWithPendingRoute]);
 
     const selectParticipant = useCallback(
@@ -762,11 +762,15 @@ function MoneyRequestConfirmationList({
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.MERCHANT));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(iouType, reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transactionID ?? '',
+                                        reportID ?? '',
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -805,22 +809,9 @@ function MoneyRequestConfirmationList({
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT,
-                                            transaction?.transactionID ?? '',
-                                            reportID ?? '',
-                                            Navigation.getActiveRouteWithoutParams(),
-                                        ),
-                                    );
-                                    return;
-                                }
-
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                        CONST.IOU.ACTION.CREATE,
+                                        CONST.IOU.ACTION.EDIT,
                                         iouType,
                                         transaction?.transactionID ?? '',
                                         reportID ?? '',
