@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import {Image, ScrollView, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import WorkspaceProfile from '@assets/images/workspace-profile.png';
@@ -86,7 +86,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section isCentralPane>
                             <Image
-                                style={[styles.br4, styles.wAuto, styles.h68, imageStyle]}
+                                style={StyleSheet.flatten([styles.br4, styles.wAuto, styles.h68, imageStyle])}
                                 source={WorkspaceProfile}
                                 resizeMode="cover"
                             />
@@ -130,7 +130,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     description={translate('workspace.editor.nameInputLabel')}
                                     shouldShowRightIcon={!readOnly}
                                     disabled={readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, isSmallScreenWidth ? styles.mt1 : {}]}
                                     onPress={onPressName}
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
