@@ -1,4 +1,4 @@
-import type {ACHContractStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {ACHContractStepProps} from '@src/types/form/ReimbursementAccountForm';
 
 type UpdateBeneficialOwnersForBankAccountParams = ACHContractStepProps & {bankAccountID: number; canUseNewVbbaFlow?: boolean};
 
