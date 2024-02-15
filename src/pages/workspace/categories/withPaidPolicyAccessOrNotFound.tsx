@@ -49,7 +49,7 @@ export default function (): <TProps extends WithPaidPolicyAccessProps, TRef>(
 
             const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
-            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyAdmin(props.policy) || !props.policy.isPolicyExpenseChatEnabled;
+            const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || (!PolicyUtils.isPolicyAdmin(props.policy) && !props.policy.isPolicyExpenseChatEnabled);
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <FullscreenLoadingIndicator />;
