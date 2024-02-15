@@ -3425,10 +3425,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         transferBalance: {
-            width: 'auto',
-            marginHorizontal: -32,
-            paddingLeft: 32,
-            paddingRight: 32,
             borderRadius: 0,
             height: 64,
             alignItems: 'center',
