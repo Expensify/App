@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +18,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/LegalNameForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -40,7 +41,7 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
-    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
         const errors: Errors = {};
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName ?? '')) {
@@ -92,7 +93,7 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalFirstName"
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                             name="lfname"
                             label={translate('privatePersonalDetails.legalFirstName')}
                             aria-label={translate('privatePersonalDetails.legalFirstName')}
@@ -104,7 +105,7 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalLastName"
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
                             name="llname"
                             label={translate('privatePersonalDetails.legalLastName')}
                             aria-label={translate('privatePersonalDetails.legalLastName')}

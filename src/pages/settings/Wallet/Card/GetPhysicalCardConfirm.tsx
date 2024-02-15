@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const goToGetPhysicalCardName = (domain: string) => {

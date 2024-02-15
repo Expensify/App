@@ -16,8 +16,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import INPUT_IDS from '@src/types/form/DateOfBirthForm';
+import {PrivatePersonalDetails} from '@src/types/onyx';
 
 type DateOfBirthPageOnyxProps = {
     /** User's private personal details */
@@ -36,7 +36,7 @@ function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
      */
     const validate = useCallback((values: PrivatePersonalDetails) => {
         const requiredFields = ['dob'];
-        const errors = ValidationUtils.getFieldRequiredErrors(values as Errors, requiredFields);
+        const errors = ValidationUtils.getFieldRequiredErrors(values as Error, requiredFields);
 
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
@@ -71,7 +71,7 @@ function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
-                        inputID="dob"
+                        inputID={INPUT_IDS.DOB}
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails?.dob ?? ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
