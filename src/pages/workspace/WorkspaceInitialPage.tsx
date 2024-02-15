@@ -148,7 +148,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         },
     ];
 
-    if (policy?.isPolicyExpenseChatEnabled && policy.type === CONST.POLICY.TYPE.TEAM) {
+    if (PolicyUtils.isPaidGroupPolicy(policy)) {
         protectedMenuItems.push({
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
