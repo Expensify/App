@@ -673,8 +673,8 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    // Policy won't be set for P2P cases for which we don't need to compute violations
-    if (!policy?.id) {
+    // We don't need to compute violations unless we're on a paid policy
+    if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
     }
 
@@ -1224,7 +1224,7 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy?.id && updatedTransaction) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
@@ -2670,8 +2670,8 @@ function editRegularMoneyRequest(
         },
     ];
 
-    // Add transaction violations if there is a policy and updated transaaction
-    if (policy?.id && updatedTransaction) {
+    // Add transaction violations if we have a paid policy and an updated transaction
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
