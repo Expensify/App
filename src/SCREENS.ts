@@ -148,7 +148,6 @@ const SCREENS = {
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
-        DATE: 'Money_Request_Date',
         CURRENCY: 'Money_Request_Currency',
         CATEGORY: 'Money_Request_Category',
         WAYPOINT: 'Money_Request_Waypoint',
