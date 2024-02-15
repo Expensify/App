@@ -1,44 +1,48 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
+import { PressableWithFeedback } from '@components/Pressable';
+import ROUTES from '@src/ROUTES';
 
 function OnboardingPersonalDetails() {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
-    const [isModalOpen, setIsModalOpen] = useState(true);
     const theme = useTheme();
 
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
         Navigation.goBack();
-        setIsModalOpen(false);
     }, []);
 
     return (
-        <Modal
-            type={CONST.MODAL.MODAL_TYPE.ONBOARDING}
-            isVisible={isModalOpen}
-            onClose={closeModal}
-            innerContainerStyle={styles.pt0}
-            shouldUseCustomBackdrop
+        <View
+            style={[styles.defaultModalContainer, {width: '100%', height: '100%', backgroundColor: 'blue'}]}
         >
-            <View style={{maxHeight: windowHeight}}>
-                <HeaderWithBackButton
-                    shouldShowCloseButton
-                    shouldShowBackButton={false}
-                    onCloseButtonPress={closeModal}
-                    shouldOverlay
-                    iconFill={theme.iconColorfulBackground}
-                />
-            </View>
-        </Modal>
+                <View style={{maxHeight: windowHeight}}>
+                    <HeaderWithBackButton
+                        shouldShowCloseButton
+                        shouldShowBackButton={false}
+                        onCloseButtonPress={closeModal}
+                        shouldOverlay
+                        iconFill={theme.iconColorfulBackground}
+                    />
+                </View>
+                <PressableWithFeedback
+                style={{marginTop: 100, width: 100, height: 100}}
+                accessibilityLabel='TEST'
+                accessible
+                onPress={() => {
+                        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
+                }}
+            >
+                <View style={{width: 100, height: 100, backgroundColor: 'red'}} />
+            </PressableWithFeedback>
+        </View>
     );
 }
 

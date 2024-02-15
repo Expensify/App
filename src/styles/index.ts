@@ -1501,6 +1501,21 @@ const styles = (theme: ThemeColors) =>
                 right: 0,
             } satisfies ViewStyle),
 
+        OnboardingNavigatorOuterView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flex: shouldUseNarrowLayout ? 1 : undefined,
+                justifyContent: shouldUseNarrowLayout ? 'center' : undefined,
+                alignItems: shouldUseNarrowLayout ? 'center' : undefined,
+            } satisfies ViewStyle),
+
+        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+        ({
+            width: shouldUseNarrowLayout ? 500 : undefined,
+            height: shouldUseNarrowLayout ? 712 : undefined,
+            borderRadius: shouldUseNarrowLayout ? 16 : undefined,
+            overflow: 'hidden',
+        } satisfies ViewStyle),
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -1737,6 +1752,7 @@ const styles = (theme: ThemeColors) =>
 
         nativeOverlayStyles: (current: OverlayStylesParams) =>
             ({
+                position: 'absolute',
                 backgroundColor: theme.overlay,
                 width: '100%',
                 height: '100%',
@@ -2709,6 +2725,12 @@ const styles = (theme: ThemeColors) =>
 
         navigationScreenCardStyle: {
             backgroundColor: theme.appBG,
+            height: '100%',
+        },
+
+        navigationOnboardingScreenCardStyle: {
+            backgroundColor: 'transparent',
+            width: '100%',
             height: '100%',
         },
 

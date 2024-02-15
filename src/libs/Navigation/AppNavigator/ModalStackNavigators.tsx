@@ -295,11 +295,6 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
 });
 
-const OnboardingModalStackNavigator = createModalStackNavigator({
-    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: () => require('../../../../src/components/PurposeForUsingExpensifyModal').default as React.ComponentType,
-    [SCREENS.ONBOARDING.PURPOSE]: () => require('../../../../src/components/PurposeForUsingExpensifyModal').default as React.ComponentType,
-});
-
 export {
     AccountSettingsModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
@@ -330,5 +325,4 @@ export {
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
-    OnboardingModalStackNavigator,
 };

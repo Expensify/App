@@ -3,32 +3,38 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
+import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import SCREENS from '@src/SCREENS';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import Overlay from './Overlay';
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
+    const screenOptions = useMemo(() => OnboardingModalNavigatorScreenOptions(styles) ,[styles]);
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     return (
         <NoDropZone>
-            <View>
-                <Stack.Navigator screenOptions={{...screenOptions}}>
+            <Overlay onPress={() => {}}/>
+            <View style={styles.OnboardingNavigatorOuterView(shouldUseNarrowLayout)}>
+            <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
+                <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
                         name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                         component={OnboardingPersonalDetails}
-                    />
+                        />
                     <Stack.Screen
                         name={SCREENS.ONBOARDING.PURPOSE}
                         component={OnboardingPurpose}
-                    />
+                        />
                 </Stack.Navigator>
             </View>
+        </View>
         </NoDropZone>
     );
 }
