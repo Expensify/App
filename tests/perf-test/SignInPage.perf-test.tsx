@@ -37,6 +37,7 @@ jest.mock('@react-navigation/native', () => {
             removeListener: () => jest.fn(),
             isReady: () => jest.fn(),
             getCurrentRoute: () => jest.fn(),
+            getState: () => jest.fn(),
         }),
     } as typeof NativeNavigation;
 });
@@ -49,6 +50,7 @@ function SignInPageWrapper(args: Props) {
             <SignInPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
+                // @ts-expect-error Navigation prop is only used within this test
                 navigation={args.navigation}
             />
         </ComposeProviders>

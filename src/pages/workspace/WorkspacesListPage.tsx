@@ -169,21 +169,21 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             }
 
             return (
-                <OfflineWithFeedback
-                    key={`${item.title}_${index}`}
-                    pendingAction={item.pendingAction}
-                    errorRowStyles={styles.ph5}
-                    onClose={item.dismissError}
-                    errors={item.errors}
+                <PressableWithoutFeedback
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel="row"
+                    style={[styles.mh5, styles.mb3]}
+                    disabled={item.disabled}
+                    onPress={item.action}
                 >
-                    <PressableWithoutFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel="row"
-                        style={[styles.mh5, styles.mb3]}
-                        disabled={item.disabled}
-                        onPress={item.action}
-                    >
-                        {({hovered}) => (
+                    {({hovered}) => (
+                        <OfflineWithFeedback
+                            key={`${item.title}_${index}`}
+                            pendingAction={item.pendingAction}
+                            errorRowStyles={styles.ph5}
+                            onClose={item.dismissError}
+                            errors={item.errors}
+                        >
                             <WorkspacesListRow
                                 title={item.title}
                                 menuItems={threeDotsMenuItems}
@@ -193,10 +193,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 rowStyles={hovered && styles.hoveredComponentBG}
                                 layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
+                                shouldDisableThreeDotsMenu={item.disabled}
                             />
-                        )}
-                    </PressableWithoutFeedback>
-                </OfflineWithFeedback>
+                        </OfflineWithFeedback>
+                    )}
+                </PressableWithoutFeedback>
             );
         },
         [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
@@ -402,6 +403,7 @@ export default withPolicyAndFullscreenLoading(
         allPolicyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
