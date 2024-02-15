@@ -3425,8 +3425,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         transferBalance: {
-            paddingLeft: 20,
-            paddingRight: 20,
+            width: 'auto',
             borderRadius: 0,
             height: 64,
             alignItems: 'center',
@@ -4444,6 +4443,12 @@ const styles = (theme: ThemeColors) =>
 
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
+        },
+
+        workspaceTitleStyle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: '500',
+            fontSize: variables.workspaceProfileName,
         },
     } satisfies Styles);
 
