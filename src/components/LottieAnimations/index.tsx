@@ -67,6 +67,11 @@ const DotLottieAnimations = {
         h: 240,
         backgroundColor: colors.yellow600,
     },
+    Desk: {
+        file: require('@assets/animations/Desk.lottie'),
+        w: 200,
+        h: 120,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;
