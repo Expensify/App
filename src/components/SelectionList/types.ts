@@ -49,7 +49,7 @@ type ListItem = {
     isDisabled?: boolean;
 
     /** User accountID */
-    accountID?: number;
+    accountID?: number | null;
 
     /** User login */
     login?: string;
