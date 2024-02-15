@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -155,13 +155,12 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 /**
  * Gets the tag from policy tags, defaults to the first if no key is provided.
  */
-function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTag | undefined | EmptyObject {
+function getTag(policyTags: OnyxEntry<PolicyTagList>, tagKey?: keyof typeof policyTags): PolicyTag | undefined | EmptyObject {
     if (isEmptyObject(policyTags)) {
         return {};
     }
 
     const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-
     return policyTags?.[policyTagKey] ?? {};
 }
 
@@ -181,7 +180,7 @@ function getTagListName(policyTags: OnyxEntry<PolicyTags>) {
 /**
  * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
  */
-function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
+function getTagList(policyTags: OnyxEntry<PolicyTagList>, tagKey: string) {
     if (Object.keys(policyTags ?? {})?.length === 0) {
         return {};
     }

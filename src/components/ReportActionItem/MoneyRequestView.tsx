@@ -55,7 +55,7 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -155,7 +155,6 @@ function MoneyRequestView({
                 Navigation.dismissModal();
                 return;
             }
-            // @ts-expect-error: the type used across the app for policyTags is not what is returned by Onyx, PolicyTagList represents that, but existing policy tag utils need a refactor to fix this
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
