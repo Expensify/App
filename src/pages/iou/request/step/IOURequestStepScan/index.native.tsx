@@ -187,7 +187,6 @@ function IOURequestStepScan({
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
-     * @param {Object} file
      */
     const setReceiptAndNavigate = (file: File) => {
         if (!validateReceipt(file)) {
@@ -243,7 +242,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {

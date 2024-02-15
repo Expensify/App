@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
-import type {Ref} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import type Webcam from 'react-webcam';
 import Hand from '@assets/images/hand.svg';
