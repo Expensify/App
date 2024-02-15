@@ -14,7 +14,8 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import BeneficialOwnerCheckUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
@@ -280,6 +281,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
 BeneficialOwnersStep.displayName = 'BeneficialOwnersStep';
 
 export default withOnyx<BeneficialOwnersStepProps, BeneficialOwnerInfoOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
