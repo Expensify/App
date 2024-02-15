@@ -923,7 +923,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     });
 }
 
-function updateDescription(policyID: string, description: string, currentDescription: string) {
+function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string) {
     if (description === currentDescription) {
         return;
     }
@@ -2126,5 +2126,5 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
-    updateDescription,
+    updateWorkspaceDescription,
 };

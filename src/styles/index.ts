@@ -4444,6 +4444,12 @@ const styles = (theme: ThemeColors) =>
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
         },
+
+        workspaceTitleStyle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: '500',
+            fontSize: variables.workspaceProfileName,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

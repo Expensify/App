@@ -235,6 +235,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
+                        [SCREENS.WORKSPACE.DESCRIPTION]: {
+                            path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
+                        },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                         },
@@ -261,7 +264,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
-                        [SCREENS.WORKSPACE.DESCRIPTION]: ROUTES.WORKSPACE_DESCRIPTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
