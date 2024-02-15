@@ -69,7 +69,6 @@ function Popover(props: PopoverWithWindowDimensionsProps) {
                 onLayout={onLayout}
                 animationIn={animationIn}
                 animationOut={animationOut}
-                isPopover
             />,
             document.body,
         );
@@ -101,7 +100,6 @@ function Popover(props: PopoverWithWindowDimensionsProps) {
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}
-            isPopover
         />
     );
 }
