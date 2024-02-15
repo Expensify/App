@@ -121,7 +121,9 @@ const usePanGesture = ({
             }
         } else {
             // Animated back to the boundary
-            offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG);
+            offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG, () => {
+                isSwipingDownToClose.value = false;
+            });
         }
 
         // Reset velocity variables after we finished the pan gesture
@@ -132,17 +134,19 @@ const usePanGesture = ({
     const panGesture = Gesture.Pan()
         .manualActivation(true)
         .averageTouches(true)
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        .onTouchesMove((_evt, state) => {
+        .onTouchesUp(() => {
+            previousTouch.value = null;
+        })
+        .onTouchesMove((evt, state) => {
             // We only allow panning when the content is zoomed in
             if (zoomScale.value > 1) {
                 state.activate();
             }
 
             // TODO: this needs tuning to work properly
-            if (!isPagerSwiping.value && zoomScale.value === 1 && previousTouch.value != null) {
-                const velocityX = Math.abs(_evt.allTouches[0].x - previousTouch.value.x);
-                const velocityY = _evt.allTouches[0].y - previousTouch.value.y;
+            if (!isPagerSwiping.value && zoomScale.value === 1 && previousTouch.value !== null) {
+                const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
+                const velocityY = evt.allTouches[0].y - previousTouch.value.y;
 
                 if (Math.abs(velocityY) > velocityX && velocityY > 20) {
                     state.activate();
@@ -154,10 +158,10 @@ const usePanGesture = ({
                 }
             }
 
-            if (previousTouch.value == null) {
+            if (previousTouch.value === null) {
                 previousTouch.value = {
-                    x: _evt.allTouches[0].x,
-                    y: _evt.allTouches[0].y,
+                    x: evt.allTouches[0].x,
+                    y: evt.allTouches[0].y,
                 };
             }
         })
@@ -186,8 +190,11 @@ const usePanGesture = ({
             // Add pan translation to total offset and reset gesture variables
             offsetX.value += panTranslateX.value;
             offsetY.value += panTranslateY.value;
+
+            // Reset pan gesture variables
             panTranslateX.value = 0;
             panTranslateY.value = 0;
+            previousTouch.value = null;
 
             // If we are swiping (in the pager), we don't want to return to boundaries
             if (isPagerSwiping.value) {
