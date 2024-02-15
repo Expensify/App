@@ -98,6 +98,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
         // Improve notification delivery by categorising as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
+        builder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE);
 
         // Configure the notification channel or priority to ensure it shows in foreground
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

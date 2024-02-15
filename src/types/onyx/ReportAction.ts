@@ -55,6 +55,18 @@ type Message = {
     /** ID of a task report */
     taskReportID?: string;
 
+    /** Reason of payment cancellation */
+    cancellationReason?: string;
+
+    /** ID of an expense report */
+    expenseReportID?: string;
+
+    /** Amount of an expense */
+    amount?: number;
+
+    /** Currency of an expense */
+    currency?: string;
+
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 };

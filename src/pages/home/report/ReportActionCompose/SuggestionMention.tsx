@@ -135,6 +135,10 @@ function SuggestionMention(
                 if (!detail?.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
+                // We don't want to mention system emails like notifications@expensify.com
+                if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
+                    return false;
+                }
                 const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
