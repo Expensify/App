@@ -6,8 +6,6 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {OnyxKey, OnyxValue} from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-// type OnyxContextType<TOnyxKey extends OnyxKeys> = (TOnyxKey extends OnyxCollectionKey ? OnyxCollection<OnyxValue<TOnyxKey>> : OnyxValue<TOnyxKey>) | null;
-
 // Provider types
 type ProviderOnyxProps<TOnyxKey extends OnyxKey> = Record<TOnyxKey, OnyxValue<TOnyxKey>>;
 

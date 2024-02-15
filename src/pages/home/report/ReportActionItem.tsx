@@ -189,7 +189,7 @@ function ReportActionItem({
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const prevActionResolution = usePrevious(action.originalMessage.resolution ?? null);
+    const prevActionResolution = usePrevious(ReportActionsUtils.isActionableMentionWhisper(action) ? action.originalMessage.resolution : null);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isIOUReport(action) && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails;
@@ -331,7 +331,7 @@ function ReportActionItem({
             return;
         }
 
-        if (prevActionResolution !== action.originalMessage.resolution ??null) {
+        if (ReportActionsUtils.isActionableMentionWhisper(action) && prevActionResolution !== (action.originalMessage.resolution ?? null)) {
             reportScrollManager.scrollToIndex(index);
         }
     }, [index, action, prevActionResolution, reportScrollManager]);
@@ -354,7 +354,7 @@ function ReportActionItem({
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!(ReportActionsUtils.isActionableMentionWhisper(action) && !action.originalMessage?.resolution ??null)) {
+        if (!(ReportActionsUtils.isActionableMentionWhisper(action) && (!action.originalMessage?.resolution ?? null))) {
             return [];
         }
         return [
@@ -726,7 +726,7 @@ function ReportActionItem({
     }
 
     // if action is actionable mention whisper and resolved by user, then we don't want to render anything
-    if (ReportActionsUtils.isActionableMentionWhisper(props.action) && lodashGet(props.action, 'originalMessage.resolution', null)) {
+    if (ReportActionsUtils.isActionableMentionWhisper(action) && (action.originalMessage.resolution ?? null)) {
         return null;
     }
 

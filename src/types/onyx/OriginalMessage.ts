@@ -268,11 +268,6 @@ type OriginalMessageMoved = {
     };
 };
 
-type OriginalMessageMarkedReimbursed = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
-    originalMessage: unknown;
-};
-
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
