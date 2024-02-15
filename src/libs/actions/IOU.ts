@@ -1489,6 +1489,7 @@ function createSplitsAndOnyxData(
     comment: string,
     currency: string,
     merchant: string,
+    created: string,
     category: string,
     tag: string,
     existingSplitChatReportID = '',
@@ -1508,7 +1509,7 @@ function createSplitsAndOnyxData(
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
-        '',
+        created,
         '',
         '',
         merchant || Localize.translateLocal('iou.request'),
@@ -1720,7 +1721,7 @@ function createSplitsAndOnyxData(
             currency,
             oneOnOneIOUReport.reportID,
             comment,
-            '',
+            created,
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
             merchant || Localize.translateLocal('iou.request'),
@@ -1850,11 +1851,13 @@ function splitBill(
     comment: string,
     currency: string,
     merchant: string,
+    created: string,
     category: string,
     tag: string,
     existingSplitChatReportID = '',
     billable = false,
 ) {
+    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1863,6 +1866,7 @@ function splitBill(
         comment,
         currency,
         merchant,
+        currentCreated,
         category,
         tag,
         existingSplitChatReportID,
@@ -1877,6 +1881,7 @@ function splitBill(
         comment,
         category,
         merchant,
+        created: currentCreated,
         tag,
         billable,
         transactionID: splitData.transactionID,
@@ -1903,11 +1908,13 @@ function splitBillAndOpenReport(
     comment: string,
     currency: string,
     merchant: string,
+    created: string,
     category: string,
     tag: string,
     billable: boolean,
 ) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag);
+    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, currentCreated, category, tag);
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
@@ -1915,6 +1922,7 @@ function splitBillAndOpenReport(
         splits: JSON.stringify(splits),
         currency,
         merchant,
+        created: currentCreated,
         comment,
         category,
         tag,
