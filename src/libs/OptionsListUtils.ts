@@ -17,7 +17,8 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyTags,
+    PolicyTag,
+    PolicyTagList,
     Report,
     ReportAction,
     ReportActions,
@@ -794,7 +795,7 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories | PolicyTags): boolean {
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
     return Object.values(options).some((option) => option.enabled);
 }
 
@@ -1114,7 +1115,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         .map((tag) => ({name: tag, enabled: true}));
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
-    if (selectedOptions) {
+    if (selectedOptions.length) {
         const selectedTagOptions = selectedOptions.map((option) => {
             const tagObject = tags.find((tag) => tag.name === option.name);
             return {
@@ -1157,6 +1158,15 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     });
 
     return tagSections;
+}
+
+/**
+ * Verifies that there is at least one enabled tag
+ */
+function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+
+    return hasEnabledOptions(policyTagValueList);
 }
 
 type PolicyTaxRateWithDefault = {
@@ -2024,6 +2034,7 @@ export {
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
+    hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
