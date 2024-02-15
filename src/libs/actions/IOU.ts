@@ -1739,7 +1739,7 @@ function createSplitsAndOnyxData(
                 oneOnOneIOUReport.total -= splitAmount;
             }
         } else {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency, false);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
         }
 
         // STEP 3: Build optimistic transaction
@@ -2363,7 +2363,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
                 oneOnOneIOUReport.total -= splitAmount;
             }
         } else {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '', false);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
 
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
