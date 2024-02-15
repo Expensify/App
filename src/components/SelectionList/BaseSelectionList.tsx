@@ -17,12 +17,12 @@ import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useStyleUtils from "@hooks/useStyleUtils";
 import BaseListItem from './BaseListItem';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
 
@@ -433,7 +433,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (
                             <>
-                                {!headerMessage && canSelectMultiple && shouldShowSelectAll && <PressableWithFeedback
+                                {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
+                                    <PressableWithFeedback
                                         style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
@@ -451,21 +452,24 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                             style={[styles.mr3]}
                                         />
                                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, isTableView && StyleUtils.getPaddingLeft(52)]}>
-                                            {headerItems && headerItems.length > 0 && headerItems.map((headerItem, index) =>
-                                                // eslint-disable-next-line react/no-array-index-key
-                                                <View key={index}>{headerItem}</View>
-                                            )}
-                                            {!headerItems || headerItems.length === 0 && (
-                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                            )}
+                                            {headerItems &&
+                                                headerItems.length > 0 &&
+                                                headerItems.map((headerItem, index) => (
+                                                    // eslint-disable-next-line react/no-array-index-key
+                                                    <View key={index}>{headerItem}</View>
+                                                ))}
+                                            {!headerItems || (headerItems.length === 0 && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>)}
                                         </View>
-                                    </PressableWithFeedback>}
-                                    {!headerMessage && !canSelectMultiple && headerItems && headerItems.length > 0 && (
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.ph9, styles.pv3, isTableView && StyleUtils.getPaddingLeft(52)]}>
-                                            {/* eslint-disable-next-line react/no-array-index-key */}
-                                            {headerItems.map((headerItem, index) => <View key={index}>{headerItem}</View>)}
-                                        </View>
-                                    )}
+                                    </PressableWithFeedback>
+                                )}
+                                {!headerMessage && !canSelectMultiple && headerItems && headerItems.length > 0 && (
+                                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.ph9, styles.pv3, isTableView && StyleUtils.getPaddingLeft(52)]}>
+                                        {/* eslint-disable-next-line react/no-array-index-key */}
+                                        {headerItems.map((headerItem, index) => (
+                                            <View key={index}>{headerItem}</View>
+                                        ))}
+                                    </View>
+                                )}
                                 <SectionList
                                     ref={listRef}
                                     sections={sections}

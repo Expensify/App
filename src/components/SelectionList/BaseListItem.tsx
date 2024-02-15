@@ -25,7 +25,7 @@ function BaseListItem<TItem extends User | RadioItem>({
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
-    viewMode = CONST.SELECTION_LIST_VIEW_MODE.LIST
+    viewMode = CONST.SELECTION_LIST_VIEW_MODE.LIST,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -65,11 +65,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
-                style={[
-                    !isListMode && styles.selectionListPressableItemWrapper,
-                    !isListMode && isFocused && styles.activeComponentBG,
-                    isListMode ? styles.ph0 : styles.pv3,
-                ]}
+                style={[!isListMode && styles.selectionListPressableItemWrapper, !isListMode && isFocused && styles.activeComponentBG, isListMode ? styles.ph0 : styles.pv3]}
             >
                 <View
                     style={[

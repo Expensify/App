@@ -331,9 +331,7 @@ function WorkspaceMembersPage(props) {
             if (isOwner || isAdmin) {
                 roleBadge = (
                     <View style={[styles.badge, styles.peopleBadge, styles.mr4, styles.mnw6]}>
-                        <Text style={styles.peopleBadgeText}>
-                            {isOwner ? props.translate('common.owner') : props.translate('common.admin')}
-                        </Text>
+                        <Text style={styles.peopleBadgeText}>{isOwner ? props.translate('common.owner') : props.translate('common.admin')}</Text>
                     </View>
                 );
             }
@@ -381,9 +379,7 @@ function WorkspaceMembersPage(props) {
 
     const getHeaderContent = () => (
         <>
-            <Text style={[styles.pl5, styles.mb5, styles.mt3]}>
-                {props.translate('workspace.people.membersListTitle')}
-            </Text>
+            <Text style={[styles.pl5, styles.mb5, styles.mt3]}>{props.translate('workspace.people.membersListTitle')}</Text>
             {!_.isEmpty(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
@@ -425,7 +421,7 @@ function WorkspaceMembersPage(props) {
         <View style={[styles.mnw6, styles.mr3]}>
             <Text style={styles.searchInputStyle}>{props.translate('common.role')}</Text>
         </View>,
-    ]
+    ];
 
     return (
         <ScreenWrapper
