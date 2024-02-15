@@ -14,7 +14,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import validateSubmitShortcut from './validateSubmitShortcut';
@@ -62,7 +61,7 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     isDisabled?: boolean;
 
     /** A function that is called when the button is clicked on */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent, method?: PaymentMethodType) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** A function that is called when the button is long pressed */
     onLongPress?: (event?: GestureResponderEvent) => void;
