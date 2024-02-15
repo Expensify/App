@@ -36,6 +36,8 @@ const SCREENS = {
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
+        CONSOLE: 'Settings_Console',
+        SHARE_LOG: 'Share_Log',
 
         PROFILE: {
             ROOT: 'Settings_Profile',

@@ -3250,6 +3250,14 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    DEBUG_CONSOLE: {
+        LEVELS: {
+            INFO: 'INFO',
+            ERROR: 'ERROR',
+            RESULT: 'RESULT',
+            DEBUG: 'DEBUG',
+        },
+    },
     REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX: {
         BANK_ACCOUNT: {
             ACCOUNT_NUMBERS: 0,

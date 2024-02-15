@@ -180,6 +180,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_TROUBLESHOOT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.CONSOLE]: {
+                            path: ROUTES.SETTINGS_CONSOLE,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                             exact: true,
