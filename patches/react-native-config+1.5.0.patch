@@ -13,18 +13,18 @@ index 2225375..48f94ca 100644
          f = new File("$envFile");
      }
 diff --git a/node_modules/react-native-config/react-native-config.podspec b/node_modules/react-native-config/react-native-config.podspec
-index 54985dd..c394ec7 100644
+index 56bce4a..44603dd 100644
 --- a/node_modules/react-native-config/react-native-config.podspec
 +++ b/node_modules/react-native-config/react-native-config.podspec
-@@ -3,6 +3,7 @@
- require 'json'
+@@ -4,6 +4,7 @@ require 'json'
  
  package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
+ 
 +REACT_NATIVE_DIR = ENV["REACT_NATIVE_DIR"] || ".."
+ fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
  
  Pod::Spec.new do |s|
-   s.name         = 'react-native-config'
-@@ -21,7 +22,7 @@ Pod::Spec.new do |s|
+@@ -23,7 +24,7 @@ Pod::Spec.new do |s|
      name: 'Config codegen',
      script: %(
  set -ex
@@ -33,7 +33,7 @@ index 54985dd..c394ec7 100644
  "${PODS_TARGET_SRCROOT}/ios/ReactNativeConfig/BuildDotenvConfig.rb" "$HOST_PATH" "${PODS_TARGET_SRCROOT}/ios/ReactNativeConfig"
  ),
      execution_position: :before_compile,
-@@ -43,7 +44,7 @@ HOST_PATH="$SRCROOT/../.."
+@@ -65,7 +66,7 @@ HOST_PATH="$SRCROOT/../.."
        name: 'Config codegen',
        script: %(
          set -ex
