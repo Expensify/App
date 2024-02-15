@@ -1501,18 +1501,17 @@ const styles = (theme: ThemeColors) =>
                 right: 0,
             } satisfies ViewStyle),
 
-        OnboardingNavigatorOuterView: (shouldUseNarrowLayout: boolean) =>
-            ({
-                flex: shouldUseNarrowLayout ? 1 : undefined,
-                justifyContent: shouldUseNarrowLayout ? 'center' : undefined,
-                alignItems: shouldUseNarrowLayout ? 'center' : undefined,
-            } satisfies ViewStyle),
+        onboardingNavigatorOuterView: {
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+        },
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
         ({
-            width: shouldUseNarrowLayout ? 500 : undefined,
-            height: shouldUseNarrowLayout ? 712 : undefined,
-            borderRadius: shouldUseNarrowLayout ? 16 : undefined,
+            width: shouldUseNarrowLayout ? 500 : '100%',
+            height: shouldUseNarrowLayout ? 712 : '100%',
+            borderRadius: shouldUseNarrowLayout ? 16 : 0,
             overflow: 'hidden',
         } satisfies ViewStyle),
 

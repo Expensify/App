@@ -21,7 +21,7 @@ function OnboardingModalNavigator() {
     return (
         <NoDropZone>
             <Overlay onPress={() => {}}/>
-            <View style={styles.OnboardingNavigatorOuterView(shouldUseNarrowLayout)}>
+            <View style={styles.onboardingNavigatorOuterView}>
             <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen

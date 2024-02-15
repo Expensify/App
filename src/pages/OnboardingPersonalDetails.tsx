@@ -6,12 +6,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
-import { PressableWithFeedback } from '@components/Pressable';
-import ROUTES from '@src/ROUTES';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
 
 function OnboardingPersonalDetails() {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const theme = useTheme();
 
     const closeModal = useCallback(() => {
@@ -21,7 +21,7 @@ function OnboardingPersonalDetails() {
 
     return (
         <View
-            style={[styles.defaultModalContainer, {width: '100%', height: '100%', backgroundColor: 'blue'}]}
+            style={[styles.defaultModalContainer, {width: '100%', height: '100%'}, shouldUseNarrowLayout ? undefined : styles.pt8]}
         >
                 <View style={{maxHeight: windowHeight}}>
                     <HeaderWithBackButton
@@ -32,16 +32,7 @@ function OnboardingPersonalDetails() {
                         iconFill={theme.iconColorfulBackground}
                     />
                 </View>
-                <PressableWithFeedback
-                style={{marginTop: 100, width: 100, height: 100}}
-                accessibilityLabel='TEST'
-                accessible
-                onPress={() => {
-                        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
-                }}
-            >
-                <View style={{width: 100, height: 100, backgroundColor: 'red'}} />
-            </PressableWithFeedback>
+
         </View>
     );
 }
