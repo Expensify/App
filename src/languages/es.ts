@@ -1845,8 +1845,8 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         editor: {
-            descriptionInputLabel: 'Descripción del espacio de trabajo',
             nameInputLabel: 'Nombre',
+            descriptionInputLabel: 'Descripción',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
             currencyInputLabel: 'Moneda por defecto',
@@ -2815,5 +2815,14 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+    },
+    videoPlayer: {
+        play: 'Reproducir',
+        pause: 'Pausar',
+        fullscreen: 'Pantalla completa',
+        playbackSpeed: 'Velocidad',
+        expand: 'Expandir',
+        mute: 'Silenciar',
+        unmute: 'Activar sonido',
     },
 } satisfies EnglishTranslation;
