@@ -15,8 +15,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
-import withPaidPolicyAccessOrNotFound from '@pages/workspace/withPaidPolicyAccessOrNotFound';
-import type {WithPaidPolicyAccessOrNotFoundProps} from '@pages/workspace/withPaidPolicyAccessOrNotFound';
+import withPaidPolicyAccessOrNotFound from '@pages/workspace/withAdminPolicyAccessOrNotFound';
+import type {WithAdminPolicyAccessOrNotFoundProps} from '@pages/workspace/withAdminPolicyAccessOrNotFound';
 import withTeamPolicyAccessOrNotFound from '@pages/workspace/withTeamPolicyAccessOrNotFound';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -35,7 +35,9 @@ type WorkspaceCategoriesOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & WithPaidPolicyAccessOrNotFoundProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps &
+    WithAdminPolicyAccessOrNotFoundProps &
+    StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
