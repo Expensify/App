@@ -1,6 +1,7 @@
 import React, {createContext, useContext, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -10,6 +11,7 @@ import type {Beta, Policy, PolicyMembers, ReportAction, ReportActions, Transacti
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
+import usePermissions from './usePermissions';
 import {useReports} from './useReports';
 
 type OnyxProps = {
@@ -31,6 +33,8 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
     const chatReports = useReports();
     const currentReportIDValue = useCurrentReportID();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const personalDetails = usePersonalDetails();
+    const {canUseViolations} = usePermissions();
 
     const policyMemberAccountIDs = useMemo(
         () => getPolicyMembersByIdWithoutCurrentUser(props.policyMembers, activeWorkspaceID, getCurrentUserAccountID()),
@@ -49,8 +53,25 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
                 props.transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
+                personalDetails,
+                props.preferredLocale,
+                canUseViolations,
+                props.draftComments,
             ),
-        [chatReports, props.betas, props.policies, props.priorityMode, props.allReportActions, props.transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
+        [
+            chatReports,
+            props.betas,
+            props.policies,
+            props.priorityMode,
+            props.allReportActions,
+            props.transactionViolations,
+            activeWorkspaceID,
+            policyMemberAccountIDs,
+            personalDetails,
+            props.preferredLocale,
+            canUseViolations,
+            props.draftComments,
+        ],
     );
 
     // We need to make sure the current report is in the list of reports, but we do not want
@@ -70,6 +91,10 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
                 props.transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
+                personalDetails,
+                props.preferredLocale,
+                canUseViolations,
+                props.draftComments,
             );
         }
         return optionListItems;
@@ -84,6 +109,10 @@ function WithOrderedReportIDsContextProvider(props: WithOrderedReportIDsContextP
         props.policies,
         props.priorityMode,
         props.transactionViolations,
+        personalDetails,
+        props.preferredLocale,
+        canUseViolations,
+        props.draftComments,
     ]);
 
     return <OrderedReportIDsContext.Provider value={optionListItemsWithCurrentReport}>{props.children}</OrderedReportIDsContext.Provider>;
@@ -135,6 +164,13 @@ const OrderedReportIDsContextProvider = withOnyx<WithOrderedReportIDsContextProv
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         initialValue: {},
+    },
+    draftComments: {
+        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+        initialValue: {},
+    },
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
 })(WithOrderedReportIDsContextProvider);
 

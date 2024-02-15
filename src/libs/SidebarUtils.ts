@@ -78,6 +78,12 @@ function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
 
+export type OrderedReports = {
+    reportID: string;
+    optionItem: ReportUtils.OptionData | undefined;
+    comment: string;
+};
+
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -91,7 +97,11 @@ function getOrderedReportIDs(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
-): string[] {
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    preferredLocale: DeepValueOf<typeof CONST.LOCALES>,
+    canUseViolations: boolean,
+    draftComments: OnyxCollection<string>,
+): OrderedReports[] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports ?? {});
@@ -190,7 +200,33 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
+    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => {
+        const itemFullReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`] ?? null;
+        const itemReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? null;
+        const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;
+        const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''] ?? null;
+        const itemPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
+        const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report?.reportID}`] ?? '';
+
+        const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(itemFullReport, transactionViolations, itemParentReportAction ?? null);
+
+        const item = getOptionData({
+            report: itemFullReport,
+            reportActions: itemReportActions,
+            personalDetails,
+            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
+            policy: itemPolicy,
+            parentReportAction: itemParentReportAction,
+            hasViolations: !!hasViolations,
+        });
+
+        return {
+            reportID: report.reportID,
+            optionItem: item,
+            comment: itemComment,
+        }
+    });
+
     return LHNReports;
 }
 

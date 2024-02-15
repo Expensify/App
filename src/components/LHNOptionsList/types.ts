@@ -8,6 +8,7 @@ import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import { OrderedReports } from '@libs/SidebarUtils';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -134,6 +135,6 @@ type OptionRowLHNProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type RenderItemProps = {item: string};
+type RenderItemProps = {item: OrderedReports};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps};

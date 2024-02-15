@@ -107,6 +107,8 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     throw new Error('Not implemented');
 }
 
+const stickyHeaderIndices = [0];
+
 function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount}: WorkspaceListPageProps) {
     const reports = useReports();
     const theme = useTheme();
@@ -375,7 +377,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount}: 
                     data={workspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
-                    stickyHeaderIndices={[0]}
+                    stickyHeaderIndices={stickyHeaderIndices}
                 />
             </View>
             <ConfirmModal
