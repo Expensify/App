@@ -416,7 +416,14 @@ function AddressSearch(
                             inputID,
                             shouldSaveDraft,
                             onFocus: () => {
-                                setIsFocused(true);
+                                if (maxIndexRef.current > 0) {
+                                    setIsFocused(true);
+                                }
+                                else {
+                                    setDisplayListViewBorder(false);
+                                    setIsFocused(false);
+                                    setIsTyping(false);
+                                }
                             },
                             onBlur: (event) => {
                                 if (!isCurrentTargetInsideContainer(event, containerRef)) {
@@ -459,6 +466,7 @@ function AddressSearch(
                             // We use the height of the element to determine if we should hide the border of the listView dropdown
                             // to prevent a lingering border when there are no address suggestions.
                             setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
+                            setIsFocused(true);
                             const {target} = event.nativeEvent as unknown as BaseSyntheticEvent;
                             const data = target.getScrollResponder().props.data;
                             resultRef.current = data;
