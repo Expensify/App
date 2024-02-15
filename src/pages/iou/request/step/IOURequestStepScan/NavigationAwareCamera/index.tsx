@@ -5,8 +5,6 @@ import Webcam from 'react-webcam';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import type {NavigationAwareCameraProps} from './types';
 
-
-
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
 function NavigationAwareCamera({torchOn, onTorchAvailability, cameraTabIndex, ...props}: NavigationAwareCameraProps, ref: ForwardedRef<Webcam>) {
     const trackRef = useRef<MediaStreamTrack | null>(null);
@@ -58,4 +56,4 @@ function NavigationAwareCamera({torchOn, onTorchAvailability, cameraTabIndex, ..
 
 NavigationAwareCamera.displayName = 'NavigationAwareCamera';
 
-export default React.forwardRef(NavigationAwareCamera)
+export default React.forwardRef(NavigationAwareCamera);

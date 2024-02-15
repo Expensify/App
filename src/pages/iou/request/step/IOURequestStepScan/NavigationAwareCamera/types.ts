@@ -1,4 +1,3 @@
-
 import type {CameraDevice} from 'react-native-vision-camera';
 
 type NavigationAwareCameraProps = {
@@ -19,6 +18,5 @@ type NavigationAwareCameraNativeProps = {
     cameraTabIndex: number;
     device: CameraDevice;
 };
-
 
 export type {NavigationAwareCameraProps, NavigationAwareCameraNativeProps};

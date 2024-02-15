@@ -29,8 +29,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
-import type IOURequestStepProps from './types';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import type IOURequestStepProps from './types';
 
 function IOURequestStepScan({
     report,
@@ -365,4 +365,3 @@ function IOURequestStepScan({
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
-

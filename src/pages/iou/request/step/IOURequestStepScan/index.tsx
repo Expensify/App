@@ -31,8 +31,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type IOURequestStepProps from './types';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import type IOURequestStepProps from './types';
 
 function IOURequestStepScan({
     report,
