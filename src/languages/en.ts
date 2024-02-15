@@ -1698,6 +1698,27 @@ export default {
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
+        integrationSyncStage: ({stage}: {stage: string}) => {
+            switch(stage) {
+                case 'quickbooksOnlineImportTitle': return 'Importing your QuickBooks Online data';
+                case 'quickbooksOnlineImportMain': return 'Importing your QuickBooks Online data';
+                case 'quickbooksOnlineImportCustomers': return 'Importing customers';
+                case 'quickbooksOnlineImportEmployees': return 'Importing employees';
+                case 'quickbooksOnlineImportAccounts': return 'Importing accounts';
+                case 'quickbooksOnlineImportClasses': return 'Importing classes';
+                case 'quickbooksOnlineImportLocations': return 'Importing locations';
+                case 'quickbooksOnlineSyncTaxCodes': return 'Importing Tax Codes';
+                case 'quickbooksOnlineImportProcessing': return 'Processing imported data';
+                default: return `Translation missing for stage: ${stage}`
+            }
+        },
+        integrationSyncProgressText: ({integrationName}: {integrationName: string}) => `Importing your ${integrationName} data`,
+        integrationSyncSupportingText: ({integrationName}: {integrationName: string}) => `Hang tight while we import your \n${integrationName} data`,
+        integrationSyncStatus: {
+            finished: 'Finished',
+            starting: 'Starting...',
+            progress: 'Importing...',
+        },
         type: {
             free: 'Free',
             control: 'Control',
