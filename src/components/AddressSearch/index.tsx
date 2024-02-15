@@ -418,8 +418,7 @@ function AddressSearch(
                             onFocus: () => {
                                 if (maxIndexRef.current > 0) {
                                     setIsFocused(true);
-                                }
-                                else {
+                                } else {
                                     setDisplayListViewBorder(false);
                                     setIsFocused(false);
                                     setIsTyping(false);
