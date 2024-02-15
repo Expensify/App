@@ -133,7 +133,7 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef();
     const loginFormRef = useRef();
@@ -251,7 +251,7 @@ function SignInPageInner({credentials, account, activeClients, preferredLocale})
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
         <View
-            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: shouldUseNarrowLayout ? 0 : safeAreaInsets.top}, 1)]}
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageInner.displayName}
         >
             <SignInPageLayout
