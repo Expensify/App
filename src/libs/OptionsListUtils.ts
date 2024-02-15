@@ -562,7 +562,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
@@ -1728,6 +1728,19 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
     return options;
 }
 
+function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
+    return getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        sortByReportTypeInSearch: true,
+        includePersonalDetails: true,
+        forcePolicyNamePreview: true,
+        includeOwnedWorkspaceChats: true,
+    });
+}
+
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
@@ -2026,6 +2039,7 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
+    getShareLogOptions,
 };
 
-export type {MemberForList, CategorySection};
+export type {MemberForList, CategorySection, GetOptions};

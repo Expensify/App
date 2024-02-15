@@ -271,7 +271,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && lodashGet(policy, 'isTaxTrackingEnabled', false);
+    const shouldShowTax = isPolicyExpenseChat && policy && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -309,8 +309,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && Boolean(lodashGet(policy, 'requiresCategory', false));
-    const isTagRequired = canUseViolations && Boolean(lodashGet(policy, 'requiresTag', false));
+    const isCategoryRequired = canUseViolations && lodashGet(policy, 'requiresCategory', false);
+    const isTagRequired = canUseViolations && lodashGet(policy, 'requiresTag', false);
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
@@ -435,7 +435,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else {
             const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
-                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
             }));
             sections.push({
                 title: translate('common.to'),
@@ -478,7 +478,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestPendingFields(transaction.transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(transaction.transactionID, distanceMerchant);
+        IOU.setMoneyRequestMerchant(transaction.transactionID, distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
     /**
@@ -500,12 +500,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      * @param {Object} option
      */
     const navigateToReportOrUserDetail = (option) => {
-        if (option.accountID) {
-            const activeRoute = Navigation.getActiveRouteWithoutParams();
+        const activeRoute = Navigation.getActiveRouteWithoutParams();
 
+        if (option.accountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
         }
     };
 
@@ -702,11 +702,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        if (isEditingSplitBill) {
-                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -753,7 +751,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={canUseViolations && Boolean(lodashGet(policy, 'requiresCategory', false)) ? translate('common.required') : ''}
+                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
@@ -775,7 +773,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
+                    rightLabel={isTagRequired ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowTags,

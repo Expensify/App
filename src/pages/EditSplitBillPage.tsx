@@ -17,7 +17,6 @@ import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestTagPage from './EditRequestTagPage';
 
 type EditSplitBillOnyxProps = {
@@ -44,7 +43,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
-        merchant: transactionMerchant,
         category: transactionCategory,
         tag: transactionTag,
     } = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
@@ -77,17 +75,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
-                }}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-        return (
-            <EditRequestMerchantPage
-                defaultMerchant={transactionMerchant ?? ''}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
                 }}
             />
         );

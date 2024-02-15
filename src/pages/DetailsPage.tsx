@@ -100,7 +100,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
 
     return (
         <ScreenWrapper testID={DetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={!login}>
+            <FullPageNotFoundView shouldShow={!login || CONST.RESTRICTED_EMAILS.includes(login)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {details ? (
@@ -148,7 +148,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                         >
                                             {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink value={phoneOrEmail}>
+                                        <CommunicationsLink value={phoneOrEmail ?? ''}>
                                             <UserDetailsTooltip accountID={details.accountID}>
                                                 <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : details.login}</Text>
                                             </UserDetailsTooltip>
