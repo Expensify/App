@@ -330,7 +330,7 @@ function WorkspaceMembersPage(props) {
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = (
-                    <View style={[styles.badge, styles.peopleBadge, styles.mr4]}>
+                    <View style={[styles.badge, styles.peopleBadge, styles.mr4, styles.mnw60]}>
                         <Text style={styles.peopleBadgeText}>
                             {isOwner ? props.translate('common.owner') : props.translate('common.admin')}
                         </Text>
@@ -418,6 +418,15 @@ function WorkspaceMembersPage(props) {
         </View>
     );
 
+    const getListHeaderItems = () => [
+        <View>
+            <Text style={styles.searchInputStyle}>{props.translate('common.member')}</Text>
+        </View>,
+        <View style={[styles.mnw60, styles.mr3]}>
+            <Text style={styles.searchInputStyle}>{props.translate('common.role')}</Text>
+        </View>,
+    ]
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -464,7 +473,7 @@ function WorkspaceMembersPage(props) {
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
-                        headerItems={[props.translate('common.member'), props.translate('common.role')]}
+                        headerItems={getListHeaderItems()}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}

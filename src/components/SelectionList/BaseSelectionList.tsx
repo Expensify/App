@@ -1,8 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {TextStyle, View} from 'react-native';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
+import {View} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo,TextStyle} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -450,28 +450,20 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                             style={[styles.mr3]}
                                         />
-                                        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-                                            {headerItems && headerItems.length > 0 && headerItems.map((headerItem, index) => (
-                                                <Text style={[
-                                                    styles.searchInputStyle,
-                                                    isTableView && StyleUtils.getPaddingLeft(52) as TextStyle
-                                                    // eslint-disable-next-line react/no-array-index-key
-                                                ]} key={index}>{headerItem}</Text>
-                                            ))}
+                                        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, isTableView && StyleUtils.getPaddingLeft(52)]}>
+                                            {headerItems && headerItems.length > 0 && headerItems.map((headerItem, index) =>
+                                                // eslint-disable-next-line react/no-array-index-key
+                                                <View key={index}>{headerItem}</View>
+                                            )}
                                             {!headerItems || headerItems.length === 0 && (
                                                 <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                                             )}
                                         </View>
                                     </PressableWithFeedback>}
                                     {!headerMessage && !canSelectMultiple && headerItems && headerItems.length > 0 && (
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.ph9, styles.pv3]}>
-                                            {headerItems.map((headerItem, index) => (
-                                                <Text style={[
-                                                    styles.searchInputStyle,
-                                                    isTableView && StyleUtils.getPaddingLeft(52) as TextStyle
-                                                    // eslint-disable-next-line react/no-array-index-key
-                                                ]} key={index}>{headerItem}</Text>
-                                            ))}
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.ph9, styles.pv3, isTableView && StyleUtils.getPaddingLeft(52)]}>
+                                            {/* eslint-disable-next-line react/no-array-index-key */}
+                                            {headerItems.map((headerItem, index) => <View key={index}>{headerItem}</View>)}
                                         </View>
                                     )}
                                 <SectionList

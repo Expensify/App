@@ -143,7 +143,7 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Header titles of the section list */
-    headerItems?: string[];
+    headerItems?: ReactNode[];
 
     /** Whether to use list or table view mode */
     viewMode?: 'list' | 'table';
