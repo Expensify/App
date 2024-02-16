@@ -4,6 +4,44 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 1307:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const _ = __nccwpck_require__(5067);
+const core = __nccwpck_require__(2186);
+const GithubUtils = __nccwpck_require__(7999);
+
+const run = function () {
+    const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
+
+    return GithubUtils.getArtifactByName(artifactName)
+        .then((artifact) => {
+            if (_.isUndefined(artifact)) {
+                console.log(`No artifact found with the name ${artifactName}`);
+                core.setOutput('ARTIFACT_FOUND', false);
+                return;
+            }
+
+            console.log('Artifact info', artifact);
+            core.setOutput('ARTIFACT_FOUND', true);
+            core.setOutput('ARTIFACT_ID', artifact.id);
+            core.setOutput('ARTIFACT_WORKFLOW_ID', artifact.workflow_run.id);
+        })
+        .catch((error) => {
+            console.error('A problem occurred while trying to communicate with the GitHub API', error);
+            core.setFailed(error);
+        });
+};
+
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+
+module.exports = run;
+
+
+/***/ }),
+
 /***/ 4097:
 /***/ ((module) => {
 
@@ -1625,50 +1663,6 @@ class Context {
 }
 exports.Context = Context;
 //# sourceMappingURL=context.js.map
-
-/***/ }),
-
-/***/ 5438:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getOctokit = exports.context = void 0;
-const Context = __importStar(__nccwpck_require__(4087));
-const utils_1 = __nccwpck_require__(3030);
-exports.context = new Context.Context();
-/**
- * Returns a hydrated octokit ready to use for GitHub Actions
- *
- * @param     token    the repo PAT or GITHUB_TOKEN
- * @param     options  other options to set
- */
-function getOctokit(token, options, ...additionalPlugins) {
-    const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
-    return new GitHubWithPlugins(utils_1.getOctokitOptions(token, options));
-}
-exports.getOctokit = getOctokit;
-//# sourceMappingURL=github.js.map
 
 /***/ }),
 
@@ -16002,114 +15996,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const https = __nccwpck_require__(5687);
-const GitHubUtils = __nccwpck_require__(7999);
-
-const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
-const reviewerChecklistContains = '# Reviewer Checklist';
-const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
-const combinedComments = [];
-
-/**
- * @returns {Promise}
- */
-function getNumberOfItemsFromReviewerChecklist() {
-    console.log('Getting the number of items in the reviewer checklist...');
-    return new Promise((resolve, reject) => {
-        https
-            .get(pathToReviewerChecklist, (res) => {
-                let fileContents = '';
-                res.on('data', (chunk) => {
-                    fileContents += chunk;
-                });
-                res.on('end', () => {
-                    const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
-                    console.log(`There are ${numberOfChecklistItems} items in the reviewer checklist.`);
-                    resolve(numberOfChecklistItems);
-                });
-            })
-            .on('error', (err) => {
-                console.error(err);
-                reject(err);
-            });
-    });
-}
-
-/**
- * @param {Number} numberOfChecklistItems
- */
-function checkIssueForCompletedChecklist(numberOfChecklistItems) {
-    GitHubUtils.getAllReviewComments(issue)
-        .then((reviewComments) => {
-            console.log(`Pulled ${reviewComments.length} review comments, now adding them to the list...`);
-            combinedComments.push(...reviewComments);
-        })
-        .then(() => GitHubUtils.getAllComments(issue))
-        .then((comments) => {
-            console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
-            combinedComments.push(...comments);
-        })
-        .then(() => {
-            console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
-            let foundReviewerChecklist = false;
-            let numberOfFinishedChecklistItems = 0;
-            let numberOfUnfinishedChecklistItems = 0;
-
-            // Once we've gathered all the data, loop through each comment and look to see if it contains the reviewer checklist
-            for (let i = 0; i < combinedComments.length; i++) {
-                // Skip all other comments if we already found the reviewer checklist
-                if (foundReviewerChecklist) {
-                    break;
-                }
-
-                const whitespace = /([\n\r])/gm;
-                const comment = combinedComments[i].replace(whitespace, '');
-
-                console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
-
-                // Found the reviewer checklist, so count how many completed checklist items there are
-                if (comment.indexOf(reviewerChecklistContains) !== -1) {
-                    console.log('Found the reviewer checklist!');
-                    foundReviewerChecklist = true;
-                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
-                    numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
-                }
-            }
-
-            if (!foundReviewerChecklist) {
-                core.setFailed('No PR Reviewer Checklist was found');
-                return;
-            }
-
-            const maxCompletedItems = numberOfChecklistItems + 2;
-            const minCompletedItems = numberOfChecklistItems - 2;
-
-            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
-
-            if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
-                console.log('PR Reviewer checklist is complete 🎉');
-                return;
-            }
-
-            console.log(`Make sure you are using the most up to date checklist found here: ${pathToReviewerChecklist}`);
-            core.setFailed("PR Reviewer Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
-        });
-}
-
-getNumberOfItemsFromReviewerChecklist()
-    .then(checkIssueForCompletedChecklist)
-    .catch((err) => {
-        console.error(err);
-        core.setFailed(err);
-    });
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(1307);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
