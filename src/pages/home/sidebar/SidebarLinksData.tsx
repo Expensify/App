@@ -69,7 +69,7 @@ type SidebarLinksDataOnyxProps = {
 };
 
 type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
-    onLinkClick: (reportID: number) => void;
+    onLinkClick: () => void;
     insets: EdgeInsets;
 };
 
@@ -101,7 +101,7 @@ function SidebarLinksData({
 
     const reportIDsRef = useRef<string[] | null>(null);
     const isLoading = isLoadingApp;
-    const optionListItems = useMemo(() => {
+    const optionListItems: string[] | null = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(
             null,
             chatReports as OnyxEntry<Record<string, OnyxTypes.Report>>,
