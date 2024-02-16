@@ -827,6 +827,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusSmall,
             borderColor: theme.border,
+            paddingHorizontal: 12,
+            minHeight: 28,
         },
 
         badgeText: {
@@ -834,6 +836,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        menuItemBadge: {
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         border: {
