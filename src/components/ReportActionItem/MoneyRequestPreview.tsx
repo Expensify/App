@@ -132,6 +132,7 @@ function MoneyRequestPreview({
     if (isEmptyObject(iouReport) && !isBillSplit) {
         return null;
     }
+
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
