@@ -31,6 +31,7 @@ function ProcessMoneyRequestHoldPage() {
 
     return (
         <HeaderPageLayout
+            testID={ProcessMoneyRequestHoldPage.displayName}
             title={translate('common.back')}
             footer={footerComponent}
             onBackButtonPress={() => Navigation.goBack()}
