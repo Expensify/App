@@ -8,21 +8,7 @@ import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/typ
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
-function RoomNameInput({
-    isFocused,
-    autoFocus,
-    disabled,
-    errorText,
-    forwardedRef,
-    value,
-    onBlur,
-    onChangeText,
-    onInputChange,
-    onSubmitEditing,
-    returnKeyType,
-    shouldDelayFocus,
-    inputID,
-}: RoomNameInputProps) {
+function RoomNameInput({isFocused, autoFocus, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     const {translate} = useLocalize();
     const [selection, setSelection] = useState<{start: number; end: number}>({start: 0, end: 0});
 
@@ -55,26 +41,22 @@ function RoomNameInput({
 
     return (
         <TextInput
-            ref={forwardedRef}
-            disabled={disabled}
-            inputID={inputID}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={ref}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
             role={CONST.ROLE.PRESENTATION}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
-            onChange={setModifiedRoomName}
             value={value?.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
-            selection={selection}
-            onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
-            onSubmitEditing={onSubmitEditing}
-            returnKeyType={returnKeyType}
-            errorText={errorText}
-            autoCapitalize="none"
-            onBlur={(event) => isFocused && onBlur?.(event)}
-            shouldDelayFocus={shouldDelayFocus}
-            autoFocus={isFocused && autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+            onBlur={(event) => isFocused && onBlur?.(event)}
+            autoFocus={isFocused && autoFocus}
+            autoCapitalize="none"
+            onChange={setModifiedRoomName}
+            onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+            selection={selection}
             spellCheck={false}
             shouldInterceptSwipe
         />
@@ -83,16 +65,4 @@ function RoomNameInput({
 
 RoomNameInput.displayName = 'RoomNameInput';
 
-function RoomNameInputWithRef(props: Omit<RoomNameInputProps, 'forwardedRef'>, ref: ForwardedRef<BaseTextInputRef>) {
-    return (
-        <RoomNameInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    );
-}
-
-RoomNameInputWithRef.displayName = 'RoomNameInputWithRef';
-
-export default React.forwardRef(RoomNameInputWithRef);
+export default React.forwardRef(RoomNameInput);

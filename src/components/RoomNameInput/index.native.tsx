@@ -9,21 +9,7 @@ import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
-function RoomNameInput({
-    isFocused,
-    autoFocus,
-    disabled,
-    errorText,
-    forwardedRef,
-    value,
-    onBlur,
-    onChangeText,
-    onInputChange,
-    onSubmitEditing,
-    returnKeyType,
-    shouldDelayFocus,
-    inputID,
-}: RoomNameInputProps) {
+function RoomNameInput({isFocused, autoFocus, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     const {translate} = useLocalize();
 
     /**
@@ -45,41 +31,25 @@ function RoomNameInput({
 
     return (
         <TextInput
-            ref={forwardedRef}
-            disabled={disabled}
-            inputID={inputID}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={ref}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
             role={CONST.ROLE.PRESENTATION}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
-            onChange={setModifiedRoomName}
             value={value?.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
-            errorText={errorText}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
-            keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
             onBlur={(event) => isFocused && onBlur?.(event)}
-            onSubmitEditing={onSubmitEditing}
-            returnKeyType={returnKeyType}
             autoFocus={isFocused && autoFocus}
             autoCapitalize="none"
-            shouldDelayFocus={shouldDelayFocus}
+            onChange={setModifiedRoomName}
+            keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
         />
     );
 }
 
 RoomNameInput.displayName = 'RoomNameInput';
 
-function RoomNameInputWithRef(props: Omit<RoomNameInputProps, 'forwardedRef'>, ref: ForwardedRef<BaseTextInputRef>) {
-    return (
-        <RoomNameInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    );
-}
-
-RoomNameInputWithRef.displayName = 'RoomNameInputWithRef';
-
-export default React.forwardRef(RoomNameInputWithRef);
+export default React.forwardRef(RoomNameInput);
