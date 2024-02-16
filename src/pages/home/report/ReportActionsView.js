@@ -12,10 +12,13 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
+import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import * as NumberUtils from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -245,6 +248,50 @@ function ReportActionsView(props) {
         }
     }, [hasCachedActions]);
 
+    const reportActionsToDisplay = useMemo(() => {
+        if (!ReportUtils.isMoneyRequestReport(props.report) || !_.size(props.reportActions)) {
+            return props.reportActions;
+        }
+
+        const actions = [...props.reportActions];
+
+        if (!ReportActionsUtils.isCreatedAction(_.last(props.reportActions))) {
+            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(
+                props.report.ownerAccountID,
+                DateUtils.subtractMillisecondsFromDateTime(_.last(props.reportActions).created, 1),
+            );
+            actions.push(optimisticCreatedAction);
+        }
+
+        if (
+            props.report.total &&
+            _.filter(
+                props.reportActions,
+                (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            ).length === 0
+        ) {
+            const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                0,
+                CONST.CURRENCY.USD,
+                '',
+                [],
+                NumberUtils.rand64(),
+                undefined,
+                props.report.reportID,
+                false,
+                false,
+                {},
+                false,
+                DateUtils.subtractMillisecondsFromDateTime(_.last(actions).created, 1),
+            );
+
+            actions.splice(actions.length - 1, 0, optimisticIOUAction);
+        }
+
+        return actions;
+    }, [props.reportActions, props.report]);
+
     // Comments have not loaded at all yet do nothing
     if (!_.size(props.reportActions)) {
         return null;
@@ -255,7 +302,7 @@ function ReportActionsView(props) {
             <ReportActionsList
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={props.reportActions}
+                sortedReportActions={reportActionsToDisplay}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
