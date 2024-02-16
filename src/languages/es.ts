@@ -1714,7 +1714,6 @@ export default {
         common: {
             card: 'Tarjetas',
             workflows: 'Flujos de trabajo',
-            spendWorkflow: 'Flujo de trabajo de gastos',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',

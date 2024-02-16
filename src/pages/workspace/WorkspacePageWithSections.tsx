@@ -47,9 +47,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Content to be added as fixed footer */
         footer?: ReactNode;
 
-        /** The icon to display in the header */
-        icon?: IconAsset;
-
         /** The guides call task ID to associate with the workspace page being shown */
         guidesCallTaskID: string;
 

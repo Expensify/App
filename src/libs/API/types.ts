@@ -288,6 +288,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CANCEL_PAYMENT]: Parameters.CancelPaymentParams;
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING]: Parameters.SetWorkspaceAutoReportingParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
 };
 
 const READ_COMMANDS = {

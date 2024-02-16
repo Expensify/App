@@ -139,13 +139,13 @@ type Policy = {
     isPolicyUpdating?: boolean;
 
     /** The approver of the policy */
-    approver: string;
+    approver?: string;
 
     /** The approval mode set up on this policy */
     approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
     /** Whether the auto approval is enabled */
-    isAutoApprovalEnabled: boolean;
+    isAutoApprovalEnabled?: boolean;
 
     /** Whether transactions should be billable by default */
     defaultBillable?: boolean;
