@@ -31,7 +31,9 @@ jobs:
 
       - name: Get most recent release version
         id: getMostRecentRelease
-        run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
+        # run: echo "VERSION=$(gh release list --limit 1 | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
+        # TODO: REVERT TO ABOVE LINE; ONLY FOR TESTING
+        run: echo "VERSION=on_existing_version" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
