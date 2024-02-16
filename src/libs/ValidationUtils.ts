@@ -103,7 +103,6 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
     const errors: FormInputErrors<TFormID> = {};
 
     requiredFields.forEach((fieldKey) => {
-        const x = values[fieldKey];
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             return;
         }
