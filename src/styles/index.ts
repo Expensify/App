@@ -832,6 +832,7 @@ const styles = (theme: ThemeColors) =>
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
+            fontWeight: FontUtils.fontWeight.bold,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
         },
