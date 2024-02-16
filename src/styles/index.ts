@@ -1477,7 +1477,6 @@ const styles = (theme: ThemeColors) =>
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
-            lineHeight: variables.lineHeightSizeh1,
             ...headlineFont,
         },
 
@@ -1489,7 +1488,6 @@ const styles = (theme: ThemeColors) =>
         breadcrumbSeparator: {
             color: theme.icon,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh1,
             ...headlineFont,
         },
 

@@ -58,6 +58,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                 <Text
                     numberOfLines={1}
                     style={[styles.flexShrink1, styles.breadcrumb, styles.breadcrumbStrong]}
+                    allowFontScaling
                 >
                     {primaryBreadcrumb.text}
                 </Text>
@@ -65,10 +66,16 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
 
             {!!secondaryBreadcrumb && (
                 <>
-                    <Text style={[styles.breadcrumbSeparator]}>/</Text>
+                    <Text
+                        style={[styles.breadcrumbSeparator]}
+                        allowFontScaling
+                    >
+                        /
+                    </Text>
                     <Text
                         numberOfLines={1}
                         style={[styles.mw75, styles.flexShrink0, styles.breadcrumb]}
+                        allowFontScaling
                     >
                         {secondaryBreadcrumb.text}
                     </Text>

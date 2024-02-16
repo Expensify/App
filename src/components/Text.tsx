@@ -27,7 +27,10 @@ type TextProps = RNTextProps &
         family?: keyof FontUtilsType['fontFamily']['platform'];
     };
 
-function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
+function Text(
+    {color, fontSize = variables.fontSizeNormal, textAlign = 'left', allowFontScaling = false, children, family = 'EXP_NEUE', style = {}, ...props}: TextProps,
+    ref: ForwardedRef<RNText>,
+) {
     const theme = useTheme();
 
     const componentStyle: TextStyle = {
@@ -44,7 +47,7 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
 
     return (
         <RNText
-            allowFontScaling={false}
+            allowFontScaling={allowFontScaling}
             ref={ref}
             style={componentStyle}
             // eslint-disable-next-line react/jsx-props-no-spreading
