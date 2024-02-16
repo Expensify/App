@@ -3850,6 +3850,10 @@ function setMoneyRequestParticipants(participants: Participant[], isSplitRequest
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
+function setShownHoldUseExplanation() {
+    Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
+}
+
 function setUpDistanceTransaction() {
     const transactionID = NumberUtils.rand64();
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -3906,6 +3910,102 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
     return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
 
+/**
+ * Put money request on HOLD
+ */
+function putOnHold(transactionID: string, comment: string, reportID: string) {
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: createdReportAction.reportActionID,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'HoldRequest',
+        {
+            transactionID,
+            comment,
+            reportActionID: createdReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
+ * Remove money request from HOLD
+ */
+function unholdRequest(transactionID: string, reportID: string) {
+    const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'UnHoldRequest',
+        {
+            transactionID,
+            reportActionID: createdReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData: []},
+    );
+}
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string,
@@ -3978,6 +4078,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setUpDistanceTransaction,
+    setShownHoldUseExplanation,
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
@@ -3991,6 +4092,8 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    putOnHold,
+    unholdRequest,
     cancelPayment,
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,

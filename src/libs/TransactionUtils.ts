@@ -537,6 +537,17 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction is on hold
+ */
+function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    return !!transaction.comment?.hold;
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
@@ -594,6 +605,7 @@ export {
     isCardTransaction,
     isPending,
     isPosted,
+    isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
