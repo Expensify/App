@@ -42,6 +42,7 @@ import HandCard from '@assets/images/simple-illustrations/simple-illustration__h
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
 import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
+import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
@@ -130,4 +131,5 @@ export {
     LockClosed,
     Gears,
     QRCode,
+    House,
 };

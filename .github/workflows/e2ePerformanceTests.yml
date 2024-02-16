@@ -212,7 +212,7 @@ jobs:
           status: custom
           custom_payload: |
             {
-              channel: '#expensify-margelo',
+              channel: '#e2e-announce',
               attachments: [{
                 color: 'danger',
                 text: `💥 ${process.env.AS_REPO} E2E Test run failed failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
