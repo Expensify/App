@@ -108,6 +108,8 @@ function isExpensifyGuideTeam(email: string): boolean {
  */
 const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
+const isCollectPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.TEAM;
+
 const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
@@ -250,6 +252,7 @@ export {
     isExpensifyTeam,
     isExpensifyGuideTeam,
     isInstantSubmitEnabled,
+    isCollectPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
