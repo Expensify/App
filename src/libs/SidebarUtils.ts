@@ -388,7 +388,7 @@ function getOptionData({
                     .join(' ');
         }
 
-        result.alternateText = hasMultipleParticipants && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;
+        result.alternateText = ReportUtils.isGroupChat(report) && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
