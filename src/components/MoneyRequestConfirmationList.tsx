@@ -254,12 +254,9 @@ function MoneyRequestConfirmationList({
     const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
     const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !isDistanceRequest && !isSplitWithScan;
 
-    // Fetches the first tag list of the policy
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagList = policyTag?.tags ?? {};
-    const policyTagListName = policyTag?.name ?? translate('common.tag');
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledOptions(Object.values(policyTagList ?? {})));
+    const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // A flag for showing tax fields - tax rate and tax amount
     const shouldShowTax = isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled);
@@ -802,29 +799,32 @@ function MoneyRequestConfirmationList({
                             rightLabel={canUseViolations && Boolean(policy?.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
-                    {shouldShowTags && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={PolicyUtils.getCleanedTagName(iouTag)}
-                            description={policyTagListName}
-                            numberOfLinesTitle={2}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction?.transactionID ?? '',
-                                        reportID ?? '',
-                                        Navigation.getActiveRouteWithoutParams(),
-                                    ),
-                                );
-                            }}
-                            style={styles.moneyRequestMenuItem}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            rightLabel={canUseViolations && !!policy?.requiresTag ? translate('common.required') : ''}
-                        />
-                    )}
+                    {shouldShowTags &&
+                        policyTagLists.map(({name}, index) => (
+                            <MenuItemWithTopDescription
+                                key={name}
+                                shouldShowRightIcon={!isReadOnly}
+                                title={TransactionUtils.getTag(transaction ?? null, index)}
+                                description={name}
+                                numberOfLinesTitle={2}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT,
+                                            index,
+                                            transaction?.transactionID ?? '',
+                                            reportID ?? '',
+                                            Navigation.getActiveRouteWithoutParams(),
+                                        ),
+                                    );
+                                }}
+                                style={styles.moneyRequestMenuItem}
+                                disabled={didConfirm}
+                                interactive={!isReadOnly}
+                                rightLabel={canUseViolations && !!policy?.requiresTag ? translate('common.required') : ''}
+                            />
+                        ))}
 
                     {shouldShowTax && (
                         <MenuItemWithTopDescription

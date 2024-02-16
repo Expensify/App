@@ -48,22 +48,6 @@ Onyx.connect({
     },
 });
 
-let resolveSidebarIsReadyPromise: (args?: unknown[]) => void;
-
-let sidebarIsReadyPromise = new Promise((resolve) => {
-    resolveSidebarIsReadyPromise = resolve;
-});
-
-function resetIsSidebarLoadedReadyPromise() {
-    sidebarIsReadyPromise = new Promise((resolve) => {
-        resolveSidebarIsReadyPromise = resolve;
-    });
-}
-
-function isSidebarLoadedReady(): Promise<unknown> {
-    return sidebarIsReadyPromise;
-}
-
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -72,10 +56,6 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
         return 1;
     }
     return 0;
-}
-
-function setIsSidebarLoadedReady() {
-    resolveSidebarIsReadyPromise();
 }
 
 // Define a cache object to store the memoized results
@@ -445,7 +425,4 @@ function getOptionData({
 export default {
     getOptionData,
     getOrderedReportIDs,
-    setIsSidebarLoadedReady,
-    isSidebarLoadedReady,
-    resetIsSidebarLoadedReadyPromise,
 };
