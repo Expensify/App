@@ -37,7 +37,7 @@ jobs:
 
       - name: Check if there's an existing artifact for this baseline
         id: checkForExistingArtifact
-        uses: ./.github/actions/javascript/getArtefactInfo
+        uses: ./.github/actions/javascript/getArtifactInfo
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
