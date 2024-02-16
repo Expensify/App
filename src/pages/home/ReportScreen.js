@@ -280,7 +280,6 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const [didScreenTransitionEnd, setEntryTransitionEnd] = useState(false);
 
     useEffect(() => {
         if (!report.reportID || shouldHideReport) {
@@ -496,18 +495,6 @@ function ReportScreen({
         };
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
-    useEffect(() => {
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setEntryTransitionEnd(true);
-        });
-        return () => {
-            if (!interactionTask) {
-                return;
-            }
-            interactionTask.cancel();
-        };
-    }, []);
-
     const onListLayout = useCallback((e) => {
         setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));
         if (!markReadyForHydration) {
@@ -585,7 +572,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isReportReadyForDisplay && didScreenTransitionEnd && !isLoadingInitialReportActions && !isLoading && (
+                                {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
@@ -600,9 +587,9 @@ function ReportScreen({
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                                          If we prevent rendering the report while they are loading then
                                          we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || !didScreenTransitionEnd || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
+                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
-                                {isReportReadyForDisplay && didScreenTransitionEnd ? (
+                                {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         report={report}
                                         pendingAction={reportPendingAction}
