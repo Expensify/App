@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -201,6 +202,7 @@ function SettlementButton({
             return;
         }
 
+        playSound(SOUNDS.DONE);
         onPress(iouPaymentType);
     };
 
