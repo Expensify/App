@@ -43,6 +43,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID))}
                 shouldShowRightIcon={true}
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
+                hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
                 />
           ),
         },
@@ -62,6 +63,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                 shouldShowRightIcon={true}
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
+                hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
               />
             ),
           },
@@ -69,7 +71,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Illustration: Illustrations.WalletAlt,
             title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
             subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-            onToggle: (isEnabled: boolean) => {
+            onToggle: (_isEnabled: boolean) => {
               // TODO call API routes && set onyx optimistic data
             },
             subMenuItems: (
@@ -79,6 +81,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
                 shouldShowRightIcon={true}
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
+                hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
               />
             ),
             isEndOptionRow: true,
@@ -107,9 +110,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
             shouldShowOfflineIndicatorInWideScreen
         >
-            {(_, policyID: string) => (
+            {(_hasVBA?: boolean, _policyID?: string) => (
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section title={translate('workflowsPage.workflowTitle')} titleStyles={styles.textStrong} containerStyles={styles.p8}>
+                    <Section title={translate('workflowsPage.workflowTitle')} titleStyles={styles.textStrong} containerStyles={isSmallScreenWidth ? styles.p5: styles.p8}>
                         <View>
                             <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
                             <FlatList
