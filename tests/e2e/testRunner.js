@@ -324,6 +324,11 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
+        // For each test case we allow the test to fail three times before we stop the test run:
+        const errorCountRef = {
+            errorCount: 0,
+            allowedExceptions: 3,
+        };
         for (let i = 0; i < config.RUNS; i++) {
             progressText = `Suite '${suite.name}' [${suiteIndex + 1}/${suites.length}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
@@ -341,9 +346,11 @@ const runTests = async () => {
 
             const onError = (e) => {
                 testLog.done();
-                if (i === 0) {
+                errorCountRef.errorCount += 1;
+                if (i === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
                     // If the error happened on the first test run, the test is broken
-                    // and we should not continue running it
+                    // and we should not continue running it. Or if we have reached the
+                    // maximum number of allowed exceptions, we should stop the test run.
                     throw e;
                 }
                 console.error(e);

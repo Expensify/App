@@ -58,9 +58,6 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
         heightStyle = StyleUtils.getHeight(variables.reportActionImagesMultipleImageHeight);
     }
 
-    // The icon size varies depending on the number of images we are displaying.
-    const iconSize = numberOfShownImages > 2 ? 'small' : 'medium';
-
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
 
     const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
@@ -84,7 +81,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                             isLocalFile={isLocalFile}
                             filename={filename}
                             transaction={transaction}
-                            iconSize={iconSize}
+                            isSingleImage={numberOfShownImages === 1}
                         />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>

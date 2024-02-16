@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -15,10 +16,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-
-type IconSize = 'small' | 'medium' | 'large';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
@@ -27,7 +27,7 @@ type ReportActionItemImageProps = {
     /** URI for the image or local numeric reference for the image  */
     image?: string | ImageSourcePropType;
 
-    /** whether or not to enable the image preview modal */
+    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
@@ -42,8 +42,8 @@ type ReportActionItemImageProps = {
     /** Filename of attachment */
     filename?: string;
 
-    /** number of images displayed in the same parent container */
-    iconSize?: IconSize;
+    /** Whether there are other images displayed in the same parent container */
+    isSingleImage?: boolean;
 };
 
 /**
@@ -60,7 +60,7 @@ function ReportActionItemImage({
     canEditReceipt = false,
     isLocalFile = false,
     filename,
-    iconSize = 'large',
+    isSingleImage = true,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,7 +75,7 @@ function ReportActionItemImage({
             <View style={[styles.w100, styles.h100]}>
                 <EReceiptThumbnail
                     transactionID={transaction.transactionID}
-                    iconSize={iconSize as IconSize}
+                    iconSize={isSingleImage ? 'medium' : 'small'}
                 />
             </View>
         );
@@ -85,6 +85,8 @@ function ReportActionItemImage({
                 previewSourceURL={thumbnailSource}
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired
+                fallbackIcon={Expensicons.Receipt}
+                fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
                 shouldDynamicallyResize={false}
             />
         );
