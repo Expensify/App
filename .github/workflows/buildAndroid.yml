@@ -17,50 +17,59 @@ jobs:
     name: Build Android app
     runs-on: ubuntu-latest-xl
     steps:
-      - name: Validate build environment
-        id: validateEnv
+      - name: Validate build type
+        id: validateBuildType
         run: |
           if [[ ${{ contains(fromJSON('["release", "ad-hoc", "e2e", "e2eDelta"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
-            echo "Environment ${{ inputs.BUILD_TYPE }} is valid for Android"
+            echo "Build type ${{ inputs.BUILD_TYPE }} is valid for Android"
           else
-            echo "Environment ${{ inputs.BUILD_TYPE }} is not valid for Android."
+            echo "Build type ${{ inputs.BUILD_TYPE }} is not valid for Android."
             exit 1
           fi
 
       - uses: actions/checkout@v4
+        if: success()
 
       - name: Configure MapBox SDK
+        if: success()
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
+        if: success()
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Java
         uses: actions/setup-java@v4
+        if: success()
         with:
           distribution: oracle
           java-version: 17
 
       - name: Setup Gradle
+        if: success()
         uses: gradle/actions/setup-gradle@v3
 
       - name: Setup Ruby
+        if: success()
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7'
           bundler-cache: true
 
       - name: Decrypt keystore
+        if: success()
         run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Set version in ENV
+        if: success()
         run: |
           echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
           echo "NPM_VERSION=$(< package.json jq -r .version)" >> "$GITHUB_ENV"
 
       - name: Run Fastlane build
+        if: success()
         id: build
         run: |
           if [[ ${{ inputs.BUILD_TYPE }} == "release" ]]; then
@@ -74,6 +83,7 @@ jobs:
           fi
 
       - name: Upload APK as workflow artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.apk
@@ -81,7 +91,7 @@ jobs:
           path: ${{ steps.build.outputs.APK_PATH }}
 
       - name: Upload AAB as workflow artifact
-        if: inputs.BUILD_TYPE == "release"
+        if: success() && inputs.BUILD_TYPE == "release"
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.aab
@@ -89,6 +99,7 @@ jobs:
           path: ${{ steps.build.outputs.AAB_PATH }}
 
       - name: Archive Android sourcemaps
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.BUILD_TYPE }}-sourcemap-${{ github.ref }}
