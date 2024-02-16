@@ -40,7 +40,7 @@ type MoneyRequestHeaderOnyxProps = {
     parentReportActions: OnyxEntry<ReportActions>;
 
     /** Whether we should show the Hold Interstitial explaining the feature */
-    shownHoldUseExplanation: OnyxEntry<boolean>,
+    shownHoldUseExplanation: OnyxEntry<boolean>;
 };
 
 type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
@@ -93,14 +93,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             IOU.unholdRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID);
         } else {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(
-                    policy?.type,
-                    parentReportAction?.originalMessage?.IOUTransactionID ?? '',
-                    report?.reportID,
-                    activeRoute,
-                ),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type, parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID, activeRoute));
         }
     };
 

@@ -1,4 +1,4 @@
-import type Form from "./Form";
+import type Form from './Form';
 
 const INPUT_IDS = {
     COMMENT: 'comment',

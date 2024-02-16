@@ -3496,7 +3496,6 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
     };
 }
 
-
 /**
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
