@@ -4500,6 +4500,11 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute', 
             left:0,
         },
+        workspaceWorkflowsSubItemHover: {
+            borderRadius: 8,
+            marginRight: 0,
+            transition: 'all 0.3s ease-in-out',
+        }
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
