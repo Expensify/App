@@ -112,6 +112,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
+    // Math.floor(windowWidth) because some devices turn width value like 392.72727272727275 
     const containerWidth = isSmallScreenWidth ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
 
     const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
@@ -124,7 +125,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     onPress={scrollToHeader}
                 />
             )}
-            <View style={[listWrapperStyle, {width: containerWidth}]}>
+            <View style={[listWrapperStyle]}>
                 <FlashList
                     ref={forwardedRef}
                     keyboardShouldPersistTaps="handled"
