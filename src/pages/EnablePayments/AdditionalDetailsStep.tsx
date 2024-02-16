@@ -6,7 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalDetails} from '@src/types/onyx';
 import IdologyQuestions from './IdologyQuestions';
+import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
 
 const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
     errorFields: {},
@@ -51,7 +52,16 @@ const fieldNameTranslationKeys = {
     ssn: 'common.ssnLast4',
     ssnFull9: 'common.ssnFull9',
 } as const;
-
+const STEP_FIELDS = [
+    INPUT_IDS.LEGAL_FIRST_NAME,
+    INPUT_IDS.LEGAL_LAST_NAME,
+    INPUT_IDS.ADDRESS_STREET,
+    INPUT_IDS.ADDRESS_CITY,
+    INPUT_IDS.PHONE_NUMBER,
+    INPUT_IDS.DOB,
+    INPUT_IDS.ADDRESS_STATE,
+    INPUT_IDS.SSN
+];
 function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIONAL_DETAILS, currentUserPersonalDetails}: AdditionalDetailsStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -60,9 +70,9 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
-    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn', 'addressState'];
-        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
         if (values.dob) {
             if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
@@ -97,7 +107,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
         return errors;
     };
 
-    const activateWallet = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
+    const activateWallet = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
         const personalDetails = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
             legalFirstName: values.legalFirstName ?? '',
@@ -197,10 +207,10 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <InputWrapper
+                    {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
+                    <InputWrapper<unknown>
                         InputComponent={DatePicker}
                         inputID="dob"
-                        // @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript.
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
                         placeholder={translate('common.dob')}
