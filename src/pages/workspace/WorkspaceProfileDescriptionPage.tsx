@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Policy from '@userActions/Policy';
@@ -18,13 +19,28 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
-type WorkspaceDescriptionProps = WithPolicyProps;
+type Props = WithPolicyProps;
 
-function WorkspaceDescriptionPage({policy}: WorkspaceDescriptionProps) {
+const parser = new ExpensiMark();
+
+function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const parser = new ExpensiMark();
     const [description, setDescription] = useState(() => parser.htmlToMarkdown(policy?.description ?? ''));
+
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
+        const errors = {};
+
+        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        }
+
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
@@ -32,7 +48,7 @@ function WorkspaceDescriptionPage({policy}: WorkspaceDescriptionProps) {
                 return;
             }
 
-            Policy.updateDescription(policy.id, values.description.trim(), policy.description ?? '');
+            Policy.updateWorkspaceDescription(policy.id, values.description.trim(), policy.description ?? '');
             Keyboard.dismiss();
             Navigation.goBack();
         },
@@ -43,7 +59,7 @@ function WorkspaceDescriptionPage({policy}: WorkspaceDescriptionProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={WorkspaceDescriptionPage.displayName}
+            testID={WorkspaceProfileDescriptionPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.editor.descriptionInputLabel')}
@@ -56,6 +72,7 @@ function WorkspaceDescriptionPage({policy}: WorkspaceDescriptionProps) {
                 style={[styles.flexGrow1, styles.ph5]}
                 scrollContextEnabled
                 onSubmit={submit}
+                validate={validate}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
@@ -82,6 +99,6 @@ function WorkspaceDescriptionPage({policy}: WorkspaceDescriptionProps) {
     );
 }
 
-WorkspaceDescriptionPage.displayName = 'WorkspaceDescriptionPage';
+WorkspaceProfileDescriptionPage.displayName = 'WorkspaceProfileDescriptionPage';
 
-export default withPolicy(WorkspaceDescriptionPage);
+export default withPolicy(WorkspaceProfileDescriptionPage);

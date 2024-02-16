@@ -48,22 +48,6 @@ Onyx.connect({
     },
 });
 
-let resolveSidebarIsReadyPromise: (args?: unknown[]) => void;
-
-let sidebarIsReadyPromise = new Promise((resolve) => {
-    resolveSidebarIsReadyPromise = resolve;
-});
-
-function resetIsSidebarLoadedReadyPromise() {
-    sidebarIsReadyPromise = new Promise((resolve) => {
-        resolveSidebarIsReadyPromise = resolve;
-    });
-}
-
-function isSidebarLoadedReady(): Promise<unknown> {
-    return sidebarIsReadyPromise;
-}
-
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -72,10 +56,6 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
         return 1;
     }
     return 0;
-}
-
-function setIsSidebarLoadedReady() {
-    resolveSidebarIsReadyPromise();
 }
 
 /**
@@ -146,9 +126,6 @@ function getOrderedReportIDs(
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
         report.displayName = ReportUtils.getReportName(report);
-
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(report, allReports).totalDisplaySpend;
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
@@ -232,7 +209,6 @@ function getOptionData({
         isPinned: false,
         hasOutstandingChildRequest: false,
         isIOUReportOwner: null,
-        iouReportAmount: 0,
         isChatRoom: false,
         isArchivedRoom: false,
         shouldShowSubscript: false,
@@ -379,7 +355,6 @@ function getOptionData({
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
-    result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result as Report).totalDisplaySpend;
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail?.accountID;
@@ -408,7 +383,4 @@ function getOptionData({
 export default {
     getOptionData,
     getOrderedReportIDs,
-    setIsSidebarLoadedReady,
-    isSidebarLoadedReady,
-    resetIsSidebarLoadedReadyPromise,
 };
