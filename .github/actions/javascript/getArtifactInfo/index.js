@@ -1,8 +1,43 @@
-/**
- * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
+
+/***/ 1307:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const _ = __nccwpck_require__(5067);
+const core = __nccwpck_require__(2186);
+const GithubUtils = __nccwpck_require__(7999);
+
+const run = function () {
+    const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
+
+    return GithubUtils.getArtifactByName(artifactName)
+        .then((artifact) => {
+            if (_.isUndefined(artifact)) {
+                console.log(`No artifact found with the name ${artifactName}`);
+                core.setOutput('ARTIFACT_FOUND', false);
+                return;
+            }
+
+            console.log('Artifact info', artifact);
+            core.setOutput('ARTIFACT_FOUND', true);
+            core.setOutput('ARTIFACT_ID', artifact.id);
+            core.setOutput('ARTIFACT_WORKFLOW_ID', artifact.workflow_run.id);
+        })
+        .catch((error) => {
+            console.error('A problem occurred while trying to communicate with the GitHub API', error);
+            core.setFailed(error);
+        });
+};
+
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+
+module.exports = run;
+
+
+/***/ }),
 
 /***/ 4097:
 /***/ ((module) => {
@@ -15958,48 +15993,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const core = __nccwpck_require__(2186);
-const CONST = __nccwpck_require__(4097);
-const GithubUtils = __nccwpck_require__(7999);
-
-const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
-const comment = core.getInput('COMMENT', {required: true});
-
-function reopenIssueWithComment() {
-    console.log(`Reopening issue #${issueNumber}`);
-    return GithubUtils.octokit.issues
-        .update({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            issue_number: issueNumber,
-            state: 'open',
-        })
-        .then(() => {
-            console.log(`Commenting on issue #${issueNumber}`);
-            return GithubUtils.octokit.issues.createComment({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                issue_number: issueNumber,
-                body: comment,
-            });
-        });
-}
-
-reopenIssueWithComment()
-    .then(() => {
-        console.log(`Issue #${issueNumber} successfully reopened and commented: "${comment}"`);
-        process.exit(0);
-    })
-    .catch((err) => {
-        console.error(`Something went wrong. The issue #${issueNumber} was not successfully reopened`, err);
-        core.setFailed(err);
-    });
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(1307);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
