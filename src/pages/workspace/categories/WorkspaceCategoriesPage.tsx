@@ -15,9 +15,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
-import withPaidPolicyAccessOrNotFound from '@pages/workspace/withAdminPolicyAccessOrNotFound';
+import withAdminPolicyAccessOrNotFound from '@pages/workspace/withAdminPolicyAccessOrNotFound';
 import type {WithAdminPolicyAccessOrNotFoundProps} from '@pages/workspace/withAdminPolicyAccessOrNotFound';
-import withTeamPolicyAccessOrNotFound from '@pages/workspace/withPaidPolicyAccessOrNotFound';
+import withPaidPolicyAccessOrNotFound from '@pages/workspace/withPaidPolicyAccessOrNotFound';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -111,8 +111,8 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
 
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
-export default withTeamPolicyAccessOrNotFound()(
-    withPaidPolicyAccessOrNotFound()(
+export default withPaidPolicyAccessOrNotFound()(
+    withAdminPolicyAccessOrNotFound()(
         withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
             policyCategories: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
