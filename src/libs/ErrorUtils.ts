@@ -151,7 +151,9 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?
     }
 }
 
-/** Check if the error includes a receipt. */
+/**
+ * Check if the error includes a receipt.
+ */
 function isReceiptError(message: unknown): message is ReceiptError {
     if (typeof message === 'string') {
         return false;
