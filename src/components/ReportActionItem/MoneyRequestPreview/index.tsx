@@ -29,7 +29,11 @@ export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>(
         key: ONYXKEYS.SESSION,
     },
     transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? action?.originalMessage?.IOUTransactionID : 0 ?? 0}`,
+        key: ({action}) => {
+            const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
+            const transactionID = isMoneyRequestAction ? action?.originalMessage?.IOUTransactionID : 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        },
     },
     walletTerms: {
         key: ONYXKEYS.WALLET_TERMS,
