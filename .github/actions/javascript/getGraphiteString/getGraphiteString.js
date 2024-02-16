@@ -6,7 +6,14 @@ const run = () => {
     // Prefix path to the graphite metric
     const GRAPHITE_PATH = 'bucket1.reassure';
 
-    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
+    let regressionOutput;
+    try {
+        regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
+    } catch (err) {
+        // Handle errors that occur during file reading or parsing
+        console.error('Error while parsing output.json:', err.message);
+        core.setFailed(err);
+    }
 
     const creationDate = regressionOutput.metadata.current.creationDate;
     const timestampInMili = new Date(creationDate).getTime();
