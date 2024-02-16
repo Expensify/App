@@ -308,8 +308,6 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
-                    policyTags,
-                    policyCategories,
                 );
                 return;
             }
@@ -362,8 +360,6 @@ function IOURequestStepConfirmation({
             createDistanceRequest,
             requestMoney,
             receiptFile,
-            policyTags,
-            policyCategories,
         ],
     );
 
