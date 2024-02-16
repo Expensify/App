@@ -243,7 +243,7 @@ function MoneyRequestAmountForm(
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
      */
-    const textInputKeyPress = ({nativeEvent}: Partial<NativeSyntheticEvent<TextInputKeyPressEventData>>) => {
+    const textInputKeyPress = ({nativeEvent}: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = nativeEvent?.key.toLowerCase();
         if (Browser.isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
