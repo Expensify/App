@@ -21,12 +21,12 @@ jobs:
     name: Build apk from latest release as a baseline
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
-      ARTEFACT_FOUND: ${{ steps.checkForExistingArtifact.outputs.ARTEFACT_FOUND }}
-      ARTEFACT_WORKFLOW_ID: ${{ steps.checkForExistingArtifact.outputs.ARTEFACT_WORKFLOW_ID }}
+      ARTIFACT_FOUND: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND }}
+      ARTIFACT_WORKFLOW_ID: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_WORKFLOW_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
-          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artefact API)
+          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Get most recent release version
@@ -40,20 +40,20 @@ jobs:
         uses: ./.github/actions/javascript/getArtefactInfo
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-          ARTEFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
 
       - name: Skip build if there's already an existing artifact for the baseline
-        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTEFACT_FOUND) }}
+        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
 
       - name: Checkout "Baseline" commit (last release)
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTEFACT_FOUND) }}
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         run: |
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
           git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
       - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTEFACT_FOUND) }}
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
           PACKAGE_SCRIPT_NAME: android-build-e2e
@@ -124,7 +124,7 @@ jobs:
       - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
-          UPLOAD_ARTEFACT: false
+          UPLOAD_ARTIFACT: false
           PACKAGE_SCRIPT_NAME: android-build-e2edelta
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
           MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -142,7 +142,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artefact API)
+          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Setup Node
@@ -158,8 +158,8 @@ jobs:
           name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
           path: zip
           # Set github-token only if the baseline was built in this workflow run:
-          github-token: ${{ needs.buildBaseline.outputs.ARTEFACT_WORKFLOW_ID && github.token }}
-          run-id: ${{ needs.buildBaseline.outputs.ARTEFACT_WORKFLOW_ID }}
+          github-token: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID && github.token }}
+          run-id: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID }}
 
       # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
       - name: Rename baseline APK

@@ -5,7 +5,7 @@ inputs:
   ARTIFACT_NAME:
     description: The name of the workflow artifact where the APK should be uploaded
     required: true
-  UPLOAD_ARTEFACT:
+  UPLOAD_ARTIFACT:
     description: Whether to upload the APK as an artifact
     required: false
     default: "true"
@@ -74,7 +74,7 @@ runs:
 
     - name: Upload APK
       uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
-      if: ${{ inputs.UPLOAD_ARTEFACT == 'true' }}
+      if: ${{ inputs.UPLOAD_ARTIFACT == 'true' }}
       with:
         name: ${{ inputs.ARTIFACT_NAME }}
         path: ${{ inputs.APP_OUTPUT_PATH }}

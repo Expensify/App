@@ -525,7 +525,7 @@ class GithubUtils {
             .then((closedEvents) => lodashGet(_.last(closedEvents), 'actor.login', ''));
     }
 
-    static getArtefactByName(artefactName) {
+    static getArtifactByName(artefactName) {
         return this.paginate(this.octokit.actions.listArtifactsForRepo, {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
