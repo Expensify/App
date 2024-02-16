@@ -255,6 +255,13 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
         iouType: string;
         transactionID: string;

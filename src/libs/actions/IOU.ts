@@ -3820,23 +3820,6 @@ function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
-<<<<<<< HEAD
-function setMoneyRequestDescription(comment: string) {
-    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
-}
-
-function setMoneyRequestMerchant(merchant: string) {
-    Onyx.merge(ONYXKEYS.IOU, {merchant: merchant.trim()});
-=======
-function setMoneyRequestCategory(category: string) {
-    Onyx.merge(ONYXKEYS.IOU, {category});
-}
-
-function resetMoneyRequestCategory() {
-    Onyx.merge(ONYXKEYS.IOU, {category: ''});
->>>>>>> main
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
