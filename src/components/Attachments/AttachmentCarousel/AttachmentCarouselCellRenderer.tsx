@@ -6,7 +6,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type AttachmentCarouselCellRendererProps = {
     /** Cell Container styles */
-    style: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
 };
 
 function AttachmentCarouselCellRenderer(props: AttachmentCarouselCellRendererProps) {

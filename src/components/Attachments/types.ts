@@ -31,6 +31,8 @@ type Attachment = {
     transactionID?: string;
 
     isReceipt?: boolean;
+
+    duration?: number;
 };
 
 type UpdatePageProps = {

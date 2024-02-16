@@ -86,7 +86,7 @@ function AttachmentView({
     optionalVideoDuration,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
-    // ts-expect-error Wait for video merge
+    // ts-expect-error Wait for usePlaybackContext TS migration https://github.com/Expensify/App/issues/36625
     const {updateCurrentlyPlayingURL} = usePlaybackContext() as unknown as {updateCurrentlyPlayingURL: (source: AttachmentSource | null) => void};
     const theme = useTheme();
     const styles = useThemeStyles();

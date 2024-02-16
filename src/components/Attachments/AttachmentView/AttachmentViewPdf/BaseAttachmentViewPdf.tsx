@@ -58,9 +58,9 @@ function BaseAttachmentViewPdf({
      * Otherwise it means that the PDF is currently zoomed in, therefore the onTap callback should be ignored
      */
     const onPress = useCallback(
-        (e?: GestureResponderEvent | KeyboardEvent) => {
+        (event?: GestureResponderEvent | KeyboardEvent) => {
             if (onPressProp !== undefined) {
-                onPressProp(e);
+                onPressProp(event);
             }
 
             if (attachmentCarouselPagerContext !== null && isScrollEnabled?.value) {

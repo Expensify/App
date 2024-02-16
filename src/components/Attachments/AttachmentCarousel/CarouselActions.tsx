@@ -12,9 +12,7 @@ function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
         const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
         const unsubscribeLeftKey = KeyboardShortcut.subscribe(
             shortcutLeftConfig.shortcutKey,
-            (e?: KeyboardEvent) => {
-                (e as unknown as React.FocusEvent<HTMLElement>)?.target?.blur();
-
+            () => {
                 onCycleThroughAttachments(-1);
             },
             shortcutLeftConfig.descriptionKey,
@@ -24,9 +22,7 @@ function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
         const shortcutRightConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT;
         const unsubscribeRightKey = KeyboardShortcut.subscribe(
             shortcutRightConfig.shortcutKey,
-            (e) => {
-                (e as unknown as React.FocusEvent<HTMLElement>)?.target?.blur();
-
+            () => {
                 onCycleThroughAttachments(1);
             },
             shortcutRightConfig.descriptionKey,
