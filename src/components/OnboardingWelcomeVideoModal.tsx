@@ -86,6 +86,7 @@ function OnboardingWelcomeVideoModal() {
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
                         onVideoLoaded={onVideoLoaded}
                         onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+                        shouldShowProgressVolumeOnly
                         shouldPlay
                         isLooping
                     />
