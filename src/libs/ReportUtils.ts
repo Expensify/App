@@ -417,6 +417,7 @@ type AncestorIDs = {
 };
 
 let currentUserEmail: string | undefined;
+let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
 
@@ -433,6 +434,7 @@ Onyx.connect({
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
         isAnonymousUser = value.authTokenType === 'anonymousAccount';
+        currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
     },
 });
 
@@ -2677,12 +2679,17 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  */
 function getParsedComment(text: string): string {
     const parser = new ExpensiMark();
-    return text.length <= CONST.MAX_MARKUP_LENGTH
-        ? parser.replace(text, {
-              currentUserPrivateDomain: isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? ''),
-              allPersonalDetailLogins,
-          })
-        : lodashEscape(text);
+    const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
+        const mention = match.substring(1);
+        const mentionWithDomain = `${mention}@${currentUserPrivateDomain}`;
+
+        if (!Str.isValidEmail(mention) && currentUserPrivateDomain && allPersonalDetailLogins.includes(mentionWithDomain)) {
+            return `@${mentionWithDomain}`;
+        }
+        return match;
+    });
+
+    return textWithMention.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention) : lodashEscape(textWithMention);
 }
 
 function getReportDescriptionText(report: Report): string {
