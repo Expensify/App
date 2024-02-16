@@ -1,6 +1,5 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
-import getPlatform from '@libs/getPlatform';
 import intlPolyfill from '@libs/IntlPolyfill';
 import * as Metrics from '@libs/Metrics';
 import * as Device from '@userActions/Device';
@@ -8,13 +7,7 @@ import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/expos
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import platformSetup from './platformSetup';
-
-function initializeLastVisitedPath(): string | undefined {
-    if (!(getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS)) {
-        return;
-    }
-    return '';
-}
+import initializeLastVisitedPath from './initializeLastVisitedPath';
 
 export default function () {
     /*
