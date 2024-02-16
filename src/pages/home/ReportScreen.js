@@ -349,10 +349,10 @@ function ReportScreen({
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
         if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
-            const parentReport = ReportUtils.getReport(report)
+            const parentReport = ReportUtils.getReport(report);
 
             if (ReportUtils.isThread(report) && isEmptyObject(parentReport)) {
-                Report.openReport(report.parentReportID)
+                Report.openReport(report.parentReportID);
             }
 
             return;
