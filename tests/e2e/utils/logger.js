@@ -17,12 +17,7 @@ const COLOR_RED = '\x1b[31m';
 const COLOR_BLUE = '\x1b[34m';
 const COLOR_GREEN = '\x1b[32m';
 
-const log = (...args) => {
-    if (isVerbose) {
-        console.debug(...args);
-    }
-
-    // Write to log file
+const writeToLog = (...args) => {
     if (!fs.existsSync(LOG_FILE)) {
         // Check that the directory exists
         const logDir = path.dirname(LOG_FILE);
@@ -32,9 +27,17 @@ const log = (...args) => {
 
         fs.writeFileSync(LOG_FILE, '');
     }
-    const time = new Date();
-    const timeStr = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} ${time.getMilliseconds()}`;
-    fs.appendFileSync(LOG_FILE, `[${timeStr}]   ${args.join(' ')}\n`);
+    fs.appendFileSync(LOG_FILE, `${args.join(' ')}\n`);
+};
+
+const log = (...args) => {
+    const argsWithTime = [`[${Date()}]   `, ...args];
+
+    if (isVerbose) {
+        console.debug(argsWithTime);
+    }
+
+    writeToLog(...argsWithTime);
 };
 
 const info = (...args) => {
@@ -47,7 +50,7 @@ const important = (...args) => {
 };
 
 const success = (...args) => {
-    const lines = [`🟦 ${COLOR_GREEN}`, ...args, `${COLOR_RESET}\n`];
+    const lines = [`✅ ${COLOR_GREEN}`, ...args, `${COLOR_RESET}\n`];
     log(...lines);
 };
 
@@ -69,10 +72,11 @@ const error = (...args) => {
 const progressInfo = (textParam) => {
     let text = textParam || '';
     const getTexts = () => [`🕛 ${text}`, `🕔 ${text}`, `🕗 ${text}`, `🕙 ${text}`];
-    log(textParam);
+
+    let i = 0;
+    log(getTexts()[i]);
 
     const startTime = Date.now();
-    let i = 0;
     const timer = setInterval(() => {
         process.stdout.write(`\r${getTexts()[i++]}`);
         // eslint-disable-next-line no-bitwise
@@ -86,7 +90,7 @@ const progressInfo = (textParam) => {
     return {
         updateText: (newText) => {
             text = newText;
-            log(newText);
+            log(getTexts()[i]);
         },
         done: () => {
             clearInterval(timer);
@@ -106,6 +110,7 @@ module.exports = {
     note,
     error,
     success,
+    writeToLog,
     important,
     progressInfo,
     setLogLevelVerbose,

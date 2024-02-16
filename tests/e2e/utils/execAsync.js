@@ -16,7 +16,7 @@ module.exports = (command, env = {}) => {
             ...env,
         };
 
-        Logger.important(command);
+        Logger.note(command);
 
         childProcess = exec(
             command,
@@ -33,7 +33,7 @@ module.exports = (command, env = {}) => {
                         reject(error);
                     }
                 } else {
-                    Logger.note(stdout);
+                    Logger.writeToLog(stdout);
                     resolve(stdout);
                 }
             },
