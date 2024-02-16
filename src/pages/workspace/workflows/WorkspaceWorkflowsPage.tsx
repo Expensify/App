@@ -15,6 +15,9 @@ import ToggleSettingOptionRow, { OptionType } from './ToggleSettingsOptionRow';
 import MenuItem from '@components/MenuItem';
 import compose from '@libs/compose';
 import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Policy from '@userActions/Policy';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -29,7 +32,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
           title: translate('workflowsPage.delaySubmissionTitle'),
           subtitle: translate('workflowsPage.delaySubmissionDescription'),
           onToggle: (isEnabled: boolean) => {
-              // TODO call API routes && set onyx optimistic data
+              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
           },
           subMenuItems: (
                 <MenuItem
@@ -37,7 +40,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 titleStyle={styles.workspaceWorkflowsSubMenuTitle}
                 descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
                 description={translate('workflowsPage.weeklyFrequency')}
-                onPress={() => {}}
+                // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID))}
                 shouldShowRightIcon={true}
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
                 />
@@ -48,7 +51,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             title: translate('workflowsPage.addApprovalsTitle'),
             subtitle: translate('workflowsPage.addApprovalsDescription'),
             onToggle: (isEnabled: boolean) => {
-              // TODO call API routes && set onyx optimistic data
+                Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? 'BASIC' : 'OPTIONAL');
             },
             subMenuItems: (
               <MenuItem
@@ -56,7 +59,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 titleStyle={styles.workspaceWorkflowsSubMenuTitle}
                 descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
                 description={policy?.owner ?? ''}
-                onPress={() => {}}
+                // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                 shouldShowRightIcon={true}
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
               />
@@ -73,7 +76,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 <MenuItem
                 descriptionTextStyle={[styles.workspaceWorkflowsSubMenuDescription, styles.textSupporting]}
                 description={translate('workflowsPage.connectBankAccount')}
-                onPress={() => {}}
+                // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
                 shouldShowRightIcon={true}
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
               />
