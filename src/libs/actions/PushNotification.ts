@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as Device from './Device';
 
@@ -19,7 +20,7 @@ Onyx.connect({
  */
 function setPushNotificationOptInStatus(isOptingIn: boolean) {
     Device.getDeviceID().then((deviceID) => {
-        const commandName = isOptingIn ? 'OptInToPushNotifications' : 'OptOutOfPushNotifications';
+        const commandName = isOptingIn ? WRITE_COMMANDS.OPT_IN_TO_PUSH_NOTIFICATIONS : WRITE_COMMANDS.OPT_OUT_OF_PUSH_NOTIFICATIONS;
         const optimisticData = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

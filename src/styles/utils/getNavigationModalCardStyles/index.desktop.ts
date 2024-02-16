@@ -1,5 +1,6 @@
+// eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
-import GetNavigationModalCardStyles from './types';
+import type GetNavigationModalCardStyles from './types';
 
 const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
     // position: fixed is set instead of position absolute to workaround Safari known issues of updating heights in DOM.

@@ -62,7 +62,6 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
-            value={searchValue}
             // Focus the first option when searching
             focusedIndex={0}
             // Focus the selected option on first load

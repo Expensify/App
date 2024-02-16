@@ -24,16 +24,19 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
-        <View style={[styles.appContentHeader]}>
+        <View style={[styles.appContentHeader, isSmallScreenWidth && styles.pl2]}>
             <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
                 {isSmallScreenWidth && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
-                        style={[styles.LHNToggle]}
+                        style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
                     >
-                        <Icon src={Expensicons.BackArrow} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.BackArrow}
+                        />
                     </PressableWithFeedback>
                 )}
                 <SkeletonViewContentLoader
@@ -45,18 +48,18 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                 >
                     <Circle
                         cx="20"
-                        cy="33"
+                        cy="40"
                         r="20"
                     />
                     <Rect
                         x="55"
-                        y="20"
+                        y="28"
                         width="30%"
                         height="8"
                     />
                     <Rect
                         x="55"
-                        y="40"
+                        y="48"
                         width="40%"
                         height="8"
                     />

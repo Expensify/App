@@ -113,5 +113,15 @@ tsconfig.tsbuildinfo
 .yalc
 yalc.lock
 
+# Expo
+.expo
+dist/
+web-build/
+
 # Local https certificate/key
 config/webpack/*.pem
+
+# Expo
+.expo
+dist/
+web-build/

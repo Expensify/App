@@ -1,4 +1,4 @@
-import CompactContentContainerStyles from './types';
+import type CompactContentContainerStyles from './types';
 
 /**
  *  On native platforms, alignItemsBaseline does not work correctly

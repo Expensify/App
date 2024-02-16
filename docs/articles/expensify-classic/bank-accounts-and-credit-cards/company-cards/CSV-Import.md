@@ -93,9 +93,11 @@ Then, try to upload the revised spreadsheet again:
 3. Check the row count again on the Output Preview to confirm it matches the spreadsheet
 4. Click **Submit Spreadsheet**
 
-# FAQ 
+{% include faq-begin.md %} 
 ## Why can't I see my CSV transactions immediately after uploading them?
 Don't worry! You'll typically need to wait 1-2 minutes after clicking **I understand, I'll wait!**
 
 ## I'm trying to import a credit. Why isn't it uploading?
 Negative expenses shouldn't include a minus sign. Instead, they should just be wrapped in parentheses. For example, to indicate "-335.98," you'll want to make sure it's formatted as "(335.98)."
+
+{% include faq-end.md %}

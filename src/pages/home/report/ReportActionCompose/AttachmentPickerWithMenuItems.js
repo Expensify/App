@@ -1,6 +1,8 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -11,15 +13,18 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
@@ -31,6 +36,12 @@ const propTypes = {
         /** Whether or not the report is in the process of being created */
         loading: PropTypes.bool,
     }).isRequired,
+
+    /** The policy tied to the report */
+    policy: PropTypes.shape({
+        /** Type of the policy */
+        type: PropTypes.string,
+    }),
 
     /** The personal details of everyone in the report */
     reportParticipantIDs: PropTypes.arrayOf(PropTypes.number),
@@ -44,14 +55,11 @@ const propTypes = {
     /** Whether or not the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
-    /** Updates the isComposerFullSize value */
-    updateShouldShowSuggestionMenuToFalse: PropTypes.func.isRequired,
-
     /** Whether or not the user is blocked from concierge */
     isBlockedFromConcierge: PropTypes.bool.isRequired,
 
     /** Whether or not the attachment picker is disabled */
-    disabled: PropTypes.bool.isRequired,
+    disabled: PropTypes.bool,
 
     /** Sets the menu visibility */
     setMenuVisibility: PropTypes.func.isRequired,
@@ -85,10 +93,15 @@ const propTypes = {
 
     /** Whether or not the screen is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
+    raiseIsScrollLikelyLayoutTriggered: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     reportParticipantIDs: [],
+    disabled: false,
+    policy: {},
 };
 
 /**
@@ -99,11 +112,11 @@ const defaultProps = {
  */
 function AttachmentPickerWithMenuItems({
     report,
+    policy,
     reportParticipantIDs,
     displayFileInModal,
     isFullComposerAvailable,
     isComposerFullSize,
-    updateShouldShowSuggestionMenuToFalse,
     reportID,
     isBlockedFromConcierge,
     disabled,
@@ -116,7 +129,9 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
     isFocused,
+    raiseIsScrollLikelyLayoutTriggered,
 }) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -144,10 +159,10 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs), (option) => ({
             ...options[option],
         }));
-    }, [report, reportParticipantIDs, translate]);
+    }, [report, policy, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option
@@ -222,7 +237,7 @@ function AttachmentPickerWithMenuItems({
                                     <PressableWithFeedback
                                         onPress={(e) => {
                                             e.preventDefault();
-                                            updateShouldShowSuggestionMenuToFalse();
+                                            raiseIsScrollLikelyLayoutTriggered();
                                             Report.setIsComposerFullSize(reportID, false);
                                         }}
                                         // Keep focus on the composer when Collapse button is clicked.
@@ -232,7 +247,10 @@ function AttachmentPickerWithMenuItems({
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
-                                        <Icon src={Expensicons.Collapse} />
+                                        <Icon
+                                            fill={theme.icon}
+                                            src={Expensicons.Collapse}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -241,7 +259,7 @@ function AttachmentPickerWithMenuItems({
                                     <PressableWithFeedback
                                         onPress={(e) => {
                                             e.preventDefault();
-                                            updateShouldShowSuggestionMenuToFalse();
+                                            raiseIsScrollLikelyLayoutTriggered();
                                             Report.setIsComposerFullSize(reportID, true);
                                         }}
                                         // Keep focus on the composer when Expand button is clicked.
@@ -251,7 +269,10 @@ function AttachmentPickerWithMenuItems({
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
-                                        <Icon src={Expensicons.Expand} />
+                                        <Icon
+                                            fill={theme.icon}
+                                            src={Expensicons.Expand}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -274,7 +295,10 @@ function AttachmentPickerWithMenuItems({
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
-                                    <Icon src={Expensicons.Plus} />
+                                    <Icon
+                                        fill={theme.icon}
+                                        src={Expensicons.Plus}
+                                    />
                                 </PressableWithFeedback>
                             </Tooltip>
                         </View>
@@ -310,4 +334,11 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default withNavigationFocus(AttachmentPickerWithMenuItems);
+export default compose(
+    withNavigationFocus,
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
+        },
+    }),
+)(AttachmentPickerWithMenuItems);

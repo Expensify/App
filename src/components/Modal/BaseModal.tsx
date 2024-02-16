@@ -2,6 +2,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -9,11 +10,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function BaseModal(
     {
@@ -38,6 +40,7 @@ function BaseModal(
         onLayout,
         avoidKeyboard = false,
         children,
+        shouldUseCustomBackdrop = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -45,6 +48,7 @@ function BaseModal(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
 
@@ -161,7 +165,7 @@ function BaseModal(
         safeAreaPaddingRight,
         shouldAddBottomSafeAreaMargin,
         shouldAddTopSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding,
+        shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
         shouldAddTopSafeAreaPadding,
         modalContainerStyleMarginTop: modalContainerStyle.marginTop,
         modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -172,20 +176,22 @@ function BaseModal(
 
     return (
         <ReactNativeModal
+            // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+            onClick={(e) => e.stopPropagation()}
             onBackdropPress={handleBackdropPress}
             // Note: Escape key on web/desktop will trigger onBackButtonPress callback
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            onBackButtonPress={onClose}
+            onBackButtonPress={Modal.closeTop}
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
             onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
             onDismiss={handleDismissModal}
-            onSwipeComplete={onClose}
+            onSwipeComplete={() => onClose?.()}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}
-            backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
+            backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}
             coverScreen={fullscreen}
@@ -201,6 +207,7 @@ function BaseModal(
             statusBarTranslucent={statusBarTranslucent}
             onLayout={onLayout}
             avoidKeyboard={avoidKeyboard}
+            customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
         >
             <View
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}

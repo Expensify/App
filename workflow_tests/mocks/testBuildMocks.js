@@ -70,7 +70,7 @@ const TESTBUILD__ANDROID__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMoc
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'ANDROID',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__ANDROID__CONFIGURE_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'ANDROID');
@@ -116,13 +116,20 @@ const TESTBUILD__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK = utils.createMock
     IS_PODFILE_SAME_AS_MANIFEST: false,
 });
 const TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], []);
-const TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt profile', 'Decrypt profile', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
+const TESTBUILD__IOS__DECRYPT_ADHOC_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt AdHoc profile', 'Decrypt AdHoc profile', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
+const TESTBUILD__IOS__DECRYPT_ADHOC_NSE_PROFILE__STEP_MOCK = utils.createMockStep(
+    'Decrypt AdHoc Notification Service profile',
+    'Decrypt AdHoc Notification Service profile',
+    'IOS',
+    [],
+    ['LARGE_SECRET_PASSPHRASE'],
+);
 const TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.createMockStep('Decrypt certificate', 'Decrypt certificate', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
 const TESTBUILD__IOS__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMockStep(
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'IOS',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__IOS__RUN_FASTLANE__STEP_MOCK = utils.createMockStep('Run Fastlane', 'Run Fastlane', 'IOS', [], ['S3_ACCESS_KEY', 'S3_SECRET_ACCESS_KEY', 'S3_BUCKET', 'S3_REGION']);
@@ -137,7 +144,8 @@ const TESTBUILD__IOS__STEP_MOCKS = [
     TESTBUILD__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK,
     TESTBUILD__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK,
     TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK,
-    TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK,
+    TESTBUILD__IOS__DECRYPT_ADHOC_PROFILE__STEP_MOCK,
+    TESTBUILD__IOS__DECRYPT_ADHOC_NSE_PROFILE__STEP_MOCK,
     TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
     TESTBUILD__IOS__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
     TESTBUILD__IOS__RUN_FASTLANE__STEP_MOCK,
@@ -165,7 +173,7 @@ const TESTBUILD__DESKTOP__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMoc
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'DESKTOP',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__DESKTOP__BUILD_DESKTOP_APP_FOR_TESTING__STEP_MOCK = utils.createMockStep(
@@ -198,7 +206,7 @@ const TESTBUILD__WEB__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMockSte
     'Configure AWS Credentials',
     'Configure AWS Credentials',
     'WEB',
-    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
     [],
 );
 const TESTBUILD__WEB__BUILD_WEB_FOR_TESTING__STEP_MOCK = utils.createMockStep('Build web for testing', 'Build web for testing', 'WEB', [], []);
@@ -228,13 +236,6 @@ const TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_ANDROID_PATHS__STEP_MOCK = u
 const TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_IOS_PATHS__STEP_MOCK = utils.createMockStep('Read JSONs with iOS paths', 'Read JSONs with iOS paths', 'POSTGITHUBCOMMENT', [], [], {
     ios_path: 'http://dummy.ios.link',
 });
-const TESTBUILD__POSTGITHUBCOMMENT__MAINTAIN_COMMENT__STEP_MOCK = utils.createMockStep(
-    'maintain-comment',
-    'maintain-comment',
-    'POSTGITHUBCOMMENT',
-    ['token', 'body-include', 'number', 'delete'],
-    [],
-);
 const TESTBUILD__POSTGITHUBCOMMENT__PUBLISH_LINKS_TO_APPS_FOR_DOWNLOAD__STEP_MOCK = utils.createMockStep(
     'Publish links to apps for download',
     'Publish links to apps for download',
@@ -247,7 +248,6 @@ const TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS = [
     TESTBUILD__POSTGITHUBCOMMENT__DOWNLOAD_ARTIFACT__STEP_MOCK,
     TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_ANDROID_PATHS__STEP_MOCK,
     TESTBUILD__POSTGITHUBCOMMENT__READ_JSONS_WITH_IOS_PATHS__STEP_MOCK,
-    TESTBUILD__POSTGITHUBCOMMENT__MAINTAIN_COMMENT__STEP_MOCK,
     TESTBUILD__POSTGITHUBCOMMENT__PUBLISH_LINKS_TO_APPS_FOR_DOWNLOAD__STEP_MOCK,
 ];
 

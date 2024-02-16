@@ -1,19 +1,21 @@
-import {SvgProps} from 'react-native-svg';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type Emoji = {
     code: string;
     name: string;
-    types?: string[];
+    types?: readonly string[];
 };
 
 type HeaderEmoji = {
     header: true;
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
     code: string;
 };
 
-type PickerEmojis = Array<Emoji | HeaderEmoji>;
+type PickerEmoji = Emoji | HeaderEmoji;
+
+type PickerEmojis = PickerEmoji[];
 
 type EmojisList = Record<string, {keywords: string[]; name?: string}>;
 
-export type {Emoji, HeaderEmoji, EmojisList, PickerEmojis};
+export type {Emoji, HeaderEmoji, EmojisList, PickerEmojis, PickerEmoji};

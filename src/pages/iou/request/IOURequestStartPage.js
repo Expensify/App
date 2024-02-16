@@ -16,6 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
+import * as KeyDownPressListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -37,6 +38,12 @@ const propTypes = {
     /** The report that holds the transaction */
     report: reportPropTypes,
 
+    /** The policy tied to the report */
+    policy: PropTypes.shape({
+        /** Type of the policy */
+        type: PropTypes.string,
+    }),
+
     /** The tab to select by default (whatever the user visited last) */
     selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
 
@@ -46,12 +53,14 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    policy: {},
     selectedTab: CONST.TAB_REQUEST.SCAN,
     transaction: {},
 };
 
 function IOURequestStartPage({
     report,
+    policy,
     route,
     route: {
         params: {iouType, reportID},
@@ -79,6 +88,19 @@ function IOURequestStartPage({
         [reportID],
     );
 
+    useEffect(() => {
+        const handler = (event) => {
+            if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+        };
+        KeyDownPressListener.addKeyDownPressListener(handler);
+
+        return () => KeyDownPressListener.removeKeyDownPressListener(handler);
+    }, []);
+
     // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
         if (transaction.reportID === reportID) {
@@ -92,7 +114,7 @@ function IOURequestStartPage({
     const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
 
     const navigateBack = () => {
         Navigation.dismissModal();
@@ -165,6 +187,9 @@ IOURequestStartPage.defaultProps = defaultProps;
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
     },
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,

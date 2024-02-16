@@ -1,25 +1,31 @@
-import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
-import {EdgeInsets} from 'react-native-safe-area-context';
-import {ValueOf} from 'type-fest';
+import {StyleSheet} from 'react-native';
+import type {Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
+// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
-import {ThemeColors} from '@styles/theme/types';
+import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {Transaction} from '@src/types/onyx';
-import {defaultStyles, type ThemeStyles} from '..';
+import type {Transaction} from '@src/types/onyx';
+import {defaultStyles} from '..';
+import type {ThemeStyles} from '..';
+import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
-import fontFamily from './fontFamily';
+import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import spacing from './spacing';
-import {
+import type {
     AllStyles,
     AvatarSize,
     AvatarSizeName,
@@ -271,9 +277,9 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
 /**
  * Helper method to return eReceipt color code
  */
-function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -374,7 +380,7 @@ function getZoomSizingStyle(
 /**
  * Returns auto grow text input style
  */
-function getWidthStyle(width: number): ViewStyle {
+function getWidthStyle(width: number): ViewStyle & ImageStyle {
     return {
         width,
     };
@@ -383,7 +389,7 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
-function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
+function getBackgroundAndBorderStyle(backgroundColor: ColorValue | undefined): ViewStyle {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -393,7 +399,7 @@ function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
 /**
  * Returns a style with the specified backgroundColor
  */
-function getBackgroundColorStyle(backgroundColor: string): ViewStyle {
+function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     return {
         backgroundColor,
     };
@@ -444,13 +450,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
         };
     }
     return {};
-}
-
-function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
 }
 
 function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
@@ -524,11 +523,11 @@ function getModalPaddingStyles({
  * Takes fontStyle and fontWeight and returns the correct fontFamily
  */
 function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
-    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
-    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
-    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+    const italic = fontStyle === 'italic' && FontUtils.fontFamily.platform.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && FontUtils.fontFamily.platform.MONOSPACE_BOLD;
+    const italicBold = italic && bold && FontUtils.fontFamily.platform.MONOSPACE_BOLD_ITALIC;
 
-    return italicBold || bold || italic || fontFamily.MONOSPACE;
+    return italicBold || bold || italic || FontUtils.fontFamily.platform.MONOSPACE;
 }
 /**
  * Returns the font size for the HTML code tag renderer.
@@ -701,8 +700,8 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
-    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ImageStyle {
+    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
 
     if (isSmallScreenWidth) {
         return {
@@ -722,8 +721,8 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
 /**
  * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
-    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
             marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
@@ -756,8 +755,8 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
-    const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
             minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
@@ -847,15 +846,14 @@ function displayIfTrue(condition: boolean): ViewStyle {
 /**
  * Gets the correct height for emoji picker list based on screen dimensions
  */
-function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: number): ViewStyle {
+function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight: number): ViewStyle {
     const style = {
-        ...spacing.ph4,
-        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+        height: isRenderingShortcutRow ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
     };
 
     if (windowHeight) {
         // dimensions of content above the emoji picker list
-        const dimensions = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
+        const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
         return {
             ...style,
             maxHeight: windowHeight - dimensions,
@@ -1011,11 +1009,22 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+function getOpacityStyle(opacity: number) {
+    return {opacity};
+}
+
+function getMultiGestureCanvasContainerStyle(canvasWidth: number): ViewStyle {
+    return {
+        width: canvasWidth,
+        overflow: 'hidden',
+    };
+}
+
 const staticStyleUtils = {
+    positioning,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1072,6 +1081,11 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getNavigationModalCardStyle,
+    getCardStyles,
+    getOpacityStyle,
+    getMultiGestureCanvasContainerStyle,
+    getSignInBgStyles,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1308,18 +1322,22 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      *
      * @param buttonState - One of {'default', 'hovered', 'pressed'}
      * @param isMenuIcon - whether this icon is apart of a list
+     * @param isPane - whether this icon is in a pane, e.g. Account or Workspace Settings
      */
-    getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false): string => {
+    getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false): string => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.ACTIVE:
             case CONST.BUTTON_STATES.PRESSED:
+                if (isPane) {
+                    return theme.iconMenu;
+                }
                 return theme.iconHovered;
             case CONST.BUTTON_STATES.COMPLETE:
                 return theme.iconSuccessFill;
             case CONST.BUTTON_STATES.DEFAULT:
             case CONST.BUTTON_STATES.DISABLED:
             default:
-                if (isMenuIcon) {
+                if (isMenuIcon && !isPane) {
                     return theme.iconMenu;
                 }
                 return theme.icon;
@@ -1329,7 +1347,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns style object for the user mention component based on whether the mention is ours or not.
      */
-    getMentionStyle: (isOurMention: boolean): ViewStyle => {
+    getMentionStyle: (isOurMention: boolean): TextStyle => {
         const backgroundColor = isOurMention ? theme.ourMentionBG : theme.mentionBG;
         return {
             backgroundColor,
@@ -1353,6 +1371,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
             ...positioning.r4,
             ...styles.cursorDefault,
+            ...styles.userSelectNone,
             position: 'absolute',
             zIndex: 8,
         }),
@@ -1429,6 +1448,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
 
         return containerStyles;
+    },
+
+    getUpdateRequiredViewStyles: (isSmallScreenWidth: boolean): ViewStyle[] => [
+        {
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...(isSmallScreenWidth ? {} : styles.pb40),
+        },
+    ],
+
+    /**
+     * Returns a style that sets the maximum height of the composer based on the number of lines and whether the composer is full size or not.
+     */
+    getComposerMaxHeightStyle: (maxLines: number | undefined, isComposerFullSize: boolean): TextStyle => {
+        if (isComposerFullSize || maxLines == null) {
+            return {};
+        }
+
+        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+
+        return {
+            maxHeight: maxLines * composerLineHeight,
+        };
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],

@@ -1,8 +1,8 @@
 import React from 'react';
 import MapView from './MapView';
-import {ComponentProps} from './types';
+import type {MapViewProps} from './MapViewTypes';
 
-function MapViewComponent(props: ComponentProps) {
+function MapViewComponent(props: MapViewProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <MapView {...props} />;
 }

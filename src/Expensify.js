@@ -13,7 +13,7 @@ import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
-import * as DemoActions from './libs/actions/DemoActions';
+import CONST from './CONST';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -62,7 +62,8 @@ const propTypes = {
     /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
 
-    /** Tells us if the sidebar has rendered */
+    /** Tells us if the sidebar has rendered - TODO: We don't use it as temporary solution to fix not hidding splashscreen */
+    // eslint-disable-next-line react/no-unused-prop-types
     isSidebarLoaded: PropTypes.bool,
 
     /** Information about a screen share call requested by a GuidesPlus agent */
@@ -77,8 +78,14 @@ const propTypes = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
 
+    /** True when the user must update to the latest minimum version of the app */
+    updateRequired: PropTypes.bool,
+
     /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
     focusModeNotification: PropTypes.bool,
+
+    /** Last visited path in the app */
+    lastVisitedPath: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
@@ -92,7 +99,9 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
+    updateRequired: false,
     focusModeNotification: false,
+    lastVisitedPath: undefined,
 };
 
 const SplashScreenHiddenContext = React.createContext({});
@@ -103,6 +112,7 @@ function Expensify(props) {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashHidden, setIsSplashHidden] = useState(false);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
+    const [initialUrl, setInitialUrl] = useState(null);
 
     useEffect(() => {
         if (props.isCheckingPublicRoom) {
@@ -121,7 +131,7 @@ function Expensify(props) {
         [isSplashHidden],
     );
 
-    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
@@ -183,13 +193,12 @@ function Expensify(props) {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            DemoActions.runDemoByURL(url);
+            setInitialUrl(url);
             Report.openReportFromDeepLink(url, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            DemoActions.runDemoByURL(state.url);
             Report.openReportFromDeepLink(state.url, isAuthenticated);
         });
 
@@ -207,6 +216,10 @@ function Expensify(props) {
         return null;
     }
 
+    if (props.updateRequired) {
+        throw new Error(CONST.ERROR.UPDATE_REQUIRED);
+    }
+
     return (
         <DeeplinkWrapper
             isAuthenticated={isAuthenticated}
@@ -218,7 +231,8 @@ function Expensify(props) {
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {props.updateAvailable ? <UpdateAppModal /> : null}
+                    {/* If the update is required we won't show this option since a full screen update view will be displayed instead. */}
+                    {props.updateAvailable && !props.updateRequired ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
                         <ConfirmModal
                             title={props.translate('guides.screenShare')}
@@ -240,6 +254,8 @@ function Expensify(props) {
                     <NavigationRoot
                         onReady={setNavigationReady}
                         authenticated={isAuthenticated}
+                        lastVisitedPath={props.lastVisitedPath}
+                        initialUrl={initialUrl}
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
@@ -271,9 +287,16 @@ export default compose(
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
         },
+        updateRequired: {
+            key: ONYXKEYS.UPDATE_REQUIRED,
+            initWithStoredValues: false,
+        },
         focusModeNotification: {
             key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
             initWithStoredValues: false,
+        },
+        lastVisitedPath: {
+            key: ONYXKEYS.LAST_VISITED_PATH,
         },
     }),
 )(Expensify);

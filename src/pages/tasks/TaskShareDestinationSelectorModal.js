@@ -110,8 +110,6 @@ function TaskShareDestinationSelectorModal(props) {
         }
 
         if (option.reportID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
             Task.setShareDestinationValue(option.reportID);
             Navigation.goBack(ROUTES.NEW_TASK);
         }
@@ -139,7 +137,6 @@ function TaskShareDestinationSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
@@ -148,7 +145,7 @@ function TaskShareDestinationSelectorModal(props) {
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
+                            textInputAlert={isOffline ? [`${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={inputCallbackRef}

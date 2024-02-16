@@ -4,9 +4,9 @@
 
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 // eslint-disable-next-line no-restricted-imports
-import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
+import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
-import {BootSplashModule} from '@libs/BootSplash/types';
+import type {BootSplashModule} from '@libs/BootSplash/types';
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
@@ -348,11 +348,6 @@ declare module 'react-native' {
     interface TextStyle extends WebStyle {}
     interface ImageStyle extends WebStyle {}
     // <------ REACT NATIVE WEB (0.19.0) ------>
-
-    interface TextInput {
-        // Typescript type declaration is missing in React Native for setting text selection.
-        setSelection: (start: number, end: number) => void;
-    }
 
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;

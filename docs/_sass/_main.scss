@@ -46,7 +46,6 @@ blockquote {
 
 article,
 aside,
-details,
 figcaption,
 figure,
 footer,
@@ -55,8 +54,7 @@ hgroup,
 main,
 menu,
 nav,
-section,
-summary {
+section {
     display: block;
 }
 
@@ -99,7 +97,8 @@ h2,
 h3,
 h4,
 h5,
-h6 {
+h6, 
+summary {
     color: $color-text;
     font-weight: bold;
     padding-bottom: 12px;
@@ -113,7 +112,25 @@ h6 {
     margin-top: 20px;
 }
 
-h1 {
+#faq::marker {
+    font-size: 1.5em;
+}
+
+details summary { 
+    cursor: pointer;
+    user-select: none;
+}
+
+details > summary {
+    list-style-image: url("/assets/images/arrow-right.svg");
+}
+
+details[open] > summary {
+    list-style-image: url("/assets/images/down.svg");
+}
+
+h1, 
+summary {
     font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-weight: 500;
     font-size: larger;
@@ -333,10 +350,14 @@ button {
     h1 {
         &.title {
             font-size: 2.25em;
+            flex: 1;
         }
     }
 
     .article {
+        .hidden {
+            display: none;
+        }
         img {
             display: block;
             margin: 20px auto;
@@ -398,7 +419,7 @@ button {
             flex-wrap: wrap;
         }
 
-        h1 {
+        h1, summary {
             font-size: 1.5em;
             padding: 20px 0 12px 0;
         }
@@ -439,6 +460,69 @@ button {
                 font-size: large;
                 font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
                 opacity: 0.8;
+            }
+        }
+
+        .selector-container {
+            background-color: $color-highlightBG;
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 20px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            * > ol, ul {
+                padding: 0;
+            }
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                flex-direction: column;
+            }
+        }
+
+        select {
+            height: 28px;
+            border-radius: 20px;
+            padding: 0px 26px 0px 12px;
+            color: $color-text;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100px;
+            }
+
+        }
+
+        select {
+            background: url("/assets/images/down.svg") no-repeat right $color-button-background;
+            background-size: 12px;
+            background-position-x: 85%;
+            appearance: none !important;
+            -moz-appearance: none !important;
+            -webkit-appearance: none !important;
+        }
+
+        .info {
+            padding: 12px;
+            border-radius: 8px;
+            background-color: $color-highlightBG;
+            color: $color-text;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        
+            img {
+                height: 16px;
+                width: 16px;
+            }
+
+            * {
+                padding: 0;
+                margin: 0;
             }
         }
     }
@@ -824,4 +908,46 @@ button {
             width: 25%;
         }
     }
+}
+
+.title-platform-tabs {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    h1 {
+        padding: 0;
+    }
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+#platform-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    gap: 4px;
+}
+
+#platform-tabs > * {
+    cursor: pointer;
+    border-radius: 20px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    height: 36px;
+    line-height: 16px;
+}
+
+#platform-tabs > .active {
+    color: $color-text;
+    background-color: $color-button-background;
+}
+
+.hidden {
+    display: none;
 }

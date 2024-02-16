@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {Message} from '@src/types/onyx/ReportAction';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 /**
  * Check whether a report action is Attachment or not.

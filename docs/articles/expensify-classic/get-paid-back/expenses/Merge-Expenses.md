@@ -37,7 +37,7 @@ On the mobile app, merging is prompted when you see the message _"Potential dupl
 
 If the expenses exist on two different reports, you will be asked which report you'd like the newly created single expense to be reported onto.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Can you merge expenses across different reports?
 

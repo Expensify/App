@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import ConvertToLTR from './types';
+import type ConvertToLTR from './types';
 
 /**
  * Android only - convert RTL text to a LTR text using Unicode controls.

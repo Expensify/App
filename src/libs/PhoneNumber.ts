@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
-import {parsePhoneNumber as originalParsePhoneNumber, ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
+import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
+import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 import CONST from '@src/CONST';
 
 /**

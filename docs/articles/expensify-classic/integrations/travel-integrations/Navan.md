@@ -20,7 +20,7 @@ Once you complete these steps, any flights you book through Navan will automatic
 If you booked your Navan flight using your Expensify Card, the Navan expense will automatically merge with the card expense. Learn more about the Expensify Card [here](https://use.expensify.com/company-credit-card).
 
 
-# FAQ
+{% include faq-begin.md %}
 
 ## How do I expense a prepaid hotel booking in Expensify using the Navan integration?
 Bookings that weren’t made in Navan directly (such as a prepaid hotel booking) won’t auto-import into Expensify. To import these trips into Expensify, follow these steps:
@@ -45,3 +45,5 @@ Costs depend on your subscription plans with Expensify and Navan. Expensify does
 
 ## How do I disconnect the integration?
 To disconnect the integration, navigate to the integrations section in Navan, find Expensify, and select the option to disable the integration.
+
+{% include faq-end.md %}

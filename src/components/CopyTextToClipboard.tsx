@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
+import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import * as Expensicons from './Icon/Expensicons';

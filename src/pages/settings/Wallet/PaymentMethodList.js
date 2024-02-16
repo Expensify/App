@@ -96,6 +96,9 @@ const propTypes = {
 
     /** List container style */
     style: stylePropTypes,
+
+    /** List item style */
+    listItemStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -120,6 +123,7 @@ const defaultProps = {
     onListContentSizeChange: () => {},
     shouldEnableScroll: true,
     style: {},
+    listItemStyle: {},
     shouldShowSelectedState: false,
 };
 
@@ -205,6 +209,7 @@ function PaymentMethodList({
     onListContentSizeChange,
     shouldEnableScroll,
     style,
+    listItemStyle,
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -264,10 +269,12 @@ function PaymentMethodList({
 
             return {
                 ...paymentMethod,
+                iconRight: Expensicons.ThreeDots,
+                shouldShowRightIcon: true,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-                iconFill: isMethodActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isMethodActive,
             };
         });
 
@@ -287,11 +294,13 @@ function PaymentMethodList({
                 onPress={onPress}
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
-                wrapperStyle={styles.paymentMethod}
+                wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                hoverAndPressStyle={styles.hoveredComponentBG}
+                ref={buttonRef}
             />
         ),
 
-        [onPress, styles.paymentMethod, translate],
+        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef],
     );
 
     /**
@@ -317,27 +326,31 @@ function PaymentMethodList({
                     description={item.description}
                     icon={item.icon}
                     disabled={item.disabled}
-                    iconFill={item.iconFill}
+                    displayInDefaultIconColor
                     iconHeight={item.iconHeight || item.iconSize}
                     iconWidth={item.iconWidth || item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
-                    wrapperStyle={styles.paymentMethod}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    iconRight={item.iconRight}
+                    badgeStyle={styles.badgeBordered}
+                    hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
+                    success={item.isMethodActive}
                 />
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.hoveredComponentBG, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
         <>
-            <View style={[style, {minHeight: variables.optionRowHeight}]}>
+            <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount && 1)) * variables.optionRowHeight}]}>
                 <FlashList
                     estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods}
@@ -345,10 +358,10 @@ function PaymentMethodList({
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
                     onContentSizeChange={onListContentSizeChange}
                     scrollEnabled={shouldEnableScroll}
                 />
+                {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>

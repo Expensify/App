@@ -1,4 +1,4 @@
-import {TextStyle} from 'react-native';
+import type {TextStyle} from 'react-native';
 
 type WhiteSpaceStyles = Record<'noWrap' | 'preWrap' | 'pre', Pick<TextStyle, 'whiteSpace'>>;
 

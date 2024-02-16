@@ -1,4 +1,4 @@
-import FocusTextInputAfterAnimation from './types';
+import type FocusTextInputAfterAnimation from './types';
 
 /**
  * Initially this file is intended for native ios but use index.native.js filename and affects android.

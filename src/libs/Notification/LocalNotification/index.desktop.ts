@@ -1,6 +1,6 @@
-import {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import BrowserNotifications from './BrowserNotifications';
-import {LocalNotificationClickHandler, LocalNotificationModule} from './types';
+import type {LocalNotificationClickHandler, LocalNotificationModule} from './types';
 
 function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
     BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick);

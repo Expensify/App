@@ -1,6 +1,7 @@
 import React from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import Text from '@components/Text';
+// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 
 /**

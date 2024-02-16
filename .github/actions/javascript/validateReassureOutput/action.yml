@@ -7,9 +7,6 @@ inputs:
   COUNT_DEVIATION:
     description: Allowable deviation for the mean count in regression test results.
     required: true
-  REGRESSION_OUTPUT:
-    description: Refers to the results obtained from regression tests `.reassure/output.json`.
-    required: true
 runs:
   using: 'node20'
   main: './index.js'

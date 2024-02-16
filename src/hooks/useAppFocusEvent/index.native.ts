@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {AppState} from 'react-native';
-import {UseAppFocusEvent, UseAppFocusEventCallback} from './types';
+import type {UseAppFocusEvent, UseAppFocusEventCallback} from './types';
 
 const useAppFocusEvent: UseAppFocusEvent = (callback: UseAppFocusEventCallback) => {
     useEffect(() => {

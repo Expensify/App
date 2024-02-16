@@ -12,5 +12,18 @@ type PolicyTag = {
 
 type PolicyTags = Record<string, PolicyTag>;
 
-export default PolicyTag;
-export type {PolicyTags};
+type PolicyTagList<T extends string = string> = Record<
+    T,
+    {
+        /** Name of the tag list */
+        name: T;
+
+        /** Flag that determines if tags are required */
+        required: boolean;
+
+        /** Nested tags */
+        tags: PolicyTags;
+    }
+>;
+
+export type {PolicyTag, PolicyTags, PolicyTagList};

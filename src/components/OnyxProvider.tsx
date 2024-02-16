@@ -10,9 +10,12 @@ const [withPersonalDetails, PersonalDetailsProvider, , usePersonalDetails] = cre
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
 const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
 const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
-const [withBetas, BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
+const [withBetas, BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
+const [withFrequentlyUsedEmojis, FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+const [withPreferredEmojiSkinTone, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+const [, SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 
 type OnyxProviderProps = {
     /** Rendered child component */
@@ -31,6 +34,9 @@ function OnyxProvider(props: OnyxProviderProps) {
                 BetasProvider,
                 ReportCommentDraftsProvider,
                 PreferredThemeProvider,
+                FrequentlyUsedEmojisProvider,
+                PreferredEmojiSkinToneProvider,
+                SessionProvider,
             ]}
         >
             {props.children}
@@ -55,4 +61,10 @@ export {
     withReportCommentDrafts,
     withPreferredTheme,
     PreferredThemeContext,
+    useBetas,
+    withFrequentlyUsedEmojis,
+    useFrequentlyUsedEmojis,
+    withPreferredEmojiSkinTone,
+    PreferredEmojiSkinToneContext,
+    useSession,
 };

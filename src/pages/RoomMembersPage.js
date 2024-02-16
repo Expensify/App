@@ -14,11 +14,12 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -99,6 +100,7 @@ function RoomMembersPage(props) {
 
     /**
      * Remove selected users from the room
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         Report.removeFromRoom(props.report.reportID, selectedMembers);
@@ -173,7 +175,7 @@ function RoomMembersPage(props) {
     const getMemberOptions = () => {
         let result = [];
 
-        _.each(props.report.participantAccountIDs, (accountID) => {
+        _.each(props.report.visibleChatMemberAccountIDs, (accountID) => {
             const details = personalDetails[accountID];
 
             if (!details) {
@@ -194,7 +196,7 @@ function RoomMembersPage(props) {
                     memberDetails += ` ${details.lastName.toLowerCase()}`;
                 }
                 if (details.displayName) {
-                    memberDetails += ` ${details.displayName.toLowerCase()}`;
+                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
                 }
                 if (details.phoneNumber) {
                     memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
@@ -210,13 +212,14 @@ function RoomMembersPage(props) {
                 accountID: Number(accountID),
                 isSelected: _.contains(selectedMembers, Number(accountID)),
                 isDisabled: accountID === props.session.accountID,
-                text: props.formatPhoneNumber(details.displayName),
+                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
                         name: details.login,
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: Number(accountID),
                     },
                 ],
             });
@@ -281,6 +284,7 @@ function RoomMembersPage(props) {
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
@@ -288,7 +292,7 @@ function RoomMembersPage(props) {
                             onSelectAll={() => toggleAllUsers(data)}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         />
                     </View>
                 </View>

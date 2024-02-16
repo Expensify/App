@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {translatableTextPropTypes} from '@libs/Localize';
 import CONST from '@src/CONST';
+import sourcePropTypes from './Image/sourcePropTypes';
 
 export default PropTypes.shape({
     /** The transaction id */
@@ -65,6 +67,17 @@ export default PropTypes.shape({
         }),
     ),
 
+    /** Selected participants */
+    participants: PropTypes.arrayOf(
+        PropTypes.shape({
+            accountID: PropTypes.number,
+            login: PropTypes.string,
+            isPolicyExpenseChat: PropTypes.bool,
+            isOwnPolicyExpenseChat: PropTypes.bool,
+            selected: PropTypes.bool,
+        }),
+    ),
+
     /** The original currency of the transaction */
     currency: PropTypes.string,
 
@@ -74,10 +87,10 @@ export default PropTypes.shape({
     /** The receipt object associated with the transaction */
     receipt: PropTypes.shape({
         receiptID: PropTypes.number,
-        source: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+        source: PropTypes.oneOfType([PropTypes.number, PropTypes.string, sourcePropTypes]),
         state: PropTypes.string,
     }),
 
     /** Server side errors keyed by microtime */
-    errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 });

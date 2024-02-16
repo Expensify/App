@@ -1,10 +1,10 @@
 import {PortalHost} from '@gorhom/portal';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -13,6 +13,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,10 +24,9 @@ import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
-import updatePropsPaperWorklet from '@libs/updatePropsPaperWorklet';
+import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -45,9 +45,6 @@ const propTypes = {
 
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
-
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -106,7 +103,8 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    reportActions,
+    isEmptyChat,
+    lastReportAction,
     listHeight,
     shouldShowComposeInput,
     isReportReadyForDisplay,
@@ -117,6 +115,7 @@ function ReportActionCompose({
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -125,6 +124,26 @@ function ReportActionCompose({
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState.isVisible && !initialModalState.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
+
+    // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
+    const isScrollLikelyLayoutTriggered = useRef(false);
+
+    /**
+     * Reset isScrollLikelyLayoutTriggered to false.
+     *
+     * The function is debounced with a handpicked wait time to address 2 issues:
+     * 1. There is a slight delay between onChangeText and onScroll
+     * 2. Layout change will trigger onScroll multiple times
+     */
+    const debouncedLowerIsScrollLikelyLayoutTriggered = useDebounce(
+        useCallback(() => (isScrollLikelyLayoutTriggered.current = false), []),
+        500,
+    );
+
+    const raiseIsScrollLikelyLayoutTriggered = useCallback(() => {
+        isScrollLikelyLayoutTriggered.current = true;
+        debouncedLowerIsScrollLikelyLayoutTriggered();
+    }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
     /**
      * Updates the should clear state of the composer
@@ -160,7 +179,9 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const isBlockedFromConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge), [report, blockedFromConcierge]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report.participantAccountIDs}), [report.participantAccountIDs]);
+    const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
+    const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
@@ -171,8 +192,8 @@ function ReportActionCompose({
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (ReportUtils.chatIncludesConcierge(report)) {
-            if (User.isBlockedFromConcierge(blockedFromConcierge)) {
+        if (includesConcierge) {
+            if (userBlockedFromConcierge) {
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
@@ -180,7 +201,7 @@ function ReportActionCompose({
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
 
     const focus = () => {
         if (composerRef === null || composerRef.current === null) {
@@ -200,12 +221,17 @@ function ReportActionCompose({
     }, []);
 
     const containerRef = useRef(null);
-    const measureContainer = useCallback((callback) => {
-        if (!containerRef.current) {
-            return;
-        }
-        containerRef.current.measureInWindow(callback);
-    }, []);
+    const measureContainer = useCallback(
+        (callback) => {
+            if (!containerRef.current) {
+                return;
+            }
+            containerRef.current.measureInWindow(callback);
+        },
+        // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isComposerFullSize],
+    );
 
     const onAddActionPressed = useCallback(() => {
         if (!willBlurTextInputOnTapOutside) {
@@ -230,6 +256,7 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
+            playSound(SOUNDS.DONE);
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -262,6 +289,7 @@ function ReportActionCompose({
                 return;
             }
 
+            playSound(SOUNDS.DONE);
             onSubmit(newComment);
         },
         [onSubmit],
@@ -322,15 +350,19 @@ function ReportActionCompose({
             return;
         }
 
-        const viewTag = animatedRef();
-        const viewName = 'RCTMultilineTextInputView';
-        const updates = {text: ''};
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
         runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
-        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+
+    const emojiShiftVertical = useMemo(() => {
+        const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
+        const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
+        const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
+        return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
+    }, [styles]);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -369,12 +401,12 @@ function ReportActionCompose({
                                         reportParticipantIDs={reportParticipantIDs}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}
-                                        updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                         isBlockedFromConcierge={isBlockedFromConcierge}
                                         disabled={disabled}
                                         setMenuVisibility={setMenuVisibility}
                                         isMenuVisible={isMenuVisible}
                                         onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         onCanceledAttachmentPicker={() => {
                                             isNextModalWillOpenRef.current = false;
                                             restoreKeyboardState();
@@ -389,9 +421,14 @@ function ReportActionCompose({
                                         animatedRef={animatedRef}
                                         suggestionsRef={suggestionsRef}
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
+                                        isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
+                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        report={report}
-                                        reportActions={reportActions}
+                                        parentReportID={report.parentReportID}
+                                        parentReportActionID={report.parentReportActionID}
+                                        includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
                                         inputPlaceholder={inputPlaceholder}
                                         isComposerFullSize={isComposerFullSize}
@@ -429,6 +466,7 @@ function ReportActionCompose({
                                 onModalHide={focus}
                                 onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                                 emojiPickerID={report.reportID}
+                                shiftVertical={emojiShiftVertical}
                             />
                         )}
                         <SendButton
@@ -469,4 +507,4 @@ export default compose(
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
     }),
-)(ReportActionCompose);
+)(memo(ReportActionCompose));

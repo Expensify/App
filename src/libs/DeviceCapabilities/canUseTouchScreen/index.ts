@@ -1,5 +1,5 @@
-import {Merge} from 'type-fest';
-import CanUseTouchScreen from './types';
+import type {Merge} from 'type-fest';
+import type CanUseTouchScreen from './types';
 
 type ExtendedNavigator = Merge<Navigator, {msMaxTouchPoints: number}>;
 

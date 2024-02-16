@@ -1,5 +1,5 @@
-import {ViewStyle} from 'react-native';
-import OverflowAutoStyles from './types';
+import type {ViewStyle} from 'react-native';
+import type OverflowAutoStyles from './types';
 
 /**
  * Web-only style.

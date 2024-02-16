@@ -1,5 +1,6 @@
 import {PermissionsAndroid, Platform} from 'react-native';
-import RNFetchBlob, {FetchBlobResponse} from 'react-native-blob-util';
+import type {FetchBlobResponse} from 'react-native-blob-util';
+import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 
@@ -32,7 +33,7 @@ function hasAndroidPermission(): Promise<boolean> {
 /**
  * Handling the download
  */
-function handleDownload(url: string, fileName: string): Promise<void> {
+function handleDownload(url: string, fileName: string, successMessage?: string): Promise<void> {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
@@ -83,7 +84,7 @@ function handleDownload(url: string, fileName: string): Promise<void> {
                 if (attachmentPath) {
                     RNFetchBlob.fs.unlink(attachmentPath);
                 }
-                FileUtils.showSuccessAlert();
+                FileUtils.showSuccessAlert(successMessage);
             })
             .catch(() => {
                 FileUtils.showGeneralErrorAlert();
@@ -95,12 +96,12 @@ function handleDownload(url: string, fileName: string): Promise<void> {
 /**
  * Checks permission and downloads the file for Android
  */
-const fileDownload: FileDownload = (url, fileName) =>
+const fileDownload: FileDownload = (url, fileName, successMessage) =>
     new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
                 if (hasPermission) {
-                    return handleDownload(url, fileName);
+                    return handleDownload(url, fileName, successMessage);
                 }
                 FileUtils.showPermissionErrorAlert();
             })

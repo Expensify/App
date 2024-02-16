@@ -1,18 +1,18 @@
 /* eslint-disable react/no-array-index-key */
 import React from 'react';
-import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
-
-type ReceiptError = {error?: string; source: string; filename: string};
 
 type DotIndicatorMessageProps = {
     /**
@@ -22,7 +22,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, Localize.MaybePhraseKey>;
+    messages: Record<string, Localize.MaybePhraseKey | ReceiptError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -35,8 +35,8 @@ type DotIndicatorMessageProps = {
 };
 
 /** Check if the error includes a receipt. */
-function isReceiptError(message: string | ReceiptError): message is ReceiptError {
-    if (typeof message === 'string') {
+function isReceiptError(message: Localize.MaybePhraseKey | ReceiptError): message is ReceiptError {
+    if (typeof message === 'string' || Array.isArray(message)) {
         return false;
     }
     return (message?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
@@ -57,7 +57,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
         .map((key) => messages[key]);
 
     // Removing duplicates using Set and transforming the result into an array
-    const uniqueMessages = [...new Set(sortedMessages)].map((message) => Localize.translateIfPhraseKey(message));
+    const uniqueMessages = [...new Set(sortedMessages)].map((message) => (isReceiptError(message) ? message : Localize.translateIfPhraseKey(message)));
 
     const isErrorMessage = type === 'error';
 
@@ -84,9 +84,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                                 key={i}
                                 style={styles.offlineFeedback.text}
                             >
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
+                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
+                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
                             </Text>
                         </PressableWithoutFeedback>
                     ) : (
