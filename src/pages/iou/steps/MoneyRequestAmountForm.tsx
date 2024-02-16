@@ -72,13 +72,13 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
     }: MoneyRequestAmountFormProps,
-    forwardedRef: ForwardedRef<TextInput>,
+    forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
-    const textInput = useRef<TextInput | null>(null);
+    const textInput = useRef<BaseTextInputRef | null>(null);
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
