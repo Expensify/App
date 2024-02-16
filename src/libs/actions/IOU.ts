@@ -982,6 +982,36 @@ function createDistanceRequest(
 }
 
 /**
+ * Compute the diff amount when we update the transaction
+ */
+function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTransaction: OnyxEntry<OnyxTypes.Transaction>, transaction: OnyxEntry<OnyxTypes.Transaction>): number {
+    if (!iouReport) {
+        return 0;
+    }
+    const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+    const updatedCurrency = TransactionUtils.getCurrency(updatedTransaction);
+    const currentCurrency = TransactionUtils.getCurrency(transaction);
+
+    const currentAmount = TransactionUtils.getAmount(transaction, isExpenseReport);
+    const updatedAmount = TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
+
+    if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
+        // Add the diff to the total if we change the currency from a different currency to the currency of the IOU report
+        return updatedAmount;
+    }
+    if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
+        // Subtract the diff from the total if we change the currency from the currency of IOU report to a different currency
+        return -updatedAmount;
+    }
+    if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
+        // Calculate the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
+        return updatedAmount - currentAmount;
+    }
+
+    return 0;
+}
+
+/**
  * @param transactionID
  * @param transactionThreadReportID
  * @param transactionChanges
@@ -1097,23 +1127,21 @@ function getUpdateMoneyRequestParams(
                 },
             },
         });
-    }
 
-    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-    // Should only update if the transaction matches the currency of the report, else we wait for the update
-    // from the server with the currency conversion
-    let updatedMoneyRequestReport = {...iouReport};
-    if ((hasPendingWaypoints || updatedTransaction?.modifiedAmount) && updatedTransaction?.currency === iouReport?.currency) {
-        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+        // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+        let updatedMoneyRequestReport = {...iouReport};
+        const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+
         if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-            updatedMoneyRequestReport.total += diff;
+            // For expense report, the amount is negative so we should subtract total from diff
+            updatedMoneyRequestReport.total -= diff;
         } else {
             updatedMoneyRequestReport = iouReport
-                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
+                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
                 : {};
         }
+        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency);
 
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.currency);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -2789,23 +2817,18 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport: OnyxTypes.Report | null;
+    const currency = TransactionUtils.getCurrency(transaction);
     const updatedReportPreviewAction: OnyxTypes.ReportAction | EmptyObject = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     if (iouReport && ReportUtils.isExpenseReport(iouReport)) {
         updatedIOUReport = {...iouReport};
 
-        if (typeof updatedIOUReport.total === 'number') {
+        if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency) {
             // Because of the Expense reports are stored as negative values, we add the total from the amount
             updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
         }
     } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-            iouReport,
-            reportAction.actorAccountID ?? -1,
-            TransactionUtils.getAmount(transaction, false),
-            TransactionUtils.getCurrency(transaction),
-            true,
-        );
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? -1, TransactionUtils.getAmount(transaction, false), currency, true);
     }
 
     if (updatedIOUReport) {
