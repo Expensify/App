@@ -2017,4 +2017,4 @@ export {
     transformedTaxRates,
 };
 
-export type {MemberForList, Category, CategorySection};
+export type {MemberForList, CategorySection};

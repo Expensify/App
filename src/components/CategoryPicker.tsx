@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {Category} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -21,7 +20,7 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
     selectedCategory: string;
-    onSubmit: (category: Category) => void;
+    onSubmit: (category: Pick<OnyxTypes.PolicyCategory, 'name' | 'enabled'>) => void;
 };
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}: CategoryPickerProps) {
