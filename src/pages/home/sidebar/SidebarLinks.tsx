@@ -27,7 +27,7 @@ type SidebarLinksOnyxProps = {
 
 type SidebarLinksProps = SidebarLinksOnyxProps & {
     onLinkClick: () => void;
-    insets: EdgeInsets;
+    insets: EdgeInsets | undefined;
     optionListItems: string[] | null;
     isLoading: OnyxEntry<boolean>;
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;

@@ -70,7 +70,7 @@ type SidebarLinksDataOnyxProps = {
 
 type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
     onLinkClick: () => void;
-    insets: EdgeInsets;
+    insets: EdgeInsets | undefined;
 };
 
 function SidebarLinksData({

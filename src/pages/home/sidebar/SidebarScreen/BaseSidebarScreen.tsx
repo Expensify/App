@@ -17,7 +17,7 @@ const startTimer = () => {
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 };
 
-function BaseSidebarScreen(props) {
+function BaseSidebarScreen() {
     const styles = useThemeStyles();
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -37,7 +37,6 @@ function BaseSidebarScreen(props) {
                     <SidebarLinksData
                         onLinkClick={startTimer}
                         insets={insets}
-                        onLayout={props.onLayout}
                     />
                 </View>
             )}
