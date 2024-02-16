@@ -22,6 +22,7 @@ function RoomNameInput({
     onSubmitEditing,
     returnKeyType,
     shouldDelayFocus,
+    inputID,
 }: RoomNameInputProps) {
     const {translate} = useLocalize();
 
@@ -46,6 +47,7 @@ function RoomNameInput({
         <TextInput
             ref={forwardedRef}
             disabled={disabled}
+            inputID={inputID}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
             role={CONST.ROLE.PRESENTATION}
