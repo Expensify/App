@@ -16,6 +16,7 @@ outputs:
     description: The ID of the artifact
   ARTIFACT_WORKFLOW_ID:
     description: The ID of the workflow that produced the artifact
+
 runs:
   using: "node20"
   main: "index.js"
