@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -10,7 +10,10 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -51,15 +54,36 @@ const defaultProps = {
 function IOURequestStepCurrency({
     currencyList,
     route: {
-        params: {backTo, iouType, pageIndex, reportID, transactionID},
+        params: {backTo, iouType, pageIndex, reportID, transactionID, threadReportID, currency: paramCurrency},
     },
-    transaction: {currency},
+    transaction: {currency: transactionCurrency},
 }) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
+    const currency = paramCurrency || transactionCurrency;
 
-    const navigateBack = () => {
+    useEffect(() => {
+        // Do not dismiss the modal, when it is not the edit flow.
+        if (!threadReportID) {
+            return;
+        }
+
+        const report = ReportUtils.getReport(threadReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
+
+        // Do not dismiss the modal, when a current user can edit this currency of this money request.
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+            return;
+        }
+
+        // Dismiss the modal when a current user cannot edit a money request.
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal();
+        });
+    }, [threadReportID]);
+
+    const navigateBack = (selectedCurrency = undefined) => {
         // If the currency selection was done from the confirmation step (eg. + > request money > manual > confirm > amount > currency)
         // then the user needs taken back to the confirmation page instead of the initial amount page. This is because the route params
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
@@ -69,6 +93,12 @@ function IOURequestStepCurrency({
             Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
             return;
         }
+
+        if (pageIndex === 'edit' && selectedCurrency) {
+            Navigation.navigate(`${backTo}?currency=${selectedCurrency}`);
+            return;
+        }
+
         Navigation.goBack(backTo);
     };
 
@@ -79,7 +109,7 @@ function IOURequestStepCurrency({
     const confirmCurrencySelection = (option) => {
         Keyboard.dismiss();
         IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
-        navigateBack();
+        navigateBack(option.currencyCode);
     };
 
     const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {

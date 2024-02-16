@@ -181,8 +181,17 @@ const ROUTES = {
             `r/${threadReportID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
     EDIT_CURRENCY_REQUEST: {
-        route: 'r/:threadReportID/edit/currency',
-        getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+        route: 'r/:action/:iouType/:transactionID/:threadReportID/:reportID/currency/:pageIndex',
+        getRoute: (
+            action: ValueOf<typeof CONST.IOU.ACTION>,
+            iouType: ValueOf<typeof CONST.IOU.TYPE>,
+            transactionID: string,
+            reportID: string,
+            threadReportID: string,
+            pageIndex: string,
+            currency: string,
+            backTo: string,
+        ) => `r/${action}/${iouType}/${transactionID}/${threadReportID}/${reportID}/currency/${pageIndex}?backTo=${backTo}&currency=${currency}` as const,
     },
     EDIT_REPORT_FIELD_REQUEST: {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
@@ -230,9 +239,17 @@ const ROUTES = {
             `r/${reportID}/split/${reportActionID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
     EDIT_SPLIT_BILL_CURRENCY: {
-        route: 'r/:reportID/split/:reportActionID/edit/currency',
-        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) =>
-            `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+        route: 'r/:action/:iouType/:transactionID/:reportID/:reportActionID/currency/:pageIndex',
+        getRoute: (
+            action: ValueOf<typeof CONST.IOU.ACTION>,
+            iouType: ValueOf<typeof CONST.IOU.TYPE>,
+            transactionID: string,
+            reportID: string,
+            reportActionID: string,
+            pageIndex: string,
+            currency: string,
+            backTo: string,
+        ) => `r/${action}/${iouType}/${transactionID}/${reportID}/${reportActionID}/currency/${pageIndex}?backTo=${backTo}&currency=${currency}` as const,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -269,8 +286,8 @@ const ROUTES = {
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}` as const,
     },
     MONEY_REQUEST_AMOUNT: {
-        route: ':iouType/new/amount/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}` as const,
+        route: ':iouType/new/amount/:reportID/:transactionID?',
+        getRoute: (iouType: string, reportID = '', transactionID = '') => `${iouType}/new/amount/${reportID}/${transactionID}` as const,
     },
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
@@ -336,9 +353,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
-        route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID',

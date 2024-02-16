@@ -5,7 +5,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
 const propTypes = {
@@ -40,6 +42,10 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
         }, []),
     );
 
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.HOME);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -47,7 +53,10 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
             shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={EditRequestAmountPage.displayName}
         >
-            <HeaderWithBackButton title={translate('iou.amount')} />
+            <HeaderWithBackButton
+                title={translate('iou.amount')}
+                onBackButtonPress={navigateBack}
+            />
             <MoneyRequestAmountForm
                 currency={defaultCurrency}
                 amount={defaultAmount}
