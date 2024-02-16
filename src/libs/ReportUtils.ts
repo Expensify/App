@@ -3693,7 +3693,8 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequ
 }
 
 function isUnread(report: OnyxEntry<Report>): boolean {
-    if (!report) {
+    // If the service doesn't give me a lastReadTime, it's not unread for me. For example when I'm not logged in and I look at a report.
+    if (!report?.lastReadTime) {
         return false;
     }
 
