@@ -112,6 +112,10 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
+    // related to https://github.com/Expensify/App/issues/34522
+    const roundedWindowWidth  =  Math.floor(windowWidth);
+    const containerWidth = isSmallScreenWidth ? roundedWindowWidth : CONST.EMOJI_PICKER_SIZE.WIDTH; 
+
     const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
 
     return (
@@ -122,7 +126,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     onPress={scrollToHeader}
                 />
             )}
-            <View style={listWrapperStyle}>
+            <View style={[listWrapperStyle, { width: containerWidth }]}>
                 <FlashList
                     ref={forwardedRef}
                     keyboardShouldPersistTaps="handled"
@@ -134,7 +138,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     ListEmptyComponent={ListEmptyComponent}
                     alwaysBounceVertical={alwaysBounceVertical}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    estimatedListSize={{height: flattenListWrapperStyle.height, width: isSmallScreenWidth ? windowWidth : CONST.EMOJI_PICKER_SIZE.WIDTH}}
+                    estimatedListSize={{height: flattenListWrapperStyle.height, width: containerWidth}}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
