@@ -35,6 +35,9 @@ const SCREENS = {
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
+        TROUBLESHOOT: 'Settings_Troubleshoot',
+        CONSOLE: 'Settings_Console',
+        SHARE_LOG: 'Share_Log',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -49,14 +52,10 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-
-            PERSONAL_DETAILS: {
-                INITIAL: 'Settings_PersonalDetails_Initial',
-                LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
-                DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
-                ADDRESS: 'Settings_PersonalDetails_Address',
-                ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
-            },
+            LEGAL_NAME: 'Settings_LegalName',
+            DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            ADDRESS: 'Settings_Address',
+            ADDRESS_COUNTRY: 'Settings_Address_Country',
         },
 
         PREFERENCES: {
@@ -104,6 +103,7 @@ const SCREENS = {
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
+        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -152,10 +152,7 @@ const SCREENS = {
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
-        DATE: 'Money_Request_Date',
-        DESCRIPTION: 'Money_Request_Description',
         CATEGORY: 'Money_Request_Category',
-        MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         DISTANCE: 'Money_Request_Distance',
@@ -201,18 +198,21 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        OVERVIEW: 'Workspace_Overview',
+        PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
+        RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
+        RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Overview_Currency',
-        NAME: 'Workspace_Overview_Name',
+        CURRENCY: 'Workspace_Profile_Currency',
+        DESCRIPTION: 'Workspace_Profile_Description',
+        NAME: 'Workspace_Profile_Name',
     },
 
     EDIT_REQUEST: {
@@ -236,6 +236,12 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+    },
+    
+    ONBOARD_ENGAGEMENT: {
+        ROOT: 'Onboard_Engagement_Root',
+        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
+        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

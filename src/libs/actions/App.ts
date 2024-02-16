@@ -324,7 +324,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
         .then(() => {
             if (transitionFromOldDot) {
                 // We must call goBack() to remove the /transition route from history
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack();
             }
             Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
         })
@@ -390,7 +390,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
         Navigation.waitForProtectedRoutes()
             .then(() => {
                 // We must call goBack() to remove the /transition route from history
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack();
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
@@ -406,7 +406,7 @@ function redirectThirdPartyDesktopSignIn() {
 
     if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.goBack(ROUTES.HOME);
+            Navigation.goBack();
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
         });
     }

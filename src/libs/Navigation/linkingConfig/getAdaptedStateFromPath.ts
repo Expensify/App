@@ -1,8 +1,8 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import Log from '@libs/Log';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
@@ -133,7 +133,7 @@ function getMatchingRootRouteForRHPRoute(
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
-    const isSmallScreenWidth = getIsSmallScreenWidth();
+    const isNarrowLayout = getIsNarrowLayout();
     const metainfo = {
         isCentralPaneAndBottomTabMandatory: true,
         isFullScreenNavigatorMandatory: true,
@@ -197,7 +197,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 policyID,
             ),
         );
-        if (!isSmallScreenWidth) {
+        if (!isNarrowLayout) {
             routes.push(
                 createCentralPaneNavigator({
                     name: SCREENS.REPORT,
@@ -237,7 +237,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 policyID,
             ),
         );
-        if (!isSmallScreenWidth) {
+        if (!isNarrowLayout) {
             routes.push(createCentralPaneNavigator({name: SCREENS.REPORT}));
         }
         routes.push(fullScreenNavigator);
@@ -265,7 +265,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // Routes
         // - found bottom tab
         // - matching central pane on desktop layout
-        if (isSmallScreenWidth) {
+        if (isNarrowLayout) {
             return {
                 adaptedState: state,
                 metainfo,
