@@ -52,6 +52,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SetWorkspaceAutoReportingParams from '@libs/API/parameters/SetWorkspaceAutoReportingParams';
+import SetWorkspaceApprovalModeParams from '@libs/API/parameters/SetWorkspaceApprovalModeParams';
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
@@ -377,6 +379,42 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     });
     return announceRoomMembers;
 }
+
+function setWorkspaceAutoReporting(policyID: string, isEnabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: true,
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingParams = {policyID, enabled: isEnabled};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData});
+}
+
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: "BASIC" | "OPTIONAL") {
+    const isAutoApprovalEnabled = approvalMode === "BASIC";
+
+    const value = JSON.stringify({
+        approver: approver,
+        approvalMode: approvalMode,
+        isAutoApprovalEnabled: isAutoApprovalEnabled,
+    });
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: JSON.parse(value),
+        },
+    ];
+
+    const params: SetWorkspaceApprovalModeParams = {policyID, value};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData});
+}
+
 
 /**
  * Build optimistic data for removing users from the announcement room
@@ -2069,4 +2107,6 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
+    setWorkspaceAutoReporting,
+    setWorkspaceApprovalMode,
 };
