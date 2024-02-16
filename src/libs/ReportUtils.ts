@@ -54,6 +54,7 @@ import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import {isEmailPublicDomain} from './LoginUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
@@ -436,12 +437,14 @@ Onyx.connect({
 });
 
 let allPersonalDetails: OnyxCollection<PersonalDetails>;
+let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         currentUserPersonalDetails = value?.[currentUserAccountID ?? -1] ?? null;
         allPersonalDetails = value ?? {};
+        allPersonalDetailLogins = Object.values(allPersonalDetails).map((v) => v?.login ?? '');
     },
 });
 
@@ -2674,7 +2677,12 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  */
 function getParsedComment(text: string): string {
     const parser = new ExpensiMark();
-    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : lodashEscape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH
+        ? parser.replace(text, {
+              currentUserPrivateDomain: isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? ''),
+              allPersonalDetailLogins,
+          })
+        : lodashEscape(text);
 }
 
 function getReportDescriptionText(report: Report): string {

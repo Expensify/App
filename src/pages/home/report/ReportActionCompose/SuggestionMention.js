@@ -4,9 +4,11 @@ import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -32,10 +34,13 @@ const propTypes = {
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
     ...SuggestionProps.implementationBaseProps,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     forwardedRef: null,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function SuggestionMention({
@@ -50,6 +55,7 @@ function SuggestionMention({
     isAutoSuggestionPickerLarge,
     measureParentContainer,
     isComposerFocused,
+    currentUserPersonalDetails,
 }) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
@@ -67,6 +73,19 @@ function SuggestionMention({
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
 
+    const formatLoginPrivateDomain = (displayText, userLogin = '') => {
+        if (userLogin !== displayText) {
+            return displayText;
+        }
+        // If the emails are not in the same private domain, we also return the displayText
+        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login)) {
+            return displayText;
+        }
+
+        // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+        return displayText.split('@')[0];
+    };
+
     /**
      * Replace the code of mention and update selection
      * @param {Number} highlightedMentionIndex
@@ -75,7 +94,10 @@ function SuggestionMention({
         (highlightedMentionIndexInner) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.login}`;
+            const mentionCode =
+                mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
+                    ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
+                    : `@${formatLoginPrivateDomain(mentionObject.login, mentionObject.login)}`;
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
@@ -88,7 +110,7 @@ function SuggestionMention({
                 suggestedMentions: [],
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection, formatLoginPrivateDomain],
     );
 
     /**
@@ -165,8 +187,8 @@ function SuggestionMention({
             const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
             _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
                 suggestions.push({
-                    text: PersonalDetailsUtils.getDisplayNameOrDefault(detail),
-                    alternateText: formatPhoneNumber(detail.login),
+                    text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail.login),
+                    alternateText: `@${  formatLoginPrivateDomain(formatPhoneNumber(detail.login), detail.login)}`,
                     login: detail.login,
                     icons: [
                         {
@@ -181,7 +203,7 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [translate, formatPhoneNumber],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
     const calculateMentionSuggestion = useCallback(
@@ -332,4 +354,4 @@ const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
 
 SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
 
-export default SuggestionMentionWithRef;
+export default withCurrentUserPersonalDetails(SuggestionMentionWithRef);
