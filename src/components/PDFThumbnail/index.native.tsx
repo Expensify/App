@@ -6,22 +6,29 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, onPassword = () => {}}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, skipLoadingProtectedPDF = false}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const sizeStyles = [styles.w100, styles.h100];
 
     return (
         <View style={[style, styles.overflowHidden]}>
             <View style={[sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <Pdf
-                    fitPolicy={0}
-                    trustAllCerts={false}
-                    renderActivityIndicator={() => <FullScreenLoadingIndicator />}
-                    source={{uri: isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL.toString()}}
-                    singlePage
-                    style={sizeStyles}
-                    onError={onPassword}
-                />
+                {!(typeof skipLoadingProtectedPDF === 'boolean' && skipLoadingProtectedPDF) && (
+                    <Pdf
+                        fitPolicy={0}
+                        trustAllCerts={false}
+                        renderActivityIndicator={() => <FullScreenLoadingIndicator />}
+                        source={{uri: isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}}
+                        singlePage
+                        style={sizeStyles}
+                        onError={(error) => {
+                            const errorObj = error as {message: string};
+                            if (errorObj.message.match(/password/i) && typeof skipLoadingProtectedPDF === 'function') {
+                                skipLoadingProtectedPDF();
+                            }
+                        }}
+                    />
+                )}
             </View>
         </View>
     );

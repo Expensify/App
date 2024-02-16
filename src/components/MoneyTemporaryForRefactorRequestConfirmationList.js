@@ -312,7 +312,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const hideRecieptModal = () => {
-        setIsAttachmentInvalid(false);
         InteractionManager.runAfterInteractions(() => {
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction.transactionID, reportID));
         });
@@ -873,9 +872,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <PDFThumbnail
                     previewSourceURL={receiptImage}
                     style={styles.moneyRequestImage}
-                    isAuthTokenRequired={false}
                     // We don't support scaning password protected PDF receipt
-                    onPassword={() => setIsAttachmentInvalid(true)}
+                    skipLoadingProtectedPDF={isAttachmentInvalid ? true : () => setIsAttachmentInvalid(true)}
                 />
             ) : (
                 <Image
@@ -887,7 +885,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             ),
-        [receiptFilename, receiptImage, styles, receiptThumbnail, isLocalFile],
+        [receiptFilename, receiptImage, styles, receiptThumbnail, isLocalFile, isAttachmentInvalid],
     );
 
     return (

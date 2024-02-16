@@ -93,7 +93,6 @@ function ReportActionItemImage({
             <PDFThumbnail
                 previewSourceURL={imageSource}
                 style={[styles.w100, styles.h100]}
-                isAuthTokenRequired={!isLocalFile}
             />
         );
     } else {

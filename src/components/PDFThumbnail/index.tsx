@@ -14,30 +14,37 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     ).toString();
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, onPassword = () => {}}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, skipLoadingProtectedPDF = false}: PDFThumbnailProps) {
     const styles = useThemeStyles();
 
     const thumbnail = useMemo(
         () => (
             <Document
                 loading={<FullScreenLoadingIndicator />}
-                file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL.toString()}
+                file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
                 options={{
                     cMapUrl: 'cmaps/',
                     cMapPacked: true,
                 }}
                 externalLinkTarget="_blank"
-                onPassword={onPassword}
+                onPassword={() => {
+                    if (typeof skipLoadingProtectedPDF !== 'function') {
+                        return;
+                    }
+                    skipLoadingProtectedPDF();
+                }}
             >
                 <Thumbnail pageIndex={0} />
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword],
+        [isAuthTokenRequired, previewSourceURL, skipLoadingProtectedPDF],
     );
 
     return (
         <View style={[style, styles.overflowHidden]}>
-            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>{thumbnail}</View>
+            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                {!(typeof skipLoadingProtectedPDF === 'boolean' && skipLoadingProtectedPDF) && thumbnail}
+            </View>
         </View>
     );
 }
