@@ -73,18 +73,21 @@ function SuggestionMention({
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
 
-    const formatLoginPrivateDomain = (displayText, userLogin = '') => {
-        if (userLogin !== displayText) {
-            return displayText;
-        }
-        // If the emails are not in the same private domain, we also return the displayText
-        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login)) {
-            return displayText;
-        }
+    const formatLoginPrivateDomain = useCallback(
+        (displayText, userLogin = '') => {
+            if (userLogin !== displayText) {
+                return displayText;
+            }
+            // If the emails are not in the same private domain, we also return the displayText
+            if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login)) {
+                return displayText;
+            }
 
-        // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-        return displayText.split('@')[0];
-    };
+            // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+            return displayText.split('@')[0];
+        },
+        [currentUserPersonalDetails.login],
+    );
 
     /**
      * Replace the code of mention and update selection
@@ -188,7 +191,7 @@ function SuggestionMention({
             _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail.login),
-                    alternateText: `@${  formatLoginPrivateDomain(formatPhoneNumber(detail.login), detail.login)}`,
+                    alternateText: `@${formatLoginPrivateDomain(formatPhoneNumber(detail.login), detail.login)}`,
                     login: detail.login,
                     icons: [
                         {
