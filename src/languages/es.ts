@@ -118,6 +118,7 @@ export default {
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
         next: 'Siguiente',
+        create: 'Crear',
         previous: 'Anterior',
         goBack: 'Volver',
         add: 'Añadir',
@@ -416,7 +417,6 @@ export default {
         oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
     },
     reportActionCompose: {
-        addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Añadir archivo adjunto',

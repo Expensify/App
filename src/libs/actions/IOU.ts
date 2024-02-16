@@ -3833,7 +3833,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport.reportActionID ?? '']: {
+                [optimisticReportAction.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },

@@ -2503,6 +2503,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return getTransactionReportName(parentReportAction);
         }
 
+        if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
+            return Localize.translateLocal('parentReportAction.deletedMessage');
+        }
+
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
         const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
@@ -2518,7 +2522,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
-        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+        return parentReportActionMessage;
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
