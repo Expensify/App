@@ -2303,8 +2303,7 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) =>
-            `Receipt required${formattedLimit && category ? ` over ${formattedLimit}${category ? ` category limit` : ''}` : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ' category limit' : ''}` : ''}`,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
