@@ -79,10 +79,10 @@ let hasInitialReportActions = false;
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: Record<string, Report>,
-    betas: Beta[],
-    policies: Record<string, Policy>,
-    priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
+    allReports: OnyxEntry<Record<string, Report>>,
+    betas: OnyxEntry<Beta[]>,
+    policies: OnyxEntry<Record<string, Policy>>,
+    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>,
     allReportActions: OnyxCollection<ReportAction[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
@@ -110,7 +110,7 @@ function getOrderedReportIDs(
 
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
-    const allReportsDictValues = Object.values(allReports);
+    const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
@@ -118,7 +118,7 @@ function getOrderedReportIDs(
         const parentReportActions = allReportActions?.[parentReportActionsKey];
         const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
         const doesReportHaveViolations =
-            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+            betas?.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
@@ -126,7 +126,7 @@ function getOrderedReportIDs(
             betas,
             policies,
             excludeEmptyChats: true,
-            doesReportHaveViolations,
+            doesReportHaveViolations: !!doesReportHaveViolations,
         });
     });
 
