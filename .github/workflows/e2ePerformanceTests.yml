@@ -37,6 +37,7 @@ jobs:
 
       - name: Check if there's an existing artifact for this baseline
         id: checkForExistingArtifact
+        # TODO: CHANGE TO MAIN GITHUB VERSION BEFORE MERGING
         uses: ./.github/actions/javascript/getArtifactInfo
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
@@ -52,7 +53,7 @@ jobs:
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
           git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
+      - uses: ./.github/actions/composite/buildAndroidE2EAPK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
@@ -121,7 +122,8 @@ jobs:
       - name: Checkout "delta ref"
         run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
-      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
+      #TODO: REVERT TO Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main BEFORE MERGING!!!
+      - uses: ./.github/actions/composite/buildAndroidE2EAPK
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
           UPLOAD_ARTIFACT: false
