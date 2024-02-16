@@ -12,7 +12,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 type OnValidateResult = {
@@ -61,8 +62,8 @@ function GetPhysicalCardPhone({
         >
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="phoneNumber"
-                name="phoneNumber"
+                inputID={INPUT_IDS.PHONE_NUMBER}
+                name={INPUT_IDS.PHONE_NUMBER}
                 label={translate('getPhysicalCard.phoneNumber')}
                 aria-label={translate('getPhysicalCard.phoneNumber')}
                 role={CONST.ROLE.PRESENTATION}

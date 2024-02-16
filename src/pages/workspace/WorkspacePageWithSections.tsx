@@ -80,7 +80,7 @@ function fetchData(skipVBBACal?: boolean) {
 }
 
 function WorkspacePageWithSections({
-    backButtonRoute = '',
+    backButtonRoute,
     children = () => null,
     footer = null,
     guidesCallTaskID = '',
@@ -126,7 +126,8 @@ function WorkspacePageWithSections({
     }, [shouldSkipVBBACall]);
 
     const shouldShow = useMemo(() => {
-        if (isEmptyObject(policy) && isEmptyObject(policyDraft)) {
+        // If the policy object doesn't exist or contains only error data, we shouldn't display it.
+        if ((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) {
             return true;
         }
 
@@ -184,6 +185,7 @@ export default withPolicyAndFullscreenLoading(
         user: {
             key: ONYXKEYS.USER,
         },
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },

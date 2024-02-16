@@ -33,6 +33,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewRoomForm';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -114,7 +115,7 @@ function WorkspaceNewRoomPage(props) {
                     key: policy.id,
                     value: policy.id,
                 }),
-            ),
+            ).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())),
         [props.policies],
     );
     const [policyID, setPolicyID] = useState(() => {
@@ -301,7 +302,7 @@ function WorkspaceNewRoomPage(props) {
                                 <InputWrapper
                                     InputComponent={RoomNameInput}
                                     ref={inputCallbackRef}
-                                    inputID="roomName"
+                                    inputID={INPUT_IDS.ROOM_NAME}
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
                                     autoFocus
@@ -310,7 +311,7 @@ function WorkspaceNewRoomPage(props) {
                             <View style={styles.mb5}>
                                 <InputWrapper
                                     InputComponent={TextInput}
-                                    inputID="reportDescription"
+                                    inputID={INPUT_IDS.REPORT_DESCRIPTION}
                                     label={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -323,7 +324,7 @@ function WorkspaceNewRoomPage(props) {
                             <View style={[styles.mhn5]}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID="policyID"
+                                    inputID={INPUT_IDS.POLICY_ID}
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
                                     value={policyID}
@@ -334,7 +335,7 @@ function WorkspaceNewRoomPage(props) {
                                 <View style={styles.mhn5}>
                                     <InputWrapper
                                         InputComponent={ValuePicker}
-                                        inputID="writeCapability"
+                                        inputID={INPUT_IDS.WRITE_CAPABILITY}
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
                                         value={writeCapability}
@@ -345,7 +346,7 @@ function WorkspaceNewRoomPage(props) {
                             <View style={[styles.mb1, styles.mhn5]}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID="visibility"
+                                    inputID={INPUT_IDS.VISIBILITY}
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
                                     onValueChange={setVisibility}
