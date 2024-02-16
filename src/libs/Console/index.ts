@@ -1,8 +1,21 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import Onyx from 'react-native-onyx';
 import {addLog} from '@libs/actions/Console';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log} from '@src/types/onyx';
+
+let shouldStoreLogs = false;
+
+Onyx.connect({
+    key: ONYXKEYS.SHOULD_STORE_LOGS,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        shouldStoreLogs = val;
+    },
+});
 
 /* store the original console.log function so we can call it */
 // eslint-disable-next-line no-console
@@ -48,7 +61,10 @@ function logMessage(args: unknown[]) {
  */
 // eslint-disable-next-line no-console
 console.log = (...args) => {
-    logMessage(args);
+    if (shouldStoreLogs) {
+        logMessage(args);
+    }
+
     originalConsoleLog.apply(console, args);
 };
 
