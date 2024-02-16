@@ -994,7 +994,7 @@ export default {
     },
     workflowsPage:
     {
-        workflowTitle: 'Spend workflow',
+        workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         delaySubmissionTitle: 'Delay submissions',
         delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',

@@ -990,7 +990,7 @@ export default {
     },
     workflowsPage:
     {
-        workflowTitle: 'Flujo de trabajo de gastos',
+        workflowTitle: 'Gasto',
         workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago.',
         delaySubmissionTitle: 'Retrasar las presentaciones',
         delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
