@@ -349,19 +349,19 @@ function ReportScreen({
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
         if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
+            const parentReport = ReportUtils.getReport(report)
+
+            if (ReportUtils.isThread(report) && isEmptyObject(parentReport)) {
+                Report.openReport(report.parentReportID)
+            }
+
             return;
         }
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
-            const parentReport = ReportUtils.getReport(report);
-
-            if (ReportUtils.isThread(report) && isEmptyObject(parentReport)) {
-                Report.openReport(report.parentReportID);
-            }
-
+        if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
             return;
         }
 
