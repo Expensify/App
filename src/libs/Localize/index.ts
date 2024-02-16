@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Locale} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
@@ -182,7 +183,7 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
 /**
  * Returns the user device's preferred language.
  */
-function getDevicePreferredLocale(): string {
+function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 

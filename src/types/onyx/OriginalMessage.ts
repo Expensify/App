@@ -51,15 +51,24 @@ type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
+    expenseReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
     lastModified?: string;
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    cancellationReason?: string;
     paymentType?: PaymentMethodType;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
+    expenseReportID?: string;
+    amount: number;
+    currency: string;
 };
 
 type OriginalMessageIOU = {
@@ -148,6 +157,11 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
+    originalMessage?: unknown;
+};
+
+type OriginalMessageMarkedReimbursed = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
     originalMessage?: unknown;
 };
 
@@ -283,7 +297,8 @@ type OriginalMessage =
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
-    | OriginalMessageMoved;
+    | OriginalMessageMoved
+    | OriginalMessageMarkedReimbursed;
 
 export default OriginalMessage;
 export type {
@@ -292,6 +307,7 @@ export type {
     Reaction,
     ActionName,
     IOUMessage,
+    ReimbursementDeQueuedMessage,
     Closed,
     OriginalMessageActionName,
     ChangeLog,
@@ -299,6 +315,7 @@ export type {
     OriginalMessageCreated,
     OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
