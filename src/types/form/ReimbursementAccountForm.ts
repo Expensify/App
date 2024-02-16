@@ -51,7 +51,7 @@ const INPUT_IDS = {
     AMOUNT3: 'amount3',
 } as const;
 
-type InputIDs = DeepValueOf<typeof INPUT_IDS>;
+type InputID = DeepValueOf<typeof INPUT_IDS>;
 
 type BeneficialOwnersStepBaseProps = {
     [INPUT_IDS.BENEFICIAL_OWNER_INFO_STEP.OWNS_MORE_THAN_25_PERCENT]: boolean;
