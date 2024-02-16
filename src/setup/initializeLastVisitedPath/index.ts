@@ -1,1 +1,1 @@
-export default function (): undefined {};
+export default function (): undefined {}
