@@ -43,7 +43,6 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
-import {getParentReport} from "@libs/ReportUtils";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
