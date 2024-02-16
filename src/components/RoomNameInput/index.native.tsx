@@ -9,7 +9,10 @@ import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
-function RoomNameInput({isFocused, autoFocus, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function RoomNameInput(
+    {disabled = false, autoFocus = false, shouldDelayFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps,
+    ref: ForwardedRef<BaseTextInputRef>,
+) {
     const {translate} = useLocalize();
 
     /**
@@ -34,6 +37,7 @@ function RoomNameInput({isFocused, autoFocus, value, onBlur, onChangeText, onInp
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
+            disabled={disabled}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
             role={CONST.ROLE.PRESENTATION}
@@ -43,6 +47,7 @@ function RoomNameInput({isFocused, autoFocus, value, onBlur, onChangeText, onInp
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             onBlur={(event) => isFocused && onBlur?.(event)}
             autoFocus={isFocused && autoFocus}
+            shouldDelayFocus={shouldDelayFocus}
             autoCapitalize="none"
             onChange={setModifiedRoomName}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
