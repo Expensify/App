@@ -43,6 +43,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import {getParentReport} from "@libs/ReportUtils";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -356,7 +357,7 @@ function ReportScreen({
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
         if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
-            const parentReport = ReportUtils.getReport(report);
+            const parentReport = ReportUtils.getParentReport(report);
 
             if (ReportUtils.isThread(report) && isEmptyObject(parentReport)) {
                 Report.openReport(report.parentReportID);
@@ -366,7 +367,7 @@ function ReportScreen({
         }
 
         Report.openReport(reportIDFromPath);
-    }, [report.reportID, route, isLoadingInitialReportActions]);
+    }, [report, route, isLoadingInitialReportActions]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
