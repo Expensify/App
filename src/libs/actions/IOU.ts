@@ -393,7 +393,7 @@ function buildOnyxDataForMoneyRequest(
     isNewChatReport: boolean,
     shouldCreateNewMoneyRequestReport: boolean,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTags?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
     needsToBeManuallySubmitted = true,
@@ -673,12 +673,12 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    // Policy won't be set for P2P cases for which we don't need to compute violations
-    if (!policy?.id) {
+    // We don't need to compute violations unless we're on a paid policy
+    if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTags ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -710,7 +710,7 @@ function getMoneyRequestInformation(
     tag: string | undefined,
     billable: boolean | undefined,
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
@@ -807,7 +807,6 @@ function getMoneyRequestInformation(
     );
 
     const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
-
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -889,7 +888,7 @@ function getMoneyRequestInformation(
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         policy,
-        policyTags,
+        policyTagList,
         policyCategories,
         optimisticNextStep,
         needsToBeManuallySubmitted,
@@ -927,7 +926,7 @@ function createDistanceRequest(
     billable: boolean | undefined,
     validWaypoints: WaypointCollection,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -954,7 +953,7 @@ function createDistanceRequest(
         tag,
         billable,
         policy,
-        policyTags,
+        policyTagList,
         policyCategories,
         userAccountID,
         currentUserEmail,
@@ -988,7 +987,7 @@ function createDistanceRequest(
  * @param transactionChanges
  * @param [transactionChanges.created] Present when updated the date field
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
- * @param policyTags
+ * @param policyTagList
  * @param policyCategories
  * @param onlyIncludeChangedFields
  *               When 'true', then the returned params will only include the transaction details for the fields that were changed.
@@ -1000,7 +999,7 @@ function getUpdateMoneyRequestParams(
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     onlyIncludeChangedFields: boolean,
 ): UpdateMoneyRequestData {
@@ -1225,14 +1224,14 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy?.id && updatedTransaction) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
                 updatedTransaction,
                 currentTransactionViolations,
                 !!policy.requiresTag,
-                policyTags ?? {},
+                policyTagList ?? {},
                 !!policy.requiresCategory,
                 policyCategories ?? {},
             ),
@@ -1279,13 +1278,13 @@ function updateMoneyRequestBillable(
     transactionThreadReportID: string,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
 
@@ -1295,13 +1294,13 @@ function updateMoneyRequestMerchant(
     transactionThreadReportID: string,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
@@ -1311,13 +1310,13 @@ function updateMoneyRequestTag(
     transactionThreadReportID: string,
     tag: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         tag,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
@@ -1327,13 +1326,13 @@ function updateMoneyRequestDistance(
     transactionThreadReportID: string,
     waypoints: WaypointCollection,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         waypoints,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
 
@@ -1343,13 +1342,13 @@ function updateMoneyRequestCategory(
     transactionThreadReportID: string,
     category: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         category,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 
@@ -1359,13 +1358,13 @@ function updateMoneyRequestDescription(
     transactionThreadReportID: string,
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         comment,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
@@ -1375,10 +1374,10 @@ function updateDistanceRequest(
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
+    policyTagList: OnyxTypes.PolicyTagList,
     policyCategories: OnyxTypes.PolicyCategories,
 ) {
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, false);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, false);
     API.write(WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST, params, onyxData);
 }
 
@@ -1402,7 +1401,7 @@ function requestMoney(
     taxAmount = 0,
     billable?: boolean,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTags?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints = undefined,
 ) {
@@ -1426,7 +1425,7 @@ function requestMoney(
             tag,
             billable,
             policy,
-            policyTags,
+            policyTagList,
             policyCategories,
             payeeAccountID,
             payeeEmail,
@@ -1676,7 +1675,7 @@ function createSplitsAndOnyxData(
 
         // STEP 1: Get existing chat report OR build a new optimistic one
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
-        let oneOnOneChatReport: OptimisticChatReport;
+        let oneOnOneChatReport: OnyxTypes.Report | OptimisticChatReport;
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
         const personalDetailExists = accountID in allPersonalDetails;
@@ -2671,8 +2670,8 @@ function editRegularMoneyRequest(
         },
     ];
 
-    // Add transaction violations if there is a policy and updated transaaction
-    if (policy?.id && updatedTransaction) {
+    // Add transaction violations if we have a paid policy and an updated transaction
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
@@ -2731,14 +2730,14 @@ function updateMoneyRequestAmountAndCurrency(
     currency: string,
     amount: number,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges = {
         amount,
         currency,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
