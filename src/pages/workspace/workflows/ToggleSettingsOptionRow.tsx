@@ -3,10 +3,10 @@ import Text from "@components/Text";
 import getIsSmallScreenWidth from "@libs/getIsSmallScreenWidth";
 import React, { useState } from "react";
 import { View } from "react-native";
-import { SvgProps } from "react-native-svg";
+import type { SvgProps } from "react-native-svg";
 import useThemeStyles from "@hooks/useThemeStyles";
 
-export type OptionType = {
+type OptionType = {
     Illustration: React.ElementType<SvgProps>;
     title: string;
     subtitle: string;
@@ -15,7 +15,7 @@ export type OptionType = {
     isEndOptionRow?: boolean;
 };
 
-const ToggleSettingOptionRow = ({ Illustration, title, subtitle, onToggle, subMenuItems, isEndOptionRow }: OptionType) => {
+function ToggleSettingOptionRow({ Illustration, title, subtitle, onToggle, subMenuItems, isEndOptionRow }: OptionType) {
     const [isEnabled, setIsEnabled] = useState(false);
     const styles = useThemeStyles();
   
@@ -63,6 +63,7 @@ const ToggleSettingOptionRow = ({ Illustration, title, subtitle, onToggle, subMe
             )}   
         </View>
     );
-  };
+};
 
-  export default ToggleSettingOptionRow;
+export type {OptionType};
+export default ToggleSettingOptionRow;

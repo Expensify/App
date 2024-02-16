@@ -24,7 +24,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacePageWithSectionsOnyxProps = {
     /** From Onyx */
@@ -109,7 +108,6 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
-    icon,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});

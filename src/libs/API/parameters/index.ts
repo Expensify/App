@@ -142,3 +142,5 @@ export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
 export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';
 export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspaceDescriptionParams';
+export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAutoReportingParams';
+export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';

@@ -23,6 +23,8 @@ import type {
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
+    SetWorkspaceAutoReportingParams,
+    SetWorkspaceApprovalModeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -53,8 +55,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SetWorkspaceAutoReportingParams from '@libs/API/parameters/SetWorkspaceAutoReportingParams';
-import SetWorkspaceApprovalModeParams from '@libs/API/parameters/SetWorkspaceApprovalModeParams';
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
@@ -400,9 +400,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     const isAutoApprovalEnabled = approvalMode === "BASIC";
 
     const value = JSON.stringify({
-        approver: approver,
-        approvalMode: approvalMode,
-        isAutoApprovalEnabled: isAutoApprovalEnabled,
+        approver,
+        approvalMode,
+        isAutoApprovalEnabled,
     });
     const optimisticData: OnyxUpdate[] = [
         {

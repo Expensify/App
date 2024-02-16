@@ -11,13 +11,12 @@ import type SCREENS from '@src/SCREENS';
 import Text from '@components/Text';
 import Section from '@components/Section';
 import * as Illustrations from '@components/Icon/Illustrations';
-import ToggleSettingOptionRow, { OptionType } from './ToggleSettingsOptionRow';
-import MenuItem from '@components/MenuItem';
-import compose from '@libs/compose';
-import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import MenuItem from '@components/MenuItem';
+import withPolicy from '@pages/workspace/withPolicy';
+import type { WithPolicyProps } from '@pages/workspace/withPolicy';
+import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
+import type { OptionType } from './ToggleSettingsOptionRow';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -28,24 +27,23 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const items: OptionType[] = [
         {
-          Illustration: Illustrations.ReceiptEnvelope, // Replace with actual component
-          title: translate('workflowsPage.delaySubmissionTitle'),
-          subtitle: translate('workflowsPage.delaySubmissionDescription'),
-          onToggle: (isEnabled: boolean) => {
-              Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
-          },
-          subMenuItems: (
-                <MenuItem
+            Illustration: Illustrations.ReceiptEnvelope,
+            title: translate('workflowsPage.delaySubmissionTitle'),
+            subtitle: translate('workflowsPage.delaySubmissionDescription'),
+            onToggle: (isEnabled: boolean) => {
+                Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+            },
+            subMenuItems: (
+             <MenuItem
                 title={translate('workflowsPage.submissionFrequency')}
                 titleStyle={styles.workspaceWorkflowsSubMenuTitle}
                 descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
                 description={translate('workflowsPage.weeklyFrequency')}
-                // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID))}
-                shouldShowRightIcon={true}
+                shouldShowRightIcon
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
                 hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
-                />
-          ),
+              />
+            ),
         },
         {
             Illustration: Illustrations.Approval,
@@ -61,7 +59,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
                 description={policy?.owner ?? ''}
                 // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
-                shouldShowRightIcon={true}
+                shouldShowRightIcon
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
                 hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
               />
@@ -71,7 +69,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Illustration: Illustrations.WalletAlt,
             title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
             subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-            onToggle: (_isEnabled: boolean) => {
+            onToggle: () => {
               // TODO call API routes && set onyx optimistic data
             },
             subMenuItems: (
@@ -79,7 +77,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 descriptionTextStyle={[styles.workspaceWorkflowsSubMenuDescription, styles.textSupporting]}
                 description={translate('workflowsPage.connectBankAccount')}
                 // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
-                shouldShowRightIcon={true}
+                shouldShowRightIcon
                 wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
                 hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
               />
@@ -110,7 +108,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
             shouldShowOfflineIndicatorInWideScreen
         >
-            {(_hasVBA?: boolean, _policyID?: string) => (
+            {() => (
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section title={translate('workflowsPage.workflowTitle')} titleStyles={styles.textStrong} containerStyles={isSmallScreenWidth ? styles.p5: styles.p8}>
                         <View>
@@ -130,6 +128,4 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
-export default compose(
-    withPolicy,
-)(WorkspaceWorkflowsPage);
+export default withPolicy(WorkspaceWorkflowsPage);
