@@ -2816,4 +2816,13 @@ export default {
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },
+    videoPlayer: {
+        play: 'Reproducir',
+        pause: 'Pausar',
+        fullscreen: 'Pantalla completa',
+        playbackSpeed: 'Velocidad',
+        expand: 'Expandir',
+        mute: 'Silenciar',
+        unmute: 'Activar sonido',
+    },
 } satisfies EnglishTranslation;

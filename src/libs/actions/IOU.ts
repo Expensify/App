@@ -1675,7 +1675,7 @@ function createSplitsAndOnyxData(
 
         // STEP 1: Get existing chat report OR build a new optimistic one
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
-        let oneOnOneChatReport: OptimisticChatReport;
+        let oneOnOneChatReport: OnyxTypes.Report | OptimisticChatReport;
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
         const personalDetailExists = accountID in allPersonalDetails;
