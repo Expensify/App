@@ -73,7 +73,7 @@ runs:
       shell: bash
 
     - name: Upload APK
-      uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
       if: ${{ inputs.UPLOAD_ARTIFACT == 'true' }}
       with:
         name: ${{ inputs.ARTIFACT_NAME }}
