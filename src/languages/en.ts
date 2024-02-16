@@ -129,6 +129,7 @@ export default {
         next: 'Next',
         previous: 'Previous',
         goBack: 'Go back',
+        create: 'Create',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
@@ -425,7 +426,6 @@ export default {
         oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
     },
     reportActionCompose: {
-        addAction: 'Actions',
         dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
