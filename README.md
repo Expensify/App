@@ -185,6 +185,68 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
 
+----
+
+# Profiling
+### Record a trace:
+1. Launch the app.
+2. Navigate to the feature you wish to test.
+3. Tap with four fingers to open a menu.
+4. In the menu, enable **`Use Profiling`**.
+5. Close the menu and interact with the app.
+6. Tap with four fingers again and select to stop profiling.
+7. A **`Share`** option appears for sharing the trace.
+8. Two files will be available: the trace file(`Profile<app version>.cpuprofile`) and another with build info(`AppInfo<app version>.json`).
+
+Build info:
+```jsx
+{
+    appVersion: "1.0.0",
+    environment: "production",
+    platform: "IOS",
+    totalMemory: "3GB",
+    usedMemory: "300MB"
+}
+```
+
+### How to generate source map to symbolicate trace record:
+1. You have two files: `AppInfo<app version>.json` and `Profile<app version>.cpuprofile`
+2. Put `Profile<app version>.cpuprofile` in the root of the project.
+3. Get the app version from **`AppInfo<app version>.json`** and switch to that branch for accurate source maps creation. 
+4. Enable source maps on Android 
+Ensure the following is set in your app's `android/app/build.gradle` file.
+
+    ```jsx
+    project.ext.react = [
+        enableHermes: true,
+        hermesFlagsRelease: ["-O", "-output-source-map"], // plus whichever flag was required to set this away from default
+    ]
+    ```
+    
+5. Enable source maps on IOS 
+Within Xcode head to the build phase - `Bundle React Native code and images`.
+    
+    ```jsx
+    export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map";
+    
+    export NODE_BINARY=node
+    ../node_modules/react-native/scripts/react-native-xcode.sh
+    ```
+    
+6. Do `npm i` and `npm run pod-install` 
+7. Depend on platform you want to test run Android/IOS app in production mode
+8. After build was completed you would see generated source map
+Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map` 
+IOS: `main.jsbundle.map` 
+9. Next you need to symbolicate your trace. 
+Android: `npm run symbolicate-release:android`
+IOS: `npm run symbolicate-release:ios` 
+10. You would see that file`Profile_trace_for_<app version>-converted.json` appeared in you app root folder
+11. Open the performance trace file in your tool of choice:
+    - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
+    - Perfetto UI (https://ui.perfetto.dev/)
+    - Google Chrome's Tracing UI (chrome://tracing)
+
 ---
 
 # App Structure and Conventions
