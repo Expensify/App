@@ -101,6 +101,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
                         defaultValue={(
                             (typeof props.workspaceRateAndUnit?.rate === 'string' ? parseFloat(props.workspaceRateAndUnit.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET
                         ).toFixed(3)}
+                        isCurrencyPressable={false}
                     />
                 </FormProvider>
             )}
