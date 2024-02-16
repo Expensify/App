@@ -21,6 +21,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import IconAsset from '@src/types/utils/IconAsset';
@@ -73,6 +74,13 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
+
+        /**
+         * Icon displayed on the left of the title.
+         * If it is passed, the new styling is applied to the component:
+         * taller header on desktop and different font of the title.
+         * */
+        icon?: IconAsset;
     };
 
 function fetchData(skipVBBACal?: boolean) {
@@ -101,6 +109,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    icon,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
