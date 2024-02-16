@@ -530,7 +530,7 @@ class GithubUtils {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             per_page: 100,
-        }).then((data) => _.findWhere(data.artifacts, {name: artefactName}));
+        }).then((artifacts) => _.findWhere(artifacts, {name: artefactName}));
     }
 }
 
