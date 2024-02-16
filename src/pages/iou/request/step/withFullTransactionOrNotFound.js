@@ -18,16 +18,12 @@ const propTypes = {
     /** The report corresponding to the reportID in the route params */
     transaction: transactionPropTypes,
 
-    /** The draft transaction of scan split bill */
-    splitTransactionDraft: transactionPropTypes,
-
     route: IOURequestStepRoutePropTypes.isRequired,
 };
 
 const defaultProps = {
     forwardedRef: () => {},
     transaction: {},
-    splitTransactionDraft: {},
 };
 
 export default function (WrappedComponent) {
@@ -35,7 +31,6 @@ export default function (WrappedComponent) {
     function WithFullTransactionOrNotFound({forwardedRef, ...props}) {
         const {
             transaction: {transactionID},
-            splitTransactionDraft: {transactionID: splitTransactionDraftID},
         } = props;
 
         const isFocused = useIsFocused();
@@ -43,7 +38,7 @@ export default function (WrappedComponent) {
         // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown.
         // In addition, the not-found page should be shown only if the component screen's route is active (i.e. is focused).
         // This is to prevent it from showing when the modal is being dismissed while navigating to a different route (e.g. on requesting money).
-        if (!transactionID && !splitTransactionDraftID) {
+        if (!transactionID) {
             return <FullPageNotFoundView shouldShow={isFocused} />;
         }
 
@@ -77,14 +72,6 @@ export default function (WrappedComponent) {
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 const userAction = lodashGet(route, 'params.action', CONST.IOU.ACTION.CREATE);
                 return `${userAction === CONST.IOU.ACTION.CREATE ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            },
-        },
-        splitTransactionDraft: {
-            key: ({route}) => {
-                const transactionID = lodashGet(route, 'params.transactionID', 0);
-                const userAction = lodashGet(route, 'params.action', CONST.IOU.ACTION.CREATE);
-                const isEditingSplitBill = userAction === CONST.IOU.ACTION.EDIT && lodashGet(route, 'params.iouType', CONST.IOU.TYPE.REQUEST) === CONST.IOU.TYPE.SPLIT;
-                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${isEditingSplitBill ? transactionID : '0'}`;
             },
         },
     })(WithFullTransactionOrNotFoundWithRef);

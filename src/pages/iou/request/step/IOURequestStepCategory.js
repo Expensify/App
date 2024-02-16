@@ -1,5 +1,6 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
-import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CategoryPicker from '@components/CategoryPicker';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -11,6 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -24,8 +26,8 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: transactionPropTypes,
 
-    /** The draft transaction of scan split bill */
-    splitTransactionDraft: transactionPropTypes,
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    splitDraftTransaction: transactionPropTypes,
 
     /** The report attached to the transaction */
     report: reportPropTypes,
@@ -34,7 +36,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     transaction: {},
-    splitTransactionDraft: {},
+    splitDraftTransaction: {},
 };
 
 function IOURequestStepCategory({
@@ -43,13 +45,13 @@ function IOURequestStepCategory({
         params: {transactionID, backTo, action, iouType},
     },
     transaction,
-    splitTransactionDraft,
+    splitDraftTransaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {category: transactionCategory} = ReportUtils.getTransactionDetails(_.isEmpty(splitTransactionDraft) ? transaction : splitTransactionDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditing && isSplitBill ? splitDraftTransaction : transaction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -100,4 +102,15 @@ IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 IOURequestStepCategory.propTypes = propTypes;
 IOURequestStepCategory.defaultProps = defaultProps;
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepCategory);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        splitDraftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+            },
+        },
+    }),
+)(IOURequestStepCategory);
