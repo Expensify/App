@@ -56,7 +56,7 @@ jobs:
     steps:
       - name: Validate actor
         run: |
-          if [[ ${{ needs.validateActor.IS_DEPLOYER }} != 'true' ]]; then
+          if [[ ${{ needs.validateActor.outputs.IS_DEPLOYER }} != 'true' ]]; then
             exit 1
           fi
 
