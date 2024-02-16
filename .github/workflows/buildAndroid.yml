@@ -7,11 +7,15 @@ on:
         description: The environment to build for. Must be one of ("release", "ad-hoc", "e2e", "e2eDelta")
         required: true
         type: string
+      PR_NUMBER:
+        description: For AdHoc builds, the pull request being built from
+        required: false
+        type: number
 
 concurrency:
   group: build-android-${{ inputs.BUILD_TYPE }}
   # TODO: cancel in-progress adhoc/e2e builds based on ref. Maybe pass in cancel-in-progress as an input?
-  cancel-in-progress: ${{ inputs.BUILD_TYPE == "release" }}
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == 'release' }}
 
 jobs:
   buildAndroid:
@@ -61,6 +65,13 @@ jobs:
           echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
           echo "NPM_VERSION=$(< package.json jq -r .version)" >> "$GITHUB_ENV"
 
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        if: inputs.BUILD_TYPE == 'ad-hoc'
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
       - name: Run Fastlane build
         id: build
         run: |
@@ -82,7 +93,7 @@ jobs:
           path: ${{ steps.build.outputs.APK_PATH }}
 
       - name: Upload AAB as workflow artifact
-        if: inputs.BUILD_TYPE == "release"
+        if: inputs.BUILD_TYPE == 'release'
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.aab

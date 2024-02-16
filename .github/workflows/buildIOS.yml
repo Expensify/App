@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: build-ios-${{ inputs.BUILD_TYPE }}
-  cancel-in-progress: ${{ inputs.BUILD_TYPE == "release" }}
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == 'release' }}
 
 jobs:
   buildIOS:

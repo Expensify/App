@@ -85,18 +85,17 @@ platform :android do
   end
 
   desc "Upload test build to S3"
-  lane :upload_s3 do
+  lane :upload_s3 do |options|
     aws_s3(
       access_key: ENV['S3_ACCESS_KEY'],
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
       bucket: ENV['S3_BUCKET'],
       region: ENV['S3_REGION'],
-
-      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      apk: options[:aab_path],
       app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
     )
 
-    sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
+    sh("echo '{\"apk_path\": \"#{options[:aab_path]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
   end
 
   desc "Release Google Play beta to production"

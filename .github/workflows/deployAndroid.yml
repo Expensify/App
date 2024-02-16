@@ -18,17 +18,17 @@ jobs:
   # TODO: move concurrency here?
   build:
     if: inputs.ENV != 'production'
-    uses: Expensify/App/.github/workflows/buildAndroid.yml@main
+    uses: ./.github/workflows/buildAndroid.yml@main
     secrets: inherit
     with:
-      ENV: ${{ inputs.ENV == 'staging' && 'release' || 'ad-hoc' }}
+      BUILD_TYPE: ${{ inputs.ENV == 'staging' && 'release' || 'ad-hoc' }}
 
   deployStaging:
     if: inputs.ENV == 'staging'
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -36,6 +36,7 @@ jobs:
           bundler-cache: true
 
       - name: Download Android aab
+        id: download
         uses: actions/download-artifact@v3
         with:
           name: android-release-${{ github.ref }}.aab
@@ -46,13 +47,18 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Upload beta to Google Play
-        run: bundle exec fastlane android upload_beta
+        run: "bundle exec fastlane android upload_to_play_store aab_path:${{ steps.download.outputs.download-path }}"
+
+      - name: Upload Android version to Browser Stack
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.download.outputs.download-path }}"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
   deployProduction:
     if: inputs.ENV == 'production'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -65,7 +71,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Set version in ENV
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
+        run: echo "VERSION=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
 
       - name: Release Google Play build to production
         run: bundle exec fastlane android release_production
@@ -75,7 +81,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -83,18 +89,20 @@ jobs:
           bundler-cache: true
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
       - name: Download Android apk
+        id: download
         uses: actions/download-artifact@v3
         with:
           name: android-release-${{ github.ref }}.apk
 
       - name: Upload test build to S3
-        run: bundle exec fastlane android upload_s3
+        run: bundle exec fastlane android upload_s3 aab_path:${{ steps.download.outputs.download-path }}
         env:
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
