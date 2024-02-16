@@ -3844,15 +3844,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: null,
-            },
-        },
-    ];
+    const successData: OnyxUpdate[] = [];
 
     const failureData: OnyxUpdate[] = [
         {
@@ -3903,13 +3895,6 @@ function unholdRequest(transactionID: string, reportID: string) {
     ];
 
     const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: null,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
