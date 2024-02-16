@@ -295,6 +295,7 @@ function MoneyRequestAmountForm(
                         setSelection(e.nativeEvent.selection);
                     }}
                     onKeyPress={textInputKeyPress}
+                    isCurrencyPressable
                 />
                 {!!formError && (
                     <FormHelpMessage
