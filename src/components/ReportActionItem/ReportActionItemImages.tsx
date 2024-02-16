@@ -80,6 +80,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                             image={image}
                             isLocalFile={isLocalFile}
                             transaction={transaction}
+                            isSingleImage={numberOfShownImages === 1}
                         />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>

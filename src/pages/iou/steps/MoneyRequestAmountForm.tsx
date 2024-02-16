@@ -223,12 +223,12 @@ function MoneyRequestAmountForm(
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         if (isAmountInvalid(currentAmount)) {
-            setFormError(translate('iou.error.invalidAmount'));
+            setFormError('iou.error.invalidAmount');
             return;
         }
 
         if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
-            setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+            setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
             return;
         }
 
@@ -238,7 +238,7 @@ function MoneyRequestAmountForm(
         initializeAmount(backendAmount);
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.

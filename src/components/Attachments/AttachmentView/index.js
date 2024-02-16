@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
-import React, {memo, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {ActivityIndicator, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -11,6 +11,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -23,6 +24,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
+import AttachmentViewVideo from './AttachmentViewVideo';
 import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
 const propTypes = {
@@ -48,9 +50,16 @@ const propTypes = {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 
+    /** Denotes whether it is an icon (ex: SVG) */
+    maybeIcon: PropTypes.bool,
+
     /** The id of the transaction related to the attachment */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string,
+
+    isHovered: PropTypes.bool,
+
+    optionalVideoDuration: PropTypes.number,
 };
 
 const defaultProps = {
@@ -60,7 +69,10 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
+    maybeIcon: false,
     transactionID: '',
+    isHovered: false,
+    optionalVideoDuration: 0,
 };
 
 function AttachmentView({
@@ -75,24 +87,35 @@ function AttachmentView({
     translate,
     isFocused,
     isUsedInCarousel,
-    isSingleCarouselItem,
-    carouselItemIndex,
-    carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
+    maybeIcon,
     fallbackSource,
     transaction,
+    isHovered,
+    optionalVideoDuration,
 }) {
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const isVideo = Str.isVideo(source);
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        updateCurrentlyPlayingURL(isVideo ? source : null);
+    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL]);
+
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
 
-    // Handles case where source is a component (ex: SVG)
-    if (_.isFunction(source)) {
+    // Handles case where source is a component (ex: SVG) or a number
+    // Number may represent a SVG or an image
+    if ((maybeIcon && typeof source === 'number') || _.isFunction(source)) {
         let iconFillColor = '';
         let additionalStyles = [];
         if (isWorkspaceAvatar) {
@@ -141,8 +164,6 @@ function AttachmentView({
                     isFocused={isFocused}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
-                    carouselItemIndex={carouselItemIndex}
-                    carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
@@ -171,14 +192,22 @@ function AttachmentView({
                 loadComplete={loadComplete}
                 isFocused={isFocused}
                 isUsedInCarousel={isUsedInCarousel}
-                isSingleCarouselItem={isSingleCarouselItem}
-                carouselItemIndex={carouselItemIndex}
-                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onError={() => {
                     setImageError(true);
                 }}
+            />
+        );
+    }
+
+    if (isVideo || (file && Str.isVideo(file.name))) {
+        return (
+            <AttachmentViewVideo
+                source={source}
+                shouldUseSharedVideoElement={isUsedInCarousel}
+                isHovered={isHovered}
+                videoDuration={optionalVideoDuration}
             />
         );
     }

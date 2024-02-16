@@ -25,6 +25,9 @@ type CustomBaseTextInputProps = {
     /** Icon to display in right side of text input */
     icon?: IconAsset | null;
 
+    /** Icon to display in left side of text input */
+    iconLeft?: IconAsset | null;
+
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
@@ -64,7 +67,7 @@ type CustomBaseTextInputProps = {
     hideFocusedState?: boolean;
 
     /** Hint text to display below the TextInput */
-    hint?: string;
+    hint?: MaybePhraseKey;
 
     /** Prefix character */
     prefixCharacter?: string;
@@ -84,9 +87,6 @@ type CustomBaseTextInputProps = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus?: boolean;
-
-    /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
-    submitOnEnter?: boolean;
 
     /** Indicate whether input is multiline */
     multiline?: boolean;
