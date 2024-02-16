@@ -14,57 +14,78 @@ skip_docs
 opt_out_usage
 
 platform :android do
-  desc "Generate a new local APK for e2e testing"
-
-  lane :build_e2e do
-    ENV["ENVFILE"]="tests/e2e/.env.e2e"
-    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
-    ENV["E2E_TESTING"]="true"
-
-    gradle(
-      project_dir: './android',
-      task: ':app:assemble',
-      flavor: 'e2e',
-      build_type: 'Release',
-    )
+  def output_build_artifact_paths
+    sh("echo APK_PATH=#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} >> $GITHUB_OUTPUT")
+    sh("echo AAB_PATH=#{lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]} >> $GITHUB_OUTPUT")
   end
 
-  lane :build_e2edelta do
-    ENV["ENVFILE"]="tests/e2e/.env.e2edelta"
-    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
-    ENV["E2E_TESTING"]="true"
-
-    gradle(
-      project_dir: './android',
-      task: ':app:assemble',
-      flavor: 'e2edelta',
-      build_type: 'Release',
-    )
-  end
-
-  desc "Generate a new local APK"
+  desc "Build release APK"
   lane :build do
     ENV["ENVFILE"]=".env.production"
-
     gradle(
       project_dir: './android',
       task: 'assemble',
       flavor: 'Production',
       build_type: 'Release',
     )
+    output_build_artifact_paths
   end
 
-  desc "Build app for testing"
+  desc "Build AdHoc APK"
   lane :build_internal do
     ENV["ENVFILE"]=".env.adhoc"
-
     gradle(
         project_dir: './android',
         task: 'assemble',
         flavor: 'Adhoc',
         build_type: 'Release',
     )
+    output_build_artifact_paths
+  end
 
+  desc "Build e2e test APK"
+  lane :build_e2e do
+    ENV["ENVFILE"]="tests/e2e/.env.e2e"
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
+    ENV["E2E_TESTING"]="true"
+    gradle(
+      project_dir: './android',
+      task: ':app:assemble',
+      flavor: 'e2e',
+      build_type: 'Release',
+    )
+    output_build_artifact_paths
+  end
+
+  # Note: this is separate from e2e so both flavors can be installed
+  # on the same remote device for e2e tests
+  desc "Build e2e delta APK"
+  lane :build_e2e_delta do
+    ENV["ENVFILE"]="tests/e2e/.env.e2edelta"
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
+    ENV["E2E_TESTING"]="true"
+    gradle(
+      project_dir: './android',
+      task: ':app:assemble',
+      flavor: 'e2edelta',
+      build_type: 'Release',
+    )
+    output_build_artifact_paths
+  end
+
+  desc "Upload APK to Google Play store"
+  lane :upload_to_play_store do
+    upload_to_play_store(
+        package_name: "com.expensify.chat",
+        json_key: './android/app/android-fastlane-json-key.json',
+        aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
+        track: 'internal',
+        rollout: '1.0'
+    )
+  end
+
+  desc "Upload test build to S3"
+  lane :upload_s3 do
     aws_s3(
       access_key: ENV['S3_ACCESS_KEY'],
       secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
@@ -78,30 +99,8 @@ platform :android do
     sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
   end
 
-  desc "Build and upload app to Google Play"
-  lane :beta do
-    ENV["ENVFILE"]=".env.production"
-    # Google is very unreliable, so we retry a few times
-    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
-
-    gradle(
-        project_dir: './android',
-        task: 'bundle',
-        flavor: 'Production',
-        build_type: 'Release',
-    )
-
-    upload_to_play_store(
-        package_name: "com.expensify.chat",
-        json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
-        track: 'internal',
-        rollout: '1.0'
-    )
-  end
-
-  desc "Deploy app to Google Play production"
-  lane :production do
+  desc "Release Google Play beta to production"
+  lane :release_production do
     # Google is very unreliable, so we retry a few times
     ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
     google_play_track_version_codes(
