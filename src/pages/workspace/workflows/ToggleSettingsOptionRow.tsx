@@ -36,7 +36,6 @@ const ToggleSettingOptionRow = ({ Illustration, title, subtitle, onToggle, subMe
                                                 position: 'absolute',
                                                 width: 6,
                                                 backgroundImage: 'radial-gradient(circle at 2.5px, #1A3D32 1.25px, rgba(255, 255, 255, 0) 2.5px)',
-                                                backgroundPosition: 'top, right, bottom, left',
                                                 backgroundSize: '5px 15px',
                                                 backgroundRepeat: 'repeat-y',                                        
                                                 top: isSmallScreenWidth ? '32%' : '12%',
