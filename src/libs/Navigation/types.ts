@@ -509,6 +509,10 @@ type AuthScreensParamList = {
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;
     };
+    [SCREENS.RECEIPT]: {
+        transactionID: string;
+        reportID: string;
+    };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;

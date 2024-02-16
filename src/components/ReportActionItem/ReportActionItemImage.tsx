@@ -4,7 +4,6 @@ import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
@@ -13,10 +12,12 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 type ReportActionItemImageProps = {
@@ -35,12 +36,6 @@ type ReportActionItemImageProps = {
     /** whether thumbnail is refer the local file or not */
     isLocalFile?: boolean;
 
-    /** whether the receipt can be replaced */
-    canEditReceipt?: boolean;
-
-    /** Filename of attachment */
-    filename?: string;
-
     /** Whether there are other images displayed in the same parent container */
     isSingleImage?: boolean;
 };
@@ -51,16 +46,7 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({
-    thumbnail,
-    image,
-    enablePreviewModal = false,
-    transaction,
-    canEditReceipt = false,
-    isLocalFile = false,
-    filename,
-    isSingleImage = true,
-}: ReportActionItemImageProps) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, isLocalFile = false, isSingleImage = true}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
@@ -102,26 +88,16 @@ function ReportActionItemImage({
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    <AttachmentModal
-                        source={imageSource}
-                        isAuthTokenRequired={!isLocalFile}
-                        report={report}
-                        isReceiptAttachment
-                        canEditReceipt={canEditReceipt}
-                        allowDownload={!isEReceipt}
-                        originalFileName={filename}
+                    <PressableWithoutFocus
+                        style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.RECEIPT.getRoute(transaction?.transactionID ?? '', report?.reportID ?? ''));
+                        }}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     >
-                        {({show}) => (
-                            <PressableWithoutFocus
-                                style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                                onPress={show}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            >
-                                {receiptImageComponent}
-                            </PressableWithoutFocus>
-                        )}
-                    </AttachmentModal>
+                        {receiptImageComponent}
+                    </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
         );

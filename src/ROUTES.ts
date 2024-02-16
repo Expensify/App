@@ -426,6 +426,11 @@ const ROUTES = {
         getRoute: (transactionID: string) => `eReceipt/${transactionID}` as const,
     },
 
+    RECEIPT: {
+        route: 'receipt/:transactionID/:reportID',
+        getRoute: (transactionID: string, reportID: string) => `receipt/${transactionID}/${reportID}` as const,
+    },
+
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {

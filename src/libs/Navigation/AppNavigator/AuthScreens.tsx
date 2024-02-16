@@ -63,6 +63,7 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
 const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
 const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
+const loadReceipt = () => require('../../../pages/home/report/Receipt').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -327,6 +328,15 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                         presentation: 'transparentModal',
                     }}
                     getComponent={loadReportAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.RECEIPT}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReceipt}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
