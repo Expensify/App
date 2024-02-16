@@ -7,6 +7,7 @@ type OpenReimbursementAccountPageParams = {
     stepToOpen: ReimbursementAccountStep;
     subStep: ReimbursementAccountSubStep;
     localCurrentStep: ReimbursementAccountStep;
+    canUseNewVbbaFlow?: boolean;
     policyID: string;
 };
 

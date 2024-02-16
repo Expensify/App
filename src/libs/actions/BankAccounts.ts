@@ -160,6 +160,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
         plaidMask: selectedPlaidBankAccount.mask,
         isSavings: selectedPlaidBankAccount.isSavings,
+        canUseNewVbbaFlow: true,
         policyID,
     };
 
@@ -261,6 +262,7 @@ function updatePersonalInformationForBankAccount(bankAccountID: number, params: 
             ...params,
             bankAccountID,
             policyID,
+            canUseNewVbbaFlow: true,
         },
         getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR),
     );
@@ -354,6 +356,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         subStep,
         localCurrentStep,
         policyID,
+        canUseNewVbbaFlow: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
@@ -370,6 +373,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: C
             ...params,
             bankAccountID,
             policyID,
+            canUseNewVbbaFlow: true,
         },
         getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY),
     );
@@ -386,6 +390,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Ben
             ...params,
             bankAccountID,
             policyID,
+            canUseNewVbbaFlow: true,
         },
         getVBBADataForOnyx(),
     );
@@ -402,6 +407,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
             ...params,
             bankAccountID,
             policyID,
+            canUseNewVbbaFlow: true,
         },
         getVBBADataForOnyx(),
     );
@@ -420,6 +426,7 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
         plaidAccessToken: bankAccount.plaidAccessToken,
         plaidMask: bankAccount.mask,
         isSavings: bankAccount.isSavings,
+        canUseNewVbbaFlow: true,
         policyID,
     };
 
@@ -434,6 +441,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: Record<
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
         policyID,
+        canUseNewVbbaFlow: true,
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
