@@ -145,7 +145,7 @@ function TaskShareDestinationSelectorModal(props) {
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
+                            textInputAlert={isOffline ? [`${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={inputCallbackRef}
