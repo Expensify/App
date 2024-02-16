@@ -3,7 +3,7 @@ const portfinder = require('portfinder');
 const concurrently = require('concurrently');
 require('dotenv').config();
 
-const basePort = 8080;
+const basePort = 8082;
 
 portfinder
     .getPortPromise({
@@ -32,7 +32,7 @@ portfinder
                 env,
             },
             {
-                command: `wait-port localhost:${port} && npx electronmon ./desktop/dev.js`,
+                command: `wait-port dev.new.expensify.com:${port} && npx electronmon ./desktop/dev.js`,
                 name: 'Electron',
                 prefixColor: 'cyan.dim',
                 env,

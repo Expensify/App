@@ -1,20 +1,18 @@
-import _ from 'underscore';
 import React from 'react';
 import {ScrollView} from 'react-native';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import CONST from '../../CONST';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import MenuItem from '../../components/MenuItem';
-import styles from '../../styles/styles';
-import * as Link from '../../libs/actions/Link';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -22,6 +20,7 @@ const propTypes = {
 };
 
 function AppDownloadLinksPage(props) {
+    const styles = useThemeStyles();
     let popoverAnchor;
 
     const menuItems = [
@@ -55,17 +54,17 @@ function AppDownloadLinksPage(props) {
     ];
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
-            <ScrollView style={[styles.mt5]}>
+            <ScrollView style={[styles.mt3]}>
                 {_.map(menuItems, (item) => (
                     <MenuItem
                         key={item.translationKey}
                         onPress={() => item.action()}
-                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
+                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
                         onKeyDown={(event) => {
                             event.target.blur();
                         }}

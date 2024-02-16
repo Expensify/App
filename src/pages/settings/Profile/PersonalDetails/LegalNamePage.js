@@ -1,22 +1,26 @@
-import _ from 'underscore';
-import React, {useCallback} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Form from '../../../../components/Form';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import CONST from '../../../../CONST';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import TextInput from '../../../../components/TextInput';
-import styles from '../../../../styles/styles';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import compose from '../../../../libs/compose';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
+import _ from 'underscore';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/LegalNameForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -42,70 +46,94 @@ const updateLegalName = (values) => {
 };
 
 function LegalNamePage(props) {
+    const styles = useThemeStyles();
+    usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
+    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
 
     const validate = useCallback((values) => {
         const errors = {};
 
         if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-            errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = 'common.error.fieldRequired';
+        } else if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+        }
+        if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
         }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-            errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = 'common.error.fieldRequired';
+        } else if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+        }
+        if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
         }
 
         return errors;
     }, []);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={LegalNamePage.displayName}
+        >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                validate={validate}
-                onSubmit={updateLegalName}
-                submitButtonText={props.translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={[styles.mb4]}>
-                    <TextInput
-                        inputID="legalFirstName"
-                        name="lfname"
-                        label={props.translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={legalFirstName}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                    />
-                </View>
-                <View>
-                    <TextInput
-                        inputID="legalLastName"
-                        name="llname"
-                        label={props.translate('privatePersonalDetails.legalLastName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={legalLastName}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                    />
-                </View>
-            </Form>
+            {isLoadingPersonalDetails ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
+                    validate={validate}
+                    onSubmit={updateLegalName}
+                    submitButtonText={props.translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={[styles.mb4]}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                            name="lfname"
+                            label={props.translate('privatePersonalDetails.legalFirstName')}
+                            aria-label={props.translate('privatePersonalDetails.legalFirstName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalFirstName}
+                            spellCheck={false}
+                        />
+                    </View>
+                    <View>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                            name="llname"
+                            label={props.translate('privatePersonalDetails.legalLastName')}
+                            aria-label={props.translate('privatePersonalDetails.legalLastName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalLastName}
+                            spellCheck={false}
+                        />
+                    </View>
+                </FormProvider>
+            )}
         </ScreenWrapper>
     );
 }
 
 LegalNamePage.propTypes = propTypes;
 LegalNamePage.defaultProps = defaultProps;
+LegalNamePage.displayName = 'LegalNamePage';
 
 export default compose(
     withLocalize,

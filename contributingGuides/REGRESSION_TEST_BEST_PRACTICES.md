@@ -43,7 +43,7 @@ Example:
 For the test case steps we're asking to be created by the contributor whose PR solved the bug, it'll fall into a category known as bug fix verification. As such, the steps that should be proposed should contain the action element `Verify` and should be tied to the expected behavior in question. 
 The steps should be broken out by individual actions taking place with the written style of communicating exact steps someone will replicate. As such, simplicity and succinctness is key. 
 
-Here are some below examples to illustrate the writing style that covers this:
+Below are some examples to illustrate the writing style that covers this:
 - Bug: White space appears under compose box when scrolling up in any conversation
 - Proposed Test Steps:
   - Go to URL https://staging.new.expensify.com/

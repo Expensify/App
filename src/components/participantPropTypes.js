@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import sourcePropTypes from './Image/sourcePropTypes';
 
 export default PropTypes.shape({
     // Primary login of participant
@@ -11,8 +12,17 @@ export default PropTypes.shape({
     displayName: PropTypes.string,
 
     // Avatar url of participant
-    avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    avatar: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** First Name of the participant */
     firstName: PropTypes.string,
+
+    /** True if the report is a Policy Expense chat */
+    isPolicyExpenseChat: PropTypes.bool,
+
+    /** True if the policy expense chat is owned by this user */
+    isOwnPolicyExpenseChat: PropTypes.bool,
+
+    /** Whether the participant is selected */
+    selected: PropTypes.bool,
 });

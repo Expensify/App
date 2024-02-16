@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
-import {View, Image} from 'react-native';
-import {PortalHost, PortalProvider} from '@gorhom/portal';
 import lodashGet from 'lodash/get';
-import Text from '../components/Text';
-import DragAndDrop from '../components/DragAndDrop';
-import DropZone from '../components/DragAndDrop/DropZone';
-import styles from '../styles/styles';
+import React, {useState} from 'react';
+import {Image, View} from 'react-native';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import Text from '@components/Text';
+// eslint-disable-next-line no-restricted-imports
+import {defaultStyles} from '@styles/index';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -14,52 +14,28 @@ import styles from '../styles/styles';
  */
 const story = {
     title: 'Components/DragAndDrop',
-    component: DragAndDrop,
+    component: DragAndDropConsumer,
 };
 
 function Default() {
-    const [draggingOver, setDraggingOver] = useState(false);
-
-    const [fileUrl, setFileUrl] = useState('');
-
+    const [fileURL, setFileURL] = useState('');
     return (
-        <PortalProvider>
-            {/* DragAndDrop does not need to render drop area as children since it is connected to it via id, which gives us flexibility to bring DragAndDrop where your
-            draggingOver state is located */}
-            <DragAndDrop
-                dropZoneId="dropId"
-                activeDropZoneId="activeDropZoneId"
-                onDragEnter={() => {
-                    setDraggingOver(true);
-                }}
-                onDragLeave={() => {
-                    setDraggingOver(false);
-                }}
-                onDrop={(e) => {
-                    const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    if (file && file.type.includes('image')) {
-                        setFileUrl(URL.createObjectURL(file));
-                    }
-                    setDraggingOver(false);
-                }}
-            >
-                <View
-                    style={[
-                        {
-                            width: 200,
-                            height: 200,
-                            backgroundColor: 'beige',
-                            borderColor: 'black',
-                            borderWidth: 1,
-                        },
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
-                    nativeID="dropId"
-                >
-                    {fileUrl ? (
+        <View
+            style={[
+                {
+                    width: 500,
+                    height: 500,
+                    backgroundColor: 'beige',
+                },
+                defaultStyles.alignItemsCenter,
+                defaultStyles.justifyContentCenter,
+            ]}
+        >
+            <DragAndDropProvider>
+                <View style={[defaultStyles.w100, defaultStyles.h100, defaultStyles.justifyContentCenter, defaultStyles.alignItemsCenter]}>
+                    {fileURL ? (
                         <Image
-                            source={{uri: fileUrl}}
+                            source={{uri: fileURL}}
                             style={{
                                 width: 200,
                                 height: 200,
@@ -68,17 +44,23 @@ function Default() {
                     ) : (
                         <Text color="black">Drop a picture here!</Text>
                     )}
-                    {/* Portals give us flexibility to render active drag overlay regardless of your react component structure */}
-                    <PortalHost name="portalHost" />
                 </View>
-            </DragAndDrop>
-            {draggingOver && (
-                <DropZone
-                    dropZoneViewHolderName="portalHost"
-                    dropZoneId="activeDropZoneId"
-                />
-            )}
-        </PortalProvider>
+                <DragAndDropConsumer
+                    onDrop={(e) => {
+                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                        if (file && file.type.includes('image')) {
+                            const reader = new FileReader();
+                            reader.addEventListener('load', () => setFileURL(reader.result));
+                            reader.readAsDataURL(file);
+                        }
+                    }}
+                >
+                    <View style={[defaultStyles.w100, defaultStyles.h100, defaultStyles.alignItemsCenter, defaultStyles.justifyContentCenter, {backgroundColor: 'white'}]}>
+                        <Text color="black">Release to upload file</Text>
+                    </View>
+                </DragAndDropConsumer>
+            </DragAndDropProvider>
+        </View>
     );
 }
 

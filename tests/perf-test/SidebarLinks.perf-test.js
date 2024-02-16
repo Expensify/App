@@ -1,57 +1,111 @@
-import {measurePerformance} from 'reassure';
+import {fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import {measurePerformance} from 'reassure';
 import _ from 'underscore';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
-import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import variables from '../../src/styles/variables';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/hooks/usePermissions.ts');
+jest.mock('../../src/libs/Navigation/Navigation');
 jest.mock('../../src/components/Icon/Expensicons');
 
-const ONYXKEYS = {
-    PERSONAL_DETAILS: 'personalDetails',
-    NVP_PRIORITY_MODE: 'nvp_priorityMode',
-    SESSION: 'session',
-    BETAS: 'betas',
-    COLLECTION: {
-        REPORT: 'report_',
-        REPORT_ACTIONS: 'reportActions_',
-    },
-    NETWORK: 'network',
-};
+jest.mock('@react-navigation/native');
 
-beforeAll(() =>
-    Onyx.init({
-        keys: ONYXKEYS,
-        registerStorageEventListener: () => {},
-    }),
-);
-
-// Initialize the network key for OfflineWithFeedback
-beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
-
-// Clear out Onyx after each test so that each test starts with a clean slate
-afterEach(() => {
-    Onyx.clear();
-});
-
-test('simple Sidebar render with hundred of reports', () => {
-    const mockReports = Array.from({length: 100}, (__, i) => {
+const getMockedReportsMap = (length = 100) => {
+    const mockReports = Array.from({length}, (__, i) => {
         const reportID = i + 1;
-        const emails = [`email${reportID}@test.com`];
+        const participants = [1, 2];
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        const report = LHNTestUtils.getFakeReport(emails, 1, false);
+        const report = LHNTestUtils.getFakeReport(participants, 1, true);
+
         return {[reportKey]: report};
     });
-    const mockOnyxReports = _.assign({}, ...mockReports);
 
-    return waitForPromisesToResolve()
-        .then(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                ...mockOnyxReports,
-            }),
-        )
-        .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />));
+    return _.assign({}, ...mockReports);
+};
+
+const mockedResponseMap = getMockedReportsMap(500);
+
+describe('SidebarLinks', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            registerStorageEventListener: () => {},
+        });
+
+        Onyx.multiSet({
+            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            ...mockedResponseMap,
+        });
+    });
+
+    // Initialize the network key for OfflineWithFeedback
+    beforeEach(() => {
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    });
+
+    afterAll(() => {
+        Onyx.clear();
+    });
+
+    test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
+        const scenario = async () => {
+            // Query for the sidebar
+            await screen.findByTestId('lhn-options-list');
+            /**
+             * Query for display names of participants [1, 2].
+             * This will ensure that the sidebar renders a list of items.
+             */
+            await screen.findAllByText('One, Two');
+        };
+
+        await waitForBatchedUpdates();
+        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+    });
+
+    test('[SidebarLinks] should scroll and click some of the items', async () => {
+        const scenario = async () => {
+            const eventData = {
+                nativeEvent: {
+                    contentOffset: {
+                        y: variables.optionRowHeight * 5,
+                    },
+                    contentSize: {
+                        // Dimensions of the scrollable content
+                        height: variables.optionRowHeight * 10,
+                        width: 100,
+                    },
+                    layoutMeasurement: {
+                        // Dimensions of the device
+                        height: variables.optionRowHeight * 5,
+                        width: 100,
+                    },
+                },
+            };
+
+            const lhnOptionsList = await screen.findByTestId('lhn-options-list');
+
+            fireEvent.scroll(lhnOptionsList, eventData);
+            // find elements that are currently visible in the viewport
+            const button1 = await screen.findByTestId('7');
+            const button2 = await screen.findByTestId('8');
+            fireEvent.press(button1);
+            fireEvent.press(button2);
+        };
+
+        await waitForBatchedUpdates();
+
+        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+    });
 });

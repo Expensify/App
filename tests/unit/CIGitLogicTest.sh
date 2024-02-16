@@ -111,6 +111,18 @@ function update_production_from_staging {
   success "Recreated production from staging!"
 }
 
+function create_basic_pr {
+  info "Creating PR #$1..."
+  checkout_repo
+  setup_git_as_human
+  git pull
+  git switch -c "pr-$1"
+  echo "Changes from PR #$1" >> "PR$1.txt"
+  git add "PR$1.txt"
+  git commit -m "Changes from PR #$1"
+  success "Created PR #$1 in branch pr-$1"
+}
+
 function merge_pr {
   info "Merging PR #$1 to main"
   git switch main
@@ -135,8 +147,10 @@ function cherry_pick_pr {
 
   git switch staging
   git switch -c cherry-pick-staging
-  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
   git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
+  setup_git_as_human
+  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
+  setup_git_as_osbotify
 
   git switch staging
   git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
@@ -144,11 +158,14 @@ function cherry_pick_pr {
   git push origin staging
   info "Merged PR #$(($1 + 1)) into staging"
 
+  tag_staging
+
   success "Successfully cherry-picked PR #$1 to staging!"
 }
 
 function tag_staging {
   info "Tagging new version from the staging branch..."
+  checkout_repo
   setup_git_as_osbotify
   if ! git rev-parse --verify staging 2>/dev/null; then
     git fetch origin staging --depth=1
@@ -157,6 +174,29 @@ function tag_staging {
   git tag "$(print_version)"
   git push --tags
   success "Created new tag $(print_version)"
+}
+
+function deploy_staging {
+  info "Deploying staging..."
+  checkout_repo
+  bump_version "$SEMVER_LEVEL_BUILD"
+  update_staging_from_main
+  tag_staging
+  success "Deployed v$(print_version) to staging!"
+}
+
+function deploy_production {
+  info "Checklist closed, deploying production and staging..."
+
+  info "Deploying production..."
+  update_production_from_staging
+  success "Deployed v$(print_version) to production!"
+
+  info "Deploying staging..."
+  bump_version "$SEMVER_LEVEL_PATCH"
+  update_staging_from_main
+  tag_staging
+  success "Deployed v$(print_version) to staging!"
 }
 
 function assert_prs_merged_between {
@@ -190,102 +230,61 @@ success "Setup complete!"
 
 title "Scenario #1: Merge a pull request while the checklist is unlocked"
 
-info "Creating PR #1..."
-setup_git_as_human
-git switch -c pr-1
-echo "Changes from PR #1" >> PR1.txt
-git add PR1.txt
-git commit -m "Changes from PR #1"
-success "Created PR #1 in branch pr-1"
-
+create_basic_pr 1
 merge_pr 1
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-
-# Tag staging
-tag_staging
-git switch main
+deploy_staging
 
 # Verify output for checklist and deploy comment
-assert_prs_merged_between '1.0.0-0' '1.0.0-1' "[ '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-1' "[ 1 ]"
 
 success "Scenario #1 completed successfully!"
 
 
 title "Scenario #2: Merge a pull request with the checklist locked, but don't CP it"
 
-info "Creating PR #2..."
-setup_git_as_human
-git switch -c pr-2
-echo "Changes from PR #2" >> PR2.txt
-git add PR2.txt
-git commit -m "Changes from PR #2"
+create_basic_pr 2
 merge_pr 2
 
 success "Scenario #2 completed successfully!"
 
 title "Scenario #3: Merge a pull request with the checklist locked and CP it to staging"
 
-info "Creating PR #3 and merging it into main..."
-git switch -c pr-3
-echo "Changes from PR #3" >> PR3.txt
-git add PR3.txt
-git commit -m "Changes from PR #3"
+create_basic_pr 3
 cherry_pick_pr 3
 
-tag_staging
-
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ '3', '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 1, 3 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.0-1' '1.0.0-2' "[ '3' ]"
+assert_prs_merged_between '1.0.0-1' '1.0.0-2' "[ 3 ]"
 
 success "Scenario #3 completed successfully!"
 
 
 title "Scenario #4: Close the checklist"
-title "Scenario #4A: Run the production deploy"
 
-update_production_from_staging
+deploy_production
 
 # Verify output for release body and production deploy comments
-assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ '3', '1' ]"
-
-success "Scenario #4A completed successfully!"
-
-title "Scenario #4B: Run the staging deploy and create a new checklist"
-
-bump_version "$SEMVER_LEVEL_PATCH"
-update_staging_from_main
-tag_staging
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ 1, 3 ]"
 
 # Verify output for new checklist and staging deploy comments
-assert_prs_merged_between '1.0.0-2' '1.0.1-0' "[ '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-0' "[ 2 ]"
 
-success "Scenario #4B completed successfully!"
+success "Scenario #4 completed successfully!"
 
 
 title "Scenario #5: Merging another pull request when the checklist is unlocked"
 
-info "Creating PR #5..."
-setup_git_as_human
-git switch main
-git switch -c pr-5
-echo "Changes from PR #5" >> PR5.txt
-git add PR5.txt
-git commit -m "Changes from PR #5"
+create_basic_pr 5
 merge_pr 5
-
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-tag_staging
+deploy_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ 2, 5 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.1-0' '1.0.1-1' "[ '5' ]"
+assert_prs_merged_between '1.0.1-0' '1.0.1-1' "[ 5 ]"
 
 success "Scenario #5 completed successfully!"
 
@@ -300,15 +299,13 @@ git add myFile.txt
 git commit -m "Add myFile.txt in PR #6"
 
 merge_pr 6
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-tag_staging
+deploy_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ 2, 5, 6 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.1-1' '1.0.1-2' "[ '6' ]"
+assert_prs_merged_between '1.0.1-1' '1.0.1-2' "[ 6 ]"
 
 info "Appending and prepending content to myFile.txt in PR #7"
 setup_git_as_human
@@ -322,15 +319,13 @@ git add myFile.txt
 git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 7
-bump_version "$SEMVER_LEVEL_BUILD"
-update_staging_from_main
-tag_staging
+deploy_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ 2, 5, 6, 7 ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.1-2' '1.0.1-3' "[ '7' ]"
+assert_prs_merged_between '1.0.1-2' '1.0.1-3' "[ 7 ]"
 
 info "Making an unrelated change in PR #8"
 setup_git_as_human
@@ -353,7 +348,6 @@ git add myFile.txt
 git commit -m "Revert append and prepend"
 
 cherry_pick_pr 9
-tag_staging
 
 info "Verifying that the revert is present on staging, but the unrelated change is not"
 if [[ "$(cat myFile.txt)" != "some content" ]]; then
@@ -381,16 +375,51 @@ git add myFile.txt
 git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 10
-update_production_from_staging
-bump_version "$SEMVER_LEVEL_PATCH"
-update_staging_from_main
-tag_staging
+deploy_production
 
 # Verify production release list
-assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ '9', '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-4' '[ 2, 5, 6, 7, 9 ]'
 
 # Verify PR list for the new checklist
-assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ '10', '8' ]"
+assert_prs_merged_between '1.0.1-4' '1.0.2-0' '[ 8, 10 ]'
+
+success "Scenario #6 completed successfully!"
+
+title "Scenario #7: Force-pushing to a branch after rebasing older commits"
+
+create_basic_pr 11
+git push origin pr-11
+
+create_basic_pr 12
+merge_pr 12
+deploy_staging
+
+# Verify PRs for checklist
+assert_prs_merged_between '1.0.1-4' '1.0.2-1' '[ 8, 10, 12 ]'
+
+# Verify PRs for deploy comments
+assert_prs_merged_between '1.0.2-0' '1.0.2-1' '[ 12 ]'
+
+info "Rebasing PR #11 onto main and merging it..."
+checkout_repo
+setup_git_as_human
+git fetch origin pr-11
+git switch pr-11
+git rebase main -Xours
+git push --force origin pr-11
+merge_pr 11
+success "Rebased PR #11 and merged it to main..."
+
+deploy_production
+
+# Verify PRs for deploy comments / release
+assert_prs_merged_between '1.0.1-4' '1.0.2-1' '[ 8, 10, 12 ]'
+
+# Verify PRs for new checklist
+assert_prs_merged_between '1.0.2-1' '1.0.3-0' '[ 11 ]'
+
+success "Scenario #7 complete!"
+
 
 ### Cleanup
 title "Cleaning up..."

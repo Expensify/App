@@ -1,40 +1,42 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-
-import * as Report from './libs/actions/Report';
-import BootSplash from './libs/BootSplash';
-import * as ActiveClientManager from './libs/ActiveClientManager';
-import ONYXKEYS from './ONYXKEYS';
-import NavigationRoot from './libs/Navigation/NavigationRoot';
-import migrateOnyx from './libs/migrateOnyx';
-import PushNotification from './libs/Notification/PushNotification';
-import UpdateAppModal from './components/UpdateAppModal';
-import Visibility from './libs/Visibility';
-import GrowlNotification from './components/GrowlNotification';
-import * as Growl from './libs/Growl';
-import StartupTimer from './libs/StartupTimer';
-import Log from './libs/Log';
+import _ from 'underscore';
 import ConfirmModal from './components/ConfirmModal';
-import compose from './libs/compose';
-import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
-import * as User from './libs/actions/User';
-import NetworkConnection from './libs/NetworkConnection';
-import Navigation from './libs/Navigation/Navigation';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
-import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import SplashScreenHider from './components/SplashScreenHider';
-import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
+import FocusModeNotification from './components/FocusModeNotification';
+import GrowlNotification from './components/GrowlNotification';
+import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
+import SplashScreenHider from './components/SplashScreenHider';
+import UpdateAppModal from './components/UpdateAppModal';
+import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
+import CONST from './CONST';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-
+import * as Report from './libs/actions/Report';
+import * as User from './libs/actions/User';
+import * as ActiveClientManager from './libs/ActiveClientManager';
+import BootSplash from './libs/BootSplash';
+import compose from './libs/compose';
+import * as Growl from './libs/Growl';
+import Log from './libs/Log';
+import migrateOnyx from './libs/migrateOnyx';
+import Navigation from './libs/Navigation/Navigation';
+import NavigationRoot from './libs/Navigation/NavigationRoot';
+import NetworkConnection from './libs/NetworkConnection';
+import PushNotification from './libs/Notification/PushNotification';
+// eslint-disable-next-line no-unused-vars
+import subscribePushNotification from './libs/Notification/PushNotification/subscribePushNotification';
+import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
+import Visibility from './libs/Visibility';
+import ONYXKEYS from './ONYXKEYS';
+import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
+import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -60,7 +62,8 @@ const propTypes = {
     /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
 
-    /** Tells us if the sidebar has rendered */
+    /** Tells us if the sidebar has rendered - TODO: We don't use it as temporary solution to fix not hidding splashscreen */
+    // eslint-disable-next-line react/no-unused-prop-types
     isSidebarLoaded: PropTypes.bool,
 
     /** Information about a screen share call requested by a GuidesPlus agent */
@@ -75,6 +78,15 @@ const propTypes = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
 
+    /** True when the user must update to the latest minimum version of the app */
+    updateRequired: PropTypes.bool,
+
+    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
+    focusModeNotification: PropTypes.bool,
+
+    /** Last visited path in the app */
+    lastVisitedPath: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -87,7 +99,12 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
+    updateRequired: false,
+    focusModeNotification: false,
+    lastVisitedPath: undefined,
 };
+
+const SplashScreenHiddenContext = React.createContext({});
 
 function Expensify(props) {
     const appStateChangeListener = useRef(null);
@@ -95,14 +112,26 @@ function Expensify(props) {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashHidden, setIsSplashHidden] = useState(false);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
+    const [initialUrl, setInitialUrl] = useState(null);
 
     useEffect(() => {
-        if (props.isCheckingPublicRoom) return;
+        if (props.isCheckingPublicRoom) {
+            return;
+        }
         setAttemptedToOpenPublicRoom(true);
     }, [props.isCheckingPublicRoom]);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
-    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
+    const autoAuthState = useMemo(() => lodashGet(props.session, 'autoAuthState', ''), [props.session]);
+
+    const contextValue = useMemo(
+        () => ({
+            isSplashHidden,
+        }),
+        [isSplashHidden],
+    );
+
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
@@ -163,10 +192,15 @@ function Expensify(props) {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => Report.openReportFromDeepLink(url, isAuthenticated));
+        Linking.getInitialURL().then((url) => {
+            setInitialUrl(url);
+            Report.openReportFromDeepLink(url, isAuthenticated);
+        });
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
+        Linking.addEventListener('url', (state) => {
+            Report.openReportFromDeepLink(state.url, isAuthenticated);
+        });
 
         return () => {
             if (!appStateChangeListener.current) {
@@ -182,16 +216,23 @@ function Expensify(props) {
         return null;
     }
 
+    if (props.updateRequired) {
+        throw new Error(CONST.ERROR.UPDATE_REQUIRED);
+    }
+
     return (
-        <DeeplinkWrapper>
+        <DeeplinkWrapper
+            isAuthenticated={isAuthenticated}
+            autoAuthState={autoAuthState}
+        >
             {shouldInit && (
                 <>
-                    <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {props.updateAvailable ? <UpdateAppModal /> : null}
+                    {/* If the update is required we won't show this option since a full screen update view will be displayed instead. */}
+                    {props.updateAvailable && !props.updateRequired ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
                         <ConfirmModal
                             title={props.translate('guides.screenShare')}
@@ -203,14 +244,20 @@ function Expensify(props) {
                             isVisible
                         />
                     ) : null}
+                    {props.focusModeNotification ? <FocusModeNotification /> : null}
                 </>
             )}
 
+            <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
-                <NavigationRoot
-                    onReady={setNavigationReady}
-                    authenticated={isAuthenticated}
-                />
+                <SplashScreenHiddenContext.Provider value={contextValue}>
+                    <NavigationRoot
+                        onReady={setNavigationReady}
+                        authenticated={isAuthenticated}
+                        lastVisitedPath={props.lastVisitedPath}
+                        initialUrl={initialUrl}
+                    />
+                </SplashScreenHiddenContext.Provider>
             )}
 
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
@@ -240,5 +287,18 @@ export default compose(
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
         },
+        updateRequired: {
+            key: ONYXKEYS.UPDATE_REQUIRED,
+            initWithStoredValues: false,
+        },
+        focusModeNotification: {
+            key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
+            initWithStoredValues: false,
+        },
+        lastVisitedPath: {
+            key: ONYXKEYS.LAST_VISITED_PATH,
+        },
     }),
 )(Expensify);
+
+export {SplashScreenHiddenContext};

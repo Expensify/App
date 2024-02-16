@@ -1,20 +1,18 @@
+import {subYears} from 'date-fns';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import moment from 'moment/moment';
 import _ from 'underscore';
-import TextInput from '../../components/TextInput';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import DatePicker from '../../components/DatePicker';
+import DatePicker from '@components/DatePicker';
+import InputWrapper from '@components/Form/InputWrapper';
+import TextInput from '@components/TextInput';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
 
 const propTypes = {
     /** Style for wrapping View */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
-    onFieldChange: PropTypes.func,
 
     /** Form values */
     values: PropTypes.shape({
@@ -126,70 +124,70 @@ const defaultProps = {
         ssnLast4: '',
     },
     shouldSaveDraft: false,
-    onFieldChange: () => {},
 };
 
 function IdentityForm(props) {
+    const styles = useThemeStyles();
     // dob field has multiple validations/errors, we are handling it temporarily like this.
-    const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
+    const dobErrorText = (props.errors.dob ? 'bankAccount.error.dob' : '') || (props.errors.dobAge ? 'bankAccount.error.age' : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
 
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
+    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     return (
         <View style={props.style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={props.inputKeys.firstName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
-                        accessibilityLabel={props.translate('common.firstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={props.translate('common.firstName')}
+                        role={CONST.ROLE.PRESENTATION}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
-                        onChangeText={(value) => props.onFieldChange({firstName: value})}
-                        errorText={props.errors.firstName ? props.translate('bankAccount.error.firstName') : ''}
+                        errorText={props.errors.firstName ? 'bankAccount.error.firstName' : ''}
                     />
                 </View>
                 <View style={[styles.flex2]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={props.inputKeys.lastName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
-                        accessibilityLabel={props.translate('common.lastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={props.translate('common.lastName')}
+                        role={CONST.ROLE.PRESENTATION}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
-                        onChangeText={(value) => props.onFieldChange({lastName: value})}
-                        errorText={props.errors.lastName ? props.translate('bankAccount.error.lastName') : ''}
+                        errorText={props.errors.lastName ? 'bankAccount.error.lastName' : ''}
                     />
                 </View>
             </View>
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 inputID={props.inputKeys.dob}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={props.translate('common.dateFormat')}
                 defaultValue={props.values.dob || props.defaultValues.dob}
-                onInputChange={(value) => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
                 minDate={minDate}
                 maxDate={maxDate}
             />
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
-                accessibilityLabel={props.translate('common.ssnLast4')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                aria-label={props.translate('common.ssnLast4')}
+                role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 defaultValue={props.defaultValues.ssnLast4}
-                onChangeText={(value) => props.onFieldChange({ssnLast4: value})}
-                errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
+                errorText={props.errors.ssnLast4 ? 'bankAccount.error.ssnLast4' : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <AddressForm
@@ -200,7 +198,6 @@ function IdentityForm(props) {
                 values={_.omit(props.values, identityFormInputKeys)}
                 defaultValues={_.omit(props.defaultValues, identityFormInputKeys)}
                 errors={props.errors}
-                onFieldChange={props.onFieldChange}
             />
         </View>
     );

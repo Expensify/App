@@ -2,6 +2,7 @@ const {createServer} = require('http');
 const Routes = require('./routes');
 const Logger = require('../utils/logger');
 const {SERVER_PORT} = require('../config');
+const {executeFromPayload} = require('../nativeCommands');
 
 const PORT = process.env.PORT || SERVER_PORT;
 
@@ -83,6 +84,7 @@ const createServerInstance = () => {
     const [testDoneListeners, addTestDoneListener] = createListenerState();
 
     let activeTestConfig;
+    const networkCache = {};
 
     /**
      * @param {TestConfig} testConfig
@@ -123,6 +125,59 @@ const createServerInstance = () => {
                     listener();
                 });
                 return res.end('ok');
+            }
+
+            case Routes.testNativeCommand: {
+                getPostJSONRequestData(req, res)
+                    .then((data) =>
+                        executeFromPayload(data.actionName, data.payload).then((status) => {
+                            if (status) {
+                                res.end('ok');
+                                return;
+                            }
+                            res.statusCode = 500;
+                            res.end('Error executing command');
+                        }),
+                    )
+                    .catch((error) => {
+                        Logger.error('Error executing command', error);
+                        res.statusCode = 500;
+                        res.end('Error executing command');
+                    });
+                break;
+            }
+
+            case Routes.testGetNetworkCache: {
+                getPostJSONRequestData(req, res).then((data) => {
+                    const appInstanceId = data && data.appInstanceId;
+                    if (!appInstanceId) {
+                        res.statusCode = 400;
+                        res.end('Invalid request missing appInstanceId');
+                        return;
+                    }
+
+                    const cachedData = networkCache[appInstanceId] || {};
+                    res.end(JSON.stringify(cachedData));
+                });
+
+                break;
+            }
+
+            case Routes.testUpdateNetworkCache: {
+                getPostJSONRequestData(req, res).then((data) => {
+                    const appInstanceId = data && data.appInstanceId;
+                    const cache = data && data.cache;
+                    if (!appInstanceId || !cache) {
+                        res.statusCode = 400;
+                        res.end('Invalid request missing appInstanceId or cache');
+                        return;
+                    }
+
+                    networkCache[appInstanceId] = cache;
+                    res.end('ok');
+                });
+
+                break;
             }
 
             default:

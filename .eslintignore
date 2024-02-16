@@ -1,0 +1,4 @@
+**/node_modules/*
+**/dist/*
+.github/actions/**/index.js"
+docs/vendor/**

@@ -1,4 +1,52 @@
-# Add E2E Tests
+# Adding new E2E Tests
+
+## Running your new test in development mode
+
+Typically you'd run all the tests with `npm run test:e2e` on your machine.
+This will run the tests with some local settings, however that is not
+optimal when you add a new test for which you want to quickly test if it works, as the prior command
+still runs the release version of the app, which is hard to debug.
+
+I recommend doing the following.
+
+1. We need to compile a android development app version that has capturing metrics enabled:
+```bash
+# Make sure that your .env file is the one we need for e2e testing:
+cp ./tests/e2e/.env.e2e .env
+
+# Build the android app like you normally would with
+npm run android
+```
+2. Rename `./index.js` to `./appIndex.js`
+3. Create a new `./index.js` with the following content:
+```js
+require('./src/libs/E2E/reactNativeLaunchingTest');
+```
+4. In `./src/libs/E2E/reactNativeLaunchingTest.ts` change the main app import to the new `./appIndex.js` file:
+```diff
+- import '../../../index';
++ import '../../../appIndex';
+```
+
+> [!WARNING]
+> Make sure to not commit these changes to the repository!
+
+Now you can start the metro bundler in e2e mode with:
+
+```bash
+CAPTURE_METRICS=true E2E_TESTING=true npm start -- --reset-cache
+```
+
+Then we can execute our test with:
+
+```
+npm run test:e2e:dev -- --includes "My new test name"
+```
+
+> - `--includes "MyTestName"` will only run the test with the name "MyTestName", but is optional
+
+
+## Creating a new test
 
 Tests are executed on device, inside the app code.
 
@@ -37,7 +85,7 @@ that you might need to pass to the test running inside the app:
 
 ### Create the actual test
 
-We created a new test file in `src/libs/E2E/tests/`. Typically, the 
+We created a new test file in `src/libs/E2E/tests/`. Typically, the
 tests ends on `.e2e.js`, so we can distinguish it from the other tests.
 
 Inside this test, we write logic that gets executed in the app. You can basically do
@@ -45,7 +93,7 @@ anything here, like connecting to onyx, calling APIs, navigating.
 
 There are some common actions that are common among different test cases:
 
-- `src/libs/E2E/actions/e2eLogin.js` - Log a user into the app.
+- `src/libs/E2E/actions/e2eLogin.ts` - Log a user into the app.
 
 The test will be called once the app is ready, which mean you can immediately start.
 Your test is expected to default export its test function.
@@ -61,9 +109,9 @@ import E2EClient from "./client.js";
 
 const test = () => {
   const firstReportIDInList = // ... some logic to get a report
-  
+
   performance.markStart("navigateToReport");
-  Navigation.navigate(ROUTES.getReportRoute(firstReportIDInList));
+  Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(firstReportIDInList));
 
   // markEnd will be called in the Screen's implementation
   performance.subscribeToMeasurements("navigateToReport", (measurement) => {
@@ -73,7 +121,7 @@ const test = () => {
           duration: measurement.duration,
       }).then(E2EClient.submitTestDone)
   });
-    
+
 };
 
 export default test;
@@ -81,7 +129,7 @@ export default test;
 
 ### Last step: register the test in the e2e react native entry
 
-In `src/lib/E2E/reactNativeLaunchingTest.js` you have to add your newly created
+In `src/lib/E2E/reactNativeLaunchingTest.ts` you have to add your newly created
 test file:
 
 ```diff
@@ -97,6 +145,10 @@ Done! When you now start the test runner, your new test will be executed as well
 ## Quickly test your test
 
 To check your new test you can simply run `npm run test:e2e`, which uses the
-`--development` flag. This will run the tests on the branch you are currently on
-and will do fewer iterations.
+`--development` flag. This will run the tests on the branch you are currently on, runs fewer iterations and most importantly, it tries to reuse the existing APK and just patch into the new app bundle, instead of rebuilding the release app from scratch.
+
+## Debugging your test
+
+You can use regular console statements to debug your test. The output will be visible
+in logcat. I recommend opening the android studio logcat window and filter for `ReactNativeJS` to see the output you'd otherwise typically see in your metro bundler instance.
 

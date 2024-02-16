@@ -1,5 +1,5 @@
-import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import {launchCamera} from 'react-native-image-picker';
+import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 
 /**
  * Launching the camera for iOS involves checking for permissions

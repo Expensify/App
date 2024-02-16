@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import Picker from '../components/Picker';
+import Picker from '@components/Picker';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

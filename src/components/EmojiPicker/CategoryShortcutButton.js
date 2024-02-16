@@ -1,28 +1,32 @@
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import Tooltip from '../Tooltip';
-import useLocalize from '../../hooks/useLocalize';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import themeColors from '../../styles/themes/default';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import React, {useState} from 'react';
+import Icon from '@components/Icon';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import getButtonState from '@libs/getButtonState';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The emoji code of the category header */
     code: PropTypes.string.isRequired,
 
     /** The icon representation of the category that this button links to */
-    icon: PropTypes.func.isRequired,
+    icon: sourcePropTypes.isRequired,
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
 };
 
 function CategoryShortcutButton(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -38,10 +42,10 @@ function CategoryShortcutButton(props) {
                 onHoverOut={() => setIsHighlighted(false)}
                 style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
                 accessibilityLabel={`emojiPicker.headers.${props.code}`}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
             >
                 <Icon
-                    fill={themeColors.icon}
+                    fill={theme.icon}
                     src={props.icon}
                     height={variables.iconSizeNormal}
                     width={variables.iconSizeNormal}

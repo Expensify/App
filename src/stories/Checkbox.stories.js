@@ -1,5 +1,5 @@
 import React from 'react';
-import Checkbox from '../components/Checkbox';
+import Checkbox from '@components/Checkbox';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -22,6 +22,7 @@ const Default = Template.bind({});
 Default.args = {
     onPress: () => {},
     isChecked: true,
+    accessibilityLabel: '',
 };
 
 export {Default};

@@ -1,5 +1,5 @@
 import {create} from '@storybook/theming';
-import colors from '../src/styles/colors';
+import colors from '../src/styles/theme/colors';
 
 export default create({
     brandTitle: 'New Expensify UI Docs',
@@ -7,17 +7,17 @@ export default create({
     fontBase: 'ExpensifyNeue-Regular',
     fontCode: 'monospace',
     base: 'dark',
-    appBg: colors.greenHighlightBackground,
-    colorPrimary: colors.greenDefaultButton,
+    appBg: colors.productDark200,
+    colorPrimary: colors.productDark400,
     colorSecondary: colors.green,
-    appContentBg: colors.greenAppBackground,
-    textColor: colors.white,
-    barTextColor: colors.white,
+    appContentBg: colors.productDark100,
+    textColor: colors.productDark900,
+    barTextColor: colors.productDark900,
     barSelectedColor: colors.green,
-    barBg: colors.greenAppBackground,
-    appBorderColor: colors.greenBorders,
-    inputBg: colors.greenHighlightBackground,
-    inputBorder: colors.greenBorders,
+    barBg: colors.productDark100,
+    appBorderColor: colors.productDark400,
+    inputBg: colors.productDark200,
+    inputBorder: colors.productDark400,
     appBorderRadius: 8,
     inputBorderRadius: 8,
 });

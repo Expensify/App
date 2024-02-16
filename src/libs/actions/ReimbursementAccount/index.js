@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import resetFreePlanBankAccount from './resetFreePlanBankAccount';
+import ONYXKEYS from '@src/ONYXKEYS';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
+import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount, showBankAccountFormValidationError} from './errors';
@@ -12,10 +12,11 @@ export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidation
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  *
- * @param {String} subStep
+ * @param {String | null} subStep
+ * @returns {Promise<void>}
  */
 function setBankAccountSubStep(subStep) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 
 function hideBankAccountErrors() {
@@ -30,7 +31,8 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
  * @param {Object} bankAccountData
  */
 function updateReimbursementAccountDraft(bankAccountData) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
+    Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, bankAccountData);
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {draftStep: undefined});
 }
 
 /**

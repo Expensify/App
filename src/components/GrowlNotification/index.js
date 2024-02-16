@@ -1,52 +1,43 @@
-import React, {Component} from 'react';
-import {View, Animated} from 'react-native';
-import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
-import colors from '../../styles/colors';
-import Text from '../Text';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import styles from '../../styles/styles';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Animated, View} from 'react-native';
+import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Pressables from '@components/Pressable';
+import Text from '@components/Text';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as Growl from '@libs/Growl';
+import useNativeDriver from '@libs/useNativeDriver';
+import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
-import CONST from '../../CONST';
-import * as Growl from '../../libs/Growl';
-import * as Pressables from '../Pressable';
-
-const types = {
-    [CONST.GROWL.SUCCESS]: {
-        icon: Expensicons.Checkmark,
-        iconColor: colors.green,
-    },
-    [CONST.GROWL.ERROR]: {
-        icon: Expensicons.Exclamation,
-        iconColor: colors.red,
-    },
-    [CONST.GROWL.WARNING]: {
-        icon: Expensicons.Exclamation,
-        iconColor: colors.yellow,
-    },
-};
 
 const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-class GrowlNotification extends Component {
-    constructor(props) {
-        super(props);
+function GrowlNotification(_, ref) {
+    const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
+    const [bodyText, setBodyText] = useState('');
+    const [type, setType] = useState('success');
+    const [duration, setDuration] = useState();
+    const theme = useTheme();
+    const styles = useThemeStyles();
 
-        this.state = {
-            bodyText: '',
-            type: 'success',
-            translateY: new Animated.Value(INACTIVE_POSITION_Y),
-        };
-
-        this.show = this.show.bind(this);
-        this.fling = this.fling.bind(this);
-    }
-
-    componentDidMount() {
-        Growl.setIsReady();
-    }
+    const types = {
+        [CONST.GROWL.SUCCESS]: {
+            icon: Expensicons.Checkmark,
+            iconColor: theme.success,
+        },
+        [CONST.GROWL.ERROR]: {
+            icon: Expensicons.Exclamation,
+            iconColor: theme.danger,
+        },
+        [CONST.GROWL.WARNING]: {
+            icon: Expensicons.Exclamation,
+            iconColor: theme.warning,
+        },
+    };
 
     /**
      * Show the growl notification
@@ -55,65 +46,83 @@ class GrowlNotification extends Component {
      * @param {String} type
      * @param {Number} duration
      */
-    show(bodyText, type, duration) {
-        this.setState(
-            {
-                bodyText,
-                type,
-            },
-            () => {
-                this.fling(0);
-                setTimeout(() => {
-                    this.fling(INACTIVE_POSITION_Y);
-                }, duration);
-            },
-        );
-    }
+    const show = useCallback((text, growlType, growlDuration) => {
+        setBodyText(text);
+        setType(growlType);
+        setDuration(growlDuration);
+    }, []);
 
     /**
      * Animate growl notification
      *
      * @param {Number} val
      */
-    fling(val = INACTIVE_POSITION_Y) {
-        Animated.spring(this.state.translateY, {
-            toValue: val,
-            duration: 80,
-            useNativeDriver: true,
-        }).start();
-    }
+    const fling = useCallback(
+        (val = INACTIVE_POSITION_Y) => {
+            Animated.spring(translateY, {
+                toValue: val,
+                duration: 80,
+                useNativeDriver,
+            }).start();
+        },
+        [translateY],
+    );
 
-    render() {
-        return (
-            <FlingGestureHandler
-                direction={Directions.UP}
-                onHandlerStateChange={({nativeEvent}) => {
-                    if (nativeEvent.state !== State.ACTIVE) {
-                        return;
-                    }
+    useImperativeHandle(
+        ref,
+        () => ({
+            show,
+        }),
+        [show],
+    );
 
-                    this.fling(INACTIVE_POSITION_Y);
-                }}
-            >
-                <View style={styles.growlNotificationWrapper}>
-                    <GrowlNotificationContainer translateY={this.state.translateY}>
-                        <PressableWithoutFeedback
-                            accessibilityLabel={this.state.bodyText}
-                            onPress={() => this.fling(INACTIVE_POSITION_Y)}
-                        >
-                            <View style={styles.growlNotificationBox}>
-                                <Icon
-                                    src={types[this.state.type].icon}
-                                    fill={types[this.state.type].iconColor}
-                                />
-                                <Text style={styles.growlNotificationText}>{this.state.bodyText}</Text>
-                            </View>
-                        </PressableWithoutFeedback>
-                    </GrowlNotificationContainer>
-                </View>
-            </FlingGestureHandler>
-        );
-    }
+    useEffect(() => {
+        Growl.setIsReady();
+    }, []);
+
+    useEffect(() => {
+        if (!duration) {
+            return;
+        }
+
+        fling(0);
+        setTimeout(() => {
+            fling();
+            setDuration(undefined);
+        }, duration);
+    }, [duration, fling]);
+
+    // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
+    // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
+    const flingGesture = Gesture.Fling()
+        .direction(Directions.UP)
+        .runOnJS(true)
+        .onStart(() => {
+            fling();
+        });
+
+    return (
+        <View style={[styles.growlNotificationWrapper]}>
+            <GrowlNotificationContainer translateY={translateY}>
+                <PressableWithoutFeedback
+                    accessibilityLabel={bodyText}
+                    onPress={() => fling()}
+                >
+                    <GestureDetector gesture={flingGesture}>
+                        <View style={styles.growlNotificationBox}>
+                            <Icon
+                                src={types[type].icon}
+                                fill={types[type].iconColor}
+                            />
+                            <Text style={styles.growlNotificationText}>{bodyText}</Text>
+                        </View>
+                    </GestureDetector>
+                </PressableWithoutFeedback>
+            </GrowlNotificationContainer>
+        </View>
+    );
 }
 
-export default GrowlNotification;
+GrowlNotification.displayName = 'GrowlNotification';
+
+export default forwardRef(GrowlNotification);

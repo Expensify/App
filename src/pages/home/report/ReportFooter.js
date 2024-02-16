@@ -1,74 +1,121 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React, {memo, useCallback} from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {View, Keyboard} from 'react-native';
-import CONST from '../../../CONST';
-import ReportActionCompose from './ReportActionCompose';
-import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
-import SwipeableView from '../../../components/SwipeableView';
-import OfflineIndicator from '../../../components/OfflineIndicator';
-import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
+import _, {isEqual} from 'underscore';
+import AnonymousReportFooter from '@components/AnonymousReportFooter';
+import ArchivedReportFooter from '@components/ArchivedReportFooter';
+import OfflineIndicator from '@components/OfflineIndicator';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import SwipeableView from '@components/SwipeableView';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import reportActionPropTypes from './reportActionPropTypes';
-import reportPropTypes from '../../reportPropTypes';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     /** Report object for the current report */
     report: reportPropTypes,
 
-    /** Report actions for the current report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    lastReportAction: PropTypes.shape(reportActionPropTypes),
 
-    /** Offline status */
-    isOffline: PropTypes.bool.isRequired,
-
-    /** Callback fired when the comment is submitted */
-    onSubmitComment: PropTypes.func,
-
-    /** Any errors associated with an attempt to create a chat */
-    // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
+    isEmptyChat: PropTypes.bool,
 
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
-    /** Whether the composer input should be shown */
-    shouldShowComposeInput: PropTypes.bool,
+    /** Height of the list which the composer is part of */
+    listHeight: PropTypes.number,
 
-    /** Whether user interactions should be disabled */
-    shouldDisableCompose: PropTypes.bool,
+    /** Whetjer the report is ready for display */
+    isReportReadyForDisplay: PropTypes.bool,
+
+    /** Whether to show the compose input */
+    shouldShowComposeInput: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     report: {reportID: '0'},
-    reportActions: [],
-    onSubmitComment: () => {},
-    errors: {},
     pendingAction: null,
-    shouldShowComposeInput: true,
-    shouldDisableCompose: false,
+    listHeight: 0,
+    isReportReadyForDisplay: true,
+    lastReportAction: null,
+    isEmptyChat: true,
+    shouldShowComposeInput: false,
 };
 
 function ReportFooter(props) {
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAnonymousUser = Session.isAnonymousUser();
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = ReportUtils.shouldHideComposer(props.report, props.errors);
+    const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);
+
+    const allPersonalDetails = usePersonalDetails();
+
+    /**
+     * @param {String} text
+     */
+    const handleCreateTask = useCallback(
+        (text) => {
+            /**
+             * Matching task rule by group
+             * Group 1: Start task rule with []
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 3: Title is remaining characters
+             */
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+
+            const match = text.match(taskRegex);
+            if (!match) {
+                return false;
+            }
+            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            if (!title) {
+                return false;
+            }
+            const email = match[1] ? match[1].trim() : undefined;
+            let assignee = {};
+            if (email) {
+                assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+            }
+            Task.createTaskAndNavigate(props.report.reportID, title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, props.report.policyID);
+            return true;
+        },
+        [allPersonalDetails, props.report.policyID, props.report.reportID],
+    );
+
+    const onSubmitComment = useCallback(
+        (text) => {
+            const isTaskCreated = handleCreateTask(text);
+            if (isTaskCreated) {
+                return;
+            }
+            Report.addComment(props.report.reportID, text);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.report.reportID, handleCreateTask],
+    );
 
     return (
         <>
             {hideComposer && (
-                <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
+                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser ? styles.mt4 : {}, props.isSmallScreenWidth ? styles.mb5 : null]}>
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={props.report}
@@ -85,13 +132,15 @@ function ReportFooter(props) {
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
-                            onSubmit={props.onSubmitComment}
-                            reportID={props.report.reportID.toString()}
-                            reportActions={props.reportActions}
+                            onSubmit={onSubmitComment}
+                            reportID={props.report.reportID}
                             report={props.report}
+                            isEmptyChat={props.isEmptyChat}
+                            lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
-                            disabled={props.shouldDisableCompose}
+                            listHeight={props.listHeight}
+                            isReportReadyForDisplay={props.isReportReadyForDisplay}
                         />
                     </SwipeableView>
                 </View>
@@ -106,6 +155,24 @@ ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+            initialValue: false,
+        },
     }),
-)(ReportFooter);
+)(
+    memo(
+        ReportFooter,
+        (prevProps, nextProps) =>
+            isEqual(prevProps.report, nextProps.report) &&
+            prevProps.pendingAction === nextProps.pendingAction &&
+            prevProps.listHeight === nextProps.listHeight &&
+            prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+            prevProps.isEmptyChat === nextProps.isEmptyChat &&
+            prevProps.lastReportAction === nextProps.lastReportAction &&
+            prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
+            prevProps.windowWidth === nextProps.windowWidth &&
+            prevProps.isSmallScreenWidth === nextProps.isSmallScreenWidth &&
+            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
+    ),
+);

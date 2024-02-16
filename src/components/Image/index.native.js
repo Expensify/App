@@ -1,18 +1,27 @@
-import React from 'react';
-import RNFastImage from 'react-native-fast-image';
-import {withOnyx} from 'react-native-onyx';
+import {Image as ImageComponent} from 'expo-image';
 import lodashGet from 'lodash/get';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
+import React from 'react';
+import {withOnyx} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
+
+const dimensionsCache = new Map();
+
+function resolveDimensions(key) {
+    return dimensionsCache.get(key);
+}
 
 function Image(props) {
     // eslint-disable-next-line react/destructuring-assignment
     const {source, isAuthTokenRequired, session, ...rest} = props;
 
     let imageSource = source;
-    if (typeof source !== 'number' && isAuthTokenRequired) {
+    if (source && source.uri && typeof source.uri === 'number') {
+        imageSource = source.uri;
+    }
+    if (typeof imageSource !== 'number' && isAuthTokenRequired) {
         const authToken = lodashGet(props, 'session.encryptedAuthToken', null);
         imageSource = {
             ...source,
@@ -25,10 +34,17 @@ function Image(props) {
     }
 
     return (
-        <RNFastImage
+        <ImageComponent
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             source={imageSource}
+            onLoad={(evt) => {
+                const {width, height, url} = evt.source;
+                dimensionsCache.set(url, {width, height});
+                if (props.onLoad) {
+                    props.onLoad({nativeEvent: {width, height}});
+                }
+            }}
         />
     );
 }
@@ -42,4 +58,6 @@ const ImageWithOnyx = withOnyx({
     },
 })(Image);
 ImageWithOnyx.resizeMode = RESIZE_MODES;
+ImageWithOnyx.resolveDimensions = resolveDimensions;
+
 export default ImageWithOnyx;

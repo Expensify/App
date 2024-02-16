@@ -1,79 +1,71 @@
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {memo, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {withNetwork} from '../../../components/OnyxProvider';
-import networkPropTypes from '../../../components/networkPropTypes';
-import compose from '../../../libs/compose';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
-import TextWithEllipsis from '../../../components/TextWithEllipsis';
+import _ from 'underscore';
+import Text from '@components/Text';
+import TextWithEllipsis from '@components/TextWithEllipsis';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     userTypingStatuses: {},
 };
 
-function ReportTypingIndicator(props) {
-    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (loginOrAccountID) => props.userTypingStatuses[loginOrAccountID]), [props.userTypingStatuses]);
+function ReportTypingIndicator({userTypingStatuses}) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+
+    const styles = useThemeStyles();
+    const usersTyping = useMemo(() => _.filter(_.keys(userTypingStatuses), (loginOrAccountID) => userTypingStatuses[loginOrAccountID]), [userTypingStatuses]);
+    const firstUserTyping = usersTyping[0];
+
+    const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
+
     // If we are offline, the user typing statuses are not up-to-date so do not show them
-    if (props.network.isOffline) {
+    if (isOffline || !firstUserTyping) {
         return null;
     }
 
-    const numUsersTyping = _.size(usersTyping);
+    // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
+    const firstUserTypingDisplayName = isUserTypingADisplayName ? firstUserTyping : ReportUtils.getDisplayNameForParticipant(Number(firstUserTyping), false, false);
 
-    // Decide on the Text element that will hold the display based on the number of users that are typing.
-    switch (numUsersTyping) {
-        case 0:
-            return null;
-
-        case 1:
-            return (
-                <TextWithEllipsis
-                    leadingText={PersonalDetails.getDisplayNameForTypingIndicator(usersTyping[0], props.translate('common.someone'))}
-                    trailingText={` ${props.translate('reportTypingIndicator.isTyping')}`}
-                    textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                    wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
-                    leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-                />
-            );
-
-        default:
-            return (
-                <Text
-                    style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
-                    numberOfLines={1}
-                >
-                    {props.translate('reportTypingIndicator.multipleUsers')}
-                    {` ${props.translate('reportTypingIndicator.areTyping')}`}
-                </Text>
-            );
+    if (usersTyping.length === 1) {
+        return (
+            <TextWithEllipsis
+                leadingText={firstUserTypingDisplayName || translate('common.someone')}
+                trailingText={` ${translate('reportTypingIndicator.isTyping')}`}
+                textStyle={[styles.chatItemComposeSecondaryRowSubText]}
+                wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
+                leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+            />
+        );
     }
+    return (
+        <Text
+            style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
+            numberOfLines={1}
+        >
+            {translate('reportTypingIndicator.multipleUsers')}
+            {` ${translate('reportTypingIndicator.areTyping')}`}
+        </Text>
+    );
 }
 
 ReportTypingIndicator.propTypes = propTypes;
 ReportTypingIndicator.defaultProps = defaultProps;
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-    withOnyx({
-        userTypingStatuses: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-        },
-    }),
-)(ReportTypingIndicator);
+export default withOnyx({
+    userTypingStatuses: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
+        initialValue: {},
+    },
+})(memo(ReportTypingIndicator));
