@@ -85,7 +85,7 @@ function MoneyRequestAmountForm(
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [formError, setFormError] = useState('');
+    const [formError, setFormError] = useState<MaybePhraseKey>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const [selection, setSelection] = useState({
@@ -148,7 +148,7 @@ function MoneyRequestAmountForm(
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
-            if (Object.keys(formError).length > 0) {
+            if (formError) {
                 setFormError('');
             }
 
@@ -296,7 +296,7 @@ function MoneyRequestAmountForm(
                     }}
                     onKeyPress={textInputKeyPress}
                 />
-                {Object.keys(formError).length > 0 && (
+                {!!formError && (
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
                         isError
