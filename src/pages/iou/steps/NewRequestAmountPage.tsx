@@ -139,7 +139,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
             }}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
-            selectedTab={selectedTab}
+            selectedTab={selectedTab ?? CONST.TAB_REQUEST.MANUAL}
         />
     );
 
