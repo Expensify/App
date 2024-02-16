@@ -19,6 +19,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
+    PolicyTagList,
     Report,
     ReportAction,
     ReportActions,
@@ -972,7 +973,7 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = sortedCategories.filter((category) => category.enabled || selectedOptionNames.includes(category.name));
+    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
     const numberOfVisibleCategories = enabledAndSelectedCategories.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
@@ -1158,6 +1159,15 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     });
 
     return tagSections;
+}
+
+/**
+ * Verifies that there is at least one enabled tag
+ */
+function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+
+    return hasEnabledOptions(policyTagValueList);
 }
 
 type PolicyTaxRateWithDefault = {
@@ -2025,6 +2035,7 @@ export {
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
+    hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,

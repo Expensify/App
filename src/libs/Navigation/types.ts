@@ -346,6 +346,7 @@ type SplitDetailsNavigatorParamList = {
         reportID: string;
         reportActionID: string;
         currency: string;
+        tagIndex: string;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };

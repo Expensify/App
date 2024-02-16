@@ -195,6 +195,11 @@ type OptimisticSubmittedReportAction = Pick<
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
+type OptimisticHoldReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+>;
+
 type OptimisticCancelPaymentReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
@@ -246,7 +251,9 @@ type OptimisticChatReport = Pick<
     | 'visibility'
     | 'description'
     | 'writeCapability'
->;
+> & {
+    isOptimisticReport: true;
+};
 
 type OptimisticTaskReportAction = Pick<
     ReportAction,
@@ -2501,6 +2508,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return getTransactionReportName(parentReportAction);
         }
 
+        if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
+            return Localize.translateLocal('parentReportAction.deletedMessage');
+        }
+
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
         const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
@@ -2516,7 +2527,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
-        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+        return parentReportActionMessage;
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -2625,7 +2636,6 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 
 /**
  * Navigate to the details page of a given report
- *
  */
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
@@ -3378,6 +3388,7 @@ function buildOptimisticChatReport(
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     return {
+        isOptimisticReport: true,
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
@@ -3485,6 +3496,72 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
         created: now,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticHoldReportAction(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: `held this money request with the comment: ${comment}`,
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: comment,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        automatic: false,
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from hold optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: `unheld this money request`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        automatic: false,
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        created,
         shouldShow: true,
     };
 }
@@ -4785,6 +4862,14 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
 }
 
 /**
+ * Check if Report has any held expenses
+ */
+function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): boolean {
+    const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
+    return isActionCreator(holdReportAction);
+}
+
+/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -5097,8 +5182,11 @@ export {
     hasViolations,
     navigateToPrivateNotes,
     canEditWriteCapability,
+    isHoldCreator,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    buildOptimisticHoldReportAction,
+    buildOptimisticUnHoldReportAction,
     shouldDisplayThreadReplies,
     shouldDisableThread,
     doesReportBelongToWorkspace,
