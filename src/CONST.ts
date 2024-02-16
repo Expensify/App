@@ -529,7 +529,7 @@ const CONST = {
         DISMMISSED_REASONS: {
             MISSING_FEATURES: '?dismissedReason=missingFeatures',
             GO_TO_CLASSIC: '?dismissedReason=goToClassic',
-        }
+        },
     },
 
     SIGN_IN_FORM_WIDTH: 300,
