@@ -4632,8 +4632,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             marginRight: 0,
             transition: 'all 0.3s ease-in-out',
-        }
-
+        },
         workspaceTitleStyle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: '500',
