@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 const fs = require('fs');
 const { execSync } = require('child_process');
@@ -19,6 +20,7 @@ function parseCommandLineArguments() {
 // Function to find .cpuprofile files in the current directory
 function findCpuProfileFiles() {
   const files = fs.readdirSync(process.cwd());
+  // eslint-disable-next-line rulesdir/prefer-underscore-method
   return files.filter(file => file.endsWith('.cpuprofile'));
 }
 
