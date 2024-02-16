@@ -20,7 +20,7 @@ platform :android do
   end
 
   desc "Build release APK"
-  lane :build do
+  lane :build_release do
     ENV["ENVFILE"]=".env.production"
     gradle(
       project_dir: './android',
@@ -32,7 +32,7 @@ platform :android do
   end
 
   desc "Build AdHoc APK"
-  lane :build_internal do
+  lane :build_adhoc do
     ENV["ENVFILE"]=".env.adhoc"
     gradle(
         project_dir: './android',
@@ -146,7 +146,7 @@ platform :ios do
   end
 
   desc "Generate a release build"
-  lane :build do
+  lane :build_release do
     ENV["ENVFILE"]=".env.production"
     config_ios_credentials
     install_provisioning_profile(

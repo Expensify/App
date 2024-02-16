@@ -83,9 +83,9 @@ jobs:
         id: build
         run: |
           if [[ ${{ inputs.BUILD_TYPE }} == "release" ]]; then
-            bundle exec fastlane ios build
+            bundle exec fastlane ios build_release
           else
-            bundle exec fastlane ios build_internal
+            bundle exec fastlane ios build_adhoc
           fi
 
       - name: Upload API as workflow artifact

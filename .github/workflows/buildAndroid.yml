@@ -64,9 +64,9 @@ jobs:
         id: build
         run: |
           if [[ ${{ inputs.BUILD_TYPE }} == "release" ]]; then
-            bundle exec fastlane android build
+            bundle exec fastlane android build_release
           elif [[ ${{ inputs.BUILD_TYPE }} == "ad-hoc" ]]; then
-            bundle exec fastlane android build_internal
+            bundle exec fastlane android build_adhoc
           elif [[ ${{ inputs.BUILD_TYPE }} == "e2e" ]]; then
             bundle exec fastlane android build_e2e
           else
