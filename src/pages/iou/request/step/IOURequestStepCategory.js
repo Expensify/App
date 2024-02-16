@@ -45,7 +45,7 @@ function IOURequestStepCategory({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
