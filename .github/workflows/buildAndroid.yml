@@ -10,6 +10,7 @@ on:
 
 concurrency:
   group: build-android-${{ inputs.BUILD_TYPE }}
+  # TODO: cancel in-progress adhoc/e2e builds based on ref. Maybe pass in cancel-in-progress as an input?
   cancel-in-progress: ${{ inputs.BUILD_TYPE == "release" }}
 
 jobs:

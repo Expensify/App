@@ -3,35 +3,39 @@ name: Build web app
 on:
   workflow_call:
     inputs:
-      ENV:
+      BUILD_TYPE:
         description: The environment to build for. Must be one of ("staging", "production", "ad-hoc")
         required: true
         type: string
 
 concurrency:
-  group: build-android-${{ inputs.ENV }}
-  cancel-in-progress: ${{ inputs.ENV == "ad-hoc" }}
+  group: build-web-${{ inputs.BUILD_TYPE }}
+  # TODO: Fix cancel-in-progess
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == "ad-hoc" }}
 
 jobs:
   buildWeb:
     name: Build web app
     runs-on: ubuntu-latest-xl
     steps:
-      - id: validateEnv
+      - name: Validate build type
+        id: validateBuildType
         run: |
-          if [[ ${{ contains(fromJSON('["staging", "production", "ad-hoc"]'), inputs.ENV) }} == 'true' ]]; then
-            echo "Environment ${{ inputs.ENV }} is valid for iOS"
+          if [[ ${{ contains(fromJSON('["staging", "production", "ad-hoc"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
+            echo "Build type ${{ inputs.BUILD_TYPE }} is valid for web."
           else
-            echo "Environment ${{ inputs.ENV }} is not valid for iOS."
+            echo "Build type ${{ inputs.BUILD_TYPE }} is not valid for web."
             exit 1
           fi
 
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
 
       - name: Create .env.adhoc file based on staging
-        if: inputs.ENV == 'ad-hoc'
+        if: inputs.BUILD_TYPE == 'ad-hoc'
         run: |
           cp .env.staging .env.adhoc
           sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
@@ -39,13 +43,19 @@ jobs:
 
       - name: Run web build
         run: |
-          if [[ ${{ inputs.ENV }} == 'ad-hoc' ]]; then
+          if [[ ${{ inputs.BUILD_TYPE }} == 'ad-hoc' ]]; then
             npm run build-adhoc
-          elif [[ ${{ inputs.ENV }} == 'staging' ]]; then
+          elif [[ ${{ inputs.BUILD_TYPE }} == 'staging' ]]; then
             npm run build-staging
           else
             npm run build
           fi
+
+      - name: Upload web build as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-${{ inputs.BUILD_TYPE }}-${{ github.ref }}
+          path: ./dist
 
       - name: Post a message in slack if the build fails
         if: failure()
