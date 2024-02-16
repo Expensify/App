@@ -112,8 +112,9 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
-    // Math.floor(windowWidth) because some devices turn width value like 392.72727272727275 
-    const containerWidth = isSmallScreenWidth ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
+    // Estimated list size should be a whole integer to avoid floating point precision errors
+    // More info: https://github.com/Expensify/App/issues/34522
+    const listWidth = isSmallScreenWidth ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
 
     const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
 
