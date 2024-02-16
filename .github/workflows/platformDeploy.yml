@@ -40,77 +40,60 @@ jobs:
     needs: validateActor
     secrets: inherit
 
-  android:
-    name: Build and deploy Android
+  buildAndroid:
+    name: Build Android app
     needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: ubuntu-latest-xl
+    if: fromJson(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name != 'release'
+    uses: ./github/workflows/buildAndroid.yml
+    with:
+      BUILD_TYPE: release
+
+  deployAndroid:
+    name: Build and deploy Android
+    needs: [validateActor, buildAndroid]
+    if: !cancelled()
+    runs-on: ubuntu-latest
     steps:
+      - name: Validate actor
+        run: |
+          if [[ ${{ needs.validateActor.IS_DEPLOYER }} != 'true' ]]; then
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'oracle'
-          java-version: '17'
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
-        with:
-          ruby-version: '2.7'
-          bundler-cache: true
-
-      - name: Decrypt keystore
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Decrypt json key
         run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Set version in ENV
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
-
-      - name: Run Fastlane beta
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android beta
-        env:
-          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
-
-      - name: Run Fastlane production
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android production
-        env:
-          VERSION: ${{ env.VERSION_CODE }}
-
-      - name: Archive Android sourcemaps
-        uses: actions/upload-artifact@v3
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          name: android-sourcemap
-          path: android/app/build/generated/sourcemaps/react/release/*.map
+          ruby-version: '2.7'
+          bundler-cache: true
 
-      - name: Upload Android version to GitHub artifacts
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
+      - name: Download build
+        if: !fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
+        id: download
+        uses: actions/download-artifact@v4
         with:
-          name: app-production-release.aab
-          path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
+          name: android-release-sourcemap-${{ github.ref }}.aab
+
+      - name: Upload to Google Play Store
+        if: !fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
+        run: "bundle exec fastlane android upload_to_play_store aab_path:${{ steps.download.outputs.download-path }}"
 
       - name: Upload Android version to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.download.outputs.download-path }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Release Google Play beta to production
+        if: fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
+        run: bundle exec fastlane android release_production
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -352,7 +335,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, desktop, iOS, web]
+    needs: [deployAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -366,7 +349,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ success() }}
-    needs: [android, desktop, iOS, web]
+    needs: [deployAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -427,7 +410,7 @@ jobs:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
-    needs: [android, desktop, iOS, web]
+    needs: [deployAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -73,12 +73,12 @@ platform :android do
     output_build_artifact_paths
   end
 
-  desc "Upload APK to Google Play store"
-  lane :upload_to_play_store do
+  desc "Upload AAB to Google Play store"
+  lane :upload_to_play_store do |options|
     upload_to_play_store(
         package_name: "com.expensify.chat",
         json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
+        aab: options[:aab_path],
         track: 'internal',
         rollout: '1.0'
     )
