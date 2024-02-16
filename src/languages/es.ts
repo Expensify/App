@@ -1012,8 +1012,7 @@ export default {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
     },
-    workflowsPage:
-    {
+    workflowsPage: {
         workflowTitle: 'Gasto',
         workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago.',
         delaySubmissionTitle: 'Retrasar las presentaciones',

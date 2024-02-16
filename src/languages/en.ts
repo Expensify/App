@@ -1016,8 +1016,7 @@ export default {
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
     },
-    workflowsPage:
-    {
+    workflowsPage: {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         delaySubmissionTitle: 'Delay submissions',

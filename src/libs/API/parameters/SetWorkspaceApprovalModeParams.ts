@@ -1,6 +1,6 @@
 type SetWorkspaceApprovalModeParams = {
-    policyID: string
-    value: string,
+    policyID: string;
+    value: string;
 };
 
 export default SetWorkspaceApprovalModeParams;

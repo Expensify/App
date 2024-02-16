@@ -4581,7 +4581,7 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 15,
         },
         workspaceWorkflowContent: {
-            flexDirection: 'row', 
+            flexDirection: 'row',
             alignItems: 'center',
             flex: 1,
         },
@@ -4607,7 +4607,7 @@ const styles = (theme: ThemeColors) =>
             ...spacing.ph8,
             ...spacing.mhn8,
             width: 'auto',
-            marginLeft: 29
+            marginLeft: 29,
         },
         workspaceWorkflowsSubMenuTitle: {
             color: theme.textSupporting,
@@ -4618,15 +4618,15 @@ const styles = (theme: ThemeColors) =>
         workspaceWorkflowsSubMenuDescription: {
             color: theme.text,
             fontSize: 15,
-            lineHeight: 20
+            lineHeight: 20,
         },
         workspaceWorkflowsTimelineOverride: {
-            backgroundColor: theme.cardBG, 
-            zIndex: 1, 
-            height: 19, 
-            width: 19, 
-            position: 'absolute', 
-            left:0,
+            backgroundColor: theme.cardBG,
+            zIndex: 1,
+            height: 19,
+            width: 19,
+            position: 'absolute',
+            left: 0,
         },
         workspaceWorkflowsSubItemHover: {
             borderRadius: 8,

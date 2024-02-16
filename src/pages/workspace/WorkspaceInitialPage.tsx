@@ -147,11 +147,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
-    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [{
-        translationKey: 'workspace.common.workflows',
-        icon: Expensicons.Workflows,
-        action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
-        routeName: SCREENS.WORKSPACE.WORKFLOWS,
+    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.common.workflows',
+            icon: Expensicons.Workflows,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.WORKFLOWS,
         },
     ];
 

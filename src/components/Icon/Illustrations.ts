@@ -27,6 +27,7 @@ import TadaBlue from '@assets/images/product-illustrations/tada--blue.svg';
 import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
@@ -56,6 +57,7 @@ import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__o
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
@@ -64,8 +66,6 @@ import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustrati
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
-import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
-import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 

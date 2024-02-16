@@ -19,12 +19,12 @@ import type {
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    SetWorkspaceApprovalModeParams,
+    SetWorkspaceAutoReportingParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
-    SetWorkspaceAutoReportingParams,
-    SetWorkspaceApprovalModeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -396,8 +396,8 @@ function setWorkspaceAutoReporting(policyID: string, isEnabled: boolean) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData});
 }
 
-function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: "BASIC" | "OPTIONAL") {
-    const isAutoApprovalEnabled = approvalMode === "BASIC";
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: 'BASIC' | 'OPTIONAL') {
+    const isAutoApprovalEnabled = approvalMode === 'BASIC';
 
     const value = JSON.stringify({
         approver,
@@ -415,7 +415,6 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     const params: SetWorkspaceApprovalModeParams = {policyID, value};
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData});
 }
-
 
 /**
  * Build optimistic data for removing users from the announcement room
