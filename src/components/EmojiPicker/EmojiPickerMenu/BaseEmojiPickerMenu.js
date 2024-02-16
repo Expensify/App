@@ -125,7 +125,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     onPress={scrollToHeader}
                 />
             )}
-            <View style={[listWrapperStyle]}>
+            <View style={listWrapperStyle}>
                 <FlashList
                     ref={forwardedRef}
                     keyboardShouldPersistTaps="handled"
