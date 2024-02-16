@@ -52,7 +52,7 @@ jobs:
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
           git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
-      - uses: ./.github/actions/composite/buildAndroidE2EAPK
+      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
