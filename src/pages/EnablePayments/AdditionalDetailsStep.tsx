@@ -23,9 +23,9 @@ import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
 import type {WalletAdditionalDetails} from '@src/types/onyx';
 import IdologyQuestions from './IdologyQuestions';
-import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
 
 const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
     errorFields: {},
@@ -60,7 +60,7 @@ const STEP_FIELDS = [
     INPUT_IDS.PHONE_NUMBER,
     INPUT_IDS.DOB,
     INPUT_IDS.ADDRESS_STATE,
-    INPUT_IDS.SSN
+    INPUT_IDS.SSN,
 ];
 function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIONAL_DETAILS, currentUserPersonalDetails}: AdditionalDetailsStepProps) {
     const {translate} = useLocalize();
@@ -71,7 +71,6 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-        const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn', 'addressState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
         if (values.dob) {

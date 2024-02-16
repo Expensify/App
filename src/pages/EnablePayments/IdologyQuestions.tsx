@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {WalletAdditionalQuestionDetails} from 'src/types/onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues,FormInputErrors} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
@@ -91,7 +91,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
         }
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM>) => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.IDOLOGY_QUESTIONS_FORM> => {
         const errors: Errors = {};
         if (!values.answer) {
             errors.answer = translate('additionalDetailsStep.selectAnswer');
