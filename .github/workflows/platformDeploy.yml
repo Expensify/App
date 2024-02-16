@@ -40,78 +40,14 @@ jobs:
     needs: validateActor
     secrets: inherit
 
-  buildAndroid:
-    name: Build Android app
-    needs: validateActor
-    if: fromJson(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name != 'release'
-    uses: ./github/workflows/buildAndroid.yml
-    with:
-      BUILD_TYPE: release
-
   deployAndroid:
-    name: Build and deploy Android
-    needs: [validateActor, buildAndroid]
-    if: !cancelled()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate actor
-        run: |
-          if [[ ${{ needs.validateActor.outputs.IS_DEPLOYER }} != 'true' ]]; then
-            exit 1
-          fi
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Decrypt json key
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '2.7'
-          bundler-cache: true
-
-      - name: Download build
-        if: !fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
-        id: download
-        uses: actions/download-artifact@v4
-        with:
-          name: android-release-sourcemap-${{ github.ref }}.aab
-
-      - name: Upload to Google Play Store
-        if: !fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
-        run: "bundle exec fastlane android upload_to_play_store aab_path:${{ steps.download.outputs.download-path }}"
-
-      - name: Upload Android version to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.download.outputs.download-path }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Release Google Play beta to production
-        if: fromJSON(env.SHOULD_DEPLOY_PRODUCTION)
-        run: bundle exec fastlane android release_production
-
-      - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+    name: Deploy Android app
+    needs: validateActor
+    if: fromJSON(needs.validateActor.outputs.IS_DEPLOYER)
+    uses: ./.github/workflows/deployAndroid.yml
+    secrets: inherit
+    with:
+      ENV: ${{ github.event_name == 'release' && 'production' || 'staging' }}
 
   desktop:
     name: Build and deploy Desktop

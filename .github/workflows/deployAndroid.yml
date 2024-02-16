@@ -54,6 +54,12 @@ jobs:
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Announce failed workflow in Slack
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
   deployProduction:
     if: inputs.ENV == 'production'
     runs-on: ubuntu-latest
@@ -75,6 +81,24 @@ jobs:
 
       - name: Release Google Play build to production
         run: bundle exec fastlane android release_production
+
+      - name: Warn deployers if Android production deploy failed
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   deployAdHoc:
     if: inputs.ENV == 'ad-hoc'
@@ -109,3 +133,9 @@ jobs:
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
+
+      - name: Announce failed workflow in Slack
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
