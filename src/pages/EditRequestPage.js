@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
