@@ -101,7 +101,7 @@ function MoneyRequestAmountForm(
      * Event occurs when a user presses a mouse button over an DOM element.
      */
     const onMouseDown = (event: React.MouseEvent<Element, MouseEvent>, ids: string[]) => {
-        const relatedTargetId = event.nativeEvent?.target?.id;
+        const relatedTargetId = (event.nativeEvent?.target as HTMLElement)?.id;
         if (ids.includes(relatedTargetId)) {
             return;
         }
