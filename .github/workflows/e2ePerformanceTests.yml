@@ -126,7 +126,7 @@ jobs:
       - uses: ./.github/actions/composite/buildAndroidE2EAPK
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
-          UPLOAD_ARTIFACT: false
+          ARTIFACT_RETENTION_DAYS: 3 # We don't need to store the delta apk for long, its only really needed for the next job in this workflow
           PACKAGE_SCRIPT_NAME: android-build-e2edelta
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
           MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
