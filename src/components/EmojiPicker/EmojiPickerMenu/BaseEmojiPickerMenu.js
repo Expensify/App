@@ -138,7 +138,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     ListEmptyComponent={ListEmptyComponent}
                     alwaysBounceVertical={alwaysBounceVertical}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    estimatedListSize={{height: flattenListWrapperStyle.height, width: containerWidth}}
+                    estimatedListSize={{height: flattenListWrapperStyle.height, width: listWidth}}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
