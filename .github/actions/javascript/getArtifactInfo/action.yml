@@ -1,5 +1,6 @@
 name: Get artifact info
 description: Gets the ID and workflow ID about a specific artifact. By default artifacts are only available in the same workflow. This action can be used to get the information needed to download an artifact from a different workflow.
+
 inputs:
   GITHUB_TOKEN:
     description: Auth token for New Expensify Github; necessary for accessing Octokit.
