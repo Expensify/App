@@ -4587,7 +4587,7 @@ const styles = (theme: ThemeColors) =>
         },
         workspaceWorkflowContainer: {
             flexDirection: 'row',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             justifyContent: 'space-between',
         },
         workspaceWorkflowsHeading: {
@@ -4607,7 +4607,11 @@ const styles = (theme: ThemeColors) =>
             ...spacing.ph8,
             ...spacing.mhn8,
             width: 'auto',
-            marginLeft: 29,
+            marginLeft: 44,
+            paddingVertical: 12,
+            paddingRight: 9,
+            paddingLeft: 16,
+            marginRight: 0,
         },
         workspaceWorkflowsSubMenuTitle: {
             color: theme.textSupporting,
@@ -4631,7 +4635,6 @@ const styles = (theme: ThemeColors) =>
         workspaceWorkflowsSubItemHover: {
             borderRadius: 8,
             marginRight: 0,
-            transition: 'all 0.3s ease-in-out',
         },
         workspaceTitleStyle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
