@@ -171,8 +171,9 @@ function InitialSettingsPage(props) {
                     icon: Expensicons.ExpensifyLogoNew,
                     action: () => {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                        Link.openOldDotLink(`${CONST.OLDDOT_URLS.INBOX}${CONST.OLDDOT_URLS.DISMMISSED_REASONS.GO_TO_CLASSIC}`);
                     },
-                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
+                    link: () => Link.buildOldDotURL(`${CONST.OLDDOT_URLS.INBOX}${CONST.OLDDOT_URLS.DISMMISSED_REASONS.GO_TO_CLASSIC}`),
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
                 },

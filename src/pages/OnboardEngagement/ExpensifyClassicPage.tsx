@@ -27,7 +27,7 @@ function ExpensifyClassicModal() {
     };
 
     const navigateToOldDot = () => {
-        Link.openOldDotLink(`${CONST.OLDDOT_URLS.INBOX}${CONST.OLDDOT_URLS.DISMMISSED_REASON}`);
+        Link.openOldDotLink(`${CONST.OLDDOT_URLS.INBOX}${CONST.OLDDOT_URLS.DISMMISSED_REASONS.MISSING_FEATURES}`);
     };
 
     return (

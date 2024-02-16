@@ -526,7 +526,10 @@ const CONST = {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
-        DISMMISSED_REASON: '?dismissedReason=missingFeatures',
+        DISMMISSED_REASONS: {
+            MISSING_FEATURES: '?dismissedReason=missingFeatures',
+            GO_TO_CLASSIC: '?dismissedReason=goToClassic',
+        }
     },
 
     SIGN_IN_FORM_WIDTH: 300,
