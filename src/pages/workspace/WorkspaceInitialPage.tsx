@@ -96,16 +96,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
-
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
+    const isCollectPolicy = PolicyUtils.isCollectPolicy(policy);
 
     const protectedMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.workflows',
-            icon: Expensicons.Workflows,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.WORKFLOWS,
-        },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
@@ -153,6 +147,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
+    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [{
+        translationKey: 'workspace.common.workflows',
+        icon: Expensicons.Workflows,
+        action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
+        routeName: SCREENS.WORKSPACE.WORKFLOWS,
+        },
+    ];
 
     const menuItems: WorkspaceMenuItem[] = [
         {
@@ -162,6 +163,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
         },
+        ...(isCollectPolicy ? protectedCollectPolicyMenuItems : []),
         ...(shouldShowProtectedItems ? protectedMenuItems : []),
     ];
 
