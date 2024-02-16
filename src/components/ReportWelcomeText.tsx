@@ -83,7 +83,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     if (!canEditPolicyDescription) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(policy.id));
+                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy.id));
                                 }}
                                 style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
