@@ -3,87 +3,106 @@ name: Build iOS App
 on:
   workflow_call:
     inputs:
-      ARTIFACT_NAME:
-        description: The name of the workflow artifact where the APK should be uploaded
-        required: true
-        type: string
-      ENV:
+      BUILD_TYPE:
         description: The environment to build for. Must be one of ("release", "ad-hoc")
         required: true
         type: string
 
 concurrency:
-  group: build-android-${{ inputs.ENV }}
-  cancel-in-progress: ${{ inputs.ENV != "release" }}
+  group: build-ios-${{ inputs.BUILD_TYPE }}
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == "release" }}
 
 jobs:
   buildIOS:
     name: Build iOS app
-    runs-on: macos-12-xl
+    runs-on: macos-13-xlarge
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
     steps:
-      - id: validateEnv
+      - name: Validate build type
+        id: validateBuildType
         run: |
-          if [[ ${{ contains(fromJSON('["release", "ad-hoc"]'), inputs.ENV) }} == 'true' ]]; then
-            echo "Environment ${{ inputs.ENV }} is valid for iOS"
+          if [[ ${{ contains(fromJSON('["release", "ad-hoc"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
+            echo "Environment ${{ inputs.BUILD_TYPE }} is valid for iOS"
           else
-            echo "Environment ${{ inputs.ENV }} is not valid for iOS."
+            echo "Environment ${{ inputs.BUILD_TYPE }} is not valid for iOS."
             exit 1
           fi
 
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: ruby/setup-ruby@v1
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7'
           bundler-cache: true
 
+      - name: Cache Pod dependencies
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: ios/Pods
+          key: pods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: pods-cache-
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+
       - name: Install cocoapods
-        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        uses: nick-invision/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: cd ios && bundle exec pod install
 
-      - name: Decrypt profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_appstore.mobileprovision chat_expensify_appstore.mobileprovision.gpg
+      - name: Decrypt AppStore profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+      - name: Decrypt AppStore Notification Service profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+  
       - name: Decrypt certificate
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Decrypt App Store Connect API key
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
       - name: Run Fastlane build
+        id: build
         run: |
-          if [[ ${{ inputs.ENV }} == "release" ]]; then
+          if [[ ${{ inputs.BUILD_TYPE }} == "release" ]]; then
             bundle exec fastlane ios build
           else
             bundle exec fastlane ios build_internal
           fi
 
       - name: Upload API as workflow artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.ARTIFACT_NAME }}.api
+          name: ios-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.api
           # Note: this output comes from inside the Fastfile
           path: ${{ steps.build.outputs.IPA_PATH }}
 
       - name: Upload iOS sourcemaps
         uses: actions/upload-artifact@v3
         with:
-          name: ios-sourcemap
+          name: ios-${{ inputs.BUILD_TYPE }}-sourcemap-${{ github.ref }}
           path: main.jsbundle.map
 
       - name: Post a message in slack if the build fails
         if: failure()
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
