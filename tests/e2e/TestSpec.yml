@@ -22,6 +22,8 @@ phases:
     commands:
       - cd zip
       - npm install underscore
+      # Reduce logging noise in log file:
+      - export LOGGER_PROGRESS_REFRESH_RATE=5000
       - node e2e/testRunner.js -- --mainAppPath app-e2eRelease.apk --deltaAppPath app-e2edeltaRelease.apk
 
 artifacts:
