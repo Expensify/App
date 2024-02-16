@@ -1,5 +1,4 @@
-import React, {useCallback, useState} from 'react';
-import Config from 'react-native-config';
+import React, {useCallback, useEffect, useState} from 'react';
 import DeviceInfo from 'react-native-device-info';
 import RNFS from 'react-native-fs';
 import {withOnyx} from 'react-native-onyx';
@@ -32,7 +31,7 @@ function formatBytes(bytes: number, decimals = 2) {
 
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['Bytes', 'KiB', 'MiB', 'GiB'];
 
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -42,6 +41,7 @@ function formatBytes(bytes: number, decimals = 2) {
 function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuProps) {
     const styles = useThemeStyles();
     const [pathIOS, setPathIOS] = useState('');
+    const [sharePath, setSharePath] = useState('');
     const [totalMemory, setTotalMemory] = useState(0);
     const [usedMemory, setUsedMemory] = useState(0);
 
@@ -74,7 +74,6 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
             JSON.stringify({
                 appVersion: pkg.version,
                 environment: CONFIG.ENVIRONMENT,
-                buildVariant: __DEV__ ? 'debug' : 'release',
                 platform: getPlatform(),
                 totalMemory: formatBytes(totalMemory, 2),
                 usedMemory: formatBytes(usedMemory, 2),
@@ -82,45 +81,64 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
         [totalMemory, usedMemory],
     );
 
-    // eslint-disable-next-line @lwc/lwc/no-async-await
-    const onDownloadProfiling = useCallback(async () => {
-        const newFileName = `Profile_trace_for_${pkg.version}.json`;
-        const newFilePath = `${RNFS.DocumentDirectoryPath}/${newFileName}`;
-        const actualPath = `file://${newFilePath}`;
-
-        // Check if the file already exists and delete it if it does
-        try {
-            const fileExists = await RNFS.exists(newFilePath);
-            if (fileExists) {
-                await RNFS.unlink(newFilePath);
-                Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
-            }
-        } catch (error) {
-            const typedError = error as Error;
-            Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
+    useEffect(() => {
+        if (!pathIOS) {
+            return;
         }
 
-        // Copy the file to a new location with the desired filename
-        await RNFS.copyFile(pathIOS, newFilePath)
-            .then(() => {
-                Log.hmmm('[ProfilingToolMenu] file copied successfully');
-            })
-            .catch((error) => {
-                Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
-            });
+        // eslint-disable-next-line @lwc/lwc/no-async-await
+        const rename = async () => {
+            const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
+            const newFilePath = `${RNFS.DocumentDirectoryPath}/${newFileName}`;
 
-        // Define new filename and path for the app info file
-        const infoFileName = `App_Info_${pkg.version}.json`;
-        const infoFilePath = `${RNFS.DocumentDirectoryPath}/${infoFileName}`;
-        const actualInfoFile = `file://${infoFilePath}`;
+            try {
+                const fileExists = await RNFS.exists(newFilePath);
+                if (fileExists) {
+                    await RNFS.unlink(newFilePath);
+                    Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
+                }
+            } catch (error) {
+                const typedError = error as Error;
+                Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
+            }
 
-        await RNFS.writeFile(infoFilePath, getAppInfo(), 'utf8');
+            // Copy the file to a new location with the desired filename
+            await RNFS.copyFile(pathIOS, newFilePath)
+                .then(() => {
+                    Log.hmmm('[ProfilingToolMenu] file copied successfully');
+                })
+                .catch((error) => {
+                    Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
+                });
 
-        await Share.open({
-            urls: [actualPath, actualInfoFile],
-            type: 'application/json',
-        });
-    }, [getAppInfo, pathIOS]);
+            setSharePath(newFilePath);
+        };
+
+        rename();
+    }, [pathIOS]);
+
+    const onDownloadProfiling = useCallback(() => {
+        // eslint-disable-next-line @lwc/lwc/no-async-await
+        const shareFiles = async () => {
+            try {
+                // Define new filename and path for the app info file
+                const infoFileName = `App_Info_${pkg.version}.json`;
+                const infoFilePath = `${RNFS.DocumentDirectoryPath}/${infoFileName}`;
+                const actualInfoFile = `file://${infoFilePath}`;
+
+                await RNFS.writeFile(infoFilePath, getAppInfo(), 'utf8');
+
+                const shareOptions = {
+                    urls: [`file://${sharePath}`, actualInfoFile],
+                };
+
+                await Share.open(shareOptions);
+            } catch (error) {
+                console.error('Error renaming and sharing file:', error);
+            }
+        };
+        shareFiles();
+    }, [getAppInfo, sharePath]);
 
     return (
         <>
