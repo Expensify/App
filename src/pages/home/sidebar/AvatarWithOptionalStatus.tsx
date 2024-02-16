@@ -1,5 +1,3 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -12,20 +10,15 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
 
-const propTypes = {
+type AvatarWithOptionalStatusProps = {
     /** Whether the create menu is open or not */
-    isCreateMenuOpen: PropTypes.bool,
+    isCreateMenuOpen: boolean;
 
     /** Emoji status */
-    emojiStatus: PropTypes.string,
+    emojiStatus: string;
 };
 
-const defaultProps = {
-    isCreateMenuOpen: false,
-    emojiStatus: '',
-};
-
-function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
+function AvatarWithOptionalStatus({emojiStatus = '', isCreateMenuOpen = false}: AvatarWithOptionalStatusProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -61,7 +54,5 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
     );
 }
 
-AvatarWithOptionalStatus.propTypes = propTypes;
-AvatarWithOptionalStatus.defaultProps = defaultProps;
 AvatarWithOptionalStatus.displayName = 'AvatarWithOptionalStatus';
 export default AvatarWithOptionalStatus;
