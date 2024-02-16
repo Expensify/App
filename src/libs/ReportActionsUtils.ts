@@ -94,9 +94,12 @@ function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function isDeletedAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = reportAction?.message ?? [];
-    return message.length === 0 || message[0]?.html === '';
+
+    // A legacy deleted comment has either an empty array or an object with html field with empty string as value
+    const isLegacyDeletedComment = reportAction?.actionName === 'ADDCOMMENT' && (!message.length || !message[0]?.html);
+
+    return message[0]?.isDeleted || isLegacyDeletedComment;
 }
 
 function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {

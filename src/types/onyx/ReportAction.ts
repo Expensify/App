@@ -68,6 +68,8 @@ type Message = {
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    isDeleted?: boolean;
 };
 
 type ImageMetadata = {
