@@ -1,4 +1,5 @@
 import type {ForwardedRef} from 'react';
+import type React from 'react';
 import {createContext} from 'react';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
@@ -6,7 +7,7 @@ import type {SharedValue} from 'react-native-reanimated';
 /** The pager items array is used within the pager to render and navigate between the images */
 type AttachmentCarouselPagerItems = {
     /** The source of the image is used to identify each attachment/page in the pager */
-    source: string;
+    source: string | number | React.FC;
 
     /** The index of the pager item determines the order of the images in the pager */
     index: number;

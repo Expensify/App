@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
@@ -8,6 +8,7 @@ import type {PagerViewProps} from 'react-native-pager-view';
 import PagerView from 'react-native-pager-view';
 import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
+import type {Attachment} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
@@ -21,22 +22,21 @@ type AttachmentCarouselPagerHandle = {
     setPage: (selectedPage: number) => void;
 };
 
-type PagerItem = {
-    source: string | number | React.FC;
-};
-
 type AttachmentCarouselPagerProps = {
     /** The attachments to be rendered in the pager. */
     items: Attachment[];
-
-    /** The source (URL) of the currently active attachment. */
-    activeSource: string;
 
     /** The index of the initial page to be rendered. */
     initialPage: number;
 
     /** A callback to be called when the page is changed. */
-    onPageSelected: () => void;
+    onPageSelected: (
+        event: NativeSyntheticEvent<
+            Readonly<{
+                position: number;
+            }>
+        >,
+    ) => void;
 
     /**
      * A callback that can be used to toggle the attachment carousel arrows, when the scale of the image changes.
@@ -45,7 +45,7 @@ type AttachmentCarouselPagerProps = {
     onRequestToggleArrows: (showArrows?: boolean) => void;
 };
 
-function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelected, onRequestToggleArrows}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager({items, initialPage, onPageSelected, onRequestToggleArrows}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
@@ -140,15 +140,13 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
 
     const carouselItems = items.map((item, index) => (
         <View
-            key={item.source}
+            key={item.source as string}
             style={styles.flex1}
         >
             <CarouselItem
-                // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
                 item={item}
                 isSingleItem={items.length === 1}
                 index={index}
-                isFocused={index === activePageIndex && activeSource === item.source}
             />
         </View>
     ));

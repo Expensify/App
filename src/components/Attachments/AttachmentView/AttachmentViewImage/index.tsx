@@ -14,19 +14,7 @@ type AttachmentViewImageProps = {
     isImage: boolean;
 } & AttachmentViewBaseProps;
 
-function AttachmentViewImage({
-    url,
-    file,
-    isAuthTokenRequired,
-    isUsedInCarousel,
-    isSingleCarouselItem,
-    carouselItemIndex,
-    carouselActiveItemIndex,
-    loadComplete,
-    onPress,
-    onError,
-    isImage,
-}: AttachmentViewImageProps) {
+function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPress, onError, isImage}: AttachmentViewImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const children = (
@@ -35,10 +23,6 @@ function AttachmentViewImage({
             url={url}
             fileName={file?.name ?? ''}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            isUsedInCarousel={isUsedInCarousel}
-            isSingleCarouselItem={isSingleCarouselItem}
-            carouselItemIndex={carouselItemIndex}
-            carouselActiveItemIndex={carouselActiveItemIndex}
         />
     );
 

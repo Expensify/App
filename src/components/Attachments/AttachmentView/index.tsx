@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React, {memo, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,6 +11,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
+import AttachmentViewVideo from './AttachmentViewVideo';
 import type AttachmentViewBaseProps from './types';
 
 type AttachmentViewOnyxProps = {
@@ -56,13 +58,17 @@ type AttachmentViewProps = {
     transactionID?: string;
 
     fallbackSource?: string | number;
+
+    isHovered?: boolean;
+
+    optionalVideoDuration?: number;
 } & AttachmentViewOnyxProps &
     AttachmentViewBaseProps &
     Attachment;
 
 function AttachmentView({
     source,
-    file = {name: ''},
+    file,
     isAuthTokenRequired,
     onPress,
     shouldShowLoadingSpinnerIcon,
@@ -71,20 +77,30 @@ function AttachmentView({
     onToggleKeyboard,
     isFocused,
     isUsedInCarousel,
-    isSingleCarouselItem,
-    carouselItemIndex,
-    carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
     maybeIcon,
     fallbackSource,
     transaction,
+    isHovered,
+    optionalVideoDuration,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
+    // ts-expect-error Wait for video merge
+    const {updateCurrentlyPlayingURL} = usePlaybackContext() as unknown as {updateCurrentlyPlayingURL: (source: AttachmentSource | null) => void};
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const isVideo = Str.isVideo(String(source));
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        updateCurrentlyPlayingURL(isVideo ? source : null);
+    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL]);
+
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -140,8 +156,6 @@ function AttachmentView({
                     isFocused={isFocused}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
-                    carouselItemIndex={carouselItemIndex}
-                    carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
@@ -153,7 +167,7 @@ function AttachmentView({
         );
     }
 
-    if (TransactionUtils.isDistanceRequest(transaction)) {
+    if (TransactionUtils.isDistanceRequest(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
@@ -169,15 +183,22 @@ function AttachmentView({
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
                 isFocused={isFocused}
-                isUsedInCarousel={isUsedInCarousel}
-                isSingleCarouselItem={isSingleCarouselItem}
-                carouselItemIndex={carouselItemIndex}
-                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onError={() => {
                     setImageError(true);
                 }}
+            />
+        );
+    }
+
+    if (isVideo || (file && Str.isVideo(file.name))) {
+        return (
+            <AttachmentViewVideo
+                source={source}
+                shouldUseSharedVideoElement={isUsedInCarousel}
+                isHovered={isHovered}
+                videoDuration={optionalVideoDuration}
             />
         );
     }

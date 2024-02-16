@@ -11,7 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CarouselButtons from './CarouselButtons';
-import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import type {AttachmentCarouselPagerHandle} from './Pager';
 import AttachmentCarouselPager from './Pager';
@@ -104,19 +103,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [setShouldShowArrows, shouldShowArrows],
     );
 
-    /** Defines how a single attachment should be rendered */
-    const renderItem = useCallback(
-        (props: {item: Attachment; index: number}) => (
-            <CarouselItem
-                item={props.item}
-                isSingleItem={attachments.length === 1}
-                index={props.index}
-                activeIndex={page}
-            />
-        ),
-        [attachments.length, page],
-    );
-
     return (
         <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
             {page == null ? (
@@ -144,11 +130,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
                             <AttachmentCarouselPager
                                 items={attachments}
-                                renderItem={renderItem}
-                                initialIndex={page}
                                 onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                                 ref={pagerRef}
+                                initialPage={0}
                             />
                         </>
                     )}
