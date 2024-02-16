@@ -3,40 +3,52 @@ name: Build Android app
 on:
   workflow_call:
     inputs:
-      # TODO: Rename to BUILD_TYPE
-      ENV:
-        description: The environment to build for. Must be one of ("release", "ad-hoc", "e2e")
+      BUILD_TYPE:
+        description: The environment to build for. Must be one of ("release", "ad-hoc", "e2e", "e2eDelta")
         required: true
         type: string
 
 concurrency:
-  group: build-android-${{ inputs.ENV }}
-  cancel-in-progress: ${{ inputs.ENV != "release" }}
+  group: build-android-${{ inputs.BUILD_TYPE }}
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == "release" }}
 
 jobs:
   buildAndroid:
     name: Build Android app
     runs-on: ubuntu-latest-xl
     steps:
-      - id: validateEnv
+      - name: Validate build environment
+        id: validateEnv
         run: |
-          if [[ ${{ contains(fromJSON('["release", "ad-hoc", "e2e"]'), inputs.ENV) }} == 'true' ]]; then
-            echo "Environment ${{ inputs.ENV }} is valid for Android"
+          if [[ ${{ contains(fromJSON('["release", "ad-hoc", "e2e", "e2eDelta"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
+            echo "Environment ${{ inputs.BUILD_TYPE }} is valid for Android"
           else
-            echo "Environment ${{ inputs.ENV }} is not valid for Android."
+            echo "Environment ${{ inputs.BUILD_TYPE }} is not valid for Android."
             exit 1
           fi
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: ruby/setup-ruby@v1
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: oracle
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7'
           bundler-cache: true
-
-      - uses: gradle/gradle-build-action@v2
 
       - name: Decrypt keystore
         run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
@@ -51,33 +63,35 @@ jobs:
       - name: Run Fastlane build
         id: build
         run: |
-          if [[ ${{ inputs.ENV }} == "release" ]]; then
+          if [[ ${{ inputs.BUILD_TYPE }} == "release" ]]; then
             bundle exec fastlane android build
-          elif [[ ${{ inputs.ENV }} == "ad-hoc" ]]; then
+          elif [[ ${{ inputs.BUILD_TYPE }} == "ad-hoc" ]]; then
             bundle exec fastlane android build_internal
-          else
+          elif [[ ${{ inputs.BUILD_TYPE }} == "e2e" ]]; then
             bundle exec fastlane android build_e2e
+          else
+            bundle exec fastlane android build_e2e_delta
           fi
 
       - name: Upload APK as workflow artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.ENV }}-${{ github.ref }}.apk
+          name: android-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.apk
           # Note: this output comes from inside the Fastfile
           path: ${{ steps.build.outputs.APK_PATH }}
 
       - name: Upload AAB as workflow artifact
-        if: inputs.ENV == "release"
-        uses: actions/upload-artifact@v3
+        if: inputs.BUILD_TYPE == "release"
+        uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.ENV }}-${{ github.ref }}.aab
+          name: android-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.aab
           # Note: this output comes from inside the Fastfile
           path: ${{ steps.build.outputs.AAB_PATH }}
 
       - name: Archive Android sourcemaps
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.ENV }}-sourcemap-${{ github.ref }}
+          name: android-${{ inputs.BUILD_TYPE }}-sourcemap-${{ github.ref }}
           path: android/app/build/generated/sourcemaps/react/release/*.map
 
       - name: Post a message in slack if the build fails
