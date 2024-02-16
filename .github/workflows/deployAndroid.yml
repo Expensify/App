@@ -16,6 +16,7 @@ jobs:
   # TODO: add a a validate job
 
   # TODO: move concurrency here?
+  # TODO: inline the build job here directly?
   build:
     if: inputs.ENV != 'production'
     uses: ./.github/workflows/buildAndroid.yml@main
