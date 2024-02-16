@@ -3,33 +3,36 @@ name: Build desktop app
 on:
   workflow_call:
     inputs:
-      ENV:
+      BUILD_TYPE:
         description: The environment to build for. Must be one of ("staging", "production", "ad-hoc")
         required: true
         type: string
 
 concurrency:
-  group: build-android-${{ inputs.ENV }}
-  cancel-in-progress: ${{ inputs.ENV == "ad-hoc" }}
+  group: build-android-${{ inputs.BUILD_TYPE }}
+  # TODO: Fix cancel-in-progress
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == "ad-hoc" }}
 
 jobs:
   buildWeb:
     name: Build desktop app
     runs-on: ubuntu-latest-xl
     steps:
-      - id: validateEnv
+      - name: Validate build type
+        id: validateBuildType
         run: |
-          if [[ ${{ contains(fromJSON('["staging", "production", "ad-hoc"]'), inputs.ENV) }} == 'true' ]]; then
-            echo "Environment ${{ inputs.ENV }} is valid for iOS"
+          if [[ ${{ contains(fromJSON('["staging", "production", "ad-hoc"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
+            echo "Build type ${{ inputs.BUILD_TYPE }} is valid for desktop."
           else
-            echo "Environment ${{ inputs.ENV }} is not valid for iOS."
+            echo "Build type ${{ inputs.BUILD_TYPE }} is not valid for desktop."
             exit 1
           fi
 
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Create .env.adhoc file based on staging
-        if: inputs.ENV == 'ad-hoc'
+        if: inputs.BUILD_TYPE == 'ad-hoc'
         run: |
           cp .env.staging .env.adhoc
           sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
@@ -40,7 +43,8 @@ jobs:
         env:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
 
       - name: Configure AWS Credentials
         uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
@@ -50,12 +54,12 @@ jobs:
 
       - name: Run desktop build
         run: |
-          if [[ ${{ inputs.ENV }} == 'ad-hoc' ]]; then
-            npm run desktop-build-adhoc -- --publish always
-          elif [[ ${{ inputs.ENV }} == 'staging' ]]; then
-            npm run desktop-build-staging -- --publish always
+          if [[ ${{ inputs.BUILD_TYPE }} == 'ad-hoc' ]]; then
+            npm run desktop-build-adhoc -- --publish never
+          elif [[ ${{ inputs.BUILD_TYPE }} == 'staging' ]]; then
+            npm run desktop-build-staging -- --publish never
           else
-            npm run desktop-build -- --publish always
+            npm run desktop-build -- --publish never
           fi
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -66,13 +70,13 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Upload DMG as a workflow artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: NewExpensify.dmg
           path: desktop-build/NewExpensify.dmg
 
       - name: Post a message in slack if the build fails
         if: failure()
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
