@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo, useMemo, useCallback, useEffect, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
