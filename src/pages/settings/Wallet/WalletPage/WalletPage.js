@@ -407,9 +407,14 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                                                 title={translate('common.transferBalance')}
                                                                 icon={Expensicons.Transfer}
                                                                 onPress={triggerKYCFlow}
+                                                                hoverAndPressStyle={styles.hoveredComponentBG}
                                                                 shouldShowRightIcon
                                                                 disabled={network.isOffline}
-                                                                wrapperStyle={styles.transferBalance}
+                                                                wrapperStyle={[
+                                                                    styles.transferBalance,
+                                                                    isSmallScreenWidth ? styles.mhn5 : styles.mhn8,
+                                                                    isSmallScreenWidth ? styles.ph5 : styles.ph8,
+                                                                ]}
                                                             />
                                                         );
                                                     }

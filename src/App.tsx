@@ -21,6 +21,9 @@ import SafeArea from './components/SafeArea';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
+import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
@@ -81,6 +84,9 @@ function App({url}: AppProps) {
                         CustomStatusBarAndBackgroundContextProvider,
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
+                        PlaybackContextProvider,
+                        VolumeContextProvider,
+                        VideoPopoverMenuContextProvider,
                     ]}
                 >
                     <CustomStatusBarAndBackground />
