@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
 import {createNativeWrapper} from 'react-native-gesture-handler';
@@ -20,16 +21,20 @@ type AttachmentCarouselPagerHandle = {
 };
 
 type PagerItem = {
-    key: string;
-    url: string;
-    source: string;
+    source: string | number | React.FC;
 };
 
 type AttachmentCarouselPagerProps = {
     items: PagerItem[];
-    renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
+    renderItem: (props: {item: PagerItem; index: number}) => React.ReactNode;
     initialIndex: number;
-    onPageSelected: () => void;
+    onPageSelected: (
+        event: NativeSyntheticEvent<
+            Readonly<{
+                position: number;
+            }>
+        >,
+    ) => void;
     onRequestToggleArrows: (showArrows?: boolean) => void;
 };
 
@@ -42,7 +47,6 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
     const isScrollEnabled = useSharedValue(true);
 
     const activePage = useSharedValue(initialIndex);
-    const [activePageState, setActivePageState] = useState(initialIndex);
 
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
@@ -52,7 +56,6 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
     }, []);
 
     useEffect(() => {
-        setActivePageState(initialIndex);
         activePage.value = initialIndex;
     }, [activePage, initialIndex]);
 
@@ -135,10 +138,10 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
             >
                 {items.map((item, index) => (
                     <View
-                        key={item.source}
+                        key={String(item.source)}
                         style={styles.flex1}
                     >
-                        {renderItem({item, index, isActive: index === activePageState})}
+                        {renderItem({item, index})}
                     </View>
                 ))}
             </AnimatedPagerView>
@@ -148,3 +151,4 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
 AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
 export default React.forwardRef(AttachmentCarouselPager);
+export type {AttachmentCarouselPagerHandle};

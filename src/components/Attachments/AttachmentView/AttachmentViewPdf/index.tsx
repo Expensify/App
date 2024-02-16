@@ -9,7 +9,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onTogg
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
-            fileName={file.name}
+            fileName={file?.name}
             style={style}
             onToggleKeyboard={onToggleKeyboard}
             onLoadComplete={onLoadComplete}

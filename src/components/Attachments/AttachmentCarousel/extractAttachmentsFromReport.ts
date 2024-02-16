@@ -4,10 +4,10 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 /** Constructs the initial component state from report actions */
-function extractAttachmentsFromReport(parentReportAction: ReportAction, reportActions: ReportAction[]) {
+function extractAttachmentsFromReport(parentReportAction: ReportAction, reportActions: ReportActions) {
     const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions))];
     const attachments: Attachment[] = [];
 

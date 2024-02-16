@@ -76,7 +76,7 @@ function BaseAttachmentViewPdf({
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
-            fileName={file.name}
+            fileName={file?.name}
             style={style}
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}

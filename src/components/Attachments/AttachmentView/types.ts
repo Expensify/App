@@ -9,7 +9,7 @@ type AttachmentViewBaseProps = {
     isUsedInCarousel?: boolean;
 
     /** File object can be an instance of File or Object */
-    file: AttachmentFile;
+    file?: AttachmentFile;
 
     isAuthTokenRequired?: boolean;
 
