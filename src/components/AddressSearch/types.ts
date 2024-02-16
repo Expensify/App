@@ -1,6 +1,7 @@
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
+import type {MaybePhraseKey} from '@libs/Localize';
 import type Locale from '@src/types/onyx/Locale';
 
 type CurrentLocationButtonProps = {
@@ -43,7 +44,7 @@ type AddressSearchProps = {
     onBlur?: () => void;
 
     /** Error text to display */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** Hint text to display */
     hint?: string;
@@ -58,7 +59,7 @@ type AddressSearchProps = {
     defaultValue?: string;
 
     /** A callback function when the value of this field has changed */
-    onInputChange: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
+    onInputChange?: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
     onPress?: (props: OnPressProps) => void;
@@ -76,7 +77,7 @@ type AddressSearchProps = {
     predefinedPlaces?: Place[];
 
     /** A map of inputID key names */
-    renamedInputKeys: RenamedInputKeysProps;
+    renamedInputKeys?: RenamedInputKeysProps;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;

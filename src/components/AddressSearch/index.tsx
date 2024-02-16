@@ -398,7 +398,7 @@ function AddressSearch(
                                 if (inputID) {
                                     onInputChange?.(text);
                                 } else {
-                                    onInputChange({street: text});
+                                    onInputChange?.({street: text});
                                 }
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
                                 if (!text && !predefinedPlaces.length) {

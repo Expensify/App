@@ -47,7 +47,7 @@ function IOURequestStepParticipants({
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     useEffect(() => {
-        IOUUtils.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => {}, iouRequestType, iouType, transactionID, reportID);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => {}, iouRequestType, iouType, transactionID, reportID);
     }, [receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
     const addParticipant = useCallback(
@@ -70,7 +70,7 @@ function IOURequestStepParticipants({
 
     const goToNextStep = useCallback(() => {
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
-        IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
+        IOU.setMoneyRequestTag(transactionID, '');
         IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
     }, [iouType, transactionID, reportID]);
