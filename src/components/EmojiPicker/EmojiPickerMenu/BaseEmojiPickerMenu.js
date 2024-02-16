@@ -112,9 +112,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
-    // related to https://github.com/Expensify/App/issues/34522
-    const roundedWindowWidth = Math.floor(windowWidth);
-    const containerWidth = isSmallScreenWidth ? roundedWindowWidth : CONST.EMOJI_PICKER_SIZE.WIDTH;
+    const containerWidth = isSmallScreenWidth ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
 
     const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
 
