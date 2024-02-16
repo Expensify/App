@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 import {addLog} from '@libs/actions/Console';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log} from '@src/types/onyx';
@@ -57,11 +58,12 @@ function logMessage(args: unknown[]) {
 
 /**
  * Override the console.log function to add logs to the store
+ * Log only in production environment to avoid storing large logs in development
  * @param args arguments passed to the console.log function
  */
 // eslint-disable-next-line no-console
 console.log = (...args) => {
-    if (shouldStoreLogs) {
+    if (shouldStoreLogs && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV) {
         logMessage(args);
     }
 
