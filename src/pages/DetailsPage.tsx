@@ -100,7 +100,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
 
     return (
         <ScreenWrapper testID={DetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={!login}>
+            <FullPageNotFoundView shouldShow={!login || CONST.RESTRICTED_EMAILS.includes(login)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {details ? (
