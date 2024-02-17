@@ -1,6 +1,6 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
 
 type LoungeAccessPageOnyxProps = {
@@ -31,7 +30,7 @@ function LoungeAccessPage({user}: LoungeAccessPageProps) {
     return (
         <IllustratedHeaderPageLayout
             title={translate('loungeAccessPage.loungeAccess')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES)}
+            onBackButtonPress={() => Navigation.goBack()}
             illustration={LottieAnimations.ExpensifyLounge}
             testID={LoungeAccessPage.displayName}
         >
