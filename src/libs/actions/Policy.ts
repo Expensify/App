@@ -315,8 +315,13 @@ function deleteWorkspace(policyID: string, policyName: string) {
 
     // Archive (and restore) reports associated with the workspace
     Object.values(allReports ?? {}).forEach((report) => {
-        // Skip any reports that are not related to this workspace, or which should remain open after it's closed
-        if (!report || (report.policyID !== policyID && !ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isTaskReport(report))) {
+        // Skip any reports that are not related to this workspace
+        if (!report || report.policyID !== policyID) {
+            return;
+        }
+
+        // Also skip any reports which should remain open after the workspace is closed
+        if (!ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isTaskReport(report)) {
             return;
         }
 
