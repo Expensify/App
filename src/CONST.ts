@@ -145,23 +145,23 @@ const CONST = {
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
             CONTAINER_MINHEIGHT: 200,
-            VIEW_HEIGHT: 185,
+            VIEW_HEIGHT: 240,
         },
         WIDE_SCREEN: {
             IMAGE_HEIGHT: 450,
             CONTAINER_MINHEIGHT: 500,
-            VIEW_HEIGHT: 275,
+            VIEW_HEIGHT: 390,
         },
         MONEY_OR_TASK_REPORT: {
             SMALL_SCREEN: {
                 IMAGE_HEIGHT: 300,
                 CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 220,
+                VIEW_HEIGHT: 240,
             },
             WIDE_SCREEN: {
                 IMAGE_HEIGHT: 450,
                 CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 275,
+                VIEW_HEIGHT: 390,
             },
         },
     },
