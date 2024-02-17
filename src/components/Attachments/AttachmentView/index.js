@@ -32,7 +32,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
+    source: AttachmentsPropTypes.Attachment,
 
     /** Flag to show/hide download icon */
     shouldShowDownloadIcon: PropTypes.bool,

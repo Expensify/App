@@ -19,7 +19,7 @@ const propTypes = {
     page: PropTypes.number.isRequired,
 
     /** The attachments from the carousel */
-    attachments: AttachmentCarouselViewPropTypes.attachmentsPropType.isRequired,
+    attachments: AttachmentCarouselViewPropTypes.Attachments.isRequired,
 
     /** Callback to go one page back */
     onBack: PropTypes.func.isRequired,

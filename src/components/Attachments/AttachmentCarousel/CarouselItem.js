@@ -22,7 +22,7 @@ const propTypes = {
         isAuthTokenRequired: PropTypes.bool,
 
         /** URL to full-sized attachment or SVG function */
-        source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
+        source: AttachmentsPropTypes.AttachmentSource,
 
         /** Additional information about the attachment file */
         file: PropTypes.shape({
