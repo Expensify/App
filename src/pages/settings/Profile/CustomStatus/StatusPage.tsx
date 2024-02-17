@@ -83,7 +83,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 return;
             }
             User.updateCustomStatus({
-                text: values.statusText,
+                text: statusText,
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
