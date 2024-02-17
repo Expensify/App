@@ -66,9 +66,9 @@ const propTypes = {
 };
 const defaultProps = {
     personalDetails: {},
-    policy: {},
-    policyCategories: {},
-    policyTags: {},
+    policy: null,
+    policyCategories: null,
+    policyTags: null,
     report: {},
     transaction: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -128,6 +128,14 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    useEffect(() => {
+        if (!transaction.category) {
+            return;
+        }
+        if (policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
+            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        }
+    }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
         _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
         'defaultCategory',
@@ -277,6 +285,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     report.reportID,
@@ -295,6 +304,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
@@ -303,26 +313,33 @@ function IOURequestStepConfirmation({
             }
 
             if (receiptFile) {
-                getCurrentPosition(
-                    (successData) => {
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile, {
-                            lat: successData.coords.latitude,
-                            long: successData.coords.longitude,
-                        });
-                    },
-                    (errorData) => {
-                        Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile);
-                    },
-                    {
-                        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                        maximumAge: 1000 * 60 * 60,
+                // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
+                if (transaction.amount === 0) {
+                    getCurrentPosition(
+                        (successData) => {
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile, {
+                                lat: successData.coords.latitude,
+                                long: successData.coords.longitude,
+                            });
+                        },
+                        (errorData) => {
+                            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile);
+                        },
+                        {
+                            // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                            maximumAge: 1000 * 60 * 60,
 
-                        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                        timeout: 15000,
-                    },
-                );
+                            // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+                            timeout: 15000,
+                        },
+                    );
+                    return;
+                }
+
+                // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
+                requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -413,7 +430,6 @@ function IOURequestStepConfirmation({
                             iouIsBillable={transaction.billable}
                             onToggleBillable={setBillable}
                             iouCategory={transaction.category}
-                            iouTag={transaction.tag}
                             onConfirm={createTransaction}
                             onSendMoney={sendMoney}
                             onSelectParticipant={addNewParticipant}

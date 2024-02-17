@@ -24,21 +24,28 @@ const propTypes = {
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
+
+    /** The application ID for our Onfido instance */
+    onfidoApplicantID: PropTypes.string,
 };
 
 const defaultProps = {
     onfidoToken: null,
+    onfidoApplicantID: null,
 };
 
 const HEADER_STEP_COUNTER = {step: 3, total: 5};
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoToken}) {
+function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoToken, onfidoApplicantID}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const submitOnfidoData = (onfidoData) => {
-        BankAccounts.verifyIdentityForBankAccount(lodashGet(reimbursementAccount, 'achData.bankAccountID', 0), onfidoData);
+        BankAccounts.verifyIdentityForBankAccount(lodashGet(reimbursementAccount, 'achData.bankAccountID', 0), {
+            ...onfidoData,
+            applicantID: onfidoApplicantID,
+        });
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     };
 
@@ -89,5 +96,8 @@ RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 export default withOnyx({
     onfidoToken: {
         key: ONYXKEYS.ONFIDO_TOKEN,
+    },
+    onfidoApplicantID: {
+        key: ONYXKEYS.ONFIDO_APPLICANT_ID,
     },
 })(RequestorOnfidoStep);

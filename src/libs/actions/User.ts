@@ -28,6 +28,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,6 +38,7 @@ import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
@@ -458,7 +460,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
     onyxUpdates.forEach((update) => {
-        if (!update.shouldNotify) {
+        if (!update.shouldNotify && !update.shouldShowPushNotification) {
             return;
         }
 
@@ -467,6 +469,101 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 
         reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && Report.showReportActionNotification(reportID, action));
     });
+}
+
+const isChannelMuted = (reportId: string) =>
+    new Promise((resolve) => {
+        const connectionId = Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            callback: (report) => {
+                Onyx.disconnect(connectionId);
+
+                resolve(
+                    !report?.notificationPreference ||
+                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ||
+                        report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                );
+            },
+        });
+    });
+
+function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
+    const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
+    // "reportActions_5134363522480668" -> "5134363522480668"
+    const reportIDs = reportActionsOnly.map((value) => value.key.split('_')[1]);
+
+    Promise.all(reportIDs.map((reportID) => isChannelMuted(reportID)))
+        .then((muted) => muted.every((isMuted) => isMuted))
+        .then((isSoundMuted) => {
+            if (isSoundMuted) {
+                return;
+            }
+
+            try {
+                const flatten = reportActionsOnly.flatMap((update) => {
+                    const value = update.value as OnyxCollection<ReportAction>;
+
+                    if (!value) {
+                        return [];
+                    }
+
+                    return Object.values(value);
+                }) as ReportAction[];
+
+                for (const data of flatten) {
+                    // Someone completes a task
+                    if (data.actionName === 'TASKCOMPLETED') {
+                        return playSound(SOUNDS.SUCCESS);
+                    }
+                }
+
+                const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
+
+                for (const message of types) {
+                    // someone sent money
+                    if ('IOUDetails' in message) {
+                        return playSound(SOUNDS.SUCCESS);
+                    }
+
+                    // mention user
+                    if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-user>')) {
+                        return playSound(SOUNDS.ATTENTION);
+                    }
+
+                    // mention @here
+                    if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
+                        return playSound(SOUNDS.ATTENTION);
+                    }
+
+                    // assign a task
+                    if ('taskReportID' in message) {
+                        return playSound(SOUNDS.ATTENTION);
+                    }
+
+                    // request money
+                    if ('IOUTransactionID' in message) {
+                        return playSound(SOUNDS.ATTENTION);
+                    }
+
+                    // Someone completes a money request
+                    if ('IOUReportID' in message) {
+                        return playSound(SOUNDS.SUCCESS);
+                    }
+
+                    // plain message
+                    if ('html' in message) {
+                        return playSound(SOUNDS.RECEIVE);
+                    }
+                }
+            } catch (e) {
+                let errorMessage = String(e);
+                if (e instanceof Error) {
+                    errorMessage = e.message;
+                }
+
+                Log.client(`Unexpected error occurred while parsing the data to play a sound: ${errorMessage}`);
+            }
+        });
 }
 
 /**
@@ -514,8 +611,10 @@ function subscribeToUserEvents() {
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) =>
-        SequentialQueue.getCurrentRequest().then(() => {
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) => {
+        playSoundForMessageType(pushJSON);
+
+        return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
             if (currentUserAccountID === -1) {
                 return;
@@ -528,8 +627,8 @@ function subscribeToUserEvents() {
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
             return onyxUpdatePromise;
-        }),
-    );
+        });
+    });
 }
 
 /**
@@ -611,6 +710,10 @@ function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
 
 function clearUserErrorMessage() {
     Onyx.merge(ONYXKEYS.USER, {error: ''});
+}
+
+function setMuteAllSounds(isMutedAllSounds: boolean) {
+    Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds});
 }
 
 /**
@@ -880,6 +983,7 @@ export {
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
+    setMuteAllSounds,
     clearUserErrorMessage,
     updateFrequentlyUsedEmojis,
     joinScreenShare,
