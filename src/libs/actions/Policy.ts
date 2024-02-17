@@ -244,6 +244,13 @@ function deleteWorkspace(policyID: string, policyName: string) {
         return;
     }
 
+    const policyAvatar = policy.avatar;
+    const policyErrors = policy.errors;
+
+    const optimisticReportsData: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Partial<Report>> = {};
+    const failureReportsData: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Partial<Report>> = {};
+    const optimisticReportActions: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, Record<string, ReportAction>> = {};
+    const failureReportActions: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, Record<string, null> = {};
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -254,8 +261,40 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 errors: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT,
+            value: optimisticReportsData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            value: optimisticReportActions,
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                avatar: policyAvatar,
+                pendingAction: null,
+                errors: policyErrors,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT,
+            value: failureReportsData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            value: failureReportActions,
+        },
     ];
 
+    // Clear (and restore) any reimbursementAccount errors
     if (hasActiveFreePolicy({[policyOnyxKey]: policy})) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -264,68 +303,56 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 errors: null,
             },
         });
-    }
-
-    const reportsToArchive = Object.values(allReports ?? {}).filter(
-        (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
-    );
-    reportsToArchive.forEach((report) => {
-        const {reportID, ownerAccountID} = report ?? {};
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                hasDraft: false,
-                oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
-            },
-        });
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
-            value: null,
-        });
-
-        // Add closed actions to all chat reports linked to this policy
-        // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
-        let emailClosingReport: string = CONST.POLICY.OWNER_EMAIL_FAKE;
-        if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
-            emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
-        }
-        const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
-        const optimisticReportActions: Record<string, ReportAction> = {};
-        optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction as ReportAction;
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: optimisticReportActions,
-        });
-    });
-
-    // Restore the old report stateNum and statusNum
-    const failureData: OnyxUpdate[] = [
-        {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
             value: {
                 errors: reimbursementAccount?.errors ?? null,
             },
-        },
-    ];
+        });
+    }
 
-    reportsToArchive.forEach((report) => {
-        const {reportID, stateNum, statusNum, hasDraft, oldPolicyName} = report ?? {};
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum,
-                statusNum,
-                hasDraft,
-                oldPolicyName,
-            },
+    // Archive (and restore) reports associated with the workspace
+    Object.values(allReports ?? {}).forEach((report) => {
+        // Skip any reports that are not related to this workspace, or which should remain open after it's closed
+        if (!report || (report.policyID !== policyID && !ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isTaskReport(report))) {
+            return;
+        }
+
+        // Close the report
+        const {reportID, ownerAccountID, stateNum, statusNum, hasDraft, oldPolicyName} = report ?? {};
+        optimisticReportsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            hasDraft: false,
+            oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+        };
+        failureReportsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+            stateNum,
+            statusNum,
+            hasDraft,
+            oldPolicyName,
+        };
+
+        // Add closed actions to the report
+        // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
+        let emailClosingReport: string = CONST.POLICY.OWNER_EMAIL_FAKE;
+        if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
+            emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
+        }
+        const optimisticClosedAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        optimisticReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {
+            [optimisticClosedAction.reportActionID]: optimisticClosedAction as ReportAction,
+        };
+        failureReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {
+            [optimisticClosedAction.reportActionID]: null,
+        };
+
+        // Remove any draft comments on the report, since they will no longer be sendable. These will not be restored if the command fails
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+            value: null,
         });
     });
 
