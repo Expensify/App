@@ -55,6 +55,20 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
         const hasAskedForLocationPermission = useRef(false);
 
+        // Determines if map can be panned to user's detected
+        // location without bothering the user. It will return
+        // false if user has already started dragging the map or
+        // if there are one or more waypoints present.
+        const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+
+        const setCurrentPositionToInitialState = useCallback(() => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (cachedUserLocation || !initialState) {
+                return;
+            }
+            setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+        }, [initialState, setCurrentPosition, cachedUserLocation]);
+
         useFocusEffect(
             useCallback(() => {
                 if (isOffline) {
@@ -65,6 +79,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
+                if (!shouldPanMapToCurrentPosition()) {
+                    setCurrentPositionToInitialState();
+                    return;
+                }
+
                 hasAskedForLocationPermission.current = true;
                 getCurrentPosition(
                     (params) => {
@@ -72,23 +91,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         setCurrentPosition(currentCoords);
                         setUserLocation(currentCoords);
                     },
-                    () => {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        if (cachedUserLocation || !initialState) {
-                            return;
-                        }
-
-                        setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
-                    },
+                    setCurrentPositionToInitialState,
                 );
-            }, [cachedUserLocation, initialState, isOffline]),
+            }, [cachedUserLocation, initialState, isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
-
-        // Determines if map can be panned to user's detected
-        // location without bothering the user. It will return
-        // false if user has already started dragging the map or
-        // if there are one or more waypoints present.
-        const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
 
         useEffect(() => {
             if (!currentPosition || !mapRef) {
