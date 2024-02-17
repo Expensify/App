@@ -262,7 +262,9 @@ function deleteWorkspace(policyID: string, policyName: string) {
             : []),
     ];
 
-    const reportsToArchive = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+    const reportsToArchive = Object.values(allReports ?? {}).filter(
+        (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
+    );
     reportsToArchive.forEach((report) => {
         const {reportID, ownerAccountID} = report ?? {};
         optimisticData.push({
