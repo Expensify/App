@@ -1,5 +1,5 @@
-import lodashGet from 'lodash/get';
 import React, {useMemo, useState} from 'react';
+import type {EdgeInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
@@ -8,9 +8,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './taxPickerPropTypes';
 
-function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
+type TaxPickerProps = {
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates?: OptionsListUtils.PolicyTaxRateWithDefault;
+
+    /** The selected tax rate of an expense */
+    selectedTaxRate?: string;
+
+    /** Safe area insets */
+    insets?: EdgeInsets;
+
+    /** Callback to fire when a tax is pressed */
+    onSubmit: () => void;
+};
+
+function TaxPicker({selectedTaxRate = '', policyTaxRates = {} as OptionsListUtils.PolicyTaxRateWithDefault, insets, onSubmit}: TaxPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -58,11 +71,11 @@ function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
         );
         return policyTaxRatesOptions;
     }, [policyTaxRates, searchValue, selectedOptions]);
-
-    const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (taxRate) => taxRate.searchText === selectedTaxRate)[0], 'keyForList');
+    const selectedOptionKey = sections?.[0]?.data?.filter((taxRate) => taxRate.searchText === selectedTaxRate)[0]?.keyForList;
 
     return (
         <OptionsSelector
+            // @ts-expect-error TODO: TS migration
             contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
             optionHoveredStyle={styles.hoveredComponentBG}
             sectionHeaderStyle={styles.mt5}
@@ -84,7 +97,5 @@ function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
 }
 
 TaxPicker.displayName = 'TaxPicker';
-TaxPicker.propTypes = propTypes;
-TaxPicker.defaultProps = defaultProps;
 
 export default TaxPicker;

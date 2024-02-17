@@ -27,7 +27,6 @@ function FocusModeNotification() {
                 <Text>
                     {translate('focusModeUpdateModal.prompt')}
                     <TextLinkWithRef
-                        href={href}
                         style={styles.link}
                         onPress={() => {
                             User.clearFocusModeNotification();
