@@ -46,8 +46,7 @@ const REQUIRED_FIELDS = [
 function DebitCardPage({formData}: DebitCardPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const setupComplete = formData?.setupComplete ?? false;
-    const prevFormDataSetupComplete = usePrevious(setupComplete);
+    const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
 
     /**
@@ -62,12 +61,12 @@ function DebitCardPage({formData}: DebitCardPageProps) {
     }, []);
 
     useEffect(() => {
-        if (prevFormDataSetupComplete || !setupComplete) {
+        if (prevFormDataSetupComplete || !!!formData?.setupComplete) {
             return;
         }
 
         PaymentMethods.continueSetup();
-    }, [prevFormDataSetupComplete, setupComplete]);
+    }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     /**
      * @param values - form input values passed by the Form component
@@ -114,7 +113,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
@@ -126,7 +125,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="nameOnCard"
+                    inputID={INPUT_IDS.NAME_ON_CARD}
                     label={translate('addDebitCardPage.nameOnCard')}
                     aria-label={translate('addDebitCardPage.nameOnCard')}
                     role={CONST.ROLE.PRESENTATION}
@@ -135,7 +134,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                 />
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="cardNumber"
+                    inputID={INPUT_IDS.CARD_NUMBER}
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
                     role={CONST.ROLE.PRESENTATION}
@@ -146,7 +145,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                     <View style={[styles.flex1, styles.mr2]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="expirationDate"
+                            inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate('addDebitCardPage.expiration')}
                             aria-label={translate('addDebitCardPage.expiration')}
                             role={CONST.ROLE.PRESENTATION}
@@ -158,7 +157,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                     <View style={[styles.flex1]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="securityCode"
+                            inputID={INPUT_IDS.SECURITY_CODE}
                             label={translate('addDebitCardPage.cvv')}
                             aria-label={translate('addDebitCardPage.cvv')}
                             role={CONST.ROLE.PRESENTATION}
@@ -170,7 +169,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                 <View>
                     <InputWrapper
                         InputComponent={AddressSearch}
-                        inputID="addressStreet"
+                        inputID={INPUT_IDS.ADDRESS_STREET}
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
@@ -180,7 +179,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                 </View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="addressZipCode"
+                    inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
                     role={CONST.ROLE.PRESENTATION}
@@ -192,13 +191,13 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                 <View style={[styles.mt4, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={StatePicker}
-                        inputID="addressState"
+                        inputID={INPUT_IDS.ADDRESS_STATE}
                     />
                 </View>
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
-                    inputID="acceptTerms"
+                    inputID={INPUT_IDS.ACCEPT_TERMS}
                     defaultValue={false}
                     LabelComponent={() => (
                         <Text>

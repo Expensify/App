@@ -37,13 +37,13 @@ function ReportVirtualCardFraudPage({
     route: {
         params: {domain = ''},
     },
-    cardList = {},
-    formData = {},
+    cardList,
+    formData,
 }: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const domainCards = cardList && CardUtils.getDomainCards(cardList)[domain];
+    const domainCards = CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = domainCards?.find((card) => card.isVirtual);
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {});
 

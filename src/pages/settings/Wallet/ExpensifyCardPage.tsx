@@ -102,6 +102,7 @@ function ExpensifyCardPage({
 
     const hasDetectedDomainFraud = domainCards?.some((card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = domainCards?.some((card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    const cardDetailsErrorObject = cardDetailsError ? {error: cardDetailsError} : {};
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -185,7 +186,7 @@ function ExpensifyCardPage({
                                                     }
                                                 />
                                                 <DotIndicatorMessage
-                                                    messages={cardDetailsError ? {error: cardDetailsError} : {}}
+                                                    messages={cardDetailsErrorObject}
                                                     type="error"
                                                     style={[styles.ph5]}
                                                 />

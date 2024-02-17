@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MagicCodeInput from '@components/MagicCodeInput';
+import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -59,14 +60,14 @@ function ActivatePhysicalCardPage({
     const cardID = physicalCard?.cardID ?? 0;
     const cardError = ErrorUtils.getLatestErrorMessage(physicalCard ?? {});
 
-    const activateCardCodeInputRef = useRef(null);
+    const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
 
     /**
      * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (physicalCard?.isLoading || (cardList && cardList[cardID]?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN)) {
+        if (physicalCard?.isLoading || cardList?.[cardID]?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
             return;
         }
 
@@ -102,7 +103,6 @@ function ActivatePhysicalCardPage({
     };
 
     const submitAndNavigateToNextPage = useCallback(() => {
-        // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
         activateCardCodeInputRef.current?.blur();
 
         if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
