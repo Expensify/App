@@ -4,7 +4,7 @@ import stylePropTypes from '@styles/stylePropTypes';
 
 const attachmentViewPdfPropTypes = {
     /** File object maybe be instance of File or Object */
-    file: AttachmentsPropTypes.attachmentFilePropType.isRequired,
+    file: AttachmentsPropTypes.AttachmentFile,
 
     encryptedSourceUrl: PropTypes.string.isRequired,
     onToggleKeyboard: PropTypes.func.isRequired,

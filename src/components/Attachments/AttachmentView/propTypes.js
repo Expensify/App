@@ -6,7 +6,7 @@ const attachmentViewPropTypes = {
     isAuthTokenRequired: PropTypes.bool,
 
     /** File object can be an instance of File or Object */
-    file: AttachmentsPropTypes.attachmentFilePropType,
+    file: AttachmentsPropTypes.AttachmentFile,
 
     /** Whether this view is the active screen  */
     isFocused: PropTypes.bool,
