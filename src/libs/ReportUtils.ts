@@ -721,10 +721,12 @@ function hasParticipantInArray(report: Report, policyMemberAccountIDs: number[])
 /**
  * Whether the Money Request report is settled
  */
-function isSettled(reportID: string | undefined): boolean {
-    if (!allReports) {
+function isSettled(reportOrID: Report | OnyxEntry<Report> | string | undefined): boolean {
+    if (!allReports || !reportOrID) {
         return false;
     }
+    const reportID = typeof reportOrID === 'string' ? reportOrID : reportOrID?.reportID;
+
     const report: Report | EmptyObject = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
     if (isEmptyObject(report) || report.isWaitingOnBankAccount) {
         return false;

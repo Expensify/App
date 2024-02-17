@@ -550,8 +550,21 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function hasViolation(transactionOrID: Transaction | OnyxEntry<Transaction> | string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    if (!transactionOrID) {
+        return false;
+    }
+    const transactionID = typeof transactionOrID === 'string' ? transactionOrID : transactionOrID.transactionID;
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+}
+
+function getTransactionViolations(transactionOrID: OnyxEntry<Transaction> | string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
+    if (!transactionOrID) {
+        return null;
+    }
+    const transactionID = typeof transactionOrID === 'string' ? transactionOrID : transactionOrID.transactionID;
+
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
 /**
@@ -592,6 +605,7 @@ export {
     getCategory,
     getBillable,
     getTag,
+    getTransactionViolations,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
