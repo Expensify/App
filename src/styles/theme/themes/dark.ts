@@ -9,7 +9,7 @@ const platform = getPlatform();
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    splashBG: (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.IOS) ? colors.productDark100 : colors.green400,
+    splashBG: platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.IOS ? colors.productDark100 : colors.green400,
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
