@@ -102,7 +102,7 @@ beforeAll(() =>
 
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
 });
@@ -113,7 +113,17 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-function SearchPageWrapper(args) {
+type SearchPageProps = {
+    betas?: string[],
+
+    reports?: Record<string, unknown>,
+
+    isSearchingForReports?: boolean,
+
+    navigation: Record<string, unknown>,
+};
+
+function SearchPageWrapper(args: SearchPageProps) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SearchPage
