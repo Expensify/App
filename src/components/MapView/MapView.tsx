@@ -70,7 +70,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     },
                     setCurrentPositionToInitialState,
                 );
-            }, [cachedUserLocation, initialState, isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
+            }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
 
         useEffect(() => {
