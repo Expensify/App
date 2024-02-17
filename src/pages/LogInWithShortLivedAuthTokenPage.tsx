@@ -31,16 +31,15 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {email = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
+    const {email = '', authToken = '' , shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const token = shortLivedAuthToken || shortLivedToken;
 
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
-        if (token && !account?.isLoading) {
-            Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            Session.signInWithShortLivedAuthToken(email, token);
+        if ((token || authToken) && !account?.isLoading) {
+            Session.signInWithShortLivedAuthToken(email, token, authToken);
             return;
         }
 

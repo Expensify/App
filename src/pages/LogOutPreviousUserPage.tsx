@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InitialUrlContext from '@libs/InitialUrlContext';
-import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as SessionActions from '@userActions/Session';
@@ -34,7 +33,9 @@ function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPag
         Linking.getInitialURL().then((url) => {
             const sessionEmail = session?.email;
             const transitionURL = NativeModules.HybridAppModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+
+            // TODO: Fix isLoggingInAsNewUser
+            const isLoggingInAsNewUser = false;
 
             if (isLoggingInAsNewUser) {
                 SessionActions.signOutAndRedirectToSignIn();

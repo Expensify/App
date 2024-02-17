@@ -466,6 +466,7 @@ type PublicScreensParamList = {
         error?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
+        authToken?: string;
         exitTo?: Routes | HybridAppRoute;
     };
     [SCREENS.VALIDATE_LOGIN]: {
