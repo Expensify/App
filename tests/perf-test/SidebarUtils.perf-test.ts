@@ -61,11 +61,11 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
-                reportActions,
                 personalDetails,
                 preferredLocale,
                 policy,
                 parentReportAction,
+                reportErrors: undefined,
                 hasViolations: false,
             }),
         );
