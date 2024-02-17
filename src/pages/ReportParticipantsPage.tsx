@@ -45,7 +45,8 @@ const getAllParticipants = (
     ReportUtils.getVisibleMemberIDs(report)
         .map((accountID, index) => {
             const userPersonalDetail = personalDetails?.[accountID];
-            const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail?.login ?? '') ?? translate('common.hidden');
+            const userLogin =
+                !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
             return {
@@ -76,7 +77,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
 
     const participants = getAllParticipants(report, personalDetails, translate).map((participant) => ({
         ...participant,
-        isDisabled: participant?.accountID ? ReportUtils.isOptimisticPersonalDetail(participant.accountID) : false,
+        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? 0) || CONST.RESTRICTED_ACCOUNT_IDS.includes(participant.accountID ?? 0),
     }));
 
     return (

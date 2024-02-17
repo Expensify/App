@@ -380,7 +380,7 @@ function getZoomSizingStyle(
 /**
  * Returns auto grow text input style
  */
-function getWidthStyle(width: number): ViewStyle {
+function getWidthStyle(width: number): ViewStyle & ImageStyle {
     return {
         width,
     };
