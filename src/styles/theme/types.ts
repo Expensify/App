@@ -89,6 +89,8 @@ type ThemeColors = {
     loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
+    videoPlayerBG: Color;
+    transparentWhite: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

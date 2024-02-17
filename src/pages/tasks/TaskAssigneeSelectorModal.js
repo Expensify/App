@@ -1,18 +1,19 @@
 /* eslint-disable es/no-optional-chaining */
+import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import lodashPick from 'lodash/pick';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
-import OptionsSelector from '@components/OptionsSelector';
+import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import SelectionList from '@components/SelectionList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,28 +26,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** reportID passed via route: /r/:reportID/title */
-            reportID: PropTypes.string,
-        }),
-    }),
-
-    // /** The report currently being looked at */
-    // report: reportPropTypes.isRequired,
-
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
 
     /** Grab the Share destination of the Task */
     task: PropTypes.shape({
@@ -57,36 +38,31 @@ const propTypes = {
         report: reportPropTypes,
     }),
 
-    ...withLocalizePropTypes,
+    /** The policy of root parent report */
+    rootParentReportPolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
-    betas: [],
     reports: {},
-    session: {},
-    route: {},
     task: {},
+    rootParentReportPolicy: {},
 };
 
-function TaskAssigneeSelectorModal(props) {
-    const styles = useThemeStyles();
-    const [searchValue, setSearchValue] = useState('');
-    const [headerMessage, setHeaderMessage] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
-    const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
-    const [isLoading, setIsLoading] = React.useState(true);
+function useOptions({reports}) {
     const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const betas = useBetas();
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const {inputCallbackRef} = useAutoFocusInput();
-
-    const updateOptions = useCallback(() => {
+    const options = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            props.reports,
+            reports,
             allPersonalDetails,
-            props.betas,
-            searchValue.trim(),
+            betas,
+            debouncedSearchValue.trim(),
             [],
             CONST.EXPENSIFY_EMAILS,
             false,
@@ -100,50 +76,56 @@ function TaskAssigneeSelectorModal(props) {
             true,
         );
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));
+        const headerMessage = OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), debouncedSearchValue);
 
-        setFilteredUserToInvite(userToInvite);
-        setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
-        setFilteredCurrentUserOption(currentUserOption);
         if (isLoading) {
             setIsLoading(false);
         }
-    }, [props, searchValue, allPersonalDetails, isLoading]);
 
-    useEffect(() => {
-        const debouncedSearch = _.debounce(updateOptions, 200);
-        debouncedSearch();
-        return () => {
-            debouncedSearch.cancel();
+        return {
+            userToInvite,
+            recentReports,
+            personalDetails,
+            currentUserOption,
+            headerMessage,
         };
-    }, [updateOptions]);
+    }, [debouncedSearchValue, allPersonalDetails, isLoading, betas, reports]);
+
+    return {...options, isLoading, searchValue, debouncedSearchValue, setSearchValue};
+}
+
+function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
+    const styles = useThemeStyles();
+    const route = useRoute();
+    const {translate} = useLocalize();
+    const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions({reports, task});
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
     };
 
     const report = useMemo(() => {
-        if (!props.route.params || !props.route.params.reportID) {
+        if (!route.params || !route.params.reportID) {
             return null;
         }
-        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`];
-    }, [props.reports, props.route.params]);
-
-    if (report && !ReportUtils.isTaskReport(report)) {
-        Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(report.reportID);
-        });
-    }
+        if (report && !ReportUtils.isTaskReport(report)) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.dismissModal(report.reportID);
+            });
+        }
+        return reports[`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`];
+    }, [reports, route]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
         let indexOffset = 0;
 
-        if (filteredCurrentUserOption) {
+        if (currentUserOption) {
             sectionsList.push({
-                title: props.translate('newTaskPage.assignMe'),
-                data: [filteredCurrentUserOption],
+                title: translate('newTaskPage.assignMe'),
+                data: [currentUserOption],
                 shouldShow: true,
                 indexOffset,
             });
@@ -151,31 +133,31 @@ function TaskAssigneeSelectorModal(props) {
         }
 
         sectionsList.push({
-            title: props.translate('common.recents'),
-            data: filteredRecentReports,
-            shouldShow: filteredRecentReports?.length > 0,
+            title: translate('common.recents'),
+            data: recentReports,
+            shouldShow: recentReports?.length > 0,
             indexOffset,
         });
-        indexOffset += filteredRecentReports?.length;
+        indexOffset += recentReports?.length;
 
         sectionsList.push({
-            title: props.translate('common.contacts'),
-            data: filteredPersonalDetails,
-            shouldShow: filteredPersonalDetails?.length > 0,
+            title: translate('common.contacts'),
+            data: personalDetails,
+            shouldShow: personalDetails?.length > 0,
             indexOffset,
         });
-        indexOffset += filteredPersonalDetails?.length;
+        indexOffset += personalDetails?.length;
 
-        if (filteredUserToInvite) {
+        if (userToInvite) {
             sectionsList.push({
-                data: [filteredUserToInvite],
+                data: [userToInvite],
                 shouldShow: true,
                 indexOffset,
             });
         }
 
         return sectionsList;
-    }, [filteredCurrentUserOption, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, props]);
+    }, [currentUserOption, personalDetails, recentReports, userToInvite, translate]);
 
     const selectReport = useCallback(
         (option) => {
@@ -189,20 +171,22 @@ function TaskAssigneeSelectorModal(props) {
                     const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, report.reportID, OptionsListUtils.isCurrentUser(option));
 
                     // Pass through the selected assignee
-                    Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+                    Task.editTaskAssignee(report, session.accountID, option.login, option.accountID, assigneeChatReport);
                 }
-                Navigation.dismissModalWithReport(report);
+                Navigation.dismissModal(report.reportID);
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
-                Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+                Task.setAssigneeValue(option.login, option.accountID, task.shareDestination, OptionsListUtils.isCurrentUser(option));
                 Navigation.goBack(ROUTES.NEW_TASK);
             }
         },
-        [props.session.accountID, props.task.shareDestination, report],
+        [session.accountID, task.shareDestination, report],
     );
 
+    const handleBackButtonPress = useCallback(() => (lodashGet(route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
+
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
+    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID, lodashGet(rootParentReportPolicy, 'role', ''));
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
@@ -213,21 +197,19 @@ function TaskAssigneeSelectorModal(props) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
-                        title={props.translate('task.assignee')}
-                        onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
+                        title={translate('task.assignee')}
+                        onBackButtonPress={handleBackButtonPress}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <OptionsSelector
-                            sections={sections}
+                        <SelectionList
+                            sections={didScreenTransitionEnd && !isLoading ? sections : CONST.EMPTY_ARRAY}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
+                            textInputValue={searchValue}
                             headerMessage={headerMessage}
-                            showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd && !isLoading}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            autoFocus={false}
-                            ref={inputCallbackRef}
+                            showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
                         />
                     </View>
                 </FullPageNotFoundView>
@@ -241,20 +223,22 @@ TaskAssigneeSelectorModal.propTypes = propTypes;
 TaskAssigneeSelectorModal.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },
-        session: {
-            key: ONYXKEYS.SESSION,
+    }),
+    withOnyx({
+        rootParentReportPolicy: {
+            key: ({reports, route}) => {
+                const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID || '0'}`];
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => lodashPick(policy, ['role']),
         },
     }),
 )(TaskAssigneeSelectorModal);

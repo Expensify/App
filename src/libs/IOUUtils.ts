@@ -54,13 +54,13 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  *
  * @param isDeleting - whether the user is deleting the request
  */
-function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: number, amount: number, currency: string, isDeleting = false): OnyxEntry<Report> {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(iouReport: TReport, actorAccountID: number, amount: number, currency: string, isDeleting = false): TReport {
     if (currency !== iouReport?.currency) {
         return iouReport;
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate: Report = {...iouReport};
+    const iouReportUpdate = {...iouReport};
 
     // Let us ensure a valid value before updating the total amount.
     iouReportUpdate.total = iouReportUpdate.total ?? 0;
@@ -99,4 +99,19 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep};
+/**
+ * Inserts a newly selected tag into the already existed report tags like a string
+ *
+ * @param reportTags - currently selected tags for a report
+ * @param tag - a newly selected tag, that should be added to the reportTags
+ * @param tagIndex - the index of a tag list
+ * @returns
+ */
+function insertTagIntoReportTagsString(reportTags: string, tag: string, tagIndex: number): string {
+    const splittedReportTags = reportTags.split(CONST.COLON);
+    splittedReportTags[tagIndex] = tag;
+
+    return splittedReportTags.join(CONST.COLON).replace(/:*$/, '');
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoReportTagsString};
