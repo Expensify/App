@@ -430,7 +430,6 @@ function IOURequestStepConfirmation({
                             iouIsBillable={transaction.billable}
                             onToggleBillable={setBillable}
                             iouCategory={transaction.category}
-                            iouTag={transaction.tag}
                             onConfirm={createTransaction}
                             onSendMoney={sendMoney}
                             onSelectParticipant={addNewParticipant}
