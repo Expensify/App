@@ -275,7 +275,7 @@ function AttachmentPickerWithMenuItems({
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
-                            <Tooltip text={translate('reportActionCompose.addAction')}>
+                            <Tooltip text={translate('common.create')}>
                                 <PressableWithFeedback
                                     ref={actionButtonRef}
                                     onPress={(e) => {
@@ -292,7 +292,7 @@ function AttachmentPickerWithMenuItems({
                                     style={styles.composerSizeButton}
                                     disabled={isBlockedFromConcierge || disabled}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('reportActionCompose.addAction')}
+                                    accessibilityLabel={translate('common.create')}
                                 >
                                     <Icon
                                         fill={theme.icon}
