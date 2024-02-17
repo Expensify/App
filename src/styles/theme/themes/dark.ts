@@ -4,10 +4,12 @@ import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
+const platform = getPlatform();
+
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    splashBG: getPlatform() in [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP] ? colors.productDark100 : colors.green400,
+    splashBG: (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.IOS) ? colors.productDark100 : colors.green400,
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
