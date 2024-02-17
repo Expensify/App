@@ -74,8 +74,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
-            const {emojiCode, statusText} = values;
+        ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
             const clearAfterTime = draftClearAfter ?? currentUserClearAfter ?? CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
             if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
