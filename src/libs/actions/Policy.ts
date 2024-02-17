@@ -250,7 +250,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
     const optimisticReportsData: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Partial<Report>> = {};
     const failureReportsData: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Partial<Report>> = {};
     const optimisticReportActions: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, Record<string, ReportAction>> = {};
-    const failureReportActions: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, Record<string, null> = {};
+    const failureReportActions: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, Record<string, null>> = {};
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
