@@ -2,6 +2,7 @@ import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const categoryOutOfPolicyViolation = {
     name: 'categoryOutOfPolicy',
@@ -24,15 +25,15 @@ const missingTagViolation = {
 };
 
 describe('getViolationsOnyxData', () => {
-    let transaction;
-    let transactionViolations;
-    let policyRequiresTags;
-    let policyTags;
-    let policyRequiresCategories;
-    let policyCategories;
+    let transaction: Transaction;
+    let transactionViolations: TransactionViolation[];
+    let policyRequiresTags: boolean;
+    let policyTags: PolicyTagList;
+    let policyRequiresCategories: boolean;
+    let policyCategories: PolicyCategories;
 
     beforeEach(() => {
-        transaction = {transactionID: '123'};
+        transaction = {transactionID: '123', reportID: '1234', amount: 100, comment: {}, created: '2023-07-24 13:46:20', merchant: 'United Airlines', currency: 'USD'};
         transactionViolations = [];
         policyRequiresTags = false;
         policyTags = {};
@@ -62,12 +63,13 @@ describe('getViolationsOnyxData', () => {
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
-            policyCategories = {Food: {enabled: true}};
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            policyCategories = {Food: {name:'Food', enabled: true, areCommentsRequired: false, 'GL Code': '1234', externalID: '1234', origin: '12345'}};
             transaction.category = 'Food';
         });
 
         it('should add missingCategory violation if no category is included', () => {
-            transaction.category = null;
+            transaction.category = undefined;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
@@ -129,8 +131,10 @@ describe('getViolationsOnyxData', () => {
                     name: 'Meals',
                     required: true,
                     tags: {
-                        Lunch: {name: 'Lunch', enabled: true},
-                        Dinner: {name: 'Dinner', enabled: true},
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        Lunch: {name: 'Lunch', enabled: true, 'GL Code': ''},
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        Dinner: {name: 'Dinner', enabled: true, 'GL Code': ''},
                     },
                 },
             };
