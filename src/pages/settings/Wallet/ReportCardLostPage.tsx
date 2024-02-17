@@ -25,7 +25,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card, Form, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Form} from '@src/types/form';
+import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const OPTIONS_KEYS = {
@@ -171,7 +172,7 @@ function ReportCardLostPage({
                                 title={formattedAddress}
                                 description={translate('reportCardLostOrDamaged.address')}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
                                 numberOfLinesTitle={2}
                             />
                             {isDamaged ? (
@@ -183,7 +184,7 @@ function ReportCardLostPage({
                         <FormAlertWithSubmitButton
                             isAlertVisible={shouldShowAddressError}
                             onSubmit={handleSubmitSecondStep}
-                            message={translate('reportCardLostOrDamaged.addressError')}
+                            message="reportCardLostOrDamaged.addressError"
                             isLoading={formData?.isLoading}
                             buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
                         />
@@ -201,7 +202,7 @@ function ReportCardLostPage({
                         <FormAlertWithSubmitButton
                             isAlertVisible={shouldShowReasonError}
                             onSubmit={handleSubmitFirstStep}
-                            message={translate('reportCardLostOrDamaged.reasonError')}
+                            message="reportCardLostOrDamaged.reasonError"
                             buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
                         />
                     </>

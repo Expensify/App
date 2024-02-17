@@ -26,7 +26,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm, LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import type {LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
 import type {TCardDetails} from '@src/types/onyx/Card';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import RedDotCardSection from './RedDotCardSection';
@@ -40,7 +41,7 @@ type ExpensifyCardPageOnyxProps = {
     cardList: OnyxEntry<Record<string, OnyxCard>>;
 
     /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 
     /** Login info */
     loginList: OnyxEntry<LoginList>;
@@ -126,7 +127,7 @@ function ExpensifyCardPage({
                             <DotIndicatorMessage
                                 style={styles.pageWrapper}
                                 textStyles={styles.walletLockedMessage}
-                                messages={{error: translate('cardPage.cardLocked')}}
+                                messages={{error: 'cardPage.cardLocked'}}
                                 type="error"
                             />
                         )}

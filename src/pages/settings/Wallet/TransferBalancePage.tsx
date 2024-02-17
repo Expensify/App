@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import variables from '@styles/variables';
@@ -141,7 +142,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
     const transferAmount = userWallet?.currentBalance ?? 0 - calculatedFee;
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
-    const errorMessage = Object.values(walletTransfer?.errors ?? {})[0] ?? '';
+    const errorMessage = ErrorUtils.getLatestErrorMessage(walletTransfer);
 
     const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
 
@@ -192,6 +193,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                             title={selectedAccount?.title}
                             description={selectedAccount?.description}
                             shouldShowRightIcon
+                            iconStyles={selectedAccount?.iconStyles}
                             iconWidth={selectedAccount?.iconSize}
                             iconHeight={selectedAccount?.iconSize}
                             icon={selectedAccount?.icon}
