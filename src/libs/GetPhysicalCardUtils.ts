@@ -1,7 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {GetPhysicalCardForm, LoginList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
