@@ -16,7 +16,6 @@ import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -49,37 +48,6 @@ Onyx.connect({
     },
 });
 
-// Session can remain stale because the only way for the current user to change is to
-// sign out and sign in, which would clear out all the Onyx
-// data anyway and cause SidebarLinks to rerender.
-let currentUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        if (!session) {
-            return;
-        }
-
-        currentUserAccountID = session.accountID;
-    },
-});
-
-let resolveSidebarIsReadyPromise: (args?: unknown[]) => void;
-
-let sidebarIsReadyPromise = new Promise((resolve) => {
-    resolveSidebarIsReadyPromise = resolve;
-});
-
-function resetIsSidebarLoadedReadyPromise() {
-    sidebarIsReadyPromise = new Promise((resolve) => {
-        resolveSidebarIsReadyPromise = resolve;
-    });
-}
-
-function isSidebarLoadedReady(): Promise<unknown> {
-    return sidebarIsReadyPromise;
-}
-
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -88,10 +56,6 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
         return 1;
     }
     return 0;
-}
-
-function setIsSidebarLoadedReady() {
-    resolveSidebarIsReadyPromise();
 }
 
 // Define a cache object to store the memoized results
@@ -130,7 +94,7 @@ function getOrderedReportIDs(
 
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount, currentPolicyID, policyMemberAccountIDs],
         // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
         (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
     );
@@ -189,7 +153,7 @@ function getOrderedReportIDs(
     const archivedReports: Report[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, currentPolicyID, policyMemberAccountIDs));
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
@@ -198,9 +162,6 @@ function getOrderedReportIDs(
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
         report.displayName = ReportUtils.getReportName(report);
-
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
@@ -239,13 +200,6 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
-type ActorDetails = {
-    displayName?: string;
-    firstName?: string;
-    lastName?: string;
-    accountID?: number;
-};
-
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
@@ -276,7 +230,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: undefined,
+        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -292,7 +246,6 @@ function getOptionData({
         isPinned: false,
         hasOutstandingChildRequest: false,
         isIOUReportOwner: null,
-        iouReportAmount: 0,
         isChatRoom: false,
         isArchivedRoom: false,
         shouldShowSubscript: false,
@@ -325,7 +278,6 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
-    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
@@ -357,12 +309,12 @@ function getOptionData({
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
-    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report);
 
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails: ActorDetails | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+    let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
@@ -373,31 +325,12 @@ function getOptionData({
             : null;
     }
 
-    const shouldShowDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID;
-    const lastActorName = lastActorDetails?.firstName ?? lastActorDetails?.displayName;
-    const lastActorDisplayName = shouldShowDisplayName ? lastActorName : '';
+    const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
 
     let lastMessageText = lastMessageTextFromReport;
 
     const reportAction = lastReportActions?.[report.reportID];
-    if (result.isArchivedRoom) {
-        const archiveReason = (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && reportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-
-        switch (archiveReason) {
-            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
-            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
-            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
-                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    policyName: ReportUtils.getPolicyName(report, false, policy),
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-                });
-                break;
-            }
-            default: {
-                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
-            }
-        }
-    }
 
     const isThreadMessage =
         ReportUtils.isThread(report) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -422,7 +355,7 @@ function getOptionData({
                     ? Localize.translate(preferredLocale, 'workspace.invite.invited')
                     : Localize.translate(preferredLocale, 'workspace.invite.removed');
             const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
+            result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDs.length} ${users}`.trim();
 
             const roomName = lastAction?.originalMessage?.roomName ?? '';
             if (roomName) {
@@ -466,7 +399,6 @@ function getOptionData({
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
-    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result as Report);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail?.accountID;
@@ -495,7 +427,4 @@ function getOptionData({
 export default {
     getOptionData,
     getOrderedReportIDs,
-    setIsSidebarLoadedReady,
-    isSidebarLoadedReady,
-    resetIsSidebarLoadedReadyPromise,
 };

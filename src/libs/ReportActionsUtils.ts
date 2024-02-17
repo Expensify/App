@@ -1,12 +1,12 @@
+import fastMerge from 'expensify-common/lib/fastMerge';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/lib/utils';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionName, ChangeLog, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
+import type {ActionName, ChangeLog, OriginalMessageActionableMentionWhisper, OriginalMessageIOU, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -38,6 +38,8 @@ type MemberChangeMessageRoomReferenceElement = {
 } & MessageElementBase;
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+
+const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -71,6 +73,19 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        // When signed out, value is undefined
+        if (!value) {
+            return;
+        }
+
+        currentUserAccountID = value.accountID;
+    },
+});
+
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
@@ -99,7 +114,7 @@ function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): b
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
-function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction & OriginalMessageIOU {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
@@ -113,6 +128,16 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
 
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+}
+
+/**
+ * Checks whether the report action is a whisper targeting someone other than the current user.
+ */
+function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (!isWhisperAction(reportAction)) {
+        return false;
+    }
+    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID ?? 0);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -386,7 +411,17 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isPendingRemove(reportAction)) {
+    // Ignore markedAsReimbursed action here since we're already display message that explains the request was paid
+    // elsewhere in the IOU reportAction
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
+        return false;
+    }
+
+    if (isWhisperActionTargetedToOthers(reportAction)) {
+        return false;
+    }
+
+    if (isPendingRemove(reportAction) && !reportAction.childVisibleActionCount) {
         return false;
     }
 
@@ -429,36 +464,28 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
 }
 
 /**
- * For invite to room and remove from room policy change logs, report URLs are generated in the server,
+ * For policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
  */
-function replaceBaseURL(reportAction: ReportAction): ReportAction {
-    if (!reportAction) {
+function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): ReportAction {
+    if (!reportAction?.message || !policyChangeActionsSet.has(reportAction?.actionName)) {
         return reportAction;
     }
 
-    if (
-        !reportAction ||
-        (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM)
-    ) {
-        return reportAction;
-    }
-    if (!reportAction.message) {
-        return reportAction;
-    }
     const updatedReportAction = _.clone(reportAction);
+
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
+
     updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
+
     return updatedReportAction;
 }
 
-/**
- */
-function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): OnyxEntry<ReportAction> {
+    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge ?? {}, true));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return null;
@@ -466,7 +493,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = 
     return sortedReportActions[0];
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}): LastVisibleMessage {
+function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): LastVisibleMessage {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 
@@ -512,7 +539,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null, s
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
-    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
+    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true, shouldMarkTheFirstItemAsNewest);
 }
 
@@ -672,7 +699,7 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
 function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportActions = {}): boolean {
-    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
+    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
     // Exclude the task system message and the created message
@@ -824,6 +851,62 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
+/**
+ * Checks if a given report action corresponds to an actionable mention whisper.
+ * @param reportAction
+ */
+function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+}
+
+/**
+ * Constructs a message for an actionable mention whisper report action.
+ * @param reportAction
+ * @returns the actionable mention whisper message.
+ */
+function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction>): string {
+    const originalMessage = reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'];
+    const targetAccountIDs: number[] = originalMessage?.inviteeAccountIDs ?? [];
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const mentionElements = targetAccountIDs.map((accountID): string => {
+        const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
+        const displayName = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
+        const handleText = _.isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
+        return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
+    });
+    const preMentionsText = 'Heads up, ';
+    const mentions = mentionElements.join(', ').replace(/, ([^,]*)$/, ' and $1');
+    const postMentionsText = ` ${mentionElements.length > 1 ? "aren't members" : "isn't a member"} of this room.`;
+
+    return `${preMentionsText}${mentions}${postMentionsText}`;
+}
+
+/**
+ * @private
+ */
+function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime: string) {
+    if (!lastReadTime) {
+        return !isCreatedAction(reportAction);
+    }
+
+    return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+}
+
+/**
+ * Check whether the current report action of the report is unread or not
+ *
+ */
+function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction): boolean {
+    const lastReadTime = report.lastReadTime ?? '';
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report.reportID)));
+    const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
+    if (currentActionIndex === -1) {
+        return false;
+    }
+    const prevReportAction = sortedReportActions[currentActionIndex - 1];
+    return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -863,6 +946,7 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isWhisperActionTargetedToOthers,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldHideNewMarker,
@@ -874,6 +958,9 @@ export {
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
+    isActionableMentionWhisper,
+    getActionableMentionWhisperMessage,
+    isCurrentActionUnread,
 };
 
 export type {LastVisibleMessage};
