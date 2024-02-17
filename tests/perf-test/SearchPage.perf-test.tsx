@@ -1,14 +1,17 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
+import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
+import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
-import _ from 'underscore';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import SearchPage from '@pages/SearchPage';
-import ComposeProviders from '../../src/components/ComposeProviders';
-import OnyxProvider from '../../src/components/OnyxProvider';
-import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import ComposeProviders from '@src/components/ComposeProviders';
+import OnyxProvider from '@src/components/OnyxProvider';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails, Report} from '@src/types/onyx'
+import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
@@ -50,11 +53,13 @@ jest.mock('@react-navigation/native', () => {
             addListener: () => jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
-    };
+    } as typeof NativeNavigation;
 });
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
+
+
+jest.mock('../../src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
+    function WithNavigationFocus(props: WithNavigationFocusProps) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -70,21 +75,21 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
 });
 
 const getMockedReports = (length = 100) =>
-    createCollection(
+    createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
         (index) => createRandomReport(index),
         length,
     );
 
 const getMockedPersonalDetails = (length = 100) =>
-    createCollection(
+    createCollection<PersonalDetails>(
         (item) => item.accountID,
         (index) => createPersonalDetails(index),
         length,
     );
 
 const mockedReports = getMockedReports(600);
-const mockedBetas = _.values(CONST.BETAS);
+const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
 
 beforeAll(() =>
