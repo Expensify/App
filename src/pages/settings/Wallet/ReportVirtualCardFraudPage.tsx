@@ -19,12 +19,13 @@ import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Form, Card as OnyxCard} from '@src/types/onyx';
+import type {ReportVirtualCardFraudForm} from '@src/types/form';
+import type {Card as OnyxCard} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportVirtualCardFraudPageOnyxProps = {
     /** Form data propTypes */
-    formData: OnyxEntry<Form>;
+    formData: OnyxEntry<ReportVirtualCardFraudForm>;
 
     /** Card list propTypes */
     cardList: OnyxEntry<Record<string, OnyxCard>>;

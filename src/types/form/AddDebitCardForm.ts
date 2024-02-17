@@ -14,15 +14,15 @@ const INPUT_IDS = {
 
 type AddDebitCardForm = Form<{
     /** Whether the form has been submitted */
-    [INPUT_IDS.SETUP_COMPLETE]?: boolean;
+    [INPUT_IDS.SETUP_COMPLETE]: boolean;
 
-    [INPUT_IDS.NAME_ON_CARD]: string;
-    [INPUT_IDS.CARD_NUMBER]: string;
-    [INPUT_IDS.EXPIRATION_DATE]: string;
-    [INPUT_IDS.SECURITY_CODE]: string;
-    [INPUT_IDS.ADDRESS_STREET]: string;
-    [INPUT_IDS.ADDRESS_ZIP_CODE]: string;
-    [INPUT_IDS.ADDRESS_STATE]: string;
+    [INPUT_IDS.NAME_ON_CARD]?: string;
+    [INPUT_IDS.CARD_NUMBER]?: string;
+    [INPUT_IDS.EXPIRATION_DATE]?: string;
+    [INPUT_IDS.SECURITY_CODE]?: string;
+    [INPUT_IDS.ADDRESS_STREET]?: string;
+    [INPUT_IDS.ADDRESS_ZIP_CODE]?: string;
+    [INPUT_IDS.ADDRESS_STATE]?: string;
     [INPUT_IDS.ACCEPT_TERMS]?: string;
 }>;
 

@@ -130,7 +130,6 @@ function ActivatePhysicalCardPage({
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
                 <MagicCodeInput
-                    // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
                     isDisableKeyboard
                     autoComplete="off"
                     maxLength={LAST_FOUR_DIGITS_LENGTH}

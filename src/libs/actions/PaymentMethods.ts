@@ -152,16 +152,16 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
  *
  */
 function addPaymentCard(params: AddDebitCardForm) {
-    const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
-    const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
+    const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate ?? '');
+    const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate ?? '');
 
     const parameters: AddPaymentCardParams = {
-        cardNumber: params.cardNumber,
+        cardNumber: params.cardNumber ?? '',
         cardYear,
         cardMonth,
-        cardCVV: params.securityCode,
-        addressName: params.nameOnCard,
-        addressZip: params.addressZipCode,
+        cardCVV: params.securityCode ?? '',
+        addressName: params.nameOnCard ?? '',
+        addressZip: params.addressZipCode ?? '',
         currency: CONST.CURRENCY.USD,
         isP2PDebitCard: true,
     };
