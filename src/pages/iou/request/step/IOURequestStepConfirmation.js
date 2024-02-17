@@ -449,7 +449,7 @@ function IOURequestStepConfirmation({
                             iouMerchant={transaction.merchant}
                             iouCreated={transaction.created}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                            shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                            shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN && isPolicyExpenseChat}
                         />
                     )}
                 </View>
