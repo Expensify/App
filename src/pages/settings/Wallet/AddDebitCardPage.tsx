@@ -22,7 +22,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {AddDebitCardForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 
@@ -61,7 +60,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
     }, []);
 
     useEffect(() => {
-        if (prevFormDataSetupComplete || !!!formData?.setupComplete) {
+        if (prevFormDataSetupComplete || !formData?.setupComplete) {
             return;
         }
 
