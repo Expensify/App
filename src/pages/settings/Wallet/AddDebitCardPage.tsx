@@ -1,5 +1,4 @@
 import React, {useEffect, useRef} from 'react';
-import type {TextInput as RNTextInput} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';

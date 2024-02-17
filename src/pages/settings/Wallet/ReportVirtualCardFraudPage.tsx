@@ -45,7 +45,7 @@ function ReportVirtualCardFraudPage({
 
     const domainCards = cardList && CardUtils.getDomainCards(cardList)[domain];
     const virtualCard = domainCards?.find((card) => card.isVirtual);
-    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {}) || '';
+    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {});
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
