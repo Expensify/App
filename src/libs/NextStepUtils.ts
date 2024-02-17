@@ -311,6 +311,17 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             optimisticNextStep.message?.push({text: '.'});
 
             break;
+        case CONST.REPORT.STATUS_NUM.CANCELED:
+            optimisticNextStep = {
+                type,
+                title: 'Finished!',
+                message: [
+                    {
+                        text: 'No further action required!',
+                    },
+                ],
+            };
+            break;
 
         // Resets a nextStep
         default:

@@ -700,6 +700,7 @@ const CONST = {
             CLOSED: 2,
             APPROVED: 3,
             REIMBURSED: 4,
+            CANCELED: 5,
         },
         NOTIFICATION_PREFERENCE: {
             MUTE: 'mute',
