@@ -1,7 +1,5 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import {View, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -9,34 +7,27 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
-import stylePropTypes from '@styles/stylePropTypes';
 
-const propTypes = {
+type ShowMoreButtonProps = {
     /** Additional styles for container */
-    containerStyle: stylePropTypes,
+    containerStyle?: ViewStyle;
 
     /** The number of currently shown items */
-    currentCount: PropTypes.number,
+    currentCount?: number;
 
     /** The total number of items that could be shown */
-    totalCount: PropTypes.number,
+    totalCount?: number;
 
     /** A handler that fires when button has been pressed */
-    onPress: PropTypes.func.isRequired,
+    onPress: () => void;
 };
 
-const defaultProps = {
-    containerStyle: {},
-    currentCount: undefined,
-    totalCount: undefined,
-};
-
-function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}) {
+function ShowMoreButton({containerStyle = {}, currentCount, totalCount, onPress}: ShowMoreButtonProps) {
     const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const shouldShowCounter = _.isNumber(currentCount) && _.isNumber(totalCount);
+    const shouldShowCounter = typeof currentCount === 'number' && typeof totalCount === 'number';
 
     return (
         <View style={[styles.alignItemsCenter, containerStyle]}>
@@ -67,7 +58,5 @@ function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}) {
 }
 
 ShowMoreButton.displayName = 'ShowMoreButton';
-ShowMoreButton.propTypes = propTypes;
-ShowMoreButton.defaultProps = defaultProps;
 
 export default ShowMoreButton;
