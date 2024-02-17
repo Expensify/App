@@ -75,6 +75,13 @@ function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TV
 // Variable to verify if ONYX actions are loaded
 let hasInitialReportActions = false;
 
+function filterDisplayName(displayName: string) : string {
+    if (CONST.REGEX.INVALID_DISPLAY_NAME_ONLY_LHN.test(displayName)) {
+        return displayName;
+    }
+    return displayName.replace(CONST.REGEX.INVALID_DISPLAY_NAME_LHN, '');
+}
+
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -163,7 +170,7 @@ function getOrderedReportIDs(
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        report.displayName = ReportUtils.getReportName(report);
+        report.displayName = filterDisplayName(ReportUtils.getReportName(report));
 
         const hasRBR = report.reportID in reportsWithErrorsIds;
 
