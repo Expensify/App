@@ -2126,6 +2126,7 @@ export default {
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
+        deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
         reversedTransaction: '[Reversed transaction]',

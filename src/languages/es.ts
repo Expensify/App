@@ -2614,6 +2614,7 @@ export default {
         viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
+        deletedReport: '[Informe eliminado]',
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Solicitud eliminada]',
         reversedTransaction: '[Transacción anulada]',

@@ -379,20 +379,24 @@ function ReportActionItem(props) {
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-            children = (
-                <ReportPreview
-                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
-                    chatReportID={props.report.reportID}
-                    policyID={props.report.policyID}
-                    containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
-                    action={props.action}
-                    isHovered={hovered}
-                    contextMenuAnchor={popoverAnchorRef}
-                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    isWhisper={isWhisper}
-                    transactionViolations={props.transactionViolations}
-                />
-            );
+            if (ReportUtils.isClosedExpenseReportWithNoExpenses(ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action) ?? ''))) {
+                children = (
+                    <ReportPreview
+                        iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
+                        chatReportID={props.report.reportID}
+                        policyID={props.report.policyID}
+                        containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
+                        action={props.action}
+                        isHovered={hovered}
+                        contextMenuAnchor={popoverAnchorRef}
+                        checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                        isWhisper={isWhisper}
+                        transactionViolations={props.transactionViolations}
+                    />
+                );
+            } else {
+                children = <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />;
+            }
         } else if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
