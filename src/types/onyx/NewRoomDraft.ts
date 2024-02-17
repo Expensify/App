@@ -18,9 +18,9 @@ type WriteCapabilities = {
 };
 
 type NewRoomDraft = {
-    workspace?: Workspace;
-    writeCapability?: WriteCapabilities;
-    visibility?: Visibility;
+    workspace: Workspace;
+    writeCapability: WriteCapabilities;
+    visibility: Visibility;
 };
 
 export default NewRoomDraft;

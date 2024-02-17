@@ -472,6 +472,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_TAX_RATE]: string[];
+    [ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT]: OnyxTypes.NewRoomDraft;
 };
 
 type OnyxValuesMapping = {

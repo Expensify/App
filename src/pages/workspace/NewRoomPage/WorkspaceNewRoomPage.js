@@ -34,7 +34,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import newRoomDraftPropTypes from './newRoomDraftPropTypes';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -83,9 +82,6 @@ const propTypes = {
 
     /** policyID for main workspace */
     activePolicyID: PropTypes.string,
-
-    /** New room draft data */
-    newRoomDraft: newRoomDraftPropTypes,
 };
 const defaultProps = {
     reports: {},
@@ -98,7 +94,6 @@ const defaultProps = {
         accountID: 0,
     },
     activePolicyID: null,
-    // newRoomDraft: {},
 };
 
 function WorkspaceNewRoomPage(props) {
