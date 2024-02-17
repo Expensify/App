@@ -1981,6 +1981,12 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
         return false;
     }
 
+    // If this is a whisper targeted to someone else, don't show it
+    if (action && ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
+        Log.info(`${tag} No notification because the action is whispered to someone else`, false);
+        return false;
+    }
+
     // Only show notifications for supported types of report actions
     if (!ReportActionsUtils.isNotifiableReportAction(action)) {
         Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action?.actionName});
@@ -2376,7 +2382,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
-/** Removes people from a room */
+/** Removes people from a room
+ *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
+ */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
 
@@ -2575,7 +2583,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 };
 
 /** Fetches all the private notes for a given report */
-function getReportPrivateNote(reportID: string) {
+function getReportPrivateNote(reportID: string | undefined) {
     if (Session.isAnonymousUser()) {
         return;
     }

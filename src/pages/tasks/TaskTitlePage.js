@@ -20,6 +20,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -98,8 +99,8 @@ function TaskTitlePage(props) {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 role={CONST.ROLE.PRESENTATION}
-                                inputID="title"
-                                name="title"
+                                inputID={INPUT_IDS.TITLE}
+                                name={INPUT_IDS.TITLE}
                                 label={props.translate('task.title')}
                                 accessibilityLabel={props.translate('task.title')}
                                 defaultValue={(props.report && props.report.reportName) || ''}

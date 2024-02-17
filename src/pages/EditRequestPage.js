@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -10,6 +10,7 @@ import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -21,9 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDistancePage from './EditRequestDistancePage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
@@ -40,6 +39,9 @@ const propTypes = {
 
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
+
+            /** The index of a tag list */
+            tagIndex: PropTypes.string,
         }),
     }).isRequired,
 
@@ -75,21 +77,15 @@ const defaultProps = {
 function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
-    const {
-        amount: transactionAmount,
-        currency: transactionCurrency,
-        merchant: transactionMerchant,
-        category: transactionCategory,
-        tag: transactionTag,
-    } = ReportUtils.getTransactionDetails(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, category: transactionCategory, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+    const tagIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
-    // For now, it always defaults to the first tag of the policy
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const tagListName = PolicyUtils.getTagListName(policyTags);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -98,7 +94,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -129,55 +125,24 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         [transaction, report, policy, policyTags, policyCategories],
     );
 
-    const saveCreated = useCallback(
-        ({created: newCreated}) => {
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newCreated === TransactionUtils.getCreated(transaction)) {
-                Navigation.dismissModal();
-                return;
+    const saveTag = useCallback(
+        ({tag: newTag}) => {
+            let updatedTag = newTag;
+            if (newTag === tag) {
+                // In case the same tag has been selected, reset the tag.
+                updatedTag = '';
             }
-            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated, policy, policyTags, policyCategories);
-            Navigation.dismissModal();
-        },
-        [transaction, report, policy, policyTags, policyCategories],
-    );
-
-    const saveMerchant = useCallback(
-        ({merchant: newMerchant}) => {
-            const newTrimmedMerchant = newMerchant.trim();
-
-            // In case the merchant hasn't been changed, do not make the API request.
-            // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
-            if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-                Navigation.dismissModal();
-                return;
-            }
-
-            // An empty newTrimmedMerchant is only possible for the P2P IOU case
-            IOU.updateMoneyRequestMerchant(
+            IOU.updateMoneyRequestTag(
                 transaction.transactionID,
                 report.reportID,
-                newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                IOUUtils.insertTagIntoReportTagsString(transactionTag, updatedTag, tagIndex),
                 policy,
                 policyTags,
                 policyCategories,
             );
             Navigation.dismissModal();
         },
-        [transactionMerchant, transaction, report, policy, policyTags, policyCategories],
-    );
-
-    const saveTag = useCallback(
-        ({tag: newTag}) => {
-            let updatedTag = newTag;
-            if (newTag === transactionTag) {
-                // In case the same tag has been selected, reset the tag.
-                updatedTag = '';
-            }
-            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag, policy, policyTags, policyCategories);
-            Navigation.dismissModal();
-        },
-        [transactionTag, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
+        [tag, transaction.transactionID, report.reportID, transactionTag, tagIndex, policy, policyTags, policyCategories],
     );
 
     const saveCategory = useCallback(
@@ -190,15 +155,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         [transactionCategory, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
     );
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
-        return (
-            <EditRequestCreatedPage
-                defaultCreated={TransactionUtils.getCreated(transaction)}
-                onSubmit={saveCreated}
-            />
-        );
-    }
-
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
         return (
             <EditRequestAmountPage
@@ -210,16 +166,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-        return (
-            <EditRequestMerchantPage
-                defaultMerchant={transactionMerchant}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                onSubmit={saveMerchant}
             />
         );
     }
@@ -237,8 +183,9 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && shouldShowTags) {
         return (
             <EditRequestTagPage
-                defaultTag={transactionTag}
-                tagName={tagListName}
+                defaultTag={tag}
+                tagName={policyTagListName}
+                tagIndex={tagIndex}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={saveTag}
             />

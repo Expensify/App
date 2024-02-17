@@ -99,4 +99,19 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep};
+/**
+ * Inserts a newly selected tag into the already existed report tags like a string
+ *
+ * @param reportTags - currently selected tags for a report
+ * @param tag - a newly selected tag, that should be added to the reportTags
+ * @param tagIndex - the index of a tag list
+ * @returns
+ */
+function insertTagIntoReportTagsString(reportTags: string, tag: string, tagIndex: number): string {
+    const splittedReportTags = reportTags.split(CONST.COLON);
+    splittedReportTags[tagIndex] = tag;
+
+    return splittedReportTags.join(CONST.COLON).replace(/:*$/, '');
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoReportTagsString};
