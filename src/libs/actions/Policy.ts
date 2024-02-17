@@ -247,6 +247,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
     const policyAvatar = policy.avatar;
     const policyErrors = policy.errors;
 
+    const closedReportActions: Record<string, string> = {};
     const optimisticReportsData: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Partial<Report>> = {};
     const failureReportsData: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Partial<Report>> = {};
     const optimisticReportActions: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, Record<string, ReportAction>> = {};
@@ -341,6 +342,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
         }
         const optimisticClosedAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        closedReportActions[reportID] = optimisticClosedAction.reportActionID;
         optimisticReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {
             [optimisticClosedAction.reportActionID]: optimisticClosedAction as ReportAction,
         };
@@ -356,7 +358,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
         });
     });
 
-    const params: DeleteWorkspaceParams = {policyID};
+    const params: DeleteWorkspaceParams = {policyID, closedReportActions};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, failureData});
 
