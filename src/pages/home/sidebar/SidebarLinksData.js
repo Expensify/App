@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -139,6 +140,23 @@ function SidebarLinksData({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
+    const reportsWithErrorsIds = useMemo(() => {
+        const reportKeys = _.keys(allReportActions);
+        return _.reduce(
+            reportKeys,
+            (errorsMap, reportKey) => {
+                const report = chatReports[reportKey.replace('reportActions_', 'report_')];
+                const allReportsActions = _.reduce(allReportActions[reportKey], (acc, reportAction) => ({...acc, [reportAction.reportActionID]: reportAction}), {});
+                const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions) || {};
+                if (_.size(errors) === 0) {
+                    return errorsMap;
+                }
+                return {...errorsMap, [reportKey.replace('reportActions_', '')]: OptionsListUtils.getAllReportErrors(report, allReportsActions) || {}};
+            },
+            {},
+        );
+    }, [allReportActions, chatReports]);
+
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
@@ -152,6 +170,7 @@ function SidebarLinksData({
             transactionViolations,
             activeWorkspaceID,
             policyMemberAccountIDs,
+            reportsWithErrorsIds,
         );
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
@@ -165,7 +184,20 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
+    }, [
+        chatReports,
+        betas,
+        policies,
+        priorityMode,
+        allReportActions,
+        transactionViolations,
+        activeWorkspaceID,
+        policyMemberAccountIDs,
+        reportsWithErrorsIds,
+        isLoading,
+        network.isOffline,
+        prevPriorityMode,
+    ]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -184,10 +216,23 @@ function SidebarLinksData({
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
+                reportsWithErrorsIds,
             );
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
+    }, [
+        currentReportID,
+        optionListItems,
+        chatReports,
+        betas,
+        policies,
+        priorityMode,
+        allReportActions,
+        transactionViolations,
+        activeWorkspaceID,
+        policyMemberAccountIDs,
+        reportsWithErrorsIds,
+    ]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -209,6 +254,7 @@ function SidebarLinksData({
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
                 activeWorkspaceID={activeWorkspaceID}
+                reportsWithErrorsIds={reportsWithErrorsIds}
             />
         </View>
     );
@@ -232,6 +278,7 @@ const chatReportSelector = (report) =>
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
+        errors: report.errors,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },

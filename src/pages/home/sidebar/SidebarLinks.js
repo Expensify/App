@@ -43,7 +43,7 @@ const propTypes = {
     isActiveReport: PropTypes.func.isRequired,
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy}) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy, reportsWithErrorsIds}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const modal = useRef({});
@@ -157,6 +157,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
                     onFirstItemRendered={App.setSidebarLoaded}
+                    reportsWithErrorsIds={reportsWithErrorsIds}
                 />
                 {isLoading && optionListItems.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>

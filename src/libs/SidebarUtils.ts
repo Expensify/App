@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -87,6 +88,7 @@ function getOrderedReportIDs(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
+    reportsWithErrorsIds: Record<string, OnyxCommon.Errors> = {},
 ): string[] {
     const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`];
     let reportActionCount = currentReportActions?.length ?? 0;
@@ -163,17 +165,7 @@ function getOrderedReportIDs(
         // eslint-disable-next-line no-param-reassign
         report.displayName = ReportUtils.getReportName(report);
 
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? null;
-        const reportActionsMap: OnyxEntry<ReportActions> =
-            reportActions?.reduce((map, value) => {
-                // eslint-disable-next-line no-param-reassign
-                map[value.reportActionID] = value;
-                return map;
-            }, {} as ReportActions) ?? null;
-
-        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActionsMap);
-
-        const hasRBR = Object.keys(allReportErrors).length > 0;
+        const hasRBR = report.reportID in reportsWithErrorsIds;
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
@@ -217,19 +209,19 @@ function getOrderedReportIDs(
  */
 function getOptionData({
     report,
-    reportActions,
     personalDetails,
     preferredLocale,
     policy,
     parentReportAction,
+    reportErrors,
     hasViolations,
 }: {
     report: OnyxEntry<Report>;
-    reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
+    reportErrors: OnyxCommon.Errors | undefined;
     hasViolations: boolean;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -242,7 +234,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
+        allReportErrors: reportErrors,
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
