@@ -1,12 +1,13 @@
 import React from 'react';
-import {View, ViewStyle} from 'react-native';
-import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Text from '@components/Text';
+import {View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
+import Button from './Button';
+import * as Expensicons from './Icon/Expensicons';
+import Text from './Text';
 
 type ShowMoreButtonProps = {
     /** Additional styles for container */

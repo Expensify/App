@@ -1,13 +1,12 @@
 import React, {useMemo, useState} from 'react';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import _ from 'underscore';
-import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import OptionsSelector from './OptionsSelector';
 
 type TaxPickerProps = {
     /** Collection of tax rates attached to a policy */
