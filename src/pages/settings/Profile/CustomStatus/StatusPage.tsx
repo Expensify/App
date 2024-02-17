@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -46,7 +46,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const formRef = useRef<View>(null);
+    const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null>('');
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
@@ -160,6 +160,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                         <InputWrapper
                             InputComponent={EmojiPickerButtonDropdown}
                             inputID={INPUT_IDS.EMOJI_CODE}
+                            // @ts-expect-error TODO: Remove ts-expect-error when EmojiPickerButtonDropdown migration is done
                             accessibilityLabel={INPUT_IDS.EMOJI_CODE}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultEmoji}
