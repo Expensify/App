@@ -2384,6 +2384,10 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             updatedTransaction.modifiedMerchant,
             {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
             updatedTransaction.filename,
+            undefined,
+            updatedTransaction.category,
+            updatedTransaction.tag,
+            updatedTransaction.billable,
         );
 
         const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
