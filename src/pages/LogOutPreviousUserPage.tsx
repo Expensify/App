@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
-import {Linking} from 'react-native';
+import React, {useContext, useEffect} from 'react';
+import {Linking, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -9,11 +9,17 @@ import type {AuthScreensParamList} from '@navigation/types';
 import * as SessionActions from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Session} from '@src/types/onyx';
+import type {Account, Session} from '@src/types/onyx';
+import InitialUrlContext from "@libs/InitialUrlContext";
+import CONST from "@src/CONST";
+import lodashGet from "lodash/get";
+import ROUTES, {type Route} from "@src/ROUTES";
+import Navigation from "@navigation/Navigation";
 
 type LogOutPreviousUserPageOnyxProps = {
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
     session: OnyxEntry<Session>;
+    account: OnyxEntry<Account>;
 };
 
 type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
@@ -22,10 +28,12 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 // out if the transition is for another user.
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
-function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
+function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPageProps) {
+    const initUrl = useContext(InitialUrlContext);
     useEffect(() => {
-        Linking.getInitialURL().then((transitionURL) => {
+        Linking.getInitialURL().then((url) => {
             const sessionEmail = session?.email;
+            const transitionURL = NativeModules.HybridAppModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
 
             if (isLoggingInAsNewUser) {
@@ -42,11 +50,20 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
                 const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
                 SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
+            const exitTo = route.params.exitTo as Route | null;
+            // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+            // which is already called when AuthScreens mounts.
+            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !account?.isLoading && !isLoggingInAsNewUser) {
+                Navigation.isNavigationReady().then(() => {
+                    // remove this screen and navigate to exit route
+                    const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                    Navigation.goBack();
+                    Navigation.navigate(exitUrl);
+                });
+            }
         });
-
-        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [initUrl]);
 
     return <FullScreenLoadingIndicator />;
 }
@@ -54,6 +71,7 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
 LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
 export default withOnyx<LogOutPreviousUserPageProps, LogOutPreviousUserPageOnyxProps>({
+    account: {key: ONYXKEYS.ACCOUNT},
     session: {
         key: ONYXKEYS.SESSION,
     },
