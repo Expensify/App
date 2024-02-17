@@ -12,8 +12,8 @@ import type SCREENS from '@src/SCREENS';
 import type {Account, Session} from '@src/types/onyx';
 import InitialUrlContext from "@libs/InitialUrlContext";
 import CONST from "@src/CONST";
-import lodashGet from "lodash/get";
-import ROUTES, {type Route} from "@src/ROUTES";
+import ROUTES from "@src/ROUTES";
+import type {Route} from "@src/ROUTES";
 import Navigation from "@navigation/Navigation";
 
 type LogOutPreviousUserPageOnyxProps = {
