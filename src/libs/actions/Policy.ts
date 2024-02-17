@@ -238,7 +238,12 @@ function deleteWorkspace(policyID: string, policyName: string) {
         return;
     }
 
-    const filteredPolicies = Object.values(allPolicies).filter((policy): policy is Policy => policy?.id !== policyID);
+    const policyOnyxKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const policy = allPolicies[policyOnyxKey];
+    if (!policy) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -249,18 +254,17 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 errors: null,
             },
         },
-        ...(!hasActiveFreePolicy(filteredPolicies)
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                      value: {
-                          errors: null,
-                      },
-                  },
-              ]
-            : []),
     ];
+
+    if (hasActiveFreePolicy({[policyOnyxKey]: policy})) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                errors: null,
+            },
+        });
+    }
 
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
