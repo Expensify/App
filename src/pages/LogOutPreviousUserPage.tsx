@@ -63,7 +63,7 @@ function LogOutPreviousUserPage({session, route, account}: LogOutPreviousUserPag
                 });
             }
         });
-    }, [initUrl]);
+    }, [initUrl, account, route, session]);
 
     return <FullScreenLoadingIndicator />;
 }
