@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHNData from './OptionRowLHNData';
 import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
+import {isOneExpenseMoneyRequest, getReport} from '@libs/ReportUtils';
 
 const keyExtractor = (item: string) => `report_${item}`;
 
@@ -56,8 +57,8 @@ function LHNOptionsList({
             // If the report is a one-expense money request report, we want to show the money report details in the LHN
             // instead, so use the parentReportID. Store the activeReportID so we still focus the item
             const activeReportID = reportID;
-            if (ReportUtils.isOneExpenseMoneyRequest(activeReportID)) {
-                const report = ReportUtils.getReport(reportID);
+            if (isOneExpenseMoneyRequest(activeReportID)) {
+                const report = getReport(reportID);
                 reportID = report?.parentReportID ?? reportID;
             }
 
