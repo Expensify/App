@@ -379,10 +379,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
-        return false;
-    }
-
     // Filter out any unsupported reportAction types
     if (!supportedActionTypes.includes(reportAction.actionName)) {
         return false;

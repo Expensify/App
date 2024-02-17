@@ -26,6 +26,7 @@ import type {
     ReportAction,
     ReportMetadata,
     Session,
+    Task,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -3568,10 +3569,25 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
     };
 }
 
-/**
- * Returns the necessary reportAction onyx data to indicate that a task report has been edited
- */
-function buildOptimisticEditedTaskReportAction(emailEditingTask: string): OptimisticEditedTaskReportAction {
+function buildOptimisticEditedTaskFieldReportAction({title, description}: Task): OptimisticEditedTaskReportAction {
+    // We do not modify title & description in one request, so we need to create a different optimistic action for each field modification
+    let field = '';
+    let value = '';
+    if (title !== undefined) {
+        field = 'task title';
+        value = title;
+    } else if (description !== undefined) {
+        field = 'description';
+        value = description;
+    }
+
+    let changelog = 'edited this task';
+    if (field && value) {
+        changelog = `updated the ${field} to ${value}`;
+    } else if (field) {
+        changelog = `removed the ${field}`;
+    }
+
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
@@ -3579,14 +3595,36 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string): Optimi
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'strong',
-                text: emailEditingTask,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: changelog,
+                html: changelog,
             },
+        ],
+        person: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: ' edited this task',
+                style: 'strong',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: DateUtils.getDBTime(),
+        shouldShow: false,
+    };
+}
+
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: `assigned to ${getDisplayNameForParticipant(assigneeAccountID)}`,
+                html: `assigned to <mention-user accountID=${assigneeAccountID}></mention-user>`,
             },
         ],
         person: [
@@ -5077,7 +5115,8 @@ export {
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticRenamedRoomReportAction,
-    buildOptimisticEditedTaskReportAction,
+    buildOptimisticEditedTaskFieldReportAction,
+    buildOptimisticChangedTaskAssigneeReportAction,
     buildOptimisticIOUReport,
     buildOptimisticApprovedReportAction,
     buildOptimisticMovedReportAction,

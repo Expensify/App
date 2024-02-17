@@ -575,7 +575,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
+        lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED
     ) {
         lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
