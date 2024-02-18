@@ -259,7 +259,7 @@ function MoneyRequestAmountForm(
         forwardDeletePressedRef.current = key === 'delete' || ((operatingSystem === CONST.OS.MAC_OS || operatingSystem === CONST.OS.IOS) && nativeEvent?.ctrlKey && key === 'd');
     };
 
-    const formattedAmount: string = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
+    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
