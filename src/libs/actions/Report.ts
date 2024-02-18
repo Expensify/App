@@ -1608,7 +1608,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
 
     const parameters = {
         reportID,
-        reportFields: JSON.stringify({[reportField.fieldID]: reportField}),
+        reportFields: JSON.stringify({[`expensify_${reportField.fieldID}`]: reportField}),
     };
 
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
