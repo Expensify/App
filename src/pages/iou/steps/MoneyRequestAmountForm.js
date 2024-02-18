@@ -296,7 +296,10 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
                         if (!shouldUpdateSelection) {
                             return;
                         }
-                        setSelection(e.nativeEvent.selection);
+                        const maxSelection = formattedAmount.length;
+                        const start = Math.min(e.nativeEvent.selection.start, maxSelection);
+                        const end = Math.min(e.nativeEvent.selection.end, maxSelection);
+                        setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
                 />
