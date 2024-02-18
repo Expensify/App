@@ -210,6 +210,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: () => require('../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,

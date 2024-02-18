@@ -8,7 +8,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import StatePicker from '@components/StatePicker';
+import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
@@ -184,7 +184,7 @@ function DebitCardPage(props) {
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
                     <InputWrapper
-                        InputComponent={StatePicker}
+                        InputComponent={StateSelector}
                         inputID={INPUT_IDS.ADDRESS_STATE}
                     />
                 </View>

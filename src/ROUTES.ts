@@ -132,6 +132,19 @@ const ROUTES = {
         route: 'settings/profile/address/country',
         getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/address/country?country=${country}`, backTo),
     },
+    SETTINGS_ADDRESS_STATE: {
+        route: 'settings/profile/address/state',
+        getRoute: (state: string, backTo?: string, label?: string) => {
+            let route = `settings/profile/address/state?state=${state}`;
+            if (backTo) {
+                route += `&backTo=${encodeURIComponent(backTo)}`;
+            }
+            if (label) {
+                route += `&label=${encodeURIComponent(label)}`;
+            }
+            return route;
+        },
+    },
     SETTINGS_CONTACT_METHODS: {
         route: 'settings/profile/contact-methods',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),

@@ -56,6 +56,7 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
+            ADDRESS_STATE: 'Settings_Address_State',
         },
 
         PREFERENCES: {

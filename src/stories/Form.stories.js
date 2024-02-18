@@ -6,7 +6,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
-import StatePicker from '@components/StatePicker';
+import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -30,7 +30,7 @@ const story = {
         AddressSearch,
         CheckboxWithLabel,
         Picker,
-        StatePicker,
+        StateSelector,
         DatePicker,
     },
 };
@@ -121,7 +121,7 @@ function Template(args) {
             />
             <View style={defaultStyles.mt4}>
                 <InputWrapper
-                    InputComponent={StatePicker}
+                    InputComponent={StateSelector}
                     inputID="state"
                     shouldSaveDraft
                 />

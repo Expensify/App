@@ -14,7 +14,7 @@ import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import StatePicker from './StatePicker';
+import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
 const propTypes = {
@@ -173,7 +173,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper
-                        InputComponent={StatePicker}
+                        InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
                         defaultValue={state}
                         onValueChange={onAddressChanged}

@@ -215,6 +215,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS_COUNTRY.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
+                            path: ROUTES.SETTINGS_ADDRESS_STATE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
                             path: ROUTES.SETTINGS_2FA.route,
                             exact: true,

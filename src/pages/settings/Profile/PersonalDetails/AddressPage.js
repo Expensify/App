@@ -6,11 +6,13 @@ import AddressForm from '@components/AddressForm';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -63,7 +65,12 @@ function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
-    const countryFromUrl = lodashGet(route, 'params.country');
+
+    const countryFromUrlTemp = lodashGet(route, 'params.country');
+    // check if country is valid
+    const countryFromUrl = lodashGet(CONST.ALL_COUNTRIES, countryFromUrlTemp) ? countryFromUrlTemp : '';
+    const stateFromUrl = useGeographicalStateFromRoute();
+
     const [currentCountry, setCurrentCountry] = useState(address.country);
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
@@ -112,6 +119,13 @@ function AddressPage({privatePersonalDetails, route}) {
         }
         handleAddressChange(countryFromUrl, 'country');
     }, [countryFromUrl, handleAddressChange]);
+
+    useEffect(() => {
+        if (!stateFromUrl) {
+            return;
+        }
+        handleAddressChange(stateFromUrl, 'state');
+    }, [handleAddressChange, stateFromUrl]);
 
     return (
         <ScreenWrapper
