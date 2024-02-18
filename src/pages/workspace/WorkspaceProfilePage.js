@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {Image, ScrollView, StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -27,6 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 
 const propTypes = {
     /** Constant, list of available currencies */
@@ -69,7 +71,17 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
     const policyDescription = lodashGet(policy, 'description', '');
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const shouldShowDeleteButton = PolicyUtils.isPolicyAdmin(policy);
+    const confirmDeleteAndHideModal = () => {
+        if (!policy.id || !policyName) {
+            return;
+        }
 
+        Policy.deleteWorkspace(policy.id, policyName);
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        setIsDeleteModalOpen(false);
+    };
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -166,7 +178,29 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.mt1, styles.mh5, styles.sectionMenuItemTopDescription]}>
                                         {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                                     </Text>
+                                    {shouldShowDeleteButton && (
+                                        <View style={[styles.flexRow, styles.pb2, styles.mnw120]}>
+                                            <Button
+                                                accessibilityLabel={translate('workspace.common.deleteWorkspace')}
+                                                small
+                                                icon={Expensicons.Trashcan}
+                                                text={translate('workspace.common.deleteWorkspace')}
+                                                style={[styles.mt4]}
+                                                onPress={() => setIsDeleteModalOpen(true)}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
+                                <ConfirmModal
+                                    title={translate('workspace.common.delete')}
+                                    isVisible={isDeleteModalOpen}
+                                    onConfirm={confirmDeleteAndHideModal}
+                                    onCancel={() => setIsDeleteModalOpen(false)}
+                                    prompt={translate('workspace.common.deleteConfirmation')}
+                                    confirmText={translate('common.delete')}
+                                    cancelText={translate('common.cancel')}
+                                    danger
+                                />
                             </OfflineWithFeedback>
                         </Section>
                     </View>

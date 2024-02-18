@@ -1684,6 +1684,7 @@ export default {
             workspace: 'Workspace',
             edit: 'Edit workspace',
             delete: 'Delete workspace',
+            deleteWorkspace: 'Delete',
             settings: 'Settings',
             reimburse: 'Reimbursements',
             bills: 'Bills',
