@@ -75,7 +75,7 @@ function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TV
 // Variable to verify if ONYX actions are loaded
 let hasInitialReportActions = false;
 
-function filterDisplayName(displayName: string) : string {
+function filterDisplayName(displayName: string): string {
     if (CONST.REGEX.INVALID_DISPLAY_NAME_ONLY_LHN.test(displayName)) {
         return displayName;
     }
@@ -121,6 +121,8 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
 
+    const reportIDsWithViolations: Record<string, boolean> = {};
+
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
@@ -128,6 +130,9 @@ function getOrderedReportIDs(
         const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
         const doesReportHaveViolations =
             betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        if (doesReportHaveViolations) {
+            reportIDsWithViolations[report.reportID] = true;
+        }
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
@@ -172,7 +177,7 @@ function getOrderedReportIDs(
         // eslint-disable-next-line no-param-reassign
         report.displayName = filterDisplayName(ReportUtils.getReportName(report));
 
-        const hasRBR = report.reportID in reportsWithErrorsIds;
+        const hasRBR = report.reportID in reportsWithErrorsIds || report.reportID in reportIDsWithViolations;
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');

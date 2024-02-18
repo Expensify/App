@@ -7,8 +7,8 @@ import type {CurrentReportIDContextValue} from '@components/withCurrentReportID'
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
