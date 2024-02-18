@@ -2,8 +2,6 @@ import React from 'react';
 import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 import type {TwoFactorAuthFormProps} from './types';
 
-
-
 function TwoFactorAuthForm({innerRef}: TwoFactorAuthFormProps) {
     return (
         <BaseTwoFactorAuthForm

@@ -6,8 +6,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type StepWrapperProps = {
+type StepWrapperProps = ChildrenProps & {
     /** Title of the Header */
     title?: string;
 
@@ -26,9 +27,6 @@ type StepWrapperProps = {
 
     /** Called when navigated Screen's transition is finished. It does not fire when user exits the page. */
     onEntryTransitionEnd?: () => void;
-
-    /** Children components */
-    children?: React.ReactNode;
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;

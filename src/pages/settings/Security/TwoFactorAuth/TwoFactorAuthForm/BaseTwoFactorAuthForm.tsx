@@ -1,5 +1,5 @@
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
-import type {FC, RefObject} from 'react';
+import type {RefObject} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
@@ -98,14 +98,6 @@ function BaseTwoFactorAuthForm({account, autoComplete, ref}: BaseTwoFactorAuthFo
     );
 }
 
-const BaseTwoFactorAuthFormWithRef = forwardRef(({ref, ...props}: BaseTwoFactorAuthFormProps) => (
-    <BaseTwoFactorAuthForm
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        ref={ref}
-    />
-));
-
 export default withOnyx<BaseTwoFactorAuthFormProps, TwoFactorAuthStepOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
-})(BaseTwoFactorAuthFormWithRef);
+})(forwardRef(BaseTwoFactorAuthForm));
