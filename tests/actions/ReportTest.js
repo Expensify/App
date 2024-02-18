@@ -329,9 +329,9 @@ describe('actions/Report', () => {
                 expect(utcToZonedTime(report.lastReadTime, UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
                 expect(report.lastMessageText).toBe('Current User Comment 3');
 
-                const USER_1_BASE_ACTION = {
+                const USER_2_BASE_ACTION = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                    actorAccountID: USER_1_ACCOUNT_ID,
+                    actorAccountID: USER_2_ACCOUNT_ID,
                     automatic: false,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
@@ -345,20 +345,20 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
                         200: {
-                            ...USER_1_BASE_ACTION,
-                            message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
+                            ...USER_2_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'User_2 Comment 1', text: 'Current User Comment 1'}],
                             created: DateUtils.getDBTime(Date.now() - 2),
                             reportActionID: '200',
                         },
                         300: {
-                            ...USER_1_BASE_ACTION,
-                            message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
+                            ...USER_2_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'User_2 Comment 2', text: 'Current User Comment 2'}],
                             created: DateUtils.getDBTime(Date.now() - 1),
                             reportActionID: '300',
                         },
                         400: {
-                            ...USER_1_BASE_ACTION,
-                            message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
+                            ...USER_2_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'User_2 Comment 3', text: 'Current User Comment 3'}],
                             created: DateUtils.getDBTime(),
                             reportActionID: '400',
                         },
@@ -376,8 +376,8 @@ describe('actions/Report', () => {
                         value: {
                             reportID: REPORT_ID,
                             notificationPreference: 'always',
-                            lastMessageText: 'Current User Comment 3',
-                            lastActorAccountID: 1,
+                            lastMessageText: 'User_2 Comment 3',
+                            lastActorAccountID: 2,
                             lastVisibleActionCreated: reportActionCreatedDate,
                             lastReadTime: reportActionCreatedDate,
                         },

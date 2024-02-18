@@ -3769,8 +3769,8 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequ
 }
 
 function isUnread(report: OnyxEntry<Report>): boolean {
-    // If the last actor to interact with the report is the current user then report is not Unread
-    if (!report || report.lastActorAccountID === currentUserAccountID) {
+    // If the last actor to interact with the report is the current user, then it is not unread
+    if (!report || (currentUserAccountID && report.lastActorAccountID === currentUserAccountID)) {
         return false;
     }
 
