@@ -892,7 +892,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
  * Sets a custom status
  */
 function updateCustomStatus(status: Status) {
-    const clearAfterInUtc = DateUtils.formatWithUTCTimeZone(status.clearAfter, 'yyyy-MM-dd HH:mm:ss');
+    const clearAfterInUtc = DateUtils.formatWithUTCTimeZone(status.clearAfter, CONST.DATE.ISO_LOCAL_DATE_TIME);
     const newStatus = {
         text: status.text,
         emojiCode: status.emojiCode,

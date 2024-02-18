@@ -409,7 +409,7 @@ function getDateStringFromISOTimestamp(isoTimestamp: string): string {
  */
 function getThirtyMinutesFromNow(): string {
     const date = addMinutes(new Date(), 30);
-    return format(date, 'yyyy-MM-dd HH:mm:ss');
+    return format(date, CONST.DATE.ISO_LOCAL_DATE_TIME);
 }
 
 /**
@@ -417,7 +417,7 @@ function getThirtyMinutesFromNow(): string {
  */
 function getOneHourFromNow(): string {
     const date = addHours(new Date(), 1);
-    return format(date, 'yyyy-MM-dd HH:mm:ss');
+    return format(date, CONST.DATE.ISO_LOCAL_DATE_TIME);
 }
 
 /**
@@ -425,7 +425,7 @@ function getOneHourFromNow(): string {
  */
 function getEndOfToday(): string {
     const date = endOfDay(new Date());
-    return format(date, 'yyyy-MM-dd HH:mm:ss');
+    return format(date, CONST.DATE.ISO_LOCAL_DATE_TIME);
 }
 
 /**
@@ -433,7 +433,7 @@ function getEndOfToday(): string {
  */
 function getOneWeekFromNow(): string {
     const date = addDays(new Date(), 7);
-    return format(date, 'yyyy-MM-dd HH:mm:ss');
+    return format(date, CONST.DATE.ISO_LOCAL_DATE_TIME);
 }
 
 /**
@@ -560,7 +560,7 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
     let parsedTime: Date | null = null;
     if (updatedTime.includes('-')) {
         // it's in "yyyy-MM-dd HH:mm:ss" format
-        const tempTime = parse(updatedTime, 'yyyy-MM-dd HH:mm:ss', new Date());
+        const tempTime = parse(updatedTime, CONST.DATE.ISO_LOCAL_DATE_TIME, new Date());
         if (isValid(tempTime)) {
             parsedTime = tempTime;
         }
@@ -579,7 +579,7 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
     let parsedDateTime: Date | null = null;
     if (inputDateTime.includes(':')) {
         // Check if it includes time
-        const tempDateTime = parse(inputDateTime, 'yyyy-MM-dd HH:mm:ss', new Date());
+        const tempDateTime = parse(inputDateTime, CONST.DATE.ISO_LOCAL_DATE_TIME, new Date());
         if (isValid(tempDateTime)) {
             parsedDateTime = tempDateTime;
         }
@@ -600,7 +600,7 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
         seconds: parsedTime.getSeconds(),
     });
 
-    return format(updatedDateTime, 'yyyy-MM-dd HH:mm:ss');
+    return format(updatedDateTime, CONST.DATE.ISO_LOCAL_DATE_TIME);
 };
 
 /**
@@ -640,8 +640,8 @@ function getTimePeriod(timeString: string): TimePeriod {
  * returns {Boolean}
  */
 function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: string): boolean {
-    const date1 = parse(dateTimeStringFirst, 'yyyy-MM-dd HH:mm:ss', new Date());
-    const date2 = parse(dateTimeStringSecond, 'yyyy-MM-dd HH:mm:ss', new Date());
+    const date1 = parse(dateTimeStringFirst, CONST.DATE.ISO_LOCAL_DATE_TIME, new Date());
+    const date2 = parse(dateTimeStringSecond, CONST.DATE.ISO_LOCAL_DATE_TIME, new Date());
 
     return isSameSecond(date1, date2);
 }
@@ -729,7 +729,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
  * @returns
  */
 
-function formatUTCToLocal(dateString: string, dateFormat = 'yyyy-MM-dd HH:mm:ss') {
+function formatUTCToLocal(dateString: string, dateFormat = CONST.DATE.ISO_LOCAL_DATE_TIME) {
     if (dateString === '' || !dateString) {
         return dateString;
     }
