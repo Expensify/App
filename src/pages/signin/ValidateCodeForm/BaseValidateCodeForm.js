@@ -179,7 +179,7 @@ function BaseValidateCodeForm(props) {
             setInput = setRecoveryCode;
         }
 
-        setInput(text);
+        setInput(text.trim());
         setFormError((prevError) => ({...prevError, [key]: ''}));
 
         if (props.account.errors) {
