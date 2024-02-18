@@ -269,6 +269,8 @@ const ONYXKEYS = {
     /** Indicates whether we should store logs or not */
     SHOULD_STORE_LOGS: 'shouldStoreLogs',
 
+    NEW_ROOM_DRAFT: 'newRoomDraft',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -306,8 +308,6 @@ const ONYXKEYS = {
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
-
-        NEW_ROOM_DRAFT: 'newRoomDraft_',
 
         // Manual request tab selector
         SELECTED_TAB: 'selectedTab_',
@@ -472,7 +472,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_TAX_RATE]: string[];
-    [ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT]: OnyxTypes.NewRoomDraft;
 };
 
 type OnyxValuesMapping = {
@@ -560,6 +559,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
+    [ONYXKEYS.NEW_ROOM_DRAFT]: OnyxTypes.NewRoomDraft;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

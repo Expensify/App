@@ -1831,7 +1831,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string) {
  */
 
 function updateRoomDraftWorkspace(workspaceID: string, name: string) {
-    Onyx.merge(ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT, {workspace: {id: workspaceID, name}});
+    Onyx.merge(ONYXKEYS.NEW_ROOM_DRAFT, {workspace: {id: workspaceID, name}});
 }
 
 /**

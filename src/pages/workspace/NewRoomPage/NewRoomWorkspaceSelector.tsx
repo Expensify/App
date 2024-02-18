@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import {type OnyxCollection, withOnyx} from 'react-native-onyx';
+import {type OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 // import * as PolicyUtils from '@libs/PolicyUtils';
 import type SCREENS from '@src/SCREENS';
 import type {NewRoomDraft as NewRoomDraftType, Policy as PolicyType} from '@src/types/onyx';
@@ -62,7 +63,7 @@ type NewRoomWorkspaceSelectorOnyxProps = {
     /** The list of this user's policies */
     policies: OnyxCollection<PolicyType>;
 
-    newRoomDraft: OnyxCollection<NewRoomDraftType>;
+    newRoomDraft: OnyxEntry<NewRoomDraftType>;
 };
 
 type NewRoomWorkspaceSelectorPageProps = NewRoomWorkspaceSelectorOnyxProps & StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_ROOM_WORKSPACE_SELECTOR>;
@@ -70,7 +71,6 @@ type NewRoomWorkspaceSelectorPageProps = NewRoomWorkspaceSelectorOnyxProps & Sta
 function NewRoomWorkspaceSelector({policies, route, newRoomDraft}: NewRoomWorkspaceSelectorPageProps) {
     const {translate} = useLocalize();
 
-    console.log(newRoomDraft, policies);
     const styles = useThemeStyles();
 
     const workspaceOptions = useMemo(() => {
@@ -78,7 +78,12 @@ function NewRoomWorkspaceSelector({policies, route, newRoomDraft}: NewRoomWorksp
             return [];
         }
         return Object.values(policies)
-            .filter((policy): policy is PolicyType => policy?.type !== CONST.POLICY.TYPE.PERSONAL)
+            .filter((policy): policy is PolicyType => {
+                if (!policy) {
+                    return false;
+                }
+                return policy.type !== CONST.POLICY.TYPE.PERSONAL;
+            })
             .map((policy) => ({
                 value: {name: policy?.name, id: policy?.id},
                 keyForList: policy?.id,
@@ -87,11 +92,13 @@ function NewRoomWorkspaceSelector({policies, route, newRoomDraft}: NewRoomWorksp
             }));
     }, [policies]);
 
-    const setPolicyID = (value) => {
+    const setPolicyID = (value: {value: {id: string; name: string}}) => {
         const {id, name} = value.value;
         updateRoomDraftWorkspace(id, name);
+        Navigation.navigate(ROUTES.NEW_ROOM);
     };
 
+    console.log(workspaceOptions);
     return (
         <ScreenWrapper
             style={[styles.pb0]}
@@ -101,11 +108,12 @@ function NewRoomWorkspaceSelector({policies, route, newRoomDraft}: NewRoomWorksp
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.workspace')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_ROOM)}
             />
             <SelectionList
                 sections={[{data: workspaceOptions}]}
                 onSelectRow={setPolicyID}
+                shouldStopPropagation
                 // initiallyFocusedOptionKey={new}
                 // shouldStopPropagation
                 // initiallyFocusedOptionKey={selectedItem.value}
@@ -124,6 +132,6 @@ export default withOnyx<NewRoomWorkspaceSelectorPageProps, NewRoomWorkspaceSelec
         key: ONYXKEYS.COLLECTION.POLICY,
     },
     newRoomDraft: {
-        key: ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT,
+        key: ONYXKEYS.NEW_ROOM_DRAFT,
     },
 })(NewRoomWorkspaceSelector);

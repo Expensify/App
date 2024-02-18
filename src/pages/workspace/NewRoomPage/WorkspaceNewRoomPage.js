@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -34,6 +35,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import newRoomDraftPropTypes from './newRoomDraftPropTypes';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -82,6 +84,9 @@ const propTypes = {
 
     /** policyID for main workspace */
     activePolicyID: PropTypes.string,
+
+    /** New room input details */
+    newRoomDraft: newRoomDraftPropTypes,
 };
 const defaultProps = {
     reports: {},
@@ -94,6 +99,7 @@ const defaultProps = {
         accountID: 0,
     },
     activePolicyID: null,
+    newRoomDraft: {},
 };
 
 function WorkspaceNewRoomPage(props) {
@@ -108,6 +114,8 @@ function WorkspaceNewRoomPage(props) {
     const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
 
+    // console.log(props.newRoomDraft, lodashGet(props.newRoomDraft, 'workspace.name', ''));
+
     const workspaceOptions = useMemo(
         () =>
             _.map(
@@ -120,12 +128,15 @@ function WorkspaceNewRoomPage(props) {
             ),
         [props.policies],
     );
-    const [policyID, setPolicyID] = useState(() => {
-        if (_.some(workspaceOptions, (option) => option.value === props.activePolicyID)) {
-            return props.activePolicyID;
-        }
-        return '';
-    });
+    // const [policyID, setPolicyID] = useState(() => {
+    //     if (_.some(workspaceOptions, (option) => option.value === props.activePolicyID)) {
+    //         return props.activePolicyID;
+    //     }
+    //     return '';
+    // });
+
+    const [policyID, setPolicyID] = useState(lodashGet(props.newRoomDraft, 'workspace.name', props.activePolicyID || ''));
+
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
             return false;
@@ -164,19 +175,36 @@ function WorkspaceNewRoomPage(props) {
         Report.clearNewRoomFormError();
     }, []);
 
+    // useEffect(() => {
+    //     if (policyID) {
+    //         if (!_.some(workspaceOptions, (opt) => opt.value === policyID)) {
+    //             setPolicyID('');
+    //         }
+    //         return;
+    //     }
+    //     if (_.some(workspaceOptions, (opt) => opt.value === props.activePolicyID)) {
+    //         setPolicyID(props.activePolicyID);
+    //     } else {
+    //         setPolicyID('');
+    //     }
+    // }, [props.activePolicyID, policyID, workspaceOptions]);
+
     useEffect(() => {
-        if (policyID) {
-            if (!_.some(workspaceOptions, (opt) => opt.value === policyID)) {
-                setPolicyID('');
-            }
+        const newActivePolicyID = lodashGet(props.newRoomDraft, 'workspace.id', props.activePolicyID || '');
+        console.log(workspaceOptions);
+        if (_.some(workspaceOptions, (opt) => opt.value === newActivePolicyID)) {
+            console.log('TRUE');
+            setPolicyID(newActivePolicyID);
             return;
         }
-        if (_.some(workspaceOptions, (opt) => opt.value === props.activePolicyID)) {
-            setPolicyID(props.activePolicyID);
-        } else {
-            setPolicyID('');
+        if (newActivePolicyID) {
+            if (!_.some(workspaceOptions, (opt) => opt.value === newActivePolicyID)) {
+                setPolicyID('');
+            }
         }
-    }, [props.activePolicyID, policyID, workspaceOptions]);
+    }, [props.activePolicyID, policyID, workspaceOptions, props.newRoomDraft]);
+
+    // console.log(policyID);
 
     useEffect(() => {
         if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
@@ -357,15 +385,15 @@ function WorkspaceNewRoomPage(props) {
                                     shouldShowTooltips={false}
                                 />
                             </View>
-                            <View style={[styles.flex1]}>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={`Workspace 77`}
-                                    description={'Description'}
-                                    onPress={() => Navigation.navigate(ROUTES.NEW_ROOM_WORKSPACE_SELECTOR)}
-                                />
-                            </View>
                         </FormProvider>
+                        <View style={[styles.flex1]}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={policyID}
+                                description={translate('workspace.common.workspace')}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_ROOM_WORKSPACE_SELECTOR)}
+                            />
+                        </View>
 
                         {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
@@ -403,7 +431,7 @@ export default compose(
             initialValue: null,
         },
         newRoomDraft: {
-            key: ONYXKEYS.COLLECTION.NEW_ROOM_DRAFT,
+            key: ONYXKEYS.NEW_ROOM_DRAFT,
         },
     }),
 )(WorkspaceNewRoomPage);
