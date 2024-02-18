@@ -324,7 +324,7 @@ function BaseValidateCodeForm(props) {
                             accessibilityLabel={props.translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
-                            maxLength={CONST.RECOVERY_CODE_LENGTH}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
                             label={props.translate('recoveryCodeForm.recoveryCode')}
                             errorText={formError.recoveryCode || ''}
                             hasError={hasError}
