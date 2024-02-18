@@ -236,13 +236,8 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
             return;
         }
 
-        // Update display amount string post-edit to ensure consistency with backend amount
-        // Reference: https://github.com/Expensify/App/issues/30505
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        initializeAmount(backendAmount);
-
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
