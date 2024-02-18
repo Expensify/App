@@ -87,8 +87,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
 
-            User.clearDraftCustomStatus();
             InteractionManager.runAfterInteractions(() => {
+                User.clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
             });
         },
