@@ -162,7 +162,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         } else if (
             action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
             topmostCentralPaneRoute &&
-            (topmostCentralPaneRoute.name !== SCREENS.REPORT || getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath))
+            (topmostCentralPaneRoute.name !== action.payload.params?.screen || getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath))
         ) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
