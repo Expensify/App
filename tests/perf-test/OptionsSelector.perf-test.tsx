@@ -1,12 +1,15 @@
 import {fireEvent} from '@testing-library/react-native';
 import React from 'react';
+import type {ComponentType} from 'react';
+import type {WithLocalizeProps} from '@components/withLocalize';
+import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type {RenderResult} from '@testing-library/react-native';
 import {measurePerformance} from 'reassure';
-import _ from 'underscore';
 import OptionsSelector from '@src/components/OptionsSelector';
 import variables from '@src/styles/variables';
 
-jest.mock('../../src/components/withLocalize', () => (Component) => {
-    function WrappedComponent(props) {
+jest.mock('../../src/components/withLocalize', () => (Component: ComponentType<WithLocalizeProps>) => {
+    function WrappedComponent(props: WithLocalizeProps) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -19,8 +22,8 @@ jest.mock('../../src/components/withLocalize', () => (Component) => {
     return WrappedComponent;
 });
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
+jest.mock('../../src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
+    function WithNavigationFocus(props: WithNavigationFocusProps) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -35,8 +38,12 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
     return WithNavigationFocus;
 });
 
-const generateSections = (sectionConfigs) =>
-    _.map(sectionConfigs, ({numItems, indexOffset, shouldShow = true}) => ({
+type SingleSectionConfigs = Array<{numItems: number, indexOffset: number, shouldShow?: boolean}>;
+type SectionConfigs = (Props: {value: number, index: number, array: SingleSectionConfigs}) => Array<Record<string, {data: {text: string, keyForList: string}, indexOffset: number, shouldShow: boolean}>>;
+
+const generateSections = (sectionConfigs: SingleSectionConfigs) =>
+    Array.prototype.map(sectionConfigs as unknown as SectionConfigs, ({numItems, indexOffset, shouldShow = true}: {numItems: number, indexOffset: number, shouldShow: boolean}) => ({
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         data: Array.from({length: numItems}, (_v, i) => ({
             text: `Item ${i + indexOffset}`,
             keyForList: `item-${i + indexOffset}`,
@@ -65,7 +72,7 @@ function OptionsSelectorWrapper(args) {
 }
 
 test('[OptionsSelector] should render text input with interactions', () => {
-    const scenario = (screen) => {
+    const scenario = (screen: RenderResult) => {
         const textInput = screen.getByTestId('options-selector-input');
         fireEvent.changeText(textInput, 'test');
         fireEvent.changeText(textInput, 'test2');
@@ -85,7 +92,7 @@ test('[OptionsSelector] should render multiple sections', () => {
 });
 
 test('[OptionsSelector] should press a list items', () => {
-    const scenario = (screen) => {
+    const scenario = (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 5'));
         fireEvent.press(screen.getByText('Item 10'));
@@ -94,10 +101,12 @@ test('[OptionsSelector] should press a list items', () => {
     measurePerformance(<OptionsSelectorWrapper />, {scenario});
 });
 
+// type GenerateEventData = Record<string, {nativeEvent: {contentOffset: {y: number}, contentSize: {height: number, width: number}, layoutMeasurement: {height: number, width: number}}}>;
+
 test('[OptionsSelector] should scroll and press few items', () => {
     const sections = generateSections(mutlipleSectionsConfig);
 
-    const generateEventData = (numOptions, optionRowHeight) => ({
+    const generateEventData = (numOptions: number, optionRowHeight: number) => ({
         nativeEvent: {
             contentOffset: {
                 y: optionRowHeight * numOptions,
@@ -115,7 +124,7 @@ test('[OptionsSelector] should scroll and press few items', () => {
 
     const eventData = generateEventData(100, variables.optionRowHeight);
     const eventData2 = generateEventData(200, variables.optionRowHeight);
-    const scenario = async (screen) => {
+    const scenario = async (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 10'));
         fireEvent.scroll(screen.getByTestId('options-list'), eventData);
         fireEvent.press(await screen.findByText('Item 100'));
