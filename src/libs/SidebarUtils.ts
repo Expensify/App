@@ -48,22 +48,6 @@ Onyx.connect({
     },
 });
 
-let resolveSidebarIsReadyPromise: (args?: unknown[]) => void;
-
-let sidebarIsReadyPromise = new Promise((resolve) => {
-    resolveSidebarIsReadyPromise = resolve;
-});
-
-function resetIsSidebarLoadedReadyPromise() {
-    sidebarIsReadyPromise = new Promise((resolve) => {
-        resolveSidebarIsReadyPromise = resolve;
-    });
-}
-
-function isSidebarLoadedReady(): Promise<unknown> {
-    return sidebarIsReadyPromise;
-}
-
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -72,10 +56,6 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
         return 1;
     }
     return 0;
-}
-
-function setIsSidebarLoadedReady() {
-    resolveSidebarIsReadyPromise();
 }
 
 // Define a cache object to store the memoized results
@@ -183,9 +163,6 @@ function getOrderedReportIDs(
         // eslint-disable-next-line no-param-reassign
         report.displayName = ReportUtils.getReportName(report);
 
-        // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(report, allReports).totalDisplaySpend;
-
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
@@ -253,7 +230,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: undefined,
+        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -269,7 +246,6 @@ function getOptionData({
         isPinned: false,
         hasOutstandingChildRequest: false,
         isIOUReportOwner: null,
-        iouReportAmount: 0,
         isChatRoom: false,
         isArchivedRoom: false,
         shouldShowSubscript: false,
@@ -295,7 +271,6 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
-    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
@@ -417,7 +392,6 @@ function getOptionData({
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
-    result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result as Report).totalDisplaySpend;
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail?.accountID;
@@ -446,7 +420,4 @@ function getOptionData({
 export default {
     getOptionData,
     getOrderedReportIDs,
-    setIsSidebarLoadedReady,
-    isSidebarLoadedReady,
-    resetIsSidebarLoadedReadyPromise,
 };
