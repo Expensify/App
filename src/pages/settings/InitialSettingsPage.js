@@ -40,6 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import * as User from '@userActions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -194,7 +195,10 @@ function InitialSettingsPage(props) {
                         icon: Expensicons.RotateLeft,
                         shouldShowRightIcon: true,
                         iconRight: Expensicons.NewWindow,
-                        action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
+                        action: () => {
+                            User.setTryNewDotDismissed();
+                            NativeModules.HybridAppModule.closeReactNativeApp();
+                        },
                     },
                     ...defaultMenu.items,
                 ],

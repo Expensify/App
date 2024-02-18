@@ -9,7 +9,7 @@ import type {
     DeleteContactMethodParams,
     GetStatementPDFParams,
     RequestContactMethodValidateCodeParams,
-    SetContactMethodAsDefaultParams,
+    SetContactMethodAsDefaultParams, SetNameValuePairParams,
     UpdateChatPriorityModeParams,
     UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
@@ -967,6 +967,26 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
+// TODO: Figure out why this isn't working to set the tryNewDot.classicRedirect NVP correctly
+function setTryNewDotDismissed() {
+    const value = {'classicRedirect': {dismissed: true, timestamp: new Date()}};
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_TRY_NEW_DOT,
+        value,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRY_NEW_DOT,
+            value,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, { optimisticData, });
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -997,4 +1017,5 @@ export {
     clearCustomStatus,
     updateDraftCustomStatus,
     clearDraftCustomStatus,
+    setTryNewDotDismissed,
 };
