@@ -1,14 +1,11 @@
 const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
-/**
- * @typedef TestConfig
- * @property {string} name
- */
-
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
     OpenSearchPage: 'Open search page TTI',
+    ReportTyping: 'Report typing',
+    ChatOpening: 'Chat opening',
 };
 
 /**
@@ -21,17 +18,23 @@ const TEST_NAMES = {
  * ```
  */
 module.exports = {
-    APP_PACKAGE: 'com.expensify.chat.adhoc',
+    MAIN_APP_PACKAGE: 'com.expensify.chat.e2e',
+    DELTA_APP_PACKAGE: 'com.expensify.chat.e2edelta',
 
-    APP_PATH: './app-e2eRelease-main.apk',
+    MAIN_APP_PATH: './app-e2eRelease.apk',
+    DELTA_APP_PATH: './app-e2edeltaRelease.apk',
 
-    ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.js',
+    ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
+
+    // The path to the activity within the app that we want to launch.
+    // Note: even though we have different package _names_, this path doesn't change.
+    ACTIVITY_PATH: 'com.expensify.chat.MainActivity',
 
     // The port of the testing server that communicates with the app
     SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 80,
+    RUNS: 60,
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
@@ -47,7 +50,10 @@ module.exports = {
     INTERACTION_TIMEOUT: 300000,
 
     // Period we wait between each test runs, to let the device cool down
-    COOL_DOWN: 90 * 1000,
+    BOOT_COOL_DOWN: 90 * 1000,
+
+    // Period we wait between each test runs, to let the device cool down
+    SUITE_COOL_DOWN: 10 * 1000,
 
     TEST_NAMES,
 
@@ -65,6 +71,19 @@ module.exports = {
         },
         [TEST_NAMES.OpenSearchPage]: {
             name: TEST_NAMES.OpenSearchPage,
+        },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+        },
+        [TEST_NAMES.ChatOpening]: {
+            name: TEST_NAMES.ChatOpening,
+            // #announce Chat with many messages
+            reportID: '5421294415618529',
         },
     },
 };

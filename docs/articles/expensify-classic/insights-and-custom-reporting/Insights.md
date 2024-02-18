@@ -35,7 +35,7 @@ The Insights dashboard allows you to monitor all aspects of company spend across
 2. Build up a report using these [formulas](https://community.expensify.com/discussion/5795/deep-dive-expense-level-formula/p1?new=1)
 3. If you need any help, click the **Support** button on the top left to contact your Account Manager
 
-# FAQs
+{% include faq-begin.md %}
 
 #### Can I share my custom export report? 
 
@@ -99,3 +99,5 @@ We’ve built a huge variety of custom reports for customers, so make sure to re
 - Vendor Spend
 - … or anything you can imagine! 
 {% endraw %}
+
+{% include faq-end.md %}

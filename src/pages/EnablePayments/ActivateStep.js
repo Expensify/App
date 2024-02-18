@@ -3,7 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as PaymentMethods from '@userActions/PaymentMethods';

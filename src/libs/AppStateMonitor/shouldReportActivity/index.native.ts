@@ -1,4 +1,4 @@
-import ShouldReportActivity from './types';
+import type ShouldReportActivity from './types';
 
 const shouldReportActivity: ShouldReportActivity = true;
 

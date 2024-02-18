@@ -1,6 +1,6 @@
 import React from 'react';
 import FormElement from '@components/FormElement';
-import SignInPageFormProps from './types';
+import type SignInPageFormProps from './types';
 
 function SignInPageForm(props: SignInPageFormProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading

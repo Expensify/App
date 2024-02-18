@@ -3,21 +3,22 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,6 +38,7 @@ const defaultProps = {
 };
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
 
@@ -67,7 +69,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
         >
             <HeaderWithBackButton
                 title={translate('common.dob')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -80,8 +82,9 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <NewDatePicker
-                        inputID="dob"
+                    <InputWrapper
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.DOB}
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}

@@ -76,6 +76,7 @@ Expensify's integration with QuickBooks brings in your Chart of Accounts as Cate
 3. Expensify offers Auto-Categorization to automatically assign expenses to the appropriate expense categories.
 4. If needed, you can edit the names of the imported Categories to simplify expense coding for your employees. Keep in mind that if you make changes to these accounts in QuickBooks Desktop, the category names in Expensify will update to match them during the next sync.
 5. _**Important:**_ Each expense must have a category selected to export to QuickBooks Desktop. The selected category must be one imported from QuickBooks Desktop; you cannot manually create categories within Expensify policy settings.
+
 ## Classes
 Classes can be imported from QuickBooks as either tags (line-item level) or report fields (header level).
 
@@ -87,7 +88,7 @@ You can bring in Customers/Projects from QuickBooks into Expensify in two ways: 
 ## Items 
 Items can be imported from QuickBooks as categories alongside your expense accounts.
 
-# FAQ
+{% include faq-begin.md %}
 ## How do I sync my connection?
 1: Ensure that both the Expensify Sync Manager and QuickBooks Desktop are running.
 2: On the Expensify website, navigate to **Settings** > **Policies** > **Group** > _[Policy Name]_ > **Connections** > **QuickBooks Desktop**, and click **Sync now**.
@@ -142,3 +143,5 @@ To resolve this error, follow these steps:
 Verify that the Sync Manager's status is **Connected**.
 3. If the Sync Manager status is already **Connected**, click **Edit** and then *Save* to refresh the connection. Afterwards, try syncing your policy again.
 4. If the error persists, double-check that the token you see in the Sync Manager matches the token in your connection settings.
+
+{% include faq-end.md %}

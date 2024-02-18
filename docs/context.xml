@@ -18,7 +18,7 @@
     </LookAndFeel>
     <ImageSearchSettings enable="false"></ImageSearchSettings>
     <cse_advance_settings enable_facet_search="false">
-        <web_search_options enable_history="true" show_structured_data="false">
+        <web_search_options enable_history="false" show_structured_data="false">
             <search_restrict_args lr="" cr="" gl="" filter="0" sort="" as_siteseach="" as_oq=""></search_restrict_args>
         </web_search_options>
         <image_advanced_options default_to_image_search="false">

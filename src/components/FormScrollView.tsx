@@ -1,6 +1,8 @@
-import React, {ForwardedRef} from 'react';
-import {ScrollView, ScrollViewProps} from 'react-native';
-import styles from '@styles/styles';
+import type {ForwardedRef} from 'react';
+import React from 'react';
+import type {ScrollViewProps} from 'react-native';
+import {ScrollView} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type FormScrollViewProps = ScrollViewProps & {
     /** Form elements */
@@ -8,6 +10,7 @@ type FormScrollViewProps = ScrollViewProps & {
 };
 
 function FormScrollView({children, ...rest}: FormScrollViewProps, ref: ForwardedRef<ScrollView>) {
+    const styles = useThemeStyles();
     return (
         <ScrollView
             style={[styles.w100, styles.flex1]}

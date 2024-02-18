@@ -2,8 +2,8 @@ import React, {memo} from 'react';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import {attachmentViewImageDefaultProps, attachmentViewImagePropTypes} from './propTypes';
 
@@ -12,16 +12,18 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, onPress, isImage, onScaleChanged, translate, onError}) {
+function AttachmentViewImage({url, file, isAuthTokenRequired, isFocused, loadComplete, onPress, onError, isImage, translate}) {
+    const styles = useThemeStyles();
     const children = (
         <ImageView
-            onScaleChanged={onScaleChanged}
-            url={source}
+            onError={onError}
+            url={url}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            onError={onError}
+            isFocused={isFocused}
         />
     );
+
     return onPress ? (
         <PressableWithoutFeedback
             onPress={onPress}
@@ -39,5 +41,6 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, o
 
 AttachmentViewImage.propTypes = propTypes;
 AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
+AttachmentViewImage.displayName = 'AttachmentViewImage';
 
 export default compose(memo, withLocalize)(AttachmentViewImage);

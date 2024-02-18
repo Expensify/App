@@ -251,10 +251,16 @@ export default function () {
                     delete newReport.lastActorEmail;
                 }
 
-                if (lodashHas(newReport, ['participants'])) {
+                if (lodashHas(newReport, ['ownerEmail'])) {
                     reportWasModified = true;
-                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing participants from report ${newReport.reportID}`);
-                    delete newReport.participants;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing ownerEmail from report ${newReport.reportID}`);
+                    delete newReport.ownerEmail;
+                }
+
+                if (lodashHas(newReport, ['managerEmail'])) {
+                    reportWasModified = true;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing managerEmail from report ${newReport.reportID}`);
+                    delete newReport.managerEmail;
                 }
 
                 if (reportWasModified) {

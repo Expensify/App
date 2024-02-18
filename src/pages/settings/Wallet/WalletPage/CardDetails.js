@@ -8,10 +8,10 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import styles from '@styles/styles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -58,6 +58,7 @@ const defaultProps = {
 };
 
 function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
 

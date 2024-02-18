@@ -16,13 +16,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -59,7 +59,7 @@ const propTypes = {
     isLoadingPaymentMethods: PropTypes.bool,
 
     /** Type to filter the payment Method list */
-    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
+    filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, '']),
 
     /** User wallet props */
     userWallet: PropTypes.shape({
@@ -96,6 +96,9 @@ const propTypes = {
 
     /** List container style */
     style: stylePropTypes,
+
+    /** List item style */
+    listItemStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -120,6 +123,7 @@ const defaultProps = {
     onListContentSizeChange: () => {},
     shouldEnableScroll: true,
     style: {},
+    listItemStyle: {},
     shouldShowSelectedState: false,
 };
 
@@ -128,7 +132,7 @@ const defaultProps = {
  * @param {Object} item
  */
 function dismissError(item) {
-    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT;
+    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
@@ -162,7 +166,7 @@ function shouldShowDefaultBadge(filteredPaymentMethods, isDefault = false) {
 
     const defaultablePaymentMethodCount = _.filter(
         filteredPaymentMethods,
-        (method) => method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
+        (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
     return defaultablePaymentMethodCount > 1;
 }
@@ -205,7 +209,10 @@ function PaymentMethodList({
     onListContentSizeChange,
     shouldEnableScroll,
     style,
+    listItemStyle,
 }) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -221,7 +228,7 @@ function PaymentMethodList({
 
             return _.map(assignedCards, (card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
-                const icon = getBankIcon(card.bank, true);
+                const icon = getBankIcon({bankName: card.bank, isCard: true, styles});
 
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
@@ -244,7 +251,7 @@ function PaymentMethodList({
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(paymentCardList, (card) => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList, styles);
 
         if (!_.isEmpty(filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterType);
@@ -262,22 +269,24 @@ function PaymentMethodList({
 
             return {
                 ...paymentMethod,
+                iconRight: Expensicons.ThreeDots,
+                shouldShowRightIcon: true,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-                iconFill: isMethodActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isMethodActive,
             };
         });
 
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress]);
+    }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
 
     /**
      * Render placeholder when there are no payments methods
      *
      * @return {React.Component}
      */
-    const renderListEmptyComponent = () => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
+    const renderListEmptyComponent = () => <Text style={styles.popoverMenuItem}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
 
     const renderListFooterComponent = useCallback(
         () => (
@@ -285,10 +294,13 @@ function PaymentMethodList({
                 onPress={onPress}
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
-                wrapperStyle={styles.paymentMethod}
+                wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                hoverAndPressStyle={styles.hoveredComponentBG}
+                ref={buttonRef}
             />
         ),
-        [onPress, translate],
+
+        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef],
     );
 
     /**
@@ -314,26 +326,31 @@ function PaymentMethodList({
                     description={item.description}
                     icon={item.icon}
                     disabled={item.disabled}
-                    iconFill={item.iconFill}
+                    displayInDefaultIconColor
                     iconHeight={item.iconHeight || item.iconSize}
                     iconWidth={item.iconWidth || item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
-                    wrapperStyle={styles.paymentMethod}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    iconRight={item.iconRight}
+                    badgeStyle={styles.badgeBordered}
+                    hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
+                    success={item.isMethodActive}
                 />
             </OfflineWithFeedback>
         ),
-        [filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
+
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.hoveredComponentBG, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (
         <>
-            <View style={[style, {minHeight: variables.optionRowHeight}]}>
+            <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount && 1)) * variables.optionRowHeight}]}>
                 <FlashList
                     estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods}
@@ -341,10 +358,10 @@ function PaymentMethodList({
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
                     onContentSizeChange={onListContentSizeChange}
                     scrollEnabled={shouldEnableScroll}
                 />
+                {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>

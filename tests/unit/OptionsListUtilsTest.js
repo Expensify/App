@@ -1,4 +1,3 @@
-import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
@@ -16,6 +15,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 1,
             participantAccountIDs: [2, 1],
+            visibleChatMemberAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
             hasDraft: true,
             type: CONST.REPORT.TYPE.CHAT,
@@ -26,6 +26,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 2,
             participantAccountIDs: [3],
+            visibleChatMemberAccountIDs: [3],
             reportName: 'Spider-Man',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -37,6 +38,7 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: 3,
             participantAccountIDs: [1],
+            visibleChatMemberAccountIDs: [1],
             reportName: 'Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -46,6 +48,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 4,
             participantAccountIDs: [4],
+            visibleChatMemberAccountIDs: [4],
             reportName: 'Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -55,6 +58,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 5,
             participantAccountIDs: [5],
+            visibleChatMemberAccountIDs: [5],
             reportName: 'Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -64,6 +68,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 6,
             participantAccountIDs: [6],
+            visibleChatMemberAccountIDs: [6],
             reportName: 'Thor',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -75,6 +80,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 7,
             participantAccountIDs: [7],
+            visibleChatMemberAccountIDs: [7],
             reportName: 'Captain America',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -86,6 +92,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 8,
             participantAccountIDs: [12],
+            visibleChatMemberAccountIDs: [12],
             reportName: 'Silver Surfer',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -97,9 +104,9 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 9,
             participantAccountIDs: [8],
+            visibleChatMemberAccountIDs: [8],
             reportName: 'Mister Sinister',
             iouReportID: 100,
-            hasOutstandingIOU: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
 
@@ -110,6 +117,7 @@ describe('OptionsListUtils', () => {
             reportID: 10,
             isPinned: false,
             participantAccountIDs: [2, 7],
+            visibleChatMemberAccountIDs: [2, 7],
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -129,6 +137,7 @@ describe('OptionsListUtils', () => {
             accountID: 1,
             displayName: 'Mister Fantastic',
             login: 'reedrichards@expensify.com',
+            isSelected: true,
         },
         2: {
             accountID: 2,
@@ -188,6 +197,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 11,
             participantAccountIDs: [999],
+            visibleChatMemberAccountIDs: [999],
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -201,6 +211,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 12,
             participantAccountIDs: [1000],
+            visibleChatMemberAccountIDs: [1000],
             reportName: 'Chronos',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -214,6 +225,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 13,
             participantAccountIDs: [1001],
+            visibleChatMemberAccountIDs: [1001],
             reportName: 'Receipts',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -227,6 +239,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 14,
             participantAccountIDs: [1, 10, 3],
+            visibleChatMemberAccountIDs: [1, 10, 3],
             reportName: '',
             oldPolicyName: 'Avengers Room',
             isArchivedRoom: false,
@@ -818,7 +831,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: true,
+                shouldShow: false,
                 indexOffset: 0,
                 data: [
                     {
@@ -1077,14 +1090,8 @@ describe('OptionsListUtils', () => {
                 title: '',
                 shouldShow: false,
                 indexOffset: 0,
+                // data sorted alphabetically by name
                 data: [
-                    {
-                        text: 'Medical',
-                        keyForList: 'Medical',
-                        searchText: 'Medical',
-                        tooltipText: 'Medical',
-                        isDisabled: false,
-                    },
                     {
                         text: 'Accounting',
                         keyForList: 'Accounting',
@@ -1097,6 +1104,13 @@ describe('OptionsListUtils', () => {
                         keyForList: 'HR',
                         searchText: 'HR',
                         tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
                         isDisabled: false,
                     },
                 ],
@@ -1205,6 +1219,7 @@ describe('OptionsListUtils', () => {
                 title: 'All',
                 shouldShow: true,
                 indexOffset: 2,
+                // data sorted alphabetically by name
                 data: [
                     {
                         text: 'Accounting',
@@ -1214,10 +1229,17 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'HR',
-                        keyForList: 'HR',
-                        searchText: 'HR',
-                        tooltipText: 'HR',
+                        text: 'Benefits',
+                        keyForList: 'Benefits',
+                        searchText: 'Benefits',
+                        tooltipText: 'Benefits',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
                         isDisabled: false,
                     },
                     {
@@ -1228,10 +1250,10 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'Cleaning',
-                        keyForList: 'Cleaning',
-                        searchText: 'Cleaning',
-                        tooltipText: 'Cleaning',
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
                         isDisabled: false,
                     },
                     {
@@ -1246,13 +1268,6 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Taxes',
                         searchText: 'Taxes',
                         tooltipText: 'Taxes',
-                        isDisabled: false,
-                    },
-                    {
-                        text: 'Benefits',
-                        keyForList: 'Benefits',
-                        searchText: 'Benefits',
-                        tooltipText: 'Benefits',
                         isDisabled: false,
                     },
                 ],
@@ -1986,8 +2001,150 @@ describe('OptionsListUtils', () => {
         expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
     });
 
+    it('getFilteredOptions() for taxRate', () => {
+        const search = 'rate';
+        const emptySearch = '';
+        const wrongSearch = 'bla bla';
+
+        const policyTaxRatesWithDefault = {
+            name: 'Tax',
+            defaultExternalID: 'CODE1',
+            defaultValue: '0%',
+            foreignTaxDefault: 'CODE1',
+            taxes: {
+                CODE2: {
+                    name: 'Tax rate 2',
+                    value: '3%',
+                },
+                CODE3: {
+                    name: 'Tax option 3',
+                    value: '5%',
+                },
+                CODE1: {
+                    name: 'Tax exempt 1',
+                    value: '0%',
+                },
+            },
+        };
+
+        const resultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        // Adds 'Default' title to default tax.
+                        // Adds value to tax name for more description.
+                        text: 'Tax exempt 1 (0%) • Default',
+                        keyForList: 'CODE1',
+                        searchText: 'Tax exempt 1 (0%) • Default',
+                        tooltipText: 'Tax exempt 1 (0%) • Default',
+                        isDisabled: undefined,
+                        // creates a data option.
+                        data: {
+                            name: 'Tax exempt 1',
+                            code: 'CODE1',
+                            modifiedName: 'Tax exempt 1 (0%) • Default',
+                            value: '0%',
+                        },
+                    },
+                    {
+                        text: 'Tax option 3 (5%)',
+                        keyForList: 'CODE3',
+                        searchText: 'Tax option 3 (5%)',
+                        tooltipText: 'Tax option 3 (5%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax option 3',
+                            code: 'CODE3',
+                            modifiedName: 'Tax option 3 (5%)',
+                            value: '5%',
+                        },
+                    },
+                    {
+                        text: 'Tax rate 2 (3%)',
+                        keyForList: 'CODE2',
+                        searchText: 'Tax rate 2 (3%)',
+                        tooltipText: 'Tax rate 2 (3%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax rate 2',
+                            code: 'CODE2',
+                            modifiedName: 'Tax rate 2 (3%)',
+                            value: '3%',
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const searchResultList = [
+            {
+                title: '',
+                shouldShow: true,
+                indexOffset: 0,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        text: 'Tax rate 2 (3%)',
+                        keyForList: 'CODE2',
+                        searchText: 'Tax rate 2 (3%)',
+                        tooltipText: 'Tax rate 2 (3%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax rate 2',
+                            code: 'CODE2',
+                            modifiedName: 'Tax rate 2 (3%)',
+                            value: '3%',
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const wrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: true,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+
+        const result = OptionsListUtils.getFilteredOptions({}, {}, [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, policyTaxRatesWithDefault);
+
+        expect(result.policyTaxRatesOptions).toStrictEqual(resultList);
+
+        const searchResult = OptionsListUtils.getFilteredOptions({}, {}, [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, policyTaxRatesWithDefault);
+        expect(searchResult.policyTaxRatesOptions).toStrictEqual(searchResultList);
+
+        const wrongSearchResult = OptionsListUtils.getFilteredOptions(
+            {},
+            {},
+            [],
+            wrongSearch,
+            [],
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            false,
+            false,
+            true,
+            policyTaxRatesWithDefault,
+        );
+        expect(wrongSearchResult.policyTaxRatesOptions).toStrictEqual(wrongSearchResultList);
+    });
+
     it('formatMemberForList()', () => {
-        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, {isSelected: key === '1'}));
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
         expect(formattedMembers[0].text).toBe('Mister Fantastic');
@@ -2002,12 +2159,5 @@ describe('OptionsListUtils', () => {
 
         // `isDisabled` is always false
         expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
-
-        // `rightElement` is always null
-        expect(_.every(formattedMembers, (personalDetail) => personalDetail.rightElement === null)).toBe(true);
-
-        // Passing a config should override the other keys
-        const formattedMembersWithRightElement = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, {rightElement: <View />}));
-        expect(_.every(formattedMembersWithRightElement, (personalDetail) => Boolean(personalDetail.rightElement))).toBe(true);
     });
 });

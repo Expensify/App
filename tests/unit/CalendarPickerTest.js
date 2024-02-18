@@ -1,19 +1,13 @@
 import {fireEvent, render, within} from '@testing-library/react-native';
-import {addYears, eachMonthOfInterval, format, subYears} from 'date-fns';
-import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
+import {addMonths, addYears, subMonths, subYears} from 'date-fns';
+import CalendarPicker from '../../src/components/DatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 
-DateUtils.setLocale(CONST.LOCALES.EN);
-const fullYear = new Date().getFullYear();
-const monthsArray = eachMonthOfInterval({
-    start: new Date(fullYear, 0, 1), // January 1st of the current year
-    end: new Date(fullYear, 11, 31), // December 31st of the current year
-});
-// eslint-disable-next-line rulesdir/prefer-underscore-method
-const monthNames = monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
     useNavigation: () => ({navigate: jest.fn()}),
     createNavigationContainerRef: jest.fn(),
 }));
@@ -71,7 +65,7 @@ describe('CalendarPicker', () => {
 
         fireEvent.press(getByTestId('next-month-arrow'));
 
-        const nextMonth = new Date().getMonth() + 1;
+        const nextMonth = addMonths(new Date(), 1).getMonth();
         expect(getByText(monthNames[nextMonth])).toBeTruthy();
     });
 
@@ -80,7 +74,7 @@ describe('CalendarPicker', () => {
 
         fireEvent.press(getByTestId('prev-month-arrow'));
 
-        const prevMonth = new Date().getMonth() - 1;
+        const prevMonth = subMonths(new Date(), 1).getMonth();
         expect(getByText(monthNames[prevMonth])).toBeTruthy();
     });
 
@@ -148,6 +142,19 @@ describe('CalendarPicker', () => {
         );
 
         expect(getByTestId('next-month-arrow')).toBeDisabled();
+    });
+
+    test('should allow navigating to the month of the max date when it has less days than the selected date', () => {
+        const maxDate = new Date('2003-11-27'); // This month has 30 days
+        const value = '2003-10-31';
+        const {getByTestId} = render(
+            <CalendarPicker
+                maxDate={maxDate}
+                value={value}
+            />,
+        );
+
+        expect(getByTestId('next-month-arrow')).not.toBeDisabled();
     });
 
     test('should open the calendar on a month from max date if it is earlier than current month', () => {
@@ -224,7 +231,7 @@ describe('CalendarPicker', () => {
         expect(getByLabelText('16')).not.toBeDisabled();
     });
 
-    test('should not allow to press max date', () => {
+    test('should allow to press max date', () => {
         const value = '2003-02-17';
         const maxDate = new Date('2003-02-24');
         const {getByLabelText} = render(

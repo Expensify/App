@@ -3,7 +3,8 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
-import themeColors from '@styles/themes/default';
+// eslint-disable-next-line no-restricted-imports
+import themeColors from '@styles/theme/themes/dark';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

@@ -12,15 +12,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/LegalNameForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,6 +46,7 @@ const updateLegalName = (values) => {
 };
 
 function LegalNamePage(props) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
@@ -58,18 +59,22 @@ function LegalNamePage(props) {
             ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = 'common.error.fieldRequired';
+        } else if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
-        if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
+        if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
         }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
             ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = 'common.error.fieldRequired';
+        } else if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
-        if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
+        if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
         }
 
         return errors;
@@ -83,7 +88,7 @@ function LegalNamePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingPersonalDetails ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -99,26 +104,24 @@ function LegalNamePage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalFirstName"
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                             name="lfname"
                             label={props.translate('privatePersonalDetails.legalFirstName')}
-                            accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('privatePersonalDetails.legalFirstName')}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalFirstName}
-                            maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="legalLastName"
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
                             name="llname"
                             label={props.translate('privatePersonalDetails.legalLastName')}
-                            accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            aria-label={props.translate('privatePersonalDetails.legalLastName')}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalLastName}
-                            maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>

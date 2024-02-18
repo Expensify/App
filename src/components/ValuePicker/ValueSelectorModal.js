@@ -1,19 +1,16 @@
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
     isVisible: PropTypes.bool.isRequired,
-
-    /** Current value selected  */
-    currentValue: PropTypes.string,
 
     /** Items to pick from */
     items: PropTypes.arrayOf(PropTypes.shape({value: PropTypes.string, label: PropTypes.string})),
@@ -29,23 +26,25 @@ const propTypes = {
 
     /** Function to call when the user closes the modal */
     onClose: PropTypes.func,
+
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
 };
 
 const defaultProps = {
-    currentValue: '',
     items: [],
     selectedItem: {},
     label: '',
     onClose: () => {},
     onItemSelected: () => {},
+    shouldShowTooltips: true,
 };
 
-function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible, onClose, onItemSelected}) {
-    const [sectionsData, setSectionsData] = useState([]);
-
-    useEffect(() => {
-        const itemsData = _.map(items, (item) => ({value: item.value, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
-        setSectionsData(itemsData);
+function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected, shouldShowTooltips}) {
+    const styles = useThemeStyles();
+    const sections = useMemo(() => {
+        const itemsData = _.map(items, (item) => ({value: item.value, alternateText: item.description, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
+        return [{data: itemsData}];
     }, [items, selectedItem]);
 
     return (
@@ -68,10 +67,11 @@ function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={[{data: sectionsData}]}
+                    sections={sections}
                     onSelectRow={onItemSelected}
-                    initiallyFocusedOptionKey={currentValue}
+                    initiallyFocusedOptionKey={selectedItem.value}
                     shouldStopPropagation
+                    shouldShowTooltips={shouldShowTooltips}
                 />
             </ScreenWrapper>
         </Modal>

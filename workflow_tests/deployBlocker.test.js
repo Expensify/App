@@ -71,14 +71,22 @@ describe('test workflow deployBlocker', () => {
                 const testMockSteps = {
                     deployBlocker: mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS,
                 };
+                const testMockJobs = {
+                    updateChecklist: {
+                        steps: mocks.DEPLOYBLOCKER__UPDATECHECKLIST__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
 
-                assertions.assertDeployBlockerJobExecuted(result, 'Labeled issue title', '1234');
+                assertions.assertUpdateChecklistJobExecuted(result);
+                assertions.assertDeployBlockerJobExecuted(result);
             });
             describe('one step fails', () => {
                 it('announces failure on Slack', async () => {
@@ -89,24 +97,32 @@ describe('test workflow deployBlocker', () => {
                     const testMockSteps = {
                         deployBlocker: utils.deepCopy(mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS),
                     };
-                    testMockSteps.deployBlocker[2] = utils.createMockStep(
-                        'Update StagingDeployCash with new deploy blocker',
-                        'Update StagingDeployCash with new deploy blocker',
+                    testMockSteps.deployBlocker[1] = utils.createMockStep(
+                        'Give the issue/PR the Hourly, Engineering labels',
+                        'Give the issue/PR the Hourly, Engineering labels',
                         'DEPLOYBLOCKER',
-                        ['GITHUB_TOKEN'],
                         [],
-                        {},
-                        {},
+                        ['GITHUB_TOKEN'],
+                        null,
+                        null,
                         false,
                     );
+                    const testMockJobs = {
+                        updateChecklist: {
+                            steps: mocks.DEPLOYBLOCKER__UPDATECHECKLIST__STEP_MOCKS,
+                            runsOn: 'ubuntu-latest',
+                        },
+                    };
                     const result = await act.runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
                         mockSteps: testMockSteps,
                         actor,
                         logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
+                        mockJobs: testMockJobs,
                     });
 
-                    assertions.assertDeployBlockerJobExecuted(result, 'Labeled issue title', '1234', true, false);
+                    assertions.assertUpdateChecklistJobExecuted(result);
+                    assertions.assertDeployBlockerJobExecuted(result, true, false, 1);
                 });
             });
         });
@@ -121,14 +137,22 @@ describe('test workflow deployBlocker', () => {
                 const testMockSteps = {
                     deployBlocker: mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS,
                 };
+                const testMockJobs = {
+                    updateChecklist: {
+                        steps: mocks.DEPLOYBLOCKER__UPDATECHECKLIST__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
 
-                assertions.assertDeployBlockerJobExecuted(result, '', '', false);
+                assertions.assertUpdateChecklistJobExecuted(result, false);
+                assertions.assertDeployBlockerJobExecuted(result, false);
             });
         });
     });

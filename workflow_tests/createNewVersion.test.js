@@ -46,8 +46,10 @@ describe('test workflow createNewVersion', () => {
         };
         const secrets = {
             LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-            OS_BOTIFY_TOKEN: 'dummy_osbotify_token',
+            OS_BOTIFY_COMMIT_TOKEN: 'dummy_osbotify_commit_token',
             SLACK_WEBHOOK: 'dummy_webhook',
+            OS_BOTIFY_APP_ID: 'os_botify_app_id',
+            OS_BOTIFY_PRIVATE_KEY: 'os_botify_private_key',
         };
         const githubToken = 'dummy_github_token';
 

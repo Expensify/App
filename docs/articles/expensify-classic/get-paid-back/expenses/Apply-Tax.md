@@ -19,7 +19,7 @@ There may be multiple tax rates set up within your Workspace, so if the tax on y
 If the tax amount on your receipt is different to the calculated amount or the tax rate doesn’t show up, you can always manually type in the correct tax amount.
 
 
-# FAQ
+{% include faq-begin.md %}
 
 ## How do I set up multiple taxes (GST/PST/QST) on indirect connections?
 Expenses sometimes have more than one tax applied to them - for example in Canada, expenses can have both a Federal GST and a provincial PST or QST. 
@@ -37,3 +37,4 @@ Many tax authorities do not require the reporting of tax amounts by rate and the
 
 Alternatively, you can apply each specific tax rate by splitting the expense into the components that each rate will be applied to. To do this, click on **Split Expense** and apply the correct tax rate to each part.
 
+{% include faq-end.md %}

@@ -33,6 +33,7 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                         shouldShowResetModal: false,
                         isLoading: true,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        achData: null,
                     },
                 },
             ],
@@ -40,6 +41,11 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.ONFIDO_TOKEN,
+                    value: '',
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.ONFIDO_APPLICANT_ID,
                     value: '',
                 },
                 {
@@ -59,7 +65,7 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+                    key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
                     value: {},
                 },
             ],

@@ -7,12 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The chat priority mode */
@@ -26,6 +25,7 @@ const defaultProps = {
 };
 
 function PriorityModePage(props) {
+    const styles = useThemeStyles();
     const priorityModes = _.map(_.values(CONST.PRIORITY_MODE), (mode) => ({
         value: mode,
         text: props.translate(`priorityModePage.priorityModes.${mode}.label`),
@@ -37,7 +37,7 @@ function PriorityModePage(props) {
     const updateMode = useCallback(
         (mode) => {
             if (mode.value === props.priorityMode) {
-                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+                Navigation.goBack();
                 return;
             }
             User.updateChatPriorityMode(mode.value);
@@ -52,9 +52,9 @@ function PriorityModePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('priorityModePage.priorityMode')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
-            <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
+            <Text style={[styles.mh5, styles.mv3]}>{props.translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
                 onSelectRow={updateMode}

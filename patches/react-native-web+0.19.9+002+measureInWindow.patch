@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-web/dist/exports/UIManager/index.js b/node_modules/react-native-web/dist/exports/UIManager/index.js
+index 15b71d5..46b9e01 100644
+--- a/node_modules/react-native-web/dist/exports/UIManager/index.js
++++ b/node_modules/react-native-web/dist/exports/UIManager/index.js
+@@ -77,7 +77,7 @@ var UIManager = {
+   measureInWindow(node, callback) {
+     if (node) {
+       setTimeout(() => {
+-        var _getRect2 = getRect(node),
++        var _getRect2 = node.getBoundingClientRect(),
+           height = _getRect2.height,
+           left = _getRect2.left,
+           top = _getRect2.top,

@@ -11,7 +11,7 @@ index b63bcfc..bd6419e 100644
      buildPanResponder: () => void;
      getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
 diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
-index 80f4e75..a88a2ca 100644
+index 80f4e75..3ba8b8c 100644
 --- a/node_modules/react-native-modal/dist/modal.js
 +++ b/node_modules/react-native-modal/dist/modal.js
 @@ -75,6 +75,13 @@ export class ReactNativeModal extends React.Component {
@@ -28,23 +28,27 @@ index 80f4e75..a88a2ca 100644
          this.shouldPropagateSwipe = (evt, gestureState) => {
              return typeof this.props.propagateSwipe === 'function'
                  ? this.props.propagateSwipe(evt, gestureState)
-@@ -454,9 +461,15 @@ export class ReactNativeModal extends React.Component {
+@@ -453,10 +460,18 @@ export class ReactNativeModal extends React.Component {
+         if (this.state.isVisible) {
              this.open();
          }
-         BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPress);
 +        if (Platform.OS === 'web') {
 +            document?.body?.addEventListener?.('keyup', this.handleEscape, true);
++            return;
 +        }
+         BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPress);
      }
      componentWillUnmount() {
-         BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPress);
+-        BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPress);
 +        if (Platform.OS === 'web') {
 +            document?.body?.removeEventListener?.('keyup', this.handleEscape, true);
++        } else {
++            BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPress);
 +        }
          if (this.didUpdateDimensionsEmitter) {
              this.didUpdateDimensionsEmitter.remove();
          }
-@@ -525,7 +538,7 @@ export class ReactNativeModal extends React.Component {
+@@ -525,7 +540,7 @@ export class ReactNativeModal extends React.Component {
          }
          return (React.createElement(Modal, Object.assign({ transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress }, otherProps),
              this.makeBackdrop(),

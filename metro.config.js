@@ -1,17 +1,13 @@
-const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const {getDefaultConfig} = require('expo/metro-config');
+const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const defaultSourceExts = require('metro-config/src/defaults/defaults').sourceExts;
-const _ = require('underscore');
 require('dotenv').config();
 
 const defaultConfig = getDefaultConfig(__dirname);
 
-const isUsingMockAPI = process.env.E2E_TESTING === 'true';
-
-if (isUsingMockAPI) {
-    // eslint-disable-next-line no-console
-    console.log('⚠️⚠️⚠️⚠️ Using mock API ⚠️⚠️⚠️⚠️');
-}
+const isE2ETesting = process.env.E2E_TESTING === 'true';
+const e2eSourceExts = ['e2e.js', 'e2e.ts'];
 
 /**
  * Metro configuration
@@ -21,26 +17,9 @@ if (isUsingMockAPI) {
  */
 const config = {
     resolver: {
-        assetExts: _.filter(defaultAssetExts, (ext) => ext !== 'svg'),
-        sourceExts: [...defaultSourceExts, 'jsx', 'svg'],
-        resolveRequest: (context, moduleName, platform) => {
-            const resolution = context.resolveRequest(context, moduleName, platform);
-            if (isUsingMockAPI && moduleName.includes('/API')) {
-                const originalPath = resolution.filePath;
-                const mockPath = originalPath.replace('src/libs/API.ts', 'src/libs/E2E/API.mock.js').replace('/src/libs/API.js/', 'src/libs/E2E/API.mock.js');
-                // eslint-disable-next-line no-console
-                console.log('⚠️⚠️⚠️⚠️ Replacing resolution path', originalPath, ' => ', mockPath);
-
-                return {
-                    ...resolution,
-                    filePath: mockPath,
-                };
-            }
-            return resolution;
-        },
-    },
-    transformer: {
-        babelTransformerPath: require.resolve('react-native-svg-transformer'),
+        assetExts: [...defaultAssetExts, 'lottie'],
+        // When we run the e2e tests we want files that have the extension e2e.js to be resolved as source files
+        sourceExts: [...(isE2ETesting ? e2eSourceExts : []), ...defaultSourceExts, 'jsx'],
     },
 };
 

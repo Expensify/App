@@ -12,10 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup NodeJS
-        uses: Expensify/App/.github/actions/composite/setupNode@main
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Set dummy git credentials
+        run: |
+            git config --global user.email "test@test.com"
+            git config --global user.name "Test"
 
       - name: Run performance testing script
         shell: bash
@@ -27,20 +32,14 @@ jobs:
           npm install --force
           npx reassure --baseline
           git switch --force --detach -
+          git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
+          git checkout --ours .
           npm install --force
           npx reassure --branch
 
-      - name: Read output.json
-        id: reassure
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: .reassure/output.json
-
       - name: Validate output.json
         id: validateReassureOutput
-        uses: Expensify/App/.github/actions/javascript/validateReassureOutput@main
+        uses: ./.github/actions/javascript/validateReassureOutput
         with:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
-          REGRESSION_OUTPUT: ${{ steps.reassure.outputs.content }}
-

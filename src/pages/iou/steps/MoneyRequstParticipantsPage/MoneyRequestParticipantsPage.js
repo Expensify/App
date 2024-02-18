@@ -1,17 +1,22 @@
+import _ from 'lodash';
 import lodashGet from 'lodash/get';
+import lodashSize from 'lodash/size';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,47 +40,54 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
+    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
+
+    /** Transaction that stores the distance request data */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    transaction: {},
     selectedTab: undefined,
 };
 
-function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
+function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
-    const optionsSelectorRef = useRef();
     const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
     const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
     const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
-    const [headerTitle, setHeaderTitle] = useState();
-
-    useEffect(() => {
+    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
+    const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
+    const headerTitle = useMemo(() => {
         if (isDistanceRequest) {
-            setHeaderTitle(translate('common.distance'));
-            return;
+            return translate('common.distance');
         }
 
         if (isSendRequest) {
-            setHeaderTitle(translate('common.send'));
-            return;
+            return translate('common.send');
         }
 
         if (isScanRequest) {
-            setHeaderTitle(translate('tabSelector.scan'));
-            return;
+            return translate('tabSelector.scan');
         }
 
-        setHeaderTitle(iou.isSplitRequest ? translate('iou.split') : translate('tabSelector.manual'));
-    }, [iou.isSplitRequest, isDistanceRequest, translate, isScanRequest, isSendRequest]);
+        if (iou.isSplitRequest) {
+            return translate('iou.split');
+        }
+
+        return translate('tabSelector.manual');
+    }, [iou, isDistanceRequest, translate, isScanRequest, isSendRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
+        IOU.resetMoneyRequestCategory();
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
     };
 
@@ -85,10 +97,12 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
     }, []);
 
     useEffect(() => {
+        const isInvalidDistanceRequest = !isDistanceRequest || isInvalidWaypoint;
+
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id && !isDistanceRequest && !isSplitRequest) {
+            if (iou.id && isInvalidDistanceRequest && !isSplitRequest) {
                 navigateBack(true);
             }
             return;
@@ -96,24 +110,23 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType}${reportID}`;
-        const shouldReset = iou.id !== moneyRequestId;
+        const shouldReset = iou.id !== moneyRequestId && !_.isEmpty(reportID);
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+        if (isInvalidDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             navigateBack(true);
         }
 
         return () => {
             prevMoneyRequestId.current = iou.id;
         };
-    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, iouType, reportID, navigateBack]);
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest, isSplitRequest, iouType, reportID, navigateBack, isInvalidWaypoint]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
-            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={MoneyRequestParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -123,7 +136,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route}) {
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestParticipantsSelector
-                        ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.isSplitRequest ? iou.participants : []}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType)}
@@ -143,11 +155,19 @@ MoneyRequestParticipantsPage.displayName = 'MoneyRequestParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    selectedTab: {
-        key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
-    },
-})(MoneyRequestParticipantsPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx({
+        transaction: {
+            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(iou, 'transactionID', 0)}`,
+        },
+    }),
+)(MoneyRequestParticipantsPage);

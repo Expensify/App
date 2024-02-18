@@ -1,10 +1,17 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import CONST from '@src/CONST';
 
 const commonListItemPropTypes = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused: PropTypes.bool,
+
+    /** Style to be applied to Text */
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to be applied on the alternate text */
+    alternateTextStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether this item is disabled */
     isDisabled: PropTypes.bool,
@@ -15,7 +22,7 @@ const commonListItemPropTypes = {
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple: PropTypes.bool,
 
-    /** Callback to fire when the item is pressed */
+    /** Callback to fire when the item is selected */
     onSelectRow: PropTypes.func.isRequired,
 
     /** Callback to fire when an error is dismissed */
@@ -54,7 +61,7 @@ const userListItemPropTypes = {
         /** Icons for the user (can be multiple if it's a Workspace) */
         icons: PropTypes.arrayOf(
             PropTypes.shape({
-                source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+                source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]).isRequired,
                 name: PropTypes.string,
                 type: PropTypes.string,
             }),
@@ -138,8 +145,8 @@ const propTypes = {
     /** Callback to fire when the text input changes */
     onChangeText: PropTypes.func,
 
-    /** Keyboard type for the text input */
-    keyboardType: PropTypes.string,
+    /** Input mode for the text input */
+    inputMode: PropTypes.string,
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey: PropTypes.string,
@@ -182,6 +189,15 @@ const propTypes = {
 
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
+
+    /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
+    shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
+
+    /** Right hand side component to display in the list item. Function has list item passed as the param */
+    rightHandSideComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 };
 
 export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};

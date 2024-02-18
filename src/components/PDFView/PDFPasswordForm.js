@@ -6,10 +6,10 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import PDFInfoMessage from './PDFInfoMessage';
 
@@ -42,6 +42,7 @@ const defaultProps = {
 };
 
 function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicator, onSubmit, onPasswordUpdated, onPasswordFieldFocused}) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -54,13 +55,13 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
-            return translate('attachmentView.passwordIncorrect');
+            return 'attachmentView.passwordIncorrect';
         }
         if (!_.isEmpty(validationErrorText)) {
-            return translate(validationErrorText);
+            return validationErrorText;
         }
         return '';
-    }, [isPasswordInvalid, translate, validationErrorText]);
+    }, [isPasswordInvalid, validationErrorText]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -122,7 +123,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 ref={textInputRef}
                 label={translate('common.password')}
                 accessibilityLabel={translate('common.password')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 /**
                  * This is a workaround to bypass Safari's autofill odd behaviour.
                  * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
@@ -131,7 +132,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 autoCorrect={false}
                 textContentType="password"
                 onChangeText={updatePassword}
-                returnKeyType="go"
+                enterKeyHint="done"
                 onSubmitEditing={submitPassword}
                 errorText={errorText}
                 onFocus={() => onPasswordFieldFocused(true)}

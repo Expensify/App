@@ -1,17 +1,16 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager, StyleSheet, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Header from '@components/Header';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import Breadcrumbs from '@components/Breadcrumbs';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,15 +18,15 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import * as App from '@userActions/App';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const basePropTypes = {
+    /** Toggles the navigation menu open and closed */
+    onLinkClick: PropTypes.func.isRequired,
+
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 };
@@ -45,7 +44,9 @@ const propTypes = {
     isActiveReport: PropTypes.func.isRequired,
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}) {
+function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen, activePolicy}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const modal = useRef({});
     const {translate, updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -58,7 +59,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
 
         InteractionManager.runAfterInteractions(() => {
@@ -107,15 +107,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const showSearchPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SEARCH);
-    }, [isCreateMenuOpen]);
-
     /**
      * Show Report page with selected report id
      *
@@ -140,38 +131,43 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+
     return (
         <View style={[styles.flex1, styles.h100]}>
-            <View
-                style={styles.sidebarHeaderContainer}
-                dataSet={{dragArea: true}}
-            >
-                <Header
-                    title={<Text style={styles.textHeadline}>{translate('globalNavigationOptions.chats')}</Text>}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    shouldShowEnvironmentBadge
-                />
-                <Tooltip text={translate('common.search')}>
-                    <PressableWithoutFeedback
-                        accessibilityLabel={translate('sidebarScreen.buttonSearch')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        style={[styles.flexRow, styles.ph5]}
-                        onPress={Session.checkIfActionIsAllowed(showSearchPage)}
-                    >
-                        <Icon src={Expensicons.MagnifyingGlass} />
-                    </PressableWithoutFeedback>
-                </Tooltip>
-            </View>
-
-            <LHNOptionsList
-                style={[isLoading ? styles.flexShrink1 : styles.flex1]}
-                contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
-                data={optionListItems}
-                onSelectRow={showReportPage}
-                shouldDisableFocusOptions={isSmallScreenWidth}
-                optionMode={viewMode}
+            <Breadcrumbs
+                breadcrumbs={[
+                    activePolicy
+                        ? {
+                              type: CONST.BREADCRUMB_TYPE.STRONG,
+                              text: lodashGet(activePolicy, 'name', ''),
+                          }
+                        : {
+                              type: CONST.BREADCRUMB_TYPE.ROOT,
+                          },
+                    {
+                        text: translate('common.chats'),
+                    },
+                ]}
+                style={[styles.mb5, styles.ph5]}
             />
-            {isLoading && <OptionsListSkeletonView shouldAnimate />}
+            <View style={[styles.pRelative, styles.flex1]}>
+                <LHNOptionsList
+                    style={styles.flex1}
+                    contentContainerStyles={contentContainerStyles}
+                    data={optionListItems}
+                    onSelectRow={showReportPage}
+                    shouldDisableFocusOptions={isSmallScreenWidth}
+                    optionMode={viewMode}
+                    onFirstItemRendered={App.setSidebarLoaded}
+                />
+                {isLoading && optionListItems.length === 0 && (
+                    <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
+                        <OptionsListSkeletonView shouldAnimate />
+                    </View>
+                )}
+            </View>
         </View>
     );
 }
@@ -179,5 +175,9 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.displayName = 'SidebarLinks';
 
-export default SidebarLinks;
+export default withOnyx({
+    activePolicy: {
+        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
+    },
+})(SidebarLinks);
 export {basePropTypes};

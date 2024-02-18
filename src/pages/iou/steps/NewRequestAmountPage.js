@@ -9,13 +9,13 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,16 +45,17 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
+    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
-    selectedTab: CONST.TAB.MANUAL,
+    selectedTab: CONST.TAB_REQUEST.MANUAL,
 };
 
 function NewRequestAmountPage({route, iou, report, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -62,7 +63,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
 
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isEditing = lodashGet(route, 'path', '').includes('amount');
+    const isEditing = Navigation.getActiveRoute().includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
     const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
@@ -123,12 +124,12 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         }
 
         // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
         Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
-    const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+    const navigateToNextPage = ({amount}) => {
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
 
@@ -148,6 +149,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
+            selectedTab={selectedTab}
         />
     );
 

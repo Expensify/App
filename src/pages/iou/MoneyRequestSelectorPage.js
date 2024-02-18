@@ -11,19 +11,20 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
-import ReceiptSelector from './ReceiptSelector';
+import IOURequestStepScan from './request/step/IOURequestStepScan';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
 const propTypes = {
@@ -42,20 +43,24 @@ const propTypes = {
     /** Report on which the money request is being created */
     report: reportPropTypes,
 
+    /** The policy tied to the report */
+    policy: PropTypes.shape({
+        /** Type of the policy */
+        type: PropTypes.string,
+    }),
+
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
-    selectedTab: CONST.TAB.SCAN,
+    selectedTab: CONST.TAB_REQUEST.SCAN,
     report: {},
-    betas: [],
+    policy: {},
 };
 
 function MoneyRequestSelectorPage(props) {
+    const styles = useThemeStyles();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
@@ -68,8 +73,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
     const isFromGlobalCreate = !reportID;
-    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
+    const isExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
+    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
+    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
@@ -77,7 +83,7 @@ function MoneyRequestSelectorPage(props) {
     };
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.policy, iouType);
     const prevSelectedTab = usePrevious(props.selectedTab);
 
     useEffect(() => {
@@ -94,13 +100,14 @@ function MoneyRequestSelectorPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
             testID={MoneyRequestSelectorPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
                     <DragAndDropProvider
-                        isDisabled={props.selectedTab !== CONST.TAB.SCAN}
+                        isDisabled={props.selectedTab !== CONST.TAB_REQUEST.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -121,18 +128,14 @@ function MoneyRequestSelectorPage(props) {
                                     )}
                                 >
                                     <TopTab.Screen
-                                        name={CONST.TAB.MANUAL}
+                                        name={CONST.TAB_REQUEST.MANUAL}
                                         component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
-                                        component={ReceiptSelector}
-                                        initialParams={{reportID, iouType, pageIndex: 1}}
-                                    />
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={props.route} />}</TopTab.Screen>
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
+                                            name={CONST.TAB_REQUEST.DISTANCE}
                                             component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType}}
                                         />
@@ -158,6 +161,9 @@ export default compose(
     withOnyx({
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
         },
     }),
 )(MoneyRequestSelectorPage);

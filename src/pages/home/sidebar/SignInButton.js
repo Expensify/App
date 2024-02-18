@@ -4,25 +4,26 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 
 function SignInButton() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-            onPress={Session.signOutAndRedirectToSignIn}
+            role={CONST.ROLE.BUTTON}
+            onPress={() => Session.signOutAndRedirectToSignIn()}
         >
             <View style={styles.signInButtonAvatar}>
                 <Button
                     medium
                     success
                     text={translate('common.signIn')}
-                    onPress={Session.signOutAndRedirectToSignIn}
+                    onPress={() => Session.signOutAndRedirectToSignIn()}
                 />
             </View>
         </PressableWithoutFeedback>

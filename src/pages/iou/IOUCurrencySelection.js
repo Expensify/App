@@ -86,7 +86,7 @@ function IOUCurrencySelection(props) {
         const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
 
         // Do not dismiss the modal, when a current user can edit this currency of this money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, report.parentReportID, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             return;
         }
 
@@ -105,7 +105,7 @@ function IOUCurrencySelection(props) {
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
             if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack();
             } else {
                 Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
             }
@@ -126,8 +126,12 @@ function IOUCurrencySelection(props) {
             };
         });
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text) || searchRegex.test(currencyOption.currencyName));
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim().replace(CONST.REGEX.ANY_SPACE, ' ')), 'i');
+        const filteredCurrencies = _.filter(
+            currencyOptions,
+            (currencyOption) =>
+                searchRegex.test(currencyOption.text.replace(CONST.REGEX.ANY_SPACE, ' ')) || searchRegex.test(currencyOption.currencyName.replace(CONST.REGEX.ANY_SPACE, ' ')),
+        );
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
         return {
@@ -153,20 +157,29 @@ function IOUCurrencySelection(props) {
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={IOUCurrencySelection.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.selectCurrency')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
-            />
-            <SelectionList
-                sections={sections}
-                textInputLabel={translate('common.search')}
-                textInputValue={searchValue}
-                onChangeText={setSearchValue}
-                onSelectRow={confirmCurrencySelection}
-                headerMessage={headerMessage}
-                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                showScrollIndicator
-            />
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('common.selectCurrency')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
+                    />
+                    <SelectionList
+                        sections={sections}
+                        textInputLabel={translate('common.search')}
+                        textInputValue={searchValue}
+                        onChangeText={setSearchValue}
+                        onSelectRow={(option) => {
+                            if (!didScreenTransitionEnd) {
+                                return;
+                            }
+                            confirmCurrencySelection(option);
+                        }}
+                        headerMessage={headerMessage}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        showScrollIndicator
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }

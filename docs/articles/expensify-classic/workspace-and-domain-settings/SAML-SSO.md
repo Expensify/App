@@ -77,7 +77,7 @@ To enable SSO with Microsoft ADFS follow these steps:
 
 Assuming you’ve also set up Expensify SAML configuration with your metadata, SAML logins on Expensify.com should now work. For reference, ADFS’ default metadata path is: https://yourservicename.yourdomainname.com/FederationMetadata/2007-06/FederationMetadata.xml.
 
-# FAQ
+{% include faq-begin.md %}
 ## What should I do if I’m getting an error when trying to set up SSO? 
 You can double check your configuration data for errors using samltool.com. If you’re still having issues, you can reach out to your Account Manager or contact Concierge for assistance.
 
@@ -87,3 +87,4 @@ The entityID for Expensify is https://expensify.com. Remember not to copy and pa
 ## Can you have multiple domains with only one entityID?
 Yes. Please send a message to Concierge or your account manager and we will enable the ability to use the same entityID with multiple domains.
 
+{% include faq-end.md %}

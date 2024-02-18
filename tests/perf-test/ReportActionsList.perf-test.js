@@ -13,10 +13,9 @@ import {ActionListContext, ReactionListContext} from '../../src/pages/home/Repor
 import variables from '../../src/styles/variables';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
+import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-jest.setTimeout(60000);
 
 const mockedNavigate = jest.fn();
 
@@ -58,7 +57,7 @@ afterAll(() => {
 
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
-const mockLoadMoreChats = jest.fn();
+const mockLoadChats = jest.fn();
 const mockRef = {current: null};
 
 // Initialize the network key for OfflineWithFeedback
@@ -74,49 +73,6 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-const getFakeReportAction = (index) => ({
-    actionName: 'ADDCOMMENT',
-    actorAccountID: index,
-    automatic: false,
-    avatar: '',
-    created: '2023-09-12 16:27:35.124',
-    isAttachment: true,
-    isFirstItem: false,
-    lastModified: '2021-07-14T15:00:00Z',
-    message: [
-        {
-            html: 'hey',
-            isDelatedParentAction: false,
-            isEdited: false,
-            reactions: [],
-            text: 'test',
-            type: 'TEXT',
-            whisperedTo: [],
-        },
-    ],
-    originalMessage: {
-        html: 'hey',
-        lastModified: '2021-07-14T15:00:00Z',
-    },
-    pendingAction: null,
-    person: [
-        {
-            type: 'TEXT',
-            style: 'strong',
-            text: 'email@test.com',
-        },
-    ],
-    previousReportActionID: '1',
-    reportActionID: index.toString(),
-    reportActionTimestamp: 1696243169753,
-    sequenceNumber: 2,
-    shouldShow: true,
-    timestamp: 1696243169,
-    whisperedToAccountIDs: [],
-});
-
-const getMockedSortedReportActions = (length = 100) => Array.from({length}, (__, i) => getFakeReportAction(i));
-
 const currentUserAccountID = 5;
 
 function ReportActionsListWrapper() {
@@ -125,11 +81,13 @@ function ReportActionsListWrapper() {
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
-                        sortedReportActions={getMockedSortedReportActions(500)}
+                        sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                         report={LHNTestUtils.getFakeReport()}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
-                        loadMoreChats={mockLoadMoreChats}
+                        loadMoreChats={mockLoadChats}
+                        loadOlderChats={mockLoadChats}
+                        loadNewerChats={mockLoadChats}
                         currentUserPersonalDetails={LHNTestUtils.fakePersonalDetails[currentUserAccountID]}
                     />
                 </ActionListContext.Provider>
@@ -138,7 +96,7 @@ function ReportActionsListWrapper() {
     );
 }
 
-test('should render ReportActionsList with 500 reportActions stored', () => {
+test('[ReportActionsList] should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
@@ -155,7 +113,7 @@ test('should render ReportActionsList with 500 reportActions stored', () => {
         .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
 });
 
-test('should scroll and click some of the reports', () => {
+test('[ReportActionsList] should scroll and click some of the reports', () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {
@@ -176,8 +134,6 @@ test('should scroll and click some of the reports', () => {
 
     const scenario = async () => {
         const reportActionsList = await screen.findByTestId('report-actions-list');
-        expect(reportActionsList).toBeDefined();
-
         fireEvent.scroll(reportActionsList, eventData);
 
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');

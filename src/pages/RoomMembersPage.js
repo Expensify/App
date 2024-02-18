@@ -7,36 +7,30 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import * as Browser from '@libs/Browser';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
-    /** All personal details asssociated with user */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -67,21 +61,21 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     session: {
         accountID: 0,
     },
     report: {},
     policies: {},
-    betas: [],
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function RoomMembersPage(props) {
+    const styles = useThemeStyles();
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     /**
      * Get members for the current room
@@ -92,11 +86,6 @@ function RoomMembersPage(props) {
     }, [props.report.reportID]);
 
     useEffect(() => {
-        // Kick the user out if they tried to navigate to this via the URL
-        if (!PolicyUtils.isPolicyMember(props.report.policyID, props.policies) || !Permissions.canUsePolicyRooms(props.betas)) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
-            return;
-        }
         getRoomMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -111,6 +100,7 @@ function RoomMembersPage(props) {
 
     /**
      * Remove selected users from the room
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         Report.removeFromRoom(props.report.reportID, selectedMembers);
@@ -185,8 +175,8 @@ function RoomMembersPage(props) {
     const getMemberOptions = () => {
         let result = [];
 
-        _.each(props.report.participantAccountIDs, (accountID) => {
-            const details = props.personalDetails[accountID];
+        _.each(props.report.visibleChatMemberAccountIDs, (accountID) => {
+            const details = personalDetails[accountID];
 
             if (!details) {
                 Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
@@ -206,7 +196,7 @@ function RoomMembersPage(props) {
                     memberDetails += ` ${details.lastName.toLowerCase()}`;
                 }
                 if (details.displayName) {
-                    memberDetails += ` ${details.displayName.toLowerCase()}`;
+                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
                 }
                 if (details.phoneNumber) {
                     memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
@@ -222,13 +212,14 @@ function RoomMembersPage(props) {
                 accountID: Number(accountID),
                 isSelected: _.contains(selectedMembers, Number(accountID)),
                 isDisabled: accountID === props.session.accountID,
-                text: props.formatPhoneNumber(details.displayName),
+                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
                         name: details.login,
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: Number(accountID),
                     },
                 ],
             });
@@ -293,14 +284,15 @@ function RoomMembersPage(props) {
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
-                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || !didLoadRoomMembers}
+                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         />
                     </View>
                 </View>
@@ -318,17 +310,11 @@ export default compose(
     withWindowDimensions,
     withReportOrNotFound(),
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
     withCurrentUserPersonalDetails,

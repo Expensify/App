@@ -38,6 +38,13 @@ describe('test workflow finishReleaseCycle', () => {
     afterEach(async () => {
         await mockGithub.teardown();
     });
+    const secrets = {
+        OS_BOTIFY_TOKEN: 'dummy_token',
+        LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+        SLACK_WEBHOOK: 'dummy_slack_webhook',
+        OS_BOTIFY_APP_ID: 'os_botify_app_id',
+        OS_BOTIFY_PRIVATE_KEY: 'os_botify_private_key',
+    };
     describe('issue closed', () => {
         describe('issue has StagingDeployCash', () => {
             describe('actor is a team member', () => {
@@ -57,11 +64,7 @@ describe('test workflow finishReleaseCycle', () => {
                                     number: '1234',
                                 },
                             },
-                            {
-                                OS_BOTIFY_TOKEN: 'dummy_token',
-                                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                SLACK_WEBHOOK: 'dummy_slack_webhook',
-                            },
+                            secrets,
                         );
                         const testMockSteps = {
                             validate: mocks.FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,
@@ -107,11 +110,7 @@ describe('test workflow finishReleaseCycle', () => {
                                     number: '1234',
                                 },
                             },
-                            {
-                                OS_BOTIFY_TOKEN: 'dummy_token',
-                                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                SLACK_WEBHOOK: 'dummy_slack_webhook',
-                            },
+                            secrets,
                         );
                         const testMockSteps = {
                             validate: mocks.FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_BLOCKERS__STEP_MOCKS,
@@ -158,11 +157,7 @@ describe('test workflow finishReleaseCycle', () => {
                                 number: '1234',
                             },
                         },
-                        {
-                            OS_BOTIFY_TOKEN: 'dummy_token',
-                            LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                            SLACK_WEBHOOK: 'dummy_slack_webhook',
-                        },
+                        secrets,
                     );
                     const testMockSteps = {
                         validate: mocks.FINISHRELEASECYCLE__VALIDATE__NOT_TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,
@@ -209,11 +204,7 @@ describe('test workflow finishReleaseCycle', () => {
                             number: '1234',
                         },
                     },
-                    {
-                        OS_BOTIFY_TOKEN: 'dummy_token',
-                        LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                        SLACK_WEBHOOK: 'dummy_slack_webhook',
-                    },
+                    secrets,
                 );
                 const testMockSteps = {
                     validate: mocks.FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,

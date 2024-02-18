@@ -15,12 +15,13 @@ import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -66,6 +67,7 @@ const defaultProps = {
 };
 
 function TransferBalancePage(props) {
+    const styles = useThemeStyles();
     const paymentCardList = props.fundList || {};
 
     const paymentTypes = [
@@ -84,7 +86,7 @@ function TransferBalancePage(props) {
             title: props.translate('transferAmountPage.ach'),
             description: props.translate('transferAmountPage.achSummary'),
             icon: Expensicons.Bank,
-            type: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+            type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         },
     ];
 
@@ -93,7 +95,7 @@ function TransferBalancePage(props) {
      * @returns {Object|undefined}
      */
     function getSelectedPaymentMethodAccount() {
-        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList, styles);
 
         const defaultAccount = _.find(paymentMethods, (method) => method.isDefault);
         const selectedAccount = _.find(
@@ -110,7 +112,7 @@ function TransferBalancePage(props) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList, styles);
 
         const filteredMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
@@ -145,7 +147,7 @@ function TransferBalancePage(props) {
                 <ConfirmationPage
                     heading={props.translate('transferAmountPage.transferSuccess')}
                     description={
-                        props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                        props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
                             ? props.translate('transferAmountPage.transferDetailBankAccount')
                             : props.translate('transferAmountPage.transferDetailDebitCard')
                     }
@@ -159,13 +161,13 @@ function TransferBalancePage(props) {
 
     const selectedAccount = getSelectedPaymentMethodAccount();
     const selectedPaymentType =
-        selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
+        selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
     const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(props.userWallet.currentBalance, selectedPaymentType);
     const transferAmount = props.userWallet.currentBalance - calculatedFee;
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
-    const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? _.chain(props.walletTransfer.errors).values().first().value() : '';
+    const errorMessage = ErrorUtils.getLatestErrorMessage(props.walletTransfer);
 
     const shouldShowTransferView =
         PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, props.bankAccountList) &&
@@ -218,10 +220,12 @@ function TransferBalancePage(props) {
                             title={selectedAccount.title}
                             description={selectedAccount.description}
                             shouldShowRightIcon
+                            iconStyles={selectedAccount.iconStyles}
                             iconWidth={selectedAccount.iconSize}
                             iconHeight={selectedAccount.iconSize}
                             icon={selectedAccount.icon}
                             onPress={() => navigateToChooseTransferAccount(selectedAccount.accountType)}
+                            displayInDefaultIconColor
                         />
                     )}
                     <View style={styles.ph5}>

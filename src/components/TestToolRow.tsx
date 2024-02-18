@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
 
 type TestToolRowProps = {
@@ -12,8 +12,9 @@ type TestToolRowProps = {
 };
 
 function TestToolRow({title, children}: TestToolRowProps) {
+    const styles = useThemeStyles();
     return (
-        <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween, styles.alignItemsCenter, styles.mnw120]}>
+        <View style={styles.testRowContainer}>
             <View style={styles.flex2}>
                 <Text>{title}</Text>
             </View>

@@ -15,6 +15,14 @@ function insertText(text: string, selection: Selection, textToInsert: string): s
 }
 
 /**
+ * Insert a white space at given index of text
+ * @param text - text that needs whitespace to be appended to
+ */
+function insertWhiteSpaceAtIndex(text: string, index: number) {
+    return `${text.slice(0, index)} ${text.slice(index)}`;
+}
+
+/**
  * Check whether we can skip trigger hotkeys on some specific devices.
  */
 function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boolean): boolean {
@@ -24,18 +32,21 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
 }
 
 /**
- * Returns the length of the common suffix between two input strings.
- * The common suffix is the number of characters shared by both strings
- * at the end (suffix) until a mismatch is encountered.
- *
- * @returns The length of the common suffix between the strings.
+ * Finds the length of common suffix between two texts
  */
-function getCommonSuffixLength(str1: string, str2: string): number {
-    let i = 0;
-    while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
-        i++;
+function findCommonSuffixLength(str1: string, str2: string, cursorPosition: number) {
+    let commonSuffixLength = 0;
+    const minLength = Math.min(str1.length - cursorPosition, str2.length);
+
+    for (let i = 1; i <= minLength; i++) {
+        if (str1.charAt(str1.length - i) === str2.charAt(str2.length - i)) {
+            commonSuffixLength++;
+        } else {
+            break;
+        }
     }
-    return i;
+
+    return commonSuffixLength;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, getCommonSuffixLength};
+export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, insertWhiteSpaceAtIndex, findCommonSuffixLength};

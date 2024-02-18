@@ -88,12 +88,12 @@ function BaseTwoFactorAuthForm(props) {
             autoComplete={props.autoComplete}
             textContentType="oneTimeCode"
             label={props.translate('common.twoFactorCode')}
-            nativeID="twoFactorAuthCode"
+            id="twoFactorAuthCode"
             name="twoFactorAuthCode"
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
             onFulfill={validateAndSubmitForm}
-            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+            errorText={formError.twoFactorAuthCode || ErrorUtils.getLatestErrorMessage(props.account)}
             ref={inputRef}
             autoFocus={false}
         />

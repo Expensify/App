@@ -1,41 +1,47 @@
-import React, {ForwardedRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
-import type {TextStyle} from 'react-native';
-import fontFamily from '@styles/fontFamily';
-import themeColors from '@styles/themes/default';
+import {Text as RNText, StyleSheet} from 'react-native';
+import type {TextProps as RNTextProps, TextStyle} from 'react-native';
+import useTheme from '@hooks/useTheme';
+import type {FontUtilsType} from '@styles/utils/FontUtils';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type TextProps = RNTextProps & {
-    /** The color of the text */
-    color?: string;
+type TextProps = RNTextProps &
+    ChildrenProps & {
+        /** The color of the text */
+        color?: string;
 
-    /** The size of the text */
-    fontSize?: number;
-    /** The alignment of the text */
-    textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
-    /** Any children to display */
-    children: React.ReactNode;
+        /** The size of the text */
+        fontSize?: number;
 
-    /** The family of the font to use */
-    family?: keyof typeof fontFamily;
-};
+        /** The alignment of the text */
+        textAlign?: TextStyle['textAlign'];
 
-function Text(
-    {color = themeColors.text, fontSize = variables.fontSizeNormal, textAlign = 'left', children = null, family = 'EXP_NEUE', style = {}, ...props}: TextProps,
-    ref: ForwardedRef<RNText>,
-) {
+        /** Any children to display */
+        children: React.ReactNode;
+
+        /** The family of the font to use */
+        family?: keyof FontUtilsType['fontFamily']['platform'];
+    };
+
+function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
+    const theme = useTheme();
+
     const componentStyle: TextStyle = {
-        color,
+        color: color ?? theme.text,
         fontSize,
         textAlign,
-        fontFamily: fontFamily[family],
+        fontFamily: FontUtils.fontFamily.platform[family],
         ...StyleSheet.flatten(style),
     };
 
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
+
     return (
         <RNText
             allowFontScaling={false}
@@ -52,3 +58,4 @@ function Text(
 Text.displayName = 'Text';
 
 export default React.forwardRef(Text);
+export type {TextProps};

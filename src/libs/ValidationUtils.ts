@@ -1,14 +1,19 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, startOfDay, subYears} from 'date-fns';
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import Str from 'expensify-common/lib/str';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
-import {Report} from '@src/types/onyx';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
+import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
+import {parsePhoneNumber} from './PhoneNumber';
+import StringUtils from './StringUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -33,7 +38,7 @@ function validateCardNumber(value: string): boolean {
  * Validating that this is a valid address (PO boxes are not allowed)
  */
 function isValidAddress(value: string): boolean {
-    if (!CONST.REGEX.ANY_VALUE.test(value)) {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }
 
@@ -70,10 +75,14 @@ function isValidPastDate(date: string | Date): boolean {
 
 /**
  * Used to validate a value that is "required".
+ * @param value - field value
  */
-function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
+function isRequiredFulfilled(value?: string | boolean | Date): boolean {
+    if (!value) {
+        return false;
+    }
     if (typeof value === 'string') {
-        return value.trim().length > 0;
+        return !StringUtils.isEmptyString(value);
     }
 
     if (isDate(value)) {
@@ -87,15 +96,20 @@ function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, u
 
 /**
  * Used to add requiredField error to the fields passed.
+ * @param values - all form values
+ * @param requiredFields - required fields for particular form
  */
-function getFieldRequiredErrors(values: OnyxCommon.Errors, requiredFields: string[]) {
-    const errors: OnyxCommon.Errors = {};
+function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
+    const errors: FormInputErrors<TFormID> = {};
+
     requiredFields.forEach((fieldKey) => {
-        if (isRequiredFulfilled(values[fieldKey])) {
+        if (isRequiredFulfilled(values[fieldKey] as keyof FormOnyxValues)) {
             return;
         }
+
         errors[fieldKey] = 'common.error.fieldRequired';
     });
+
     return errors;
 }
 
@@ -195,11 +209,34 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
 }
 
 /**
+ * Validate that given date is not in the past.
+ */
+function getDatePassedError(inputDate: string): string {
+    const currentDate = new Date();
+    const parsedDate = new Date(`${inputDate}T00:00:00`); // set time to 00:00:00 for accurate comparison
+
+    // If input date is not valid, return an error
+    if (!isValid(parsedDate)) {
+        return 'common.error.dateInvalid';
+    }
+
+    // Clear time for currentDate so comparison is based solely on the date
+    currentDate.setHours(0, 0, 0, 0);
+
+    if (parsedDate < currentDate) {
+        return 'common.error.dateInvalid';
+    }
+
+    return '';
+}
+
+/**
  * Similar to backend, checks whether a website has a valid URL or not.
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
+    const isLowerCase = url === url.toLowerCase();
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -239,6 +276,12 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
     const phone = phoneNumber || '';
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
+
+    // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
+    // so we need to check if it is a valid phone.
+    if (regionCode && !Str.isValidPhone(phone)) {
+        return false;
+    }
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
@@ -282,6 +325,13 @@ function isValidRoutingNumber(routingNumber: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain any emojis
+ */
+function isValidCompanyName(name: string) {
+    return !name.match(CONST.REGEX.EMOJIS);
+}
+
+/**
  * Checks that the provided name doesn't contain any commas or semicolons
  */
 function isValidDisplayName(name: string): boolean {
@@ -292,7 +342,15 @@ function isValidDisplayName(name: string): boolean {
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name: string): boolean {
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+    const hasAccentedChars = Boolean(name.match(CONST.REGEX.ACCENT_LATIN_CHARS));
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name) && !hasAccentedChars;
+}
+
+/**
+ * Checks that the provided name doesn't contain special characters or numbers
+ */
+function isValidPersonName(value: string) {
+    return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
 }
 
 /**
@@ -314,8 +372,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: Record<string, Report>, policyID: string): boolean {
-    return Object.values(reports).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
+    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -352,6 +410,51 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+type DateTimeValidationErrorKeys = {
+    dateValidationErrorKey: string;
+    timeValidationErrorKey: string;
+};
+/**
+ * Validates that the date and time are at least one minute in the future.
+ * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
+ * returns an object containing the error messages for the date and time
+ */
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
+    if (!data) {
+        return {
+            dateValidationErrorKey: '',
+            timeValidationErrorKey: '',
+        };
+    }
+    const parsedInputData = parseISO(data);
+
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    return {
+        dateValidationErrorKey,
+        timeValidationErrorKey,
+    };
+};
+
+type ValuesType = Record<string, unknown>;
+
+/**
+ * This function is used to remove invisible characters from strings before validation and submission.
+ */
+function prepareValues(values: ValuesType): ValuesType {
+    const trimmedStringValues: ValuesType = {};
+
+    for (const [inputID, inputValue] of Object.entries(values)) {
+        if (typeof inputValue === 'string') {
+            trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
+        } else {
+            trimmedStringValues[inputID] = inputValue;
+        }
+    }
+
+    return trimmedStringValues;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -379,10 +482,15 @@ export {
     isValidRoomName,
     isValidTaxID,
     isValidValidateCode,
+    isValidCompanyName,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    getDatePassedError,
     isValidRecoveryCode,
+    validateDateTimeIsAtLeastOneMinuteInFuture,
+    prepareValues,
+    isValidPersonName,
 };

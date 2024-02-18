@@ -1,3 +1,5 @@
+import {useRoute} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
@@ -13,6 +15,8 @@ import TwoFactorAuthContext from './TwoFactorAuthContext';
 import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
 
 function TwoFactorAuthSteps({account = defaultAccount}) {
+    const route = useRoute();
+    const backTo = lodashGet(route.params, 'backTo', '');
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
     const {setAnimationDirection} = useAnimatedStepContext();
@@ -45,17 +49,17 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
     const renderStep = () => {
         switch (currentStep) {
             case CONST.TWO_FACTOR_AUTH_STEPS.CODES:
-                return <CodesStep />;
+                return <CodesStep backTo={backTo} />;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep />;
+                return <SuccessStep backTo={backTo} />;
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
                 return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
                 return <DisabledStep />;
             default:
-                return <CodesStep />;
+                return <CodesStep backTo={backTo} />;
         }
     };
 

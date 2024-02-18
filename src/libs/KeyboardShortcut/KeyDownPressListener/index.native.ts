@@ -1,4 +1,4 @@
-import {AddKeyDownPressListener, RemoveKeyDownPressListener} from './types';
+import type {AddKeyDownPressListener, RemoveKeyDownPressListener} from './types';
 
 const addKeyDownPressListener: AddKeyDownPressListener = () => {};
 const removeKeyDownPressListener: RemoveKeyDownPressListener = () => {};
