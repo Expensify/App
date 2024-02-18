@@ -72,12 +72,12 @@ function OptionsSelectorWrapper(args) {
 }
 
 test('[OptionsSelector] should render text input with interactions', () => {
-    const scenario = (screen: RenderResult) => {
+    const scenario = ((screen: RenderResult) => {
         const textInput = screen.getByTestId('options-selector-input');
         fireEvent.changeText(textInput, 'test');
         fireEvent.changeText(textInput, 'test2');
         fireEvent.changeText(textInput, 'test3');
-    };
+    }) as Awaited<(screen: RenderResult) => Promise<void>>;
 
     measurePerformance(<OptionsSelectorWrapper />, {scenario});
 });
@@ -92,11 +92,11 @@ test('[OptionsSelector] should render multiple sections', () => {
 });
 
 test('[OptionsSelector] should press a list items', () => {
-    const scenario = (screen: RenderResult) => {
+    const scenario = ((screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 5'));
         fireEvent.press(screen.getByText('Item 10'));
-    };
+    }) as Awaited<(screen: RenderResult) => Promise<void>>;
 
     measurePerformance(<OptionsSelectorWrapper />, {scenario});
 });
