@@ -69,7 +69,7 @@ function IOURequestStepCurrency({
             Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
             return;
         }
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
