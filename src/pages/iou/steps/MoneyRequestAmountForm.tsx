@@ -320,7 +320,6 @@ function MoneyRequestAmountForm(
                         id={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
                         longPressHandlerStateChanged={updateLongPressHandlerState}
-                        isLongPressDisabled={false}
                     />
                 ) : null}
                 <Button
