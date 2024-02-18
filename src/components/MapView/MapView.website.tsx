@@ -85,14 +85,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 }
 
                 hasAskedForLocationPermission.current = true;
-                getCurrentPosition(
-                    (params) => {
-                        const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                        setCurrentPosition(currentCoords);
-                        setUserLocation(currentCoords);
-                    },
-                    setCurrentPositionToInitialState,
-                );
+                getCurrentPosition((params) => {
+                    const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
+                    setCurrentPosition(currentCoords);
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
 
