@@ -1,8 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
+import {View} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -16,6 +16,7 @@ import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -58,6 +59,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        isLoadingNewOptions = false,
+        onLayout,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -178,9 +181,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
      * @param item - the list item
-     * @param shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
      */
-    const selectRow = (item: TItem, shouldUnfocusRow = false) => {
+    const selectRow = (item: TItem) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -189,19 +191,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 // we focus the first one after all the selected (selected items are always at the top).
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
 
-                if (!shouldUnfocusRow) {
-                    setFocusedIndex(selectedOptionsCount);
-                }
-
                 if (!item.isSelected) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
-            }
-
-            if (shouldUnfocusRow) {
-                // Unfocus all rows when selecting row with click/press
-                setFocusedIndex(-1);
             }
         }
 
@@ -293,7 +286,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                onSelectRow={() => selectRow(item, true)}
+                onSelectRow={() => selectRow(item)}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
@@ -317,6 +310,14 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             setIsInitialSectionListRender(false);
         },
         [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+    );
+
+    const onSectionListLayout = useCallback(
+        (nativeEvent: LayoutChangeEvent) => {
+            onLayout?.(nativeEvent);
+            scrollToFocusedIndexOnFirstRender(nativeEvent);
+        },
+        [onLayout, scrollToFocusedIndexOnFirstRender],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
@@ -347,18 +348,17 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         }, [shouldShowTextInput]),
     );
 
+    const prevTextInputValue = usePrevious(textInputValue);
     useEffect(() => {
-        // do not change focus on the first render, as it should focus on the selected item
-        if (isInitialSectionListRender) {
+        // Avoid changing focus if the textInputValue remains unchanged.
+        if (prevTextInputValue === textInputValue || flattenedSections.allOptions.length === 0) {
             return;
         }
+        // Remove the focus if the search input is empty else focus on the first non disabled item
+        const newSelectedIndex = textInputValue === '' ? -1 : 0;
 
-        // set the focus on the first item when the sections list is changed
-        if (sections.length > 0) {
-            updateAndScrollToFocusedIndex(0);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sections]);
+        updateAndScrollToFocusedIndex(newSelectedIndex);
+    }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -412,6 +412,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
+                                    isLoading={isLoadingNewOptions}
                                 />
                             </View>
                         )}
@@ -466,7 +467,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    onLayout={scrollToFocusedIndexOnFirstRender}
+                                    onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                 />
                                 {children}

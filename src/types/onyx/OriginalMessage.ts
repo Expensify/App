@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
@@ -51,15 +51,24 @@ type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
+    expenseReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
     lastModified?: string;
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    cancellationReason?: string;
     paymentType?: PaymentMethodType;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
+    expenseReportID?: string;
+    amount: number;
+    currency: string;
 };
 
 type OriginalMessageIOU = {
@@ -148,6 +157,11 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
+    originalMessage?: unknown;
+};
+
+type OriginalMessageMarkedReimbursed = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
     originalMessage?: unknown;
 };
 
@@ -283,7 +297,8 @@ type OriginalMessage =
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
-    | OriginalMessageMoved;
+    | OriginalMessageMoved
+    | OriginalMessageMarkedReimbursed;
 
 export default OriginalMessage;
 export type {
@@ -292,12 +307,15 @@ export type {
     Reaction,
     ActionName,
     IOUMessage,
+    ReimbursementDeQueuedMessage,
     Closed,
     OriginalMessageActionName,
     ChangeLog,
     OriginalMessageIOU,
     OriginalMessageCreated,
+    OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,

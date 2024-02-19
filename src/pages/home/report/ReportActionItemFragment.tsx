@@ -74,6 +74,7 @@ function ReportActionItemFragment({
     actorIcon = {},
     isThreadParentMessage = false,
     isApprovedOrSubmittedReportAction = false,
+    isHoldReportAction = false,
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     isHoldReportAction = false,
