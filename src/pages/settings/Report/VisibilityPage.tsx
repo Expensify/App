@@ -86,7 +86,7 @@ function VisibilityPage({report}: VisibilityProps) {
                     }}
                     onCancel={hideModal}
                     title={translate('common.areYouSure')}
-                    prompt={translate('report.visibilityPublicPrompt')}
+                    prompt={translate('newRoomPage.publicDescription')}
                     confirmText={translate('common.yes')}
                     cancelText={translate('common.no')}
                     danger
