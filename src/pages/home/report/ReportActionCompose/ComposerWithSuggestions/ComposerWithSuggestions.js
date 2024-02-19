@@ -625,7 +625,6 @@ function ComposerWithSuggestions({
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
-                    resetFullComposerSize={resetFullComposerSize}
                 />
             </View>
 

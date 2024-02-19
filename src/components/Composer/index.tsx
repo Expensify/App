@@ -19,7 +19,6 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
 
@@ -71,7 +70,6 @@ function Composer(
             start: 0,
             end: 0,
         },
-        resetFullComposerSize = () => {},
         isReportActionCompose = false,
         isComposerFullSize = false,
         shouldContainScroll = false,
@@ -250,9 +248,6 @@ function Composer(
         onNumberOfLinesChange(generalNumberOfLines);
         updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, generalNumberOfLines);
         setNumberOfLines(generalNumberOfLines);
-        if (generalNumberOfLines === 1 && ReportUtils.getCommentLength(value ?? '') === 0) {
-            resetFullComposerSize();
-        }
         textInput.current.style.height = 'auto';
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);

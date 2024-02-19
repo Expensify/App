@@ -1,6 +1,5 @@
 import getNumberOfLines from '@libs/ComposerUtils/getNumberOfLines';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as ReportUtils from '@libs/ReportUtils';
 import type UpdateNumberOfLines from './types';
 
 /**

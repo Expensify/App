@@ -446,8 +446,12 @@ function ReportActionCompose({
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
-                                        onValueChange={validateCommentMaxLength}
-                                        resetFullComposerSize={resetFullComposerSize}
+                                        onValueChange={(value) => {
+                                            if (value.length === 0) {
+                                                ReportUtils.setIsComposerFullSize(reportID, false);
+                                            }
+                                            validateCommentMaxLength(value);
+                                        }}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {

@@ -80,9 +80,6 @@ type ComposerProps = {
 
     onBlur?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
-    /** Function to reset the full composer size */
-    resetFullComposerSize?: () => void;
-
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;
 };

@@ -27,7 +27,6 @@ function Composer(
         // user can read new chats without the keyboard in the way of the view.
         // On Android the selection prop is required on the TextInput but this prop has issues on IOS
         selection,
-        resetFullComposerSize = () => {},
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -74,9 +73,7 @@ function Composer(
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
-            onContentSizeChange={(e) =>
-                ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable, resetFullComposerSize, value: props.value}, e, styles)
-            }
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
             textAlignVertical="center"
