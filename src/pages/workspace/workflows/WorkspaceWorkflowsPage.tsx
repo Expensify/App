@@ -44,6 +44,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
                 />
             ),
+            hasBeenToggled: policy?.harvesting?.enabled ?? false
         },
         {
             Illustration: Illustrations.Approval,
@@ -64,6 +65,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
                 />
             ),
+            hasBeenToggled: policy?.isAutoApprovalEnabled ?? false,
         },
         {
             Illustration: Illustrations.WalletAlt,
@@ -83,6 +85,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 />
             ),
             isEndOptionRow: true,
+            hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
         },
     ];
 
@@ -95,6 +98,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
                 isEndOptionRow={item.isEndOptionRow}
+                hasBeenToggled={item.hasBeenToggled}
             />
         </View>
     );
