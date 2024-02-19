@@ -65,9 +65,9 @@ function AddressPage({privatePersonalDetails, route}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
-
     const countryFromUrlTemp = lodashGet(route, 'params.country');
-    // check if country is valid
+
+    // Check if country is valid
     const countryFromUrl = lodashGet(CONST.ALL_COUNTRIES, countryFromUrlTemp) ? countryFromUrlTemp : '';
     const stateFromUrl = useGeographicalStateFromRoute();
 
