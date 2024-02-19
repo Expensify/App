@@ -560,20 +560,17 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
-                    console.log('333333333333333333 step 2', {selectedParticipants});
                     return;
                 }
 
                 if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
-                    console.log('333333333333333333 step 3', {selectedParticipants});
                     return;
                 }
 
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
-                console.log('111111111111111111111111');
                 onConfirm(selectedParticipants);
             }
         },
