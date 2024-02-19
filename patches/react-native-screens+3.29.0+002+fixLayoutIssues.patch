@@ -51,7 +51,7 @@ index 2d946c4..ccda8f3 100644
          }
      }
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
-index a7d28f9..b9087b2 100644
+index a7d28f9..e0b0d8e 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
 @@ -72,9 +72,9 @@ class Screen constructor(context: ReactContext?) : FabricEnabledViewGroup(contex
@@ -59,10 +59,10 @@ index a7d28f9..b9087b2 100644
              val height = b - t
  
 -            calculateHeaderHeight()
-+            val headerHeight = calculateHeaderHeight()
++            val headerHeight = if (container is ScreenStack) calculateHeaderHeight().first else 0.0
              if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
 -                updateScreenSizeFabric(width, height)
-+                updateScreenSizeFabric(width, height, headerHeight.first)
++                updateScreenSizeFabric(width, height, headerHeight)
              } else {
                  updateScreenSizePaper(width, height)
              }
