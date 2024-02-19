@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
 
-function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
+function clearReportActionErrors(reportID: string, reportAction: ReportAction, key?: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
 
     if (!reportAction.reportActionID) {
@@ -33,6 +33,16 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
         return;
     }
 
+    if (key) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+            [reportAction.reportActionID]: {
+                errors: {
+                    [key]: null,
+                },
+            },
+        });
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         [reportAction.reportActionID]: {
             errors: null,

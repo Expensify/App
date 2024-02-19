@@ -2984,6 +2984,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         });
     }
 
+    const errorKey = DateUtils.getMicroseconds();
+
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2992,7 +2994,15 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 [reportAction.reportActionID]: {
                     ...reportAction,
                     pendingAction: null,
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                    errors: {
+                        [errorKey]: ['iou.error.genericDeleteFailureMessage', {isTranslated: false}],
+                    },
+                    relatedErrors: {
+                        [errorKey]: {
+                            reportID: chatReport?.reportID,
+                            reportActionID: reportPreviewAction?.reportActionID,
+                        },
+                    },
                 },
             },
         },
@@ -3014,7 +3024,15 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 [reportPreviewAction?.reportActionID ?? '']: {
                     ...reportPreviewAction,
                     pendingAction: null,
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                    errors: {
+                        [errorKey]: ['iou.error.genericDeleteFailureMessage', {isTranslated: false}],
+                    },
+                    relatedErrors: {
+                        [errorKey]: {
+                            reportID: iouReport?.reportID,
+                            reportActionID: reportAction.reportActionID,
+                        },
+                    },
                 },
             },
         },
