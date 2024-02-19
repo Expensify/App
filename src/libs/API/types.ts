@@ -116,7 +116,7 @@ const WRITE_COMMANDS = {
     COMPLETE_ENGAGEMENT_MODAL: 'CompleteEngagementModal',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_REPORT_FIELD: 'Report_SetFields',
-    DELETE_REPORT_FIELD: 'DELETE_ReportFields',
+    DELETE_REPORT_FIELD: 'RemoveReportField',
     SET_REPORT_NAME: 'RenameReport',
     COMPLETE_SPLIT_BILL: 'CompleteSplitBill',
     UPDATE_MONEY_REQUEST_DATE: 'UpdateMoneyRequestDate',

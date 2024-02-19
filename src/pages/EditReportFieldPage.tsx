@@ -88,7 +88,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
 
     const menuItems: ThreeDotsMenuItem[] = [];
 
-    const isReportFieldDeletable = report.reportFields?.deletable;
+    const isReportFieldDeletable = reportField.deletable;
 
     if (isReportFieldDeletable) {
         menuItems.push({icon: Expensicons.Trashcan, text: translate('common.delete'), onSelected: () => handleReportFieldDelete()});

@@ -1535,6 +1535,17 @@ function updateReportName(reportID: string, value: string, previousValue: string
     API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
 }
 
+function clearReportFieldErrors(reportID: string, reportFieldID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingFields: {
+            [reportFieldID]: null,
+        },
+        errorFields: {
+            [reportFieldID]: null,
+        },
+    });
+}
+
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const recentlyUsedValues = allRecentlyUsedReportFields?.[reportField.fieldID] ?? [];
 
@@ -1664,8 +1675,7 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     ];
 
     const parameters = {
-        reportID,
-        reportFields: JSON.stringify({[reportField.fieldID]: reportField}),
+        fieldID: reportField.fieldID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
@@ -2981,5 +2991,6 @@ export {
     updateReportField,
     updateReportName,
     deleteReportField,
+    clearReportFieldErrors,
     resolveActionableMentionWhisper,
 };

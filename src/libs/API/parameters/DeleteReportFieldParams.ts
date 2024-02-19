@@ -1,6 +1,5 @@
 type DeleteReportFieldParams = {
-    reportID: string;
-    reportFields: string;
+    fieldID: string;
 };
 
 export default DeleteReportFieldParams;

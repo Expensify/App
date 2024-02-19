@@ -10,6 +10,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -34,6 +35,7 @@ type EditReportFieldDatePageProps = {
 };
 
 function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, menuItems, fieldID}: EditReportFieldDatePageProps) {
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<AnimatedTextInputRef>(null);
@@ -61,6 +63,8 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, m
             <HeaderWithBackButton
                 title={fieldName}
                 threeDotsMenuItems={menuItems}
+                shouldShowThreeDotsButton={!!menuItems?.length}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}

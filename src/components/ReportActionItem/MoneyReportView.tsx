@@ -16,6 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as reportActions from '@src/libs/actions/Report';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
@@ -78,6 +79,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
                                 pendingAction={report.pendingFields?.[reportField.fieldID]}
                                 errors={report.errorFields?.[reportField.fieldID]}
                                 errorRowStyles={styles.ph5}
+                                onClose={() => reportActions.clearReportFieldErrors(report.reportID, reportField.fieldID)}
                                 key={`menuItem-${reportField.fieldID}`}
                             >
                                 <MenuItemWithTopDescription

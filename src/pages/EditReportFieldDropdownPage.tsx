@@ -6,6 +6,7 @@ import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +43,7 @@ type EditReportFieldDropdownPageOnyxProps = {
 type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
 
 function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions, recentlyUsedReportFields, menuItems}: EditReportFieldDropdownPageProps) {
+    const {windowWidth} = useWindowDimensions();
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
     const {getSafeAreaMargins} = useStyleUtils();
@@ -89,6 +91,8 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                     <HeaderWithBackButton
                         title={fieldName}
                         threeDotsMenuItems={menuItems}
+                        shouldShowThreeDotsButton={!!menuItems?.length}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     />
                     <OptionsSelector
                         // @ts-expect-error TODO: TS migration

@@ -72,5 +72,5 @@ export default PropTypes.shape({
     pendingFields: PropTypes.objectOf(PropTypes.string),
 
     /** Custom fields attached to the report */
-    reportFields: PropTypes.objectOf(PropTypes.string),
+    reportFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.any)),
 });
