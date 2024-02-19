@@ -94,7 +94,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
-            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
         default:
             return url;
     }
