@@ -16,7 +16,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import type {OptionType} from './ToggleSettingsOptionRow';
+import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import useStyleUtils from '@hooks/useStyleUtils';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
@@ -27,7 +27,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
-    const items: OptionType[] = useMemo(() => ([
+    const items: ToggleSettingOptionRowProps[] = useMemo(() => ([
         {
             icon: Illustrations.ReceiptEnvelope,
             title: translate('workflowsPage.delaySubmissionTitle'),
@@ -95,7 +95,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         },
     ]), [policy, route.params.policyID, styles, translate, StyleUtils]);
 
-    const renderItem = ({item}: {item: OptionType}) => (
+    const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
         <View style={styles.mt7}>
             <ToggleSettingOptionRow
                 icon={item.icon}
@@ -130,7 +130,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             <FlatList
                                 data={items}
                                 renderItem={renderItem}
-                                keyExtractor={(item: OptionType) => item.title}
+                                keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
                             />
                         </View>
                     </Section>

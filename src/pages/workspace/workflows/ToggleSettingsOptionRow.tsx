@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -9,7 +9,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-type OptionType = {
+type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
     title: string;
     subtitle: string;
@@ -19,8 +19,8 @@ type OptionType = {
     isEndOptionRow?: boolean;
 };
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isEndOptionRow, hasBeenToggled}: OptionType) {
-    const [isEnabled, setIsEnabled] = useState(false);
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isEndOptionRow, hasBeenToggled}: ToggleSettingOptionRowProps) {
+    const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -29,11 +29,6 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
         onToggle(!isEnabled);
     };
     const {isSmallScreenWidth} = useWindowDimensions();
-
-
-    useEffect(() => {
-        setIsEnabled(hasBeenToggled);
-    }, [hasBeenToggled]);
 
     return (
         <View style={styles.pRelative}>
@@ -65,5 +60,5 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
     );
 }
 
-export type {OptionType};
+export type {ToggleSettingOptionRowProps};
 export default ToggleSettingOptionRow;
