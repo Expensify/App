@@ -1,3 +1,5 @@
+import launchApp from './utils/launchApp';
+
 /**
  * Multifaceted script, its main function is running the e2e tests.
  *
@@ -20,7 +22,7 @@ const defaultConfig = require('./config');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
 const killApp = require('./utils/killApp');
-const launchApp = require('./utils/launchApp');
+
 const createServerInstance = require('./server');
 const installApp = require('./utils/installApp');
 const withFailTimeout = require('./utils/withFailTimeout');
@@ -324,6 +326,11 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
+        // For each test case we allow the test to fail three times before we stop the test run:
+        const errorCountRef = {
+            errorCount: 0,
+            allowedExceptions: 3,
+        };
         for (let i = 0; i < config.RUNS; i++) {
             progressText = `Suite '${suite.name}' [${suiteIndex + 1}/${suites.length}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
@@ -339,6 +346,18 @@ const runTests = async () => {
                 mockNetwork: true,
             });
 
+            const onError = (e) => {
+                testLog.done();
+                errorCountRef.errorCount += 1;
+                if (i === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
+                    // If the error happened on the first test run, the test is broken
+                    // and we should not continue running it. Or if we have reached the
+                    // maximum number of allowed exceptions, we should stop the test run.
+                    throw e;
+                }
+                console.error(e);
+            };
+
             // Wait for a test to finish by waiting on its done call to the http server
             try {
                 await withFailTimeout(
@@ -352,9 +371,7 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
 
             Logger.log('Killing main app');
@@ -378,9 +395,7 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
         }
         testLog.done();

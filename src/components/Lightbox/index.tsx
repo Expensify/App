@@ -1,6 +1,8 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
@@ -30,15 +32,6 @@ type LightboxProps = {
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
-    /** The index of the carousel item */
-    index?: number;
-
-    /** The index of the currently active carousel item */
-    activeIndex?: number;
-
-    /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
-    hasSiblingCarouselItems?: boolean;
-
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
 };
@@ -46,18 +39,52 @@ type LightboxProps = {
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-function Lightbox({
-    isAuthTokenRequired = false,
-    uri,
-    onScaleChanged,
-    onError,
-    style,
-    index = 0,
-    activeIndex = 0,
-    hasSiblingCarouselItems = false,
-    zoomRange = DEFAULT_ZOOM_RANGE,
-}: LightboxProps) {
+function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
+
+    /**
+     * React hooks must be used in the render function of the component at top-level and unconditionally.
+     * Therefore, in order to provide a default value for "isPagerScrolling" if the "AttachmentCarouselPagerContext" is not available,
+     * we need to create a shared value that can be used in the render function.
+     */
+    const isPagerScrollingFallback = useSharedValue(false);
+
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {
+        isUsedInCarousel,
+        isSingleCarouselItem,
+        isPagerScrolling,
+        page,
+        activePage,
+        onTap,
+        onScaleChanged: onScaleChangedContext,
+        pagerRef,
+    } = useMemo(() => {
+        if (attachmentCarouselPagerContext === null) {
+            return {
+                isUsedInCarousel: false,
+                isSingleCarouselItem: true,
+                isPagerScrolling: isPagerScrollingFallback,
+                page: 0,
+                activePage: 0,
+                onTap: () => {},
+                onScaleChanged: () => {},
+                pagerRef: undefined,
+            };
+        }
+
+        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.source === uri);
+        return {
+            ...attachmentCarouselPagerContext,
+            isUsedInCarousel: true,
+            isSingleCarouselItem: attachmentCarouselPagerContext.pagerItems.length === 1,
+            page: foundPage,
+        };
+    }, [attachmentCarouselPagerContext, isPagerScrollingFallback, uri]);
+
+    /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
+    const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
+    const isActive = page === activePage;
 
     const [canvasSize, setCanvasSize] = useState<CanvasSize>();
     const isCanvasLoading = canvasSize === undefined;
@@ -99,9 +126,9 @@ function Lightbox({
         }
 
         const indexCanvasOffset = Math.floor((NUMBER_OF_CONCURRENT_LIGHTBOXES - 1) / 2) || 0;
-        const indexOutOfRange = index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset;
+        const indexOutOfRange = page > activePage + indexCanvasOffset || page < activePage - indexCanvasOffset;
         return !indexOutOfRange;
-    }, [activeIndex, hasSiblingCarouselItems, index]);
+    }, [activePage, hasSiblingCarouselItems, page]);
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
 
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
@@ -125,7 +152,6 @@ function Lightbox({
     // because it's only going to be rendered after the fallback image is hidden.
     const shouldShowLightbox = isLightboxImageLoaded && !isFallbackVisible;
 
-    const isActive = index === activeIndex;
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
     const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
@@ -159,6 +185,14 @@ function Lightbox({
         }
     }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
 
+    const scaleChange = useCallback(
+        (scale: number) => {
+            onScaleChangedProp?.(scale);
+            onScaleChangedContext?.(scale);
+        },
+        [onScaleChangedContext, onScaleChangedProp],
+    );
+
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
@@ -170,10 +204,13 @@ function Lightbox({
                         <View style={[StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getOpacityStyle(Number(shouldShowLightbox))]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
-                                onScaleChanged={onScaleChanged}
                                 canvasSize={canvasSize}
                                 contentSize={contentSize}
                                 zoomRange={zoomRange}
+                                pagerRef={pagerRef}
+                                shouldDisableTransformationGestures={isPagerScrolling}
+                                onTap={onTap}
+                                onScaleChanged={scaleChange}
                             >
                                 <Image
                                     source={{uri}}
