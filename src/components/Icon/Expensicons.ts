@@ -128,6 +128,7 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
@@ -270,6 +271,7 @@ export {
     Scan,
     Send,
     Shield,
+    Stopwatch,
     Sync,
     Task,
     ThumbsUp,
