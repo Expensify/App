@@ -1474,6 +1474,18 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
+    
+    getWorkspaceWorkflowsDotStyle: (enabled: boolean, isSmallScreenWidth: boolean) =>
+    ({
+        position: 'absolute',
+        width: 6,
+        backgroundImage: 'radial-gradient(circle at 2.5px, #1A3D32 1.25px, rgba(255, 255, 255, 0) 2.5px)',
+        backgroundSize: '5px 15px',
+        backgroundRepeat: 'repeat-y',
+        top: isSmallScreenWidth ? '32%' : '12%',
+        bottom: enabled ? '-180%' : '-100%',
+        left: isSmallScreenWidth ? '6%' : '2.45%',
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
