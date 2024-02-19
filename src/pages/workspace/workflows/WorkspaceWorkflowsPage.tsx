@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import { useMemo } from 'react';
 import {FlatList, View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
@@ -25,7 +25,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const items: OptionType[] = [
+    const items: OptionType[] = useMemo(() => ([
         {
             icon: Illustrations.ReceiptEnvelope,
             title: translate('workflowsPage.delaySubmissionTitle'),
@@ -91,7 +91,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             isEndOptionRow: true,
             hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
         },
-    ];
+    ]), [policy, route.params.policyID, styles, translate]);
 
     const renderItem = ({item}: {item: OptionType}) => (
         <View style={styles.mt7}>
