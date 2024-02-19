@@ -630,7 +630,7 @@ function ReportActionItem(props) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true), styles.justifyContentEnd]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={lodashGet(parentReportAction, 'pendingAction', null)}>
@@ -643,6 +643,7 @@ function ReportActionItem(props) {
                                         html={`<comment>${props.translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
                                     />
                                 </ReportActionItemSingle>
+                                <View style={styles.threadDividerLine} />
                             </OfflineWithFeedback>
                         </View>
                     </View>
@@ -660,7 +661,7 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -671,7 +672,6 @@ function ReportActionItem(props) {
                                 <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
                             </ReportActionItemSingle>
                         </View>
-                        <View style={styles.reportHorizontalRule} />
                     </View>
                 );
             }
