@@ -1,9 +1,10 @@
-import _ from 'lodash';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-import * as Policy from '../../src/libs/actions/Policy';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import * as POLICY from '@src/libs/actions/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, PolicyMembers, Report, ReportActions} from '@src/types/onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -20,7 +21,7 @@ describe('actions/Policy', () => {
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -33,12 +34,12 @@ describe('actions/Policy', () => {
             let adminReportID;
             let announceReportID;
             let expenseReportID;
-            const policyID = Policy.generatePolicyID();
+            const policyID = POLICY.generatePolicyID();
 
-            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            POLICY.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
-            let policy = await new Promise((resolve) => {
+            let policy: OnyxCollection<Policy> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     waitForCollectionCallback: true,
@@ -50,15 +51,15 @@ describe('actions/Policy', () => {
             });
 
             // check if policy was created with correct values
-            expect(policy.id).toBe(policyID);
-            expect(policy.name).toBe(WORKSPACE_NAME);
-            expect(policy.type).toBe(CONST.POLICY.TYPE.FREE);
-            expect(policy.role).toBe(CONST.POLICY.ROLE.ADMIN);
-            expect(policy.owner).toBe(ESH_EMAIL);
-            expect(policy.isPolicyExpenseChatEnabled).toBe(true);
-            expect(policy.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(policy?.id).toBe(policyID);
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.FREE);
+            expect(policy?.name).toBe(WORKSPACE_NAME);
+            expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policy?.owner).toBe(ESH_EMAIL);
+            expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
+            expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-            const policyMembers = await new Promise((resolve) => {
+            const policyMembers: OnyxCollection<PolicyMembers> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     waitForCollectionCallback: true,
@@ -70,9 +71,9 @@ describe('actions/Policy', () => {
             });
 
             // check if the user was added as an admin to the policy
-            expect(policyMembers[ESH_ACCOUNT_ID].role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policyMembers?.[ESH_ACCOUNT_ID]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
 
-            let allReports = await new Promise((resolve) => {
+            let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     waitForCollectionCallback: true,
@@ -84,12 +85,12 @@ describe('actions/Policy', () => {
             });
 
             // Three reports should be created: #announce, #admins and expense report
-            const workspaceReports = _.filter(allReports, (report) => report.policyID === policyID);
-            expect(_.size(workspaceReports)).toBe(3);
-            _.forEach(workspaceReports, (report) => {
-                expect(report.pendingFields.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                expect(report.participantAccountIDs).toEqual([ESH_ACCOUNT_ID]);
-                switch (report.chatType) {
+            const workspaceReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
+            expect(workspaceReports.length).toBe(3);
+            workspaceReports.forEach((report) => {
+                expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                expect(report?.participantAccountIDs).toEqual([ESH_ACCOUNT_ID]);
+                switch (report?.chatType) {
                     case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
                         adminReportID = report.reportID;
                         break;
@@ -107,7 +108,7 @@ describe('actions/Policy', () => {
                 }
             });
 
-            let reportActions = await new Promise((resolve) => {
+            let reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     waitForCollectionCallback: true,
@@ -119,14 +120,14 @@ describe('actions/Policy', () => {
             });
 
             // Each of the three reports should have a a `CREATED` action.
-            let adminReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`]);
-            let announceReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`]);
-            let expenseReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`]);
-            let workspaceReportActions = _.concat(adminReportActions, announceReportActions, expenseReportActions);
-            _.forEach([adminReportActions, announceReportActions, expenseReportActions], (actions) => {
-                expect(_.size(actions)).toBe(1);
+            let adminReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
+            let announceReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
+            let expenseReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
+            let workspaceReportActions = adminReportActions.concat(announceReportActions, expenseReportActions);
+            [adminReportActions, announceReportActions, expenseReportActions].forEach((actions) => {
+                expect(actions.length).toBe(1);
             });
-            _.forEach([...adminReportActions, ...announceReportActions, ...expenseReportActions], (reportAction) => {
+            [...adminReportActions, ...announceReportActions, ...expenseReportActions].forEach((reportAction) => {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
@@ -148,7 +149,7 @@ describe('actions/Policy', () => {
             });
 
             // Check if the policy pending action was cleared
-            expect(policy.pendingAction).toBeFalsy();
+            expect(policy?.pendingAction).toBeFalsy();
 
             allReports = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
@@ -162,9 +163,9 @@ describe('actions/Policy', () => {
             });
 
             // Check if the report pending action and fields were cleared
-            _.forEach(allReports, (report) => {
-                expect(report.pendingAction).toBeFalsy();
-                expect(report.pendingFields.addWorkspaceRoom).toBeFalsy();
+            Object.values(allReports ?? {}).forEach((report) => {
+                expect(report?.pendingAction).toBeFalsy();
+                expect(report?.pendingFields?.addWorkspaceRoom).toBeFalsy();
             });
 
             reportActions = await new Promise((resolve) => {
@@ -179,11 +180,11 @@ describe('actions/Policy', () => {
             });
 
             // Check if the report action pending action was cleared
-            adminReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`]);
-            announceReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`]);
-            expenseReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`]);
-            workspaceReportActions = _.concat(adminReportActions, announceReportActions, expenseReportActions);
-            _.forEach(workspaceReportActions, (reportAction) => {
+            adminReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
+            announceReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
+            expenseReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
+            workspaceReportActions = adminReportActions.concat(announceReportActions, expenseReportActions);
+            workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
             });
         });
