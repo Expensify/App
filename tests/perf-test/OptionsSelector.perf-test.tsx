@@ -38,11 +38,10 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
     return WithNavigationFocus;
 });
 
-type SingleSectionConfigs = Array<{numItems: number, indexOffset: number, shouldShow?: boolean}>;
-type SectionConfigs = (Props: {value: number, index: number, array: SingleSectionConfigs}) => Array<Record<string, {data: {text: string, keyForList: string}, indexOffset: number, shouldShow: boolean}>>;
+type GenerateSectionProps = Array<{numItems: number, indexOffset: number, shouldShow?: boolean}>;
 
-const generateSections = (sectionConfigs: SingleSectionConfigs) =>
-    Array.prototype.map(sectionConfigs as unknown as SectionConfigs, ({numItems, indexOffset, shouldShow = true}: {numItems: number, indexOffset: number, shouldShow: boolean}) => ({
+const generateSections = (sectionConfigs: GenerateSectionProps) =>
+    sectionConfigs.map(({numItems, indexOffset, shouldShow = true}) => ({
         // eslint-disable-next-line @typescript-eslint/naming-convention
         data: Array.from({length: numItems}, (_v, i) => ({
             text: `Item ${i + indexOffset}`,
