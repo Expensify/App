@@ -746,11 +746,6 @@ export default {
         title: 'Your code',
         subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
     },
-    loungeAccessPage: {
-        loungeAccess: 'Lounge access',
-        headline: 'The Expensify Lounge is closed.',
-        description: "The Expensify Lounge in San Francisco is closed for the time being, but we'll update this page when it reopens!",
-    },
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',

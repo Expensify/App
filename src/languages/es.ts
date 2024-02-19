@@ -741,11 +741,6 @@ export default {
         title: 'Tu código',
         subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
     },
-    loungeAccessPage: {
-        loungeAccess: 'Acceso a la sala vip',
-        headline: 'La sala vip de Expensify está cerrada.',
-        description: 'La sala vip de Expensify está actualmente cerrada, pero actualizaremos esta página cuando vuelva a abrir.',
-    },
     pronounsPage: {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
