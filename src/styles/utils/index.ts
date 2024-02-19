@@ -25,6 +25,7 @@ import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
+import spacing from './spacing';
 import type {
     AllStyles,
     AvatarSize,
@@ -1474,7 +1475,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
-    
+
     getWorkspaceWorkflowsDotStyle: (enabled: boolean, isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
@@ -1486,6 +1487,80 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         bottom: enabled ? '-180%' : '-100%',
         left: isSmallScreenWidth ? '6%' : '2.45%',
     }),
+
+    getWorkflowsStyle: (type: string): Object => {
+        switch (type) {
+            case 'icon':
+                return {
+                    marginRight: 12,
+                    zIndex: 2,
+                    paddingBottom: 15,
+                };
+            case 'content':
+                return {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    flex: 1,
+                };
+            case 'container':
+                return {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                };
+            case 'heading':
+                return {
+                    fontSize: 15,
+                    fontWeight: '700',
+                };
+            case 'wrapperText':
+                return {
+                    flexDirection: 'column',
+                    flex: 1,
+                };
+            case 'subtitle':
+                return {
+                    fontSize: 13,
+                    color: defaultTheme.textSupporting,
+                    marginTop: 3,
+                };
+            case 'subMenuContainer':
+                return {
+                    ...spacing.ph8,
+                    ...spacing.mhn8,
+                    width: 'auto',
+                    marginLeft: 44,
+                    paddingVertical: 12,
+                    paddingRight: 9,
+                    paddingLeft: 16,
+                    marginRight: 0,
+                };
+            case 'subMenuTitle':
+                return {
+                    color: defaultTheme.textSupporting,
+                    fontSize: 13,
+                    lineHeight: 16,
+                    fontWeight: '400',
+                };
+            case 'subMenuDescription':
+                return {
+                    color: defaultTheme.text,
+                    fontSize: 15,
+                    lineHeight: 20,
+                };
+            case 'timelineOverride':
+                return {
+                    backgroundColor: defaultTheme.cardBG,
+                    zIndex: 1,
+                    height: 19,
+                    width: 19,
+                    position: 'absolute',
+                    left: 0,
+                };
+            default:
+                return {};
+        }
+    },
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
