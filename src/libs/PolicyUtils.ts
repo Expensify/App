@@ -110,6 +110,10 @@ const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => poli
 
 const isCollectPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.TEAM;
 
+const isFreePolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
+
+const isControlPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.CORPORATE;
+
 const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
@@ -261,6 +265,8 @@ export {
     isExpensifyGuideTeam,
     isInstantSubmitEnabled,
     isCollectPolicy,
+    isFreePolicy,
+    isControlPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
