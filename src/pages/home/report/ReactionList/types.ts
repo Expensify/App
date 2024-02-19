@@ -8,7 +8,7 @@ type ReactionListProps = {
     /** The name of the emoji */
     emojiName: string;
 
-    /** Count of the emoji */
+    /** Count of the emoji reactions */
     emojiCount: number;
 };
 
