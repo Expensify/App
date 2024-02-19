@@ -346,6 +346,7 @@ type SplitDetailsNavigatorParamList = {
         reportID: string;
         reportActionID: string;
         currency: string;
+        tagIndex: string;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
@@ -390,6 +391,7 @@ type SignInNavigatorParamList = {
 type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: {
         contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+        backTo: string;
     };
 };
 
