@@ -171,10 +171,6 @@ const propTypes = {
     /** The policy of the report */
     policy: policyPropTypes.policy,
 
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
-
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 };
@@ -211,7 +207,6 @@ const defaultProps = {
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
     iou: iouDefaultProps,
-    policyTaxRates: {},
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -890,9 +885,6 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        policyTaxRates: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
         iou: {
             key: ONYXKEYS.IOU,
