@@ -24,6 +24,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -165,6 +166,10 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /* Onyx Props */
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
 
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
