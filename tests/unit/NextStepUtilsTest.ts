@@ -472,10 +472,23 @@ describe('libs/NextStepUtils', () => {
 
             test('another owner', () => {
                 report.ownerAccountID = strangeAccountID;
-                optimisticNextStep.title = 'Finished!';
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required!',
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: strangeEmail,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'pay',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
                     },
                 ];
 
