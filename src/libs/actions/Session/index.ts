@@ -154,7 +154,7 @@ function getShortLivedLoginParams() {
  * This method should be used when we are being redirected from oldDot to NewDot on a supportal request
  */
 function signInWithSupportAuthToken(authToken: string) {
-    const { optimisticData, resolutionData }  = getShortLivedLoginParams();
+    const {optimisticData, resolutionData} = getShortLivedLoginParams();
     const params: SignInWithSupportAuthTokenParams = {authToken};
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, params, {optimisticData, successData: resolutionData, failureData: resolutionData});
 }
@@ -399,8 +399,8 @@ function beginGoogleSignIn(token: string | null) {
  * re-authenticating after an authToken expires.
  */
 function signInWithShortLivedAuthToken(email: string, authToken: string) {
-    const { optimisticData, resolutionData } = getShortLivedLoginParams();
-    
+    const {optimisticData, resolutionData} = getShortLivedLoginParams();
+
     const successData = resolutionData;
     const failureData = resolutionData;
 

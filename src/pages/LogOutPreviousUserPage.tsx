@@ -31,7 +31,7 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
             if (isLoggingInAsNewUser) {
                 SessionActions.signOutAndRedirectToSignIn();
             }
-            if (route.params.supportAuthToken !== "") {
+            if (route.params.supportAuthToken !== '') {
                 SessionActions.setSupportAuthToken(route.params.supportAuthToken, route.params.email, Number(route.params.accountID));
             }
 
