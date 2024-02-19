@@ -4630,10 +4630,6 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             left: 0,
         },
-        workspaceWorkflowsSubItemHover: {
-            borderRadius: 8,
-            marginRight: 0,
-        },
         workspaceTitleStyle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: '500',
