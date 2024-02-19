@@ -44,7 +44,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
-            hasBeenToggled: policy?.harvesting?.enabled ?? false
+            hasBeenToggled: policy?.harvesting?.enabled ?? false,
         },
         {
             icon: Illustrations.Approval,
