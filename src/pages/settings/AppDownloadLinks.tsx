@@ -1,75 +1,74 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {ScrollView} from 'react-native';
-import _ from 'underscore';
+import type {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
+type DownloadMenuItem = MenuItemProps & {
+    translationKey: TranslationPaths;
+    action: () => void;
+    link: string;
 };
 
-function AppDownloadLinksPage(props) {
+function AppDownloadLinksPage() {
     const styles = useThemeStyles();
-    let popoverAnchor;
+    const {translate} = useLocalize();
+    const popoverAnchor = useRef<View>(null);
 
-    const menuItems = [
+    const menuItems: DownloadMenuItem[] = [
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
-            icon: Expensicons.Android,
-            iconRight: Expensicons.NewWindow,
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
             link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
+            icon: Expensicons.Android,
+            iconRight: Expensicons.NewWindow,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
-            icon: Expensicons.Apple,
-            iconRight: Expensicons.NewWindow,
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
+            icon: Expensicons.Apple,
+            iconRight: Expensicons.NewWindow,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            icon: Expensicons.Monitor,
-            iconRight: Expensicons.NewWindow,
             action: () => {
                 Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
             },
             link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
+            icon: Expensicons.Monitor,
+            iconRight: Expensicons.NewWindow,
         },
     ];
 
     return (
         <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
             <HeaderWithBackButton
-                title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
+                title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.mt3]}>
-                {_.map(menuItems, (item) => (
+                {menuItems.map((item: DownloadMenuItem) => (
                     <MenuItem
                         key={item.translationKey}
-                        onPress={() => item.action()}
-                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
-                        onKeyDown={(event) => {
-                            event.target.blur();
-                        }}
-                        ref={(el) => (popoverAnchor = el)}
-                        title={props.translate(item.translationKey)}
+                        onPress={item.action}
+                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current)}
+                        ref={popoverAnchor}
+                        title={translate(item.translationKey)}
                         icon={item.icon}
                         iconRight={item.iconRight}
                         shouldBlockSelection
@@ -81,7 +80,6 @@ function AppDownloadLinksPage(props) {
     );
 }
 
-AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
-export default compose(withWindowDimensions, withLocalize)(AppDownloadLinksPage);
+export default AppDownloadLinksPage;

@@ -1,6 +1,6 @@
-const {SERVER_PORT} = require('../config');
-const execAsync = require('./execAsync');
+import config from '../config';
+import execAsync from './execAsync';
 
-module.exports = function () {
-    return execAsync(`adb reverse tcp:${SERVER_PORT} tcp:${SERVER_PORT}`);
-};
+export default function () {
+    return execAsync(`adb reverse tcp:${config.SERVER_PORT} tcp:${config.SERVER_PORT}`);
+}

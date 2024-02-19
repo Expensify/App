@@ -1,6 +1,7 @@
-const adbBackspace = require('./adbBackspace');
-const adbTypeText = require('./adbTypeText');
-const {NativeCommandsAction} = require('./NativeCommandsAction');
+import adbBackspace from './adbBackspace';
+import adbTypeText from './adbTypeText';
+// eslint-disable-next-line rulesdir/prefer-import-module-contents
+import {NativeCommandsAction} from './NativeCommandsAction';
 
 const executeFromPayload = (actionName, payload) => {
     switch (actionName) {
@@ -15,8 +16,4 @@ const executeFromPayload = (actionName, payload) => {
     }
 };
 
-module.exports = {
-    NativeCommandsAction,
-    executeFromPayload,
-    adbTypeText,
-};
+export {NativeCommandsAction, executeFromPayload, adbTypeText};

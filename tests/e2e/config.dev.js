@@ -1,7 +1,7 @@
 const packageName = 'com.expensify.chat.dev';
 const appPath = './android/app/build/outputs/apk/development/debug/app-development-debug.apk';
 
-module.exports = {
+export default {
     MAIN_APP_PACKAGE: packageName,
     DELTA_APP_PACKAGE: packageName,
     MAIN_APP_PATH: appPath,
