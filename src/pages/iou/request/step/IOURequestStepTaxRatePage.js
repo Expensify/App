@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -25,6 +26,12 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
+
+    /** The policy of the report */
+    policy: PropTypes.shape({
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
+    }),
 };
 
 const defaultProps = {
