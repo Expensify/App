@@ -157,7 +157,6 @@ function WorkspacePageWithSections({
                 onLinkPress={goBack}
                 shouldShow={shouldShow}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                shouldForceFullScreen
             >
                 <HeaderWithBackButton
                     title={headerText}

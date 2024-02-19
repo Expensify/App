@@ -253,8 +253,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         }
     }
 
-    console.log({action, stateFromPath, rootState});
-
     if (action !== undefined) {
         root.dispatch(action);
     } else {
