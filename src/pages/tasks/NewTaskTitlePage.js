@@ -17,6 +17,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 const propTypes = {
     /** Grab the Share title of the Task */
@@ -48,6 +49,8 @@ function NewTaskTitlePage(props) {
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
             ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
+        } else if (values.taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', ['common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
@@ -86,7 +89,7 @@ function NewTaskTitlePage(props) {
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={props.task.title}
                         ref={inputCallbackRef}
-                        inputID="taskTitle"
+                        inputID={INPUT_IDS.TASK_TITLE}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                     />
