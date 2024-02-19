@@ -68,7 +68,7 @@ function StateSelectionPage() {
                 Navigation.goBack(appendParam(backTo, 'state', option.value));
             } else {
                 // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                // @ts-expect-error Navigation.navigate does take a paraml
+                // @ts-expect-error Navigation.navigate does take a param
                 Navigation.navigate(appendParam(backTo, 'state', option.value));
             }
         },
