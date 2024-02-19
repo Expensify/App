@@ -237,6 +237,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     onToggleBillable,
     payeePersonalDetails,
     policy,
+    policy: {taxRates},
     policyCategories,
     policyID,
     policyTags,
@@ -299,8 +300,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const defaultTaxKey = taxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
     const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const isFocused = useIsFocused();
@@ -795,10 +796,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${taxRateTitle}`}
+                    key={`${taxRates.name}${taxRateTitle}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={taxRateTitle}
-                    description={policyTaxRates.name}
+                    description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
@@ -812,10 +813,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${formattedTaxAmount}`}
+                    key={`${taxRates.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={policyTaxRates.name}
+                    description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
