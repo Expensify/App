@@ -364,7 +364,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'pay',
                         type: 'strong',
                     },
                     {
@@ -472,12 +472,13 @@ describe('libs/NextStepUtils', () => {
 
             test('another owner', () => {
                 report.ownerAccountID = strangeAccountID;
+                optimisticNextStep.title = 'Next Steps:';
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: strangeEmail,
+                        text: 'you',
                         type: 'strong',
                     },
                     {
