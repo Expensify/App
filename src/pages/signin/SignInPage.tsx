@@ -49,7 +49,7 @@ type SignInPageInnerOnyxProps = {
 };
 
 type SignInPageInnerProps = SignInPageInnerOnyxProps & {
-    shouldEnableMaxHeight: boolean;
+    shouldEnableMaxHeight?: boolean;
 };
 
 type RenderOption = {
