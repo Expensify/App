@@ -468,7 +468,7 @@ function AddressSearch(
                             setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
                             setIsFocused(true);
                             const nativeEvent = event.nativeEvent as unknown as BaseSyntheticEvent<ScrollView>;
-                            const target = nativeEvent.target.getScrollResponder() as unknown as VirtualizedList<HTMLElement>;
+                            const target = nativeEvent.target.getScrollResponder() as VirtualizedList<HTMLElement>;
                             const data = target?.props?.data;
                             if (data) {
                                 resultRef.current = data;
