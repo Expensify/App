@@ -42,7 +42,7 @@ function canUseBrowserNotifications(): Promise<boolean> {
  * @param icon Path to icon
  * @param data extra data to attach to the notification
  */
-function push(title: string, body = '', icon: string | ImageSourcePropType = '', data: LocalNotificationData = {}, onClick: LocalNotificationClickHandler = () => {}) {
+function push(title: string, body = '', icon: string | ImageSourcePropType = '', data: LocalNotificationData = {}, onClick: LocalNotificationClickHandler = () => {}, silent = false) {
     canUseBrowserNotifications().then((canUseNotifications) => {
         if (!canUseNotifications) {
             return;
@@ -54,6 +54,7 @@ function push(title: string, body = '', icon: string | ImageSourcePropType = '',
             body,
             icon: String(icon),
             data,
+            silent,
         });
         notificationCache[notificationID].onclick = () => {
             onClick();
@@ -104,7 +105,7 @@ export default {
             reportID: report.reportID,
         };
 
-        push(title, body, icon, data, onClick);
+        push(title, body, icon, data, onClick, true);
     },
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {

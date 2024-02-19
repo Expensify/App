@@ -47,15 +47,17 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
     const {getSafeAreaMargins} = useStyleUtils();
     const {translate} = useLocalize();
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldID] ?? [], [recentlyUsedReportFields, fieldID]);
+    const [headerMessage, setHeaderMessage] = useState('');
 
     const sections = useMemo(() => {
         const filteredRecentOptions = recentlyUsedOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
         const filteredRestOfOptions = fieldOptions.filter((option) => !filteredRecentOptions.includes(option) && option.toLowerCase().includes(searchValue.toLowerCase()));
+        setHeaderMessage(!filteredRecentOptions.length && !filteredRestOfOptions.length ? translate('common.noResultsFound') : '');
 
         return [
             {
                 title: translate('common.recents'),
-                shouldShow: true,
+                shouldShow: filteredRecentOptions.length > 0,
                 data: filteredRecentOptions.map((option) => ({
                     text: option,
                     keyForList: option,
@@ -65,7 +67,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
             },
             {
                 title: translate('common.all'),
-                shouldShow: true,
+                shouldShow: filteredRestOfOptions.length > 0,
                 data: filteredRestOfOptions.map((option) => ({
                     text: option,
                     keyForList: option,
@@ -102,6 +104,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                         onChangeText={setSearchValue}
                         highlightSelectedOptions
                         isRowMultilineSupported
+                        headerMessage={headerMessage}
                     />
                 </>
             )}

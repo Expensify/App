@@ -228,12 +228,12 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         if (isAmountInvalid(currentAmount)) {
-            setFormError(translate('iou.error.invalidAmount'));
+            setFormError('iou.error.invalidAmount');
             return;
         }
 
         if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
-            setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+            setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
             return;
         }
 
@@ -243,7 +243,7 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
         initializeAmount(backendAmount);
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -296,7 +296,10 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
                         if (!shouldUpdateSelection) {
                             return;
                         }
-                        setSelection(e.nativeEvent.selection);
+                        const maxSelection = formattedAmount.length;
+                        const start = Math.min(e.nativeEvent.selection.start, maxSelection);
+                        const end = Math.min(e.nativeEvent.selection.end, maxSelection);
+                        setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
                 />

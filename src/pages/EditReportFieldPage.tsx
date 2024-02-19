@@ -3,9 +3,9 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type {OnyxFormValuesFields} from '@components/Form/types';
 import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {FormOnyxValues} from '@components/Form/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,7 +68,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
 
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
 
-    const handleReportFieldChange = (form: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
+    const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
         const value = form[reportField.fieldID] || '';
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
