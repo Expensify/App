@@ -362,7 +362,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
                     shouldShowBackButton={isSmallScreenWidth}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.ALL_SETTINGS)}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
