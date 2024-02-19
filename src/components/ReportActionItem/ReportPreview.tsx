@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -52,6 +52,9 @@ type ReportPreviewOnyxProps = {
 
     /** All of the transaction violations */
     transactionViolations: OnyxCollection<TransactionViolations>;
+
+    /** The user's wallet account */
+    userWallet: OnyxEntry<UserWallet>;
 };
 
 type ReportPreviewProps = ReportPreviewOnyxProps & {
@@ -99,6 +102,7 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -231,7 +235,7 @@ function ReportPreview({
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
-    const shouldPromptUserToAddBankAccount = ReportUtils.hasAddBankAccountAction(iouReportID);
+    const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
 
     /*
@@ -370,5 +374,8 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
     },
 })(ReportPreview);

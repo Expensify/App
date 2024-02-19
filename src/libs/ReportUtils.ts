@@ -28,6 +28,7 @@ import type {
     Session,
     Transaction,
     TransactionViolation,
+    UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -420,6 +421,8 @@ type AncestorIDs = {
     reportIDs: string[];
     reportActionsIDs: string[];
 };
+
+type MissingPaymentMethod = 'bankAccount' | 'wallet';
 
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -5009,20 +5012,27 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
 }
 
 /**
- * Checks if report chat contains add bank account action
+ * What missing payment method does this report action indicate, if any?
  */
-function hasAddBankAccountAction(iouReportID: string): boolean {
-    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
-    const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(iouReportID) && !isSettled(iouReportID);
-    const hasCreditBankAccount = store.hasCreditBankAccount();
-
-    if (!isSubmitterOfUnsettledReport || hasCreditBankAccount) {
-        return false;
+function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string, reportAction: ReportAction): MissingPaymentMethod | undefined {
+    const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(reportId) && !isSettled(reportId);
+    if (!isSubmitterOfUnsettledReport || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+        return undefined;
+    }
+    const paymentType = reportAction.originalMessage?.paymentType;
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return isEmpty(userWallet) || userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
     }
 
-    return !!Object.values(reportActions).find(
-        (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED && action.originalMessage?.paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-    );
+    return !store.hasCreditBankAccount() ? 'bankAccount' : undefined;
+}
+
+/**
+ * Checks if report chat contains add bank account action
+ */
+function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID: string): boolean {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    return Object.values(reportActions).some((action) => getIndicatedMissingPaymentMethod(userWallet, iouReportID, action) !== undefined);
 }
 
 export {
@@ -5216,7 +5226,7 @@ export {
     isValidReport,
     getReportDescriptionText,
     isReportFieldOfTypeTitle,
-    hasAddBankAccountAction,
+    hasMissingPaymentMethod,
     isIOUReportUsingReport,
     hasUpdatedTotal,
     isReportFieldDisabled,
@@ -5225,6 +5235,7 @@ export {
     getAllAncestorReportActionIDs,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    getIndicatedMissingPaymentMethod,
 };
 
 export type {

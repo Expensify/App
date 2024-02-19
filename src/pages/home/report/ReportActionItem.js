@@ -54,7 +54,6 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as store from '@userActions/ReimbursementAccount/store';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
@@ -416,19 +415,13 @@ function ReportActionItem(props) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, props.report.ownerAccountID));
             const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
 
-            const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
-            const shouldShowAddCreditBankAccountButton = isSubmitterOfUnsettledReport && !store.hasCreditBankAccount() && paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            const shouldShowEnableWalletButton =
-                isSubmitterOfUnsettledReport &&
-                (_.isEmpty(props.userWallet) || props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER) &&
-                paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(props.userWallet, props.report.reportID, props.action);
             children = (
                 <ReportActionItemBasicMessage
                     message={props.translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
                 >
                     <>
-                        {shouldShowAddCreditBankAccountButton && (
+                        {missingPaymentMethod === 'bankAccount' && (
                             <Button
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
@@ -437,7 +430,7 @@ function ReportActionItem(props) {
                                 pressOnEnter
                             />
                         )}
-                        {shouldShowEnableWalletButton && (
+                        {missingPaymentMethod === 'wallet' && (
                             <KYCWall
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
