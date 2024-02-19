@@ -11,12 +11,12 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {checkIfWorkspaceSettingsTabHasRBR, getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
+import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/SignInOrAvatarWithOptionalStatus';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -87,29 +87,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 </PressableWithFeedback>
             </Tooltip>
             <BottomTabBarFloatingActionButton />
-            <Tooltip text={translate('common.settings')}>
-                <PressableWithFeedback
-                    onPress={() =>
-                        interceptAnonymousUser(() =>
-                            activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
-                        )
-                    }
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.settings')}
-                    wrapperStyle={styles.flexGrow1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.Wrench}
-                            fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {shouldShowWorkspaceRedBrickRoad && <View style={styles.bottomTabStatusIndicator(theme.danger)} />}
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
+            <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <SignInOrAvatarWithOptionalStatus />
+            </View>
         </View>
     );
 }

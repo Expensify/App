@@ -28,7 +28,9 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {translatableTextPropTypes} from '@libs/Localize';
 import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import * as UserUtils from '@libs/UserUtils';
+import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
@@ -75,6 +77,13 @@ const propTypes = {
             errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
+
+    /** The policies which the user has access to */
+    // eslint-disable-next-line react/forbid-prop-types
+    policies: PropTypes.object,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    policyMembers: PropTypes.object,
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -211,7 +220,7 @@ function InitialSettingsPage(props) {
      * Retuns a list of menu items data for general section
      * @returns {Object} object with translationKey, style and items for the general section
      */
-    const generaltMenuItemsData = useMemo(
+    const generalMenuItemsData = useMemo(
         () => ({
             sectionStyle: {
                 ...styles.pt4,
@@ -236,6 +245,52 @@ function InitialSettingsPage(props) {
             ],
         }),
         [styles.pt4],
+    );
+
+    const workspaceMenuItemsData = useMemo(
+        () => ({
+            sectionStyle: {
+                ...styles.pt4,
+            },
+            sectionTranslationKey: 'initialSettingsPage.workspaces',
+            items: [
+                {
+                    translationKey: 'common.workspaces',
+                    icon: Expensicons.Building,
+                    action: () => {
+                        waitForNavigate(() => {
+                            Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                        })();
+                    },
+                    brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(props.policies, props.policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                },
+                ...(shouldShowSubscriptionsMenu
+                    ? [
+                          {
+                              translationKey: 'allSettingsScreen.subscriptions',
+                              icon: Expensicons.MoneyBag,
+                              action: () => {
+                                  Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
+                              },
+                              shouldShowRightIcon: true,
+                              iconRight: Expensicons.NewWindow,
+                              link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+                          },
+                      ]
+                    : []),
+                {
+                    translationKey: 'allSettingsScreen.cardsAndDomains',
+                    icon: Expensicons.CardsAndDomains,
+                    action: () => {
+                        Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+                    },
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
+                },
+            ],
+        }),
+        [props.policies, props.policyMembers, styles.pt4, waitForNavigate],
     );
 
     /**
@@ -320,7 +375,8 @@ function InitialSettingsPage(props) {
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
-    const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
+    const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
+    const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
@@ -386,6 +442,7 @@ function InitialSettingsPage(props) {
             <View style={styles.w100}>
                 {accountMenuItems}
                 {generalMenuItems}
+                {workspaceMenuItems}
                 <ConfirmModal
                     danger
                     title={translate('common.areYouSure')}
@@ -426,6 +483,12 @@ export default compose(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     }),
     withNetwork(),
