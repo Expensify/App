@@ -108,7 +108,6 @@ function setSupportAuthToken(supportAuthToken: string, email?: string, accountID
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
 
-
 function getShortLivedLoginParams() {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -400,44 +399,8 @@ function beginGoogleSignIn(token: string | null) {
  * re-authenticating after an authToken expires.
  */
 function signInWithShortLivedAuthToken(email: string, authToken: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-            },
-        },
-        // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                signedInWithShortLivedAuthToken: true,
-            },
-        },
-    ];
-
-    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
-    // We are combining both success and failure data params into one const as they are identical
-    const resolutionData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                signedInWithShortLivedAuthToken: null,
-            },
-        },
-    ];
-
+    const { optimisticData, resolutionData } = getShortLivedLoginParams();
+    
     const successData = resolutionData;
     const failureData = resolutionData;
 
