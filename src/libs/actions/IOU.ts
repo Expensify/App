@@ -3735,6 +3735,13 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
             },
         });
     }
+    if (!isFree) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.REIMBURSED),
+        });
+    }
 
     API.write(
         WRITE_COMMANDS.CANCEL_PAYMENT,
