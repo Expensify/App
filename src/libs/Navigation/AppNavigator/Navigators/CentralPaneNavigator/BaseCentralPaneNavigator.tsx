@@ -15,7 +15,7 @@ type Screens = Partial<Record<keyof CentralPaneNavigatorParamList, () => React.C
 
 const workspaceSettingsScreens = {
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.OVERVIEW]: () => require('../../../../../pages/workspace/WorkspaceOverviewPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CARD]: () => require('../../../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.BILLS]: () => require('../../../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,

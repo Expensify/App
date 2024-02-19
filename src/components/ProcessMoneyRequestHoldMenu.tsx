@@ -1,5 +1,4 @@
-import type {RefObject} from 'react';
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,22 +24,20 @@ type ProcessMoneyRequestHoldMenuProps = {
     anchorPosition?: PopoverAnchorPosition;
 
     /** The anchor alignment of the popover menu */
-    anchorAlignment: AnchorAlignment;
-
-    /** The anchor ref of the popover menu */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorAlignment?: AnchorAlignment;
 };
 
-function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment, anchorRef}: ProcessMoneyRequestHoldMenuProps) {
+function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const popoverRef = useRef(null);
 
     return (
         <Popover
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            anchorRef={anchorRef}
+            anchorRef={popoverRef}
             anchorAlignment={anchorAlignment}
             disableAnimation={false}
             withoutOverlay={false}

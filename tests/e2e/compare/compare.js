@@ -107,7 +107,8 @@ function compareResults(compareEntries, baselineEntries) {
 }
 
 module.exports = (main, delta, outputFile, outputFormat = 'all') => {
-    const outputData = compareResults(main, delta);
+    // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
+    const outputData = compareResults(delta, main);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
         printToConsole(outputData);

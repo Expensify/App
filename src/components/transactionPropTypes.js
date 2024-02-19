@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {translatableTextPropTypes} from '@libs/Localize';
 import CONST from '@src/CONST';
 import sourcePropTypes from './Image/sourcePropTypes';
 
@@ -66,6 +67,17 @@ export default PropTypes.shape({
         }),
     ),
 
+    /** Selected participants */
+    participants: PropTypes.arrayOf(
+        PropTypes.shape({
+            accountID: PropTypes.number,
+            login: PropTypes.string,
+            isPolicyExpenseChat: PropTypes.bool,
+            isOwnPolicyExpenseChat: PropTypes.bool,
+            selected: PropTypes.bool,
+        }),
+    ),
+
     /** The original currency of the transaction */
     currency: PropTypes.string,
 
@@ -80,5 +92,5 @@ export default PropTypes.shape({
     }),
 
     /** Server side errors keyed by microtime */
-    errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 });
