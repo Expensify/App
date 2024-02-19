@@ -18,6 +18,7 @@ import type {
     RequestUnlinkValidationLinkParams,
     SignInUserWithLinkParams,
     SignInWithShortLivedAuthTokenParams,
+    SignInWithSupportAuthTokenParams,
     UnlinkLoginParams,
     ValidateTwoFactorAuthParams,
 } from '@libs/API/parameters';
@@ -105,7 +106,58 @@ function setSupportAuthToken(supportAuthToken: string, email?: string, accountID
         });
     }
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
-    NetworkStore.setSupportAuthToken(supportAuthToken);
+}
+
+
+function getShortLivedLoginParams() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+        // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: true,
+            },
+        },
+    ];
+
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
+    // We are combining both success and failure data params into one const as they are identical
+    const resolutionData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: null,
+            },
+        },
+    ];
+
+    return {optimisticData, resolutionData};
+}
+
+/**
+ * This method should be used when we are being redirected from oldDot to NewDot on a supportal request
+ */
+function signInWithSupportAuthToken(authToken: string) {
+    const { optimisticData, resolutionData }  = getShortLivedLoginParams();
+    const params: SignInWithSupportAuthTokenParams = {authToken};
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, params, {optimisticData, successData: resolutionData, failureData: resolutionData});
 }
 
 /**
