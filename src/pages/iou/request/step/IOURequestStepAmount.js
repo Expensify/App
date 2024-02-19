@@ -1,8 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -34,8 +34,8 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
-    /** The draft transaction of scan split bill */
-    splitTransactionDraft: transactionPropTypes,
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    splitDraftTransaction: transactionPropTypes,
 
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
@@ -43,17 +43,26 @@ const propTypes = {
 
     /** The policy of the report */
     policy: PropTypes.shape({
-        /** Is Tax tracking Enabled */
+        /**
+         * Whether or not the policy has tax tracking enabled
+         *
+         * @deprecated - use tax.trackingEnabled instead
+         */
         isTaxTrackingEnabled: PropTypes.bool,
+
+        /** Whether or not the policy has tax tracking enabled */
+        tax: PropTypes.shape({
+            trackingEnabled: PropTypes.bool,
+        }),
     }),
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
+    splitDraftTransaction: {},
     policyTaxRates: {},
     policy: {},
-    splitTransactionDraft: {},
 };
 
 const getTaxAmount = (transaction, defaultTaxValue, amount) => {
@@ -67,7 +76,7 @@ function IOURequestStepAmount({
         params: {iouType, reportID, transactionID, backTo, action},
     },
     transaction,
-    splitTransactionDraft,
+    splitDraftTransaction,
     transaction: {currency},
     policyTaxRates,
     policy,
@@ -78,12 +87,12 @@ function IOURequestStepAmount({
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(_.isEmpty(splitTransactionDraft) ? transaction : splitTransactionDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditing && isSplitBill ? splitDraftTransaction : transaction);
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+    const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
 
     useFocusEffect(
         useCallback(() => {
@@ -114,7 +123,7 @@ function IOURequestStepAmount({
     }, []);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -185,7 +194,7 @@ function IOURequestStepAmount({
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
-                amount={transactionAmount}
+                amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={isEditing ? saveAmountAndCurrency : navigateToNextPage}
@@ -203,6 +212,12 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
+        splitDraftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+            },
+        },
         policyTaxRates: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },

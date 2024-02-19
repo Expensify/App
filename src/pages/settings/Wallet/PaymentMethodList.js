@@ -96,6 +96,9 @@ const propTypes = {
 
     /** List container style */
     style: stylePropTypes,
+
+    /** List item style */
+    listItemStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -120,6 +123,7 @@ const defaultProps = {
     onListContentSizeChange: () => {},
     shouldEnableScroll: true,
     style: {},
+    listItemStyle: {},
     shouldShowSelectedState: false,
 };
 
@@ -205,6 +209,7 @@ function PaymentMethodList({
     onListContentSizeChange,
     shouldEnableScroll,
     style,
+    listItemStyle,
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -227,9 +232,10 @@ function PaymentMethodList({
 
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
+                const cartTitle = card.lastFourPAN ? `${card.bank} - ${card.lastFourPAN}` : card.bank;
                 return {
                     key: card.cardID,
-                    title: isExpensifyCard ? expensifyCardDescription : card.cardName,
+                    title: isExpensifyCard ? expensifyCardDescription : cartTitle,
                     description: card.domainName,
                     onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName)) : () => {},
                     shouldShowRightIcon: isExpensifyCard,
@@ -264,9 +270,12 @@ function PaymentMethodList({
 
             return {
                 ...paymentMethod,
+                iconRight: Expensicons.ThreeDots,
+                shouldShowRightIcon: true,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isMethodActive,
             };
         });
 
@@ -286,12 +295,13 @@ function PaymentMethodList({
                 onPress={onPress}
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
-                wrapperStyle={styles.paymentMethod}
+                wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                hoverAndPressStyle={styles.hoveredComponentBG}
                 ref={buttonRef}
             />
         ),
 
-        [onPress, styles.paymentMethod, translate, buttonRef],
+        [onPress, translate, styles.paymentMethod, styles.hoveredComponentBG, listItemStyle, buttonRef],
     );
 
     /**
@@ -322,17 +332,21 @@ function PaymentMethodList({
                     iconWidth={item.iconWidth || item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
-                    wrapperStyle={styles.paymentMethod}
+                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                    iconRight={item.iconRight}
+                    badgeStyle={styles.badgeBordered}
+                    hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID === item.methodID}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
+                    success={item.isMethodActive}
                 />
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, filteredPaymentMethods, translate, shouldShowSelectedState, selectedMethodID],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.hoveredComponentBG, filteredPaymentMethods, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

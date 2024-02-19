@@ -41,6 +41,7 @@ type Message = {
     /** Fragment edited flag */
     isEdited?: boolean;
 
+    /** Whether thread's parent message is deleted or not */
     isDeletedParentAction?: boolean;
 
     /** Whether the pending transaction was reversed and didn't post to the card */
@@ -53,6 +54,18 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** Reason of payment cancellation */
+    cancellationReason?: string;
+
+    /** ID of an expense report */
+    expenseReportID?: string;
+
+    /** Amount of an expense */
+    amount?: number;
+
+    /** Currency of an expense */
+    currency?: string;
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
@@ -143,6 +156,9 @@ type ReportActionBase = {
     /** Type of child report  */
     childType?: string;
 
+    /** The user's ID */
+    accountID?: number;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
@@ -178,7 +194,7 @@ type ReportActionBase = {
     delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;
