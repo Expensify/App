@@ -21,7 +21,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.gap4]}>
+        <View style={[styles.flexRow, styles.gap2]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
