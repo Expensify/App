@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {FlatList, View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
