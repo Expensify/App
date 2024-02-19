@@ -73,6 +73,9 @@ type User = {
 
     /** Represents the index of the option within the section it came from */
     index?: number;
+
+    /** Whether this option should show subscript */
+    shouldShowSubscript?: boolean;
 };
 
 type UserListItemProps = CommonListItemProps<User> & {
@@ -81,6 +84,9 @@ type UserListItemProps = CommonListItemProps<User> & {
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
+
+    /** Is item hovered */
+    isHovered?: boolean;
 };
 
 type RadioItem = {
