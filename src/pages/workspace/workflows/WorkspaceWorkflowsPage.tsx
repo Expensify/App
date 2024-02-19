@@ -41,7 +41,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     description={translate('workflowsPage.weeklyFrequency')}
                     shouldShowRightIcon
                     wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
-                    hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
+                    hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
             hasBeenToggled: policy?.harvesting?.enabled ?? false
@@ -62,7 +62,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                     shouldShowRightIcon
                     wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
-                    hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
+                    hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
             hasBeenToggled: policy?.isAutoApprovalEnabled ?? false,
@@ -81,7 +81,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
                     shouldShowRightIcon
                     wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
-                    hoverAndPressStyle={styles.workspaceWorkflowsSubItemHover}
+                    hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
             isEndOptionRow: true,
