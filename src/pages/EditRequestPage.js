@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -10,6 +10,7 @@ import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -38,6 +39,9 @@ const propTypes = {
 
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
+
+            /** The index of a tag list */
+            tagIndex: PropTypes.string,
         }),
     }).isRequired,
 
@@ -77,11 +81,11 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+    const tagIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
-    // For now, it always defaults to the first tag of the policy
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const tagListName = PolicyUtils.getTagListName(policyTags);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -90,7 +94,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -124,14 +128,21 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const saveTag = useCallback(
         ({tag: newTag}) => {
             let updatedTag = newTag;
-            if (newTag === transactionTag) {
+            if (newTag === tag) {
                 // In case the same tag has been selected, reset the tag.
                 updatedTag = '';
             }
-            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestTag(
+                transaction.transactionID,
+                report.reportID,
+                IOUUtils.insertTagIntoReportTagsString(transactionTag, updatedTag, tagIndex),
+                policy,
+                policyTags,
+                policyCategories,
+            );
             Navigation.dismissModal();
         },
-        [transactionTag, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
+        [tag, transaction.transactionID, report.reportID, transactionTag, tagIndex, policy, policyTags, policyCategories],
     );
 
     const saveCategory = useCallback(
@@ -172,8 +183,9 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && shouldShowTags) {
         return (
             <EditRequestTagPage
-                defaultTag={transactionTag}
-                tagName={tagListName}
+                defaultTag={tag}
+                tagName={policyTagListName}
+                tagIndex={tagIndex}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={saveTag}
             />
