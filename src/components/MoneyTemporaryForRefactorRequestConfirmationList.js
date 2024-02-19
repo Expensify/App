@@ -23,6 +23,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -166,6 +167,10 @@ const propTypes = {
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
+
+    /* Onyx Props */
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
 
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
