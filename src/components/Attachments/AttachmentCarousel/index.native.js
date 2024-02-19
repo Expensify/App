@@ -13,7 +13,6 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
@@ -103,24 +102,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [setShouldShowArrows],
     );
 
-    /**
-     * Defines how a single attachment should be rendered
-     * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
-     * @returns {JSX.Element}
-     */
-    const renderItem = useCallback(
-        ({item, index, isActive}) => (
-            <CarouselItem
-                item={item}
-                isSingleItem={attachments.length === 1}
-                index={index}
-                activeIndex={page}
-                isFocused={isActive && activeSource === item.source}
-            />
-        ),
-        [activeSource, attachments.length, page],
-    );
-
     return (
         <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
             {page == null ? (
@@ -148,8 +129,8 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
                             <AttachmentCarouselPager
                                 items={attachments}
-                                renderItem={renderItem}
-                                initialIndex={page}
+                                initialPage={page}
+                                activeSource={activeSource}
                                 onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                                 ref={pagerRef}
