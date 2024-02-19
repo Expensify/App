@@ -1,13 +1,11 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import * as Expensicons from './Icon/Expensicons';
@@ -71,8 +69,4 @@ function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherB
 
 WorkspaceSwitcherButton.displayName = 'WorkspaceSwitcherButton';
 
-export default withOnyx<WorkspaceSwitcherButtonProps, WorkspaceSwitcherButtonOnyxProps>({
-    policy: {
-        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
-    },
-})(WorkspaceSwitcherButton);
+export default WorkspaceSwitcherButton;
