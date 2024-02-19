@@ -379,7 +379,7 @@ function ReportActionItem(props) {
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-            if (ReportUtils.isClosedExpenseReportWithNoExpenses(ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action) ?? ''))) {
+            if (ReportUtils.isClosedExpenseReportWithNoExpenses(ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)))) {
                 children = (
                     <ReportPreview
                         iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
@@ -395,7 +395,7 @@ function ReportActionItem(props) {
                     />
                 );
             } else {
-                children = <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />;
+                children = <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedReport')}</comment>`} />;
             }
         } else if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
