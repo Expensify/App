@@ -25,7 +25,7 @@ import PDFDocument from './WebPDFDocument';
 
 function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, translate, ...props}) {
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
-    const themeStyles = useThemeStyles();
+    const styles = useThemeStyles();
 
     const [numPages, setNumPages] = useState(null);
     const [pageViewports, setPageViewports] = useState([]);
@@ -213,13 +213,13 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
 
     const renderPDFView = () => {
         const pageWidth = calculatePageWidth();
-        const outerContainerStyle = [themeStyles.w100, themeStyles.h100, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter];
+        const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
-        const pdfContainerStyle = [themeStyles.PDFView, themeStyles.noSelect, props.style];
+        const pdfContainerStyle = [styles.PDFView, styles.noSelect, props.style];
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
         if (password === PDFViewConstants.REQUIRED_PASSWORD_MISSING || isCheckingPassword) {
-            pdfContainerStyle.push(themeStyles.invisible);
+            pdfContainerStyle.push(styles.invisible);
         }
 
         const estimatedItemSize = calculatePageHeight(0);
@@ -239,7 +239,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     }}
                 >
                     <PDFDocument
-                        listStyle={themeStyles.PDFViewList}
+                        listStyle={styles.PDFViewList}
                         errorLabelStyles={props.errorLabelStyles}
                         translate={translate}
                         sourceURL={sourceURL}
@@ -275,7 +275,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     return onPress ? (
         <PressableWithoutFeedback
             onPress={onPress}
-            style={[themeStyles.flex1, themeStyles.flexRow, themeStyles.alignSelfStretch]}
+            style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
         >
