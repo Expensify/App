@@ -74,7 +74,7 @@ let buildMode = 'full';
 // When we are in dev mode we want to apply certain default params and configs
 const isDevMode = args.includes('--development');
 if (isDevMode) {
-    setConfigPath('config.local.js');
+    setConfigPath('config.local.ts');
     buildMode = 'js-only';
 }
 
