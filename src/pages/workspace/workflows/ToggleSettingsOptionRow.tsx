@@ -37,19 +37,19 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
 
     return (
         <View style={styles.pRelative}>
-            <View style={styles.workspaceWorkflowContainer}>
-                <View style={styles.workspaceWorkflowContent}>
+            <View style={StyleUtils.getWorkflowsStyle('container')}>
+                <View style={StyleUtils.getWorkflowsStyle('content')}>
                     <Icon
                         src={icon}
                         height={48}
                         width={48}
-                        additionalStyles={styles.workspaceWorkflowsIcon}
+                        additionalStyles={StyleUtils.getWorkflowsStyle('icon')}
                     />
-                    <View style={styles.workspaceWorkflowsTimelineOverride} />
+                    <View style={StyleUtils.getWorkflowsStyle('timelineOverride')} />
                     {!isEndOptionRow && <View style={StyleUtils.getWorkspaceWorkflowsDotStyle(isEnabled, isSmallScreenWidth) as ViewStyle} />}
-                    <View style={styles.workspaceWorkflowsWrapperText}>
-                        <Text style={styles.workspaceWorkflowsHeading}>{title}</Text>
-                        <Text style={styles.workspaceWorkflowsSubtitle}>{subtitle}</Text>
+                    <View style={StyleUtils.getWorkflowsStyle('wrapperText')}>
+                        <Text style={StyleUtils.getWorkflowsStyle('heading')}>{title}</Text>
+                        <Text style={StyleUtils.getWorkflowsStyle('subtitle')}>{subtitle}</Text>
                     </View>
                 </View>
                 <View>

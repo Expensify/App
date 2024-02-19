@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {OptionType} from './ToggleSettingsOptionRow';
+import useStyleUtils from '@hooks/useStyleUtils';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -24,6 +25,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const StyleUtils = useStyleUtils();
 
     const items: OptionType[] = useMemo(() => ([
         {
@@ -36,13 +38,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             subMenuItems: (
                 <MenuItem
                     title={translate('workflowsPage.submissionFrequency')}
-                    titleStyle={styles.workspaceWorkflowsSubMenuTitle}
-                    descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
+                    titleStyle={StyleUtils.getWorkflowsStyle('subMenuTitle')}
+                    descriptionTextStyle={StyleUtils.getWorkflowsStyle('subMenuDescription')}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
                     description={translate('workflowsPage.weeklyFrequency')}
                     shouldShowRightIcon
-                    wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
+                    wrapperStyle={StyleUtils.getWorkflowsStyle('subMenuContainer')}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
@@ -58,13 +60,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             subMenuItems: (
                 <MenuItem
                     title={translate('workflowsPage.approver')}
-                    titleStyle={styles.workspaceWorkflowsSubMenuTitle}
-                    descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
+                    titleStyle={StyleUtils.getWorkflowsStyle('subMenuTitle')}
+                    descriptionTextStyle={StyleUtils.getWorkflowsStyle('subMenuDescription')}
                     description={policy?.owner ?? ''}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                     shouldShowRightIcon
-                    wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
+                    wrapperStyle={StyleUtils.getWorkflowsStyle('subMenuContainer')}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
@@ -79,19 +81,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             },
             subMenuItems: (
                 <MenuItem
-                    descriptionTextStyle={[styles.workspaceWorkflowsSubMenuDescription, styles.textSupporting]}
+                    descriptionTextStyle={[StyleUtils.getWorkflowsStyle('subMenuDescription'), styles.textSupporting]}
                     description={translate('workflowsPage.connectBankAccount')}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
                     shouldShowRightIcon
-                    wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
+                    wrapperStyle={StyleUtils.getWorkflowsStyle('subMenuContainer')}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
             isEndOptionRow: true,
             hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
         },
-    ]), [policy, route.params.policyID, styles, translate]);
+    ]), [policy, route.params.policyID, styles, translate, StyleUtils]);
 
     const renderItem = ({item}: {item: OptionType}) => (
         <View style={styles.mt7}>
