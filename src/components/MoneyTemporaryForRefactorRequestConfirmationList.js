@@ -165,10 +165,6 @@ const propTypes = {
     policyTags: tagPropTypes,
 
     /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
-
-    /* Onyx Props */
     /** The policy of the report */
     policy: policyPropTypes.policy,
 
@@ -206,7 +202,6 @@ const defaultProps = {
     isDistanceRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
-    policyTaxRates: {},
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
@@ -249,7 +244,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
-    policyTaxRates,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -944,9 +938,6 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        policyTaxRates: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);
