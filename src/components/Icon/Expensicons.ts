@@ -281,5 +281,5 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
-    ChatBubbleReply
+    ChatBubbleReply,
 };
