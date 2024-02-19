@@ -63,7 +63,7 @@ function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineOnboard
  * Returns true if user has completed the onboarding
  * flow, false otherwise.
  */
-function isOnboardingFlowCompletedAsync({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
+function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
         const onboardingFlowCompleted = hasProvidedPersonalDetails && hasSelectedPurpose;
 
@@ -187,4 +187,4 @@ Onyx.connect({
     },
 });
 
-export {onServerDataReady, isOnboardingFlowCompletedAsync};
+export {onServerDataReady, isOnboardingFlowCompleted};
