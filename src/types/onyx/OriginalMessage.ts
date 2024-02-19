@@ -11,6 +11,8 @@ type OriginalMessageActionName =
     | 'CHRONOSOOOLIST'
     | 'CLOSED'
     | 'CREATED'
+    | 'HOLD'
+    | 'UNHOLD'
     | 'IOU'
     | 'MODIFIEDEXPENSE'
     | 'REIMBURSEMENTQUEUED'
@@ -28,6 +30,16 @@ type OriginalMessageApproved = {
     originalMessage: unknown;
 };
 type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
+
+type OriginalMessageHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD;
+    originalMessage: unknown;
+};
+
+type OriginalMessageUnHold = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD;
+    originalMessage: unknown;
+};
 
 type IOUDetails = {
     amount: number;
@@ -274,6 +286,8 @@ type OriginalMessage =
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
+    | OriginalMessageHold
+    | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
     | OriginalMessageReportPreview
