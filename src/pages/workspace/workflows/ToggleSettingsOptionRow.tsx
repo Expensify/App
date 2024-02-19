@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {View, ViewStyle} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type OptionType = {
     Illustration: React.ElementType<SvgProps>;
@@ -23,7 +23,19 @@ function ToggleSettingOptionRow({Illustration, title, subtitle, onToggle, subMen
         setIsEnabled((previousState) => !previousState);
         onToggle(!isEnabled);
     };
-    const isSmallScreenWidth = getIsSmallScreenWidth();
+    const { isSmallScreenWidth } = useWindowDimensions();
+
+    // Define dot style for menu items based on screen width
+    const getDynamicDotStyle = (isEnabled: boolean) => ({
+        position: 'absolute',
+        width: 6,
+        backgroundImage: 'radial-gradient(circle at 2.5px, #1A3D32 1.25px, rgba(255, 255, 255, 0) 2.5px)',
+        backgroundSize: '5px 15px',
+        backgroundRepeat: 'repeat-y',
+        top: isSmallScreenWidth ? '32%' : '12%',
+        bottom: isEnabled ? '-180%' : '-100%',
+        left: isSmallScreenWidth ? '6%' : '2.45%',
+    } as ViewStyle);
 
     return (
         <View style={styles.pRelative}>
@@ -31,20 +43,7 @@ function ToggleSettingOptionRow({Illustration, title, subtitle, onToggle, subMen
                 <View style={styles.workspaceWorkflowContent}>
                     <Illustration style={styles.workspaceWorkflowsIcon} />
                     <View style={styles.workspaceWorkflowsTimelineOverride} />
-                    {!isEndOptionRow && (
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 6,
-                                backgroundImage: 'radial-gradient(circle at 2.5px, #1A3D32 1.25px, rgba(255, 255, 255, 0) 2.5px)',
-                                backgroundSize: '5px 15px',
-                                backgroundRepeat: 'repeat-y',
-                                top: isSmallScreenWidth ? '32%' : '12%',
-                                bottom: isEnabled ? '-180%' : '-100%',
-                                left: isSmallScreenWidth ? '6%' : '2.45%',
-                            }}
-                        />
-                    )}
+                    {!isEndOptionRow && <View style={getDynamicDotStyle(isEnabled)} />}
                     <View style={styles.workspaceWorkflowsWrapperText}>
                         <Text style={styles.workspaceWorkflowsHeading}>{title}</Text>
                         <Text style={styles.workspaceWorkflowsSubtitle}>{subtitle}</Text>
