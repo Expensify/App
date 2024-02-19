@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -43,6 +44,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     transaction: {},
+    policy: {},
     policyTaxRates: {},
 };
 
@@ -58,6 +60,7 @@ function IOURequestStepTaxAmountPage({
     transaction,
     transaction: {currency},
     report,
+    policy,
     policyTaxRates,
 }) {
     const {translate} = useLocalize();
@@ -69,6 +72,7 @@ function IOURequestStepTaxAmountPage({
 
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
     useEffect(() => {
         if (transaction.originalCurrency) {
@@ -140,7 +144,7 @@ function IOURequestStepTaxAmountPage({
             isEditing={isEditing}
             currency={currency}
             amount={transaction.taxAmount}
-            taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
+            taxAmount={getTaxAmount(transaction, taxRates.defaultValue)}
             transaction={transaction}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
@@ -178,6 +182,9 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         policyTaxRates: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+        },
+        policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
     }),
