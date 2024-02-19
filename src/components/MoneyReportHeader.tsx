@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, {useMemo, useState} from 'react';
-=======
 import React, {useCallback, useMemo, useState} from 'react';
->>>>>>> origin/main
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -19,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -28,8 +24,6 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import {usePersonalDetails} from './OnyxProvider';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
-
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
 type MoneyReportHeaderOnyxProps = {
     /** The chat report this report is linked to */
@@ -59,7 +53,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [paymentType, setPaymentType] = useState<PaymentType>();
+    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [confirmationType, setConfirmationType] = useState<string>();
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
@@ -107,7 +101,11 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport.reportID);
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
-    const confirmPayment = (type: PaymentType) => {
+    const confirmPayment = (type?: PaymentMethodType | undefined) => {
+        if (!type) {
+            return;
+        }
+
         setPaymentType(type);
         setConfirmationType('pay');
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && (isPolicyAdmin || isManager || isPayer)) {
@@ -225,7 +223,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     </View>
                 )}
             </View>
-<<<<<<< HEAD
             {isHoldMenuVisible && paymentType && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
@@ -239,7 +236,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     moneyRequestReport={moneyRequestReport}
                 />
             )}
-=======
             <ConfirmModal
                 title={translate('iou.cancelPayment')}
                 isVisible={isConfirmModalVisible}
@@ -250,7 +246,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 cancelText={translate('common.dismiss')}
                 danger
             />
->>>>>>> origin/main
         </View>
     );
 }

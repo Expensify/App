@@ -2284,22 +2284,6 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
 }
 
 /**
- * Return held and full amount formatted with used currency
- */
-function getNonHeldAmount(report: Report): number {
-    const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
-
-    const nonHeldAmount = transactions.reduce((previousValue, transaction) => {
-        if (!TransactionUtils.isOnHold(transaction)) {
-            return previousValue + transaction.amount * -1;
-        }
-        return previousValue;
-    }, 0);
-
-    return nonHeldAmount;
-}
-
-/**
  * Get money request message for an IOU report
  *
  * @param [reportAction] This can be either a report preview action or the IOU action
@@ -3561,73 +3545,7 @@ function buildOptimisticHoldReportAction(comment: string, created = DateUtils.ge
  * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: `unheld this money request`,
-            },
-        ],
-        person: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
-            },
-        ],
-        automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-        created,
-        shouldShow: true,
-    };
-}
-
-/**
- * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
- * @param [created] - Action created time
- */
-function buildOptimisticHoldReportAction(comment: string, created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: `held this money request with the comment: ${comment}`,
-            },
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: comment,
-            },
-        ],
-        person: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
-            },
-        ],
-        automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-        created,
-        shouldShow: true,
-    };
-}
-
-/**
- * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from hold optimistically
- * @param [created] - Action created time
- */
-function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
+function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
@@ -4895,18 +4813,12 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
 /**
  * Check if Report has any held expenses
  */
-<<<<<<< HEAD
-function isHoldCreator(transaction: Transaction, reportID: string): boolean {
-    const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction.comment?.hold}`);
-=======
 function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): boolean {
     const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
->>>>>>> origin/main
     return isActionCreator(holdReportAction);
 }
 
 /**
-<<<<<<< HEAD
  * Check if Report has any held expenses
  */
 function hasHeldExpenses(iouReportID: string): boolean {
@@ -4939,12 +4851,10 @@ function getNonHeldAndFullAmount(iouReportID: string): string[] {
     // }, 0);
 
     // return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
-    return ['Unheld', 'All'];
+    return !!iouReportID ? ['Unheld', 'All'] : [];
 }
 
 /**
-=======
->>>>>>> origin/main
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -5257,12 +5167,9 @@ export {
     navigateToPrivateNotes,
     canEditWriteCapability,
     isHoldCreator,
-<<<<<<< HEAD
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     getNonHeldAndFullAmount,
-=======
->>>>>>> origin/main
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
     buildOptimisticHoldReportAction,

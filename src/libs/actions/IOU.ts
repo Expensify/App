@@ -3288,19 +3288,7 @@ function getSendMoneyParams(
     };
 }
 
-<<<<<<< HEAD:src/libs/actions/IOU.js
-/**
- * @param {Object} chatReport
- * @param {Object} iouReport
- * @param {Object} recipient
- * @param {String} paymentMethodType
- * @param {Boolean} full
- * @returns {Object}
- */
-function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType, full) {
-=======
-function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
->>>>>>> origin/main:src/libs/actions/IOU.ts
+function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType, full: boolean): PayMoneyRequestData {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         -(iouReport.total ?? 0),
@@ -3334,14 +3322,9 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-<<<<<<< HEAD:src/libs/actions/IOU.js
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
-                optimisticFlowStatus: CONST.REPORT.OPTIMISTIC_FLOW_STATUS[full ? 'FULL' : 'PARTIAL'],
-=======
                 lastMessageText: optimisticIOUReportAction.message?.[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
->>>>>>> origin/main:src/libs/actions/IOU.ts
+                optimisticFlowStatus: CONST.REPORT.OPTIMISTIC_FLOW_STATUS[full ? 'FULL' : 'PARTIAL'],
             },
         },
         {
@@ -3395,14 +3378,11 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
-<<<<<<< HEAD:src/libs/actions/IOU.js
                 optimisticFlowStatus: null,
-=======
                 pendingFields: {
                     preview: null,
                     reimbursed: null,
                 },
->>>>>>> origin/main:src/libs/actions/IOU.ts
             },
         },
     ];
@@ -3499,15 +3479,10 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-<<<<<<< HEAD:src/libs/actions/IOU.js
-function approveMoneyRequest(expenseReport, full) {
-    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
-=======
-function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
+function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full?: boolean) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
->>>>>>> origin/main:src/libs/actions/IOU.ts
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -3568,24 +3543,13 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             },
         },
         {
-<<<<<<< HEAD:src/libs/actions/IOU.js
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 optimisticFlowStatus: null,
             },
         },
-    ];
-
-    if (!_.isNull(currentNextStep)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: null,
-        });
-        failureData.push({
-=======
->>>>>>> origin/main:src/libs/actions/IOU.ts
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
@@ -3796,18 +3760,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
     );
 }
 
-<<<<<<< HEAD:src/libs/actions/IOU.js
-/**
- * @param {String} paymentType
- * @param {Object} chatReport
- * @param {Object} iouReport
- * @param {Boolean} full
- * @param {String} reimbursementBankAccountState
- */
-function payMoneyRequest(paymentType, chatReport, iouReport, full = true) {
-=======
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report) {
->>>>>>> origin/main:src/libs/actions/IOU.ts
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, full = true) {
     const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
 
@@ -3941,11 +3894,7 @@ function setMoneyRequestParticipants(participants: Participant[], isSplitRequest
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
-<<<<<<< HEAD:src/libs/actions/IOU.js
-function setShownHoldUseExplaination() {
-=======
 function setShownHoldUseExplanation() {
->>>>>>> origin/main:src/libs/actions/IOU.ts
     Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
 }
 
@@ -4007,130 +3956,6 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
 
 /**
  * Put money request on HOLD
-<<<<<<< HEAD:src/libs/actions/IOU.js
- * @param {string} transactionID
- * @param {string} comment
- * @param {string} reportID
- */
-function putOnHold(transactionID, comment, reportID) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
-
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: createdReportAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    hold: createdReportAction.reportActionID,
-                },
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    hold: null,
-                },
-            },
-        },
-    ];
-
-    API.write(
-        'HoldRequest',
-        {
-            transactionID,
-            comment,
-        },
-        {optimisticData, successData, failureData},
-    );
-}
-
-/**
- * Remove money request from HOLD
- * @param {string} transactionID
- * @param {string} reportID
- */
-function unholdRequest(transactionID, reportID) {
-    const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
-
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: createdReportAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    hold: null,
-                },
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    hold: null,
-                },
-            },
-        },
-    ];
-
-    API.write(
-        'UnHoldRequest',
-        {
-            transactionID,
-        },
-        {optimisticData, successData, failureData: []},
-    );
-}
-
-/**
- * @param {String} receiptFilename
- * @param {String} receiptPath
- * @param {Function} onSuccess
- * @param {String} requestType
- * @param {String} iouType
- * @param {String} transactionID
- * @param {String} reportID
-=======
->>>>>>> origin/main:src/libs/actions/IOU.ts
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
     const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
@@ -4297,11 +4122,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setUpDistanceTransaction,
-<<<<<<< HEAD:src/libs/actions/IOU.js
-    setShownHoldUseExplaination,
-=======
     setShownHoldUseExplanation,
->>>>>>> origin/main:src/libs/actions/IOU.ts
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
@@ -4317,10 +4138,7 @@ export {
     editMoneyRequest,
     putOnHold,
     unholdRequest,
-<<<<<<< HEAD:src/libs/actions/IOU.js
-=======
     cancelPayment,
->>>>>>> origin/main:src/libs/actions/IOU.ts
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,
 };

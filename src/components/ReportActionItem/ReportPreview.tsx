@@ -226,16 +226,11 @@ function ReportPreview({
         if (!isPaidGroupPolicy) {
             return false;
         }
-<<<<<<< HEAD
-        return isCurrentUserManager && !hasHeldRequests && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
-=======
         if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
             return false;
         }
-        return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
+        return isCurrentUserManager && !hasHeldRequests && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
->>>>>>> origin/main
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     /*

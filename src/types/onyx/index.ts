@@ -11,24 +11,6 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
-<<<<<<< HEAD
-import type {
-    AddDebitCardForm,
-    CloseAccountForm,
-    DateOfBirthForm,
-    DisplayNameForm,
-    IKnowATeacherForm,
-    IntroSchoolPrincipalForm,
-    MoneyRequestHoldReasonForm,
-    NewRoomForm,
-    PrivateNotesForm,
-    ReportFieldEditForm,
-    RoomNameForm,
-    WorkspaceSettingsForm,
-} from './Form';
-import type Form from './Form';
-=======
->>>>>>> origin/main
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
@@ -111,7 +93,6 @@ export type {
     LoginList,
     MapboxAccessToken,
     Modal,
-    MoneyRequestHoldReasonForm,
     Network,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,

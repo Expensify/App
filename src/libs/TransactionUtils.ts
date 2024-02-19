@@ -540,15 +540,11 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction is on hold
  */
 function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
-<<<<<<< HEAD
-    return !!transaction?.comment?.hold;
-=======
     if (!transaction) {
         return false;
     }
 
     return !!transaction.comment?.hold;
->>>>>>> origin/main
 }
 
 /**

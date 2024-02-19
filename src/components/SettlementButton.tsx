@@ -26,51 +26,16 @@ type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
 
-<<<<<<< HEAD:src/components/SettlementButton.js
-    /** Settlement currency type */
-    currency: PropTypes.string,
-
-    /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
-    chatReportID: PropTypes.string,
-
-    /** Callback to open confirmation modal if any of the transactions is on HOLD */
-    confirmApproval: PropTypes.func,
-
-    /** The IOU/Expense report we are paying */
-    iouReport: iouReportPropTypes,
-
-    /** The route to redirect if user does not have a payment method setup */
-    enablePaymentsRoute: PropTypes.string.isRequired,
-
-    /** Should we show the approve button? */
-    shouldHidePaymentOptions: PropTypes.bool,
-
-    /** Should we show the payment options? */
-    shouldShowApproveButton: PropTypes.bool,
-=======
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
->>>>>>> origin/main:src/components/SettlementButton.tsx
 
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
     nvpLastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
 };
 
-<<<<<<< HEAD:src/components/SettlementButton.js
-const defaultProps = {
-    isLoading: false,
-    isDisabled: false,
-    pressOnEnter: false,
-    addBankAccountRoute: '',
-    addDebitCardRoute: '',
-    currency: CONST.CURRENCY.USD,
-    chatReportID: '',
-    confirmApproval: undefined,
-=======
 type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: (paymentType?: PaymentMethodType) => void;
->>>>>>> origin/main:src/components/SettlementButton.tsx
 
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: EnablePaymentsRoute;
@@ -128,19 +93,12 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
+
+    /** Callback to open confirmation modal if any of the transactions is on HOLD */
+    confirmApproval?: () => void,
 };
 
 function SettlementButton({
-<<<<<<< HEAD:src/components/SettlementButton.js
-    addDebitCardRoute,
-    addBankAccountRoute,
-    kycWallAnchorAlignment,
-    paymentMethodDropdownAnchorAlignment,
-    buttonSize,
-    chatReportID,
-    currency,
-    confirmApproval,
-=======
     addDebitCardRoute = '',
     addBankAccountRoute = '',
     kycWallAnchorAlignment = {
@@ -154,7 +112,6 @@ function SettlementButton({
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
->>>>>>> origin/main:src/components/SettlementButton.tsx
     enablePaymentsRoute,
     // The "iouReport" and "nvpLastPaymentMethod" objects needs to be stable to prevent the "useMemo"
     // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
@@ -171,6 +128,7 @@ function SettlementButton({
     style,
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
+    confirmApproval,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -244,15 +202,11 @@ function SettlementButton({
         }
 
         if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-<<<<<<< HEAD:src/components/SettlementButton.js
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                IOU.approveMoneyRequest(iouReport);
+                IOU.approveMoneyRequest(iouReport ?? {});
             }
-=======
-            IOU.approveMoneyRequest(iouReport ?? {});
->>>>>>> origin/main:src/components/SettlementButton.tsx
             return;
         }
 
