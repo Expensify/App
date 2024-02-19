@@ -57,7 +57,6 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
