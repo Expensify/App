@@ -9,7 +9,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RNTextInput from '@components/RNTextInput';
-import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
@@ -52,7 +51,6 @@ function BaseTextInput(
         onInputChange = () => {},
         shouldDelayFocus = false,
         multiline = false,
-        shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
@@ -264,11 +262,7 @@ function BaseTextInput(
 
     return (
         <>
-            <View
-                style={[containerStyles]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
-            >
+            <View style={[containerStyles]}>
                 <PressableWithoutFeedback
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}

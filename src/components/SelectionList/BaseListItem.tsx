@@ -63,77 +63,83 @@ function BaseListItem<TItem extends ListItem>({
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
             >
-                <View
-                    style={[
-                        styles.flex1,
-                        styles.justifyContentBetween,
-                        styles.sidebarLinkInner,
-                        styles.userSelectNone,
-                        isUserItem ? styles.peopleRow : styles.optionRow,
-                        isFocused && styles.sidebarLinkActive,
-                    ]}
-                >
-                    {canSelectMultiple && (
+                {({hovered}) => (
+                    <>
                         <View
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            style={StyleUtils.getCheckboxPressableStyle()}
+                            style={[
+                                styles.flex1,
+                                styles.justifyContentBetween,
+                                styles.sidebarLinkInner,
+                                styles.userSelectNone,
+                                isUserItem ? styles.peopleRow : styles.optionRow,
+                                isFocused && styles.sidebarLinkActive,
+                            ]}
                         >
-                            <View
-                                style={[
-                                    StyleUtils.getCheckboxContainerStyle(20),
-                                    styles.mr3,
-                                    item.isSelected && styles.checkedContainer,
-                                    item.isSelected && styles.borderColorFocus,
-                                    item.isDisabled && styles.cursorDisabled,
-                                    item.isDisabled && styles.buttonOpacityDisabled,
+                            {canSelectMultiple && (
+                                <View
+                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    style={StyleUtils.getCheckboxPressableStyle()}
+                                >
+                                    <View
+                                        style={[
+                                            StyleUtils.getCheckboxContainerStyle(20),
+                                            styles.mr3,
+                                            item.isSelected && styles.checkedContainer,
+                                            item.isSelected && styles.borderColorFocus,
+                                            item.isDisabled && styles.cursorDisabled,
+                                            item.isDisabled && styles.buttonOpacityDisabled,
+                                        ]}
+                                    >
+                                        {item.isSelected && (
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={theme.textLight}
+                                                height={14}
+                                                width={14}
+                                            />
+                                        )}
+                                    </View>
+                                </View>
+                            )}
+
+                            <ListItem
+                                item={item}
+                                textStyles={[
+                                    styles.optionDisplayName,
+                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                    styles.sidebarLinkTextBold,
+                                    styles.pre,
+                                    item.alternateText ? styles.mb1 : null,
                                 ]}
-                            >
-                                {item.isSelected && (
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </View>
-                    )}
+                                alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                isDisabled={isDisabled}
+                                onSelectRow={() => onSelectRow(item)}
+                                showTooltip={showTooltip}
+                                isFocused={isFocused}
+                                isHovered={hovered}
+                            />
 
-                    <ListItem
-                        item={item}
-                        textStyles={[
-                            styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            styles.sidebarLinkTextBold,
-                            styles.pre,
-                            item.alternateText ? styles.mb1 : null,
-                        ]}
-                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                        isDisabled={isDisabled}
-                        onSelectRow={() => onSelectRow(item)}
-                        showTooltip={showTooltip}
-                    />
-
-                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
-                        <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
-                            accessible={false}
-                        >
-                            <View>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
+                            {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                                <View
+                                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                                    accessible={false}
+                                >
+                                    <View>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={theme.success}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+                            {rightHandSideComponentRender()}
                         </View>
-                    )}
-                    {rightHandSideComponentRender()}
-                </View>
-                {isUserItem && item.invitedSecondaryLogin && (
-                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
-                    </Text>
+                        {isUserItem && item.invitedSecondaryLogin && (
+                            <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
+                                {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
+                            </Text>
+                        )}
+                    </>
                 )}
             </PressableWithFeedback>
         </OfflineWithFeedback>

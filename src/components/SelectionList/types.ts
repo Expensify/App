@@ -73,6 +73,9 @@ type ListItem = {
 
     /** Represents the index of the option within the section it came from */
     index?: number;
+
+    /** Whether this option should show subscript */
+    shouldShowSubscript?: boolean;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -81,6 +84,9 @@ type ListItemProps = CommonListItemProps<ListItem> & {
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
+
+    /** Is item hovered */
+    isHovered?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

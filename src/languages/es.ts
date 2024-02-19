@@ -2,6 +2,7 @@ import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -104,6 +105,7 @@ import type {
 export default {
     common: {
         cancel: 'Cancelar',
+        dismiss: 'Descartar',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -116,6 +118,7 @@ export default {
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
         next: 'Siguiente',
+        create: 'Crear',
         previous: 'Anterior',
         goBack: 'Volver',
         add: 'Añadir',
@@ -414,7 +417,6 @@ export default {
         oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
     },
     reportActionCompose: {
-        addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Añadir archivo adjunto',
@@ -576,6 +578,8 @@ export default {
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
+        cancelPayment: 'Cancelar el pago',
+        cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
         canceled: 'Canceló',
@@ -614,6 +618,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -655,14 +660,26 @@ export default {
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',
-        hold: 'Hold',
-        holdEducationalTitle: 'Esta solicitud está en',
-        whatIsHoldTitle: '¿Qué es Hold?',
-        whatIsHoldExplain: 'Hold es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',
-        holdIsTemporaryTitle: 'Hold suele ser temporal',
-        holdIsTemporaryExplain: 'Debido a que hold se utiliza para aclarar confusión o aclarar un detalle importante antes del pago, no es permanente.',
+        holdRequest: 'Bloquear solicitud de dinero',
+        unholdRequest: 'Desbloquear solicitud de dinero',
+        explainHold: 'Explica la razón para bloquear esta solicitud.',
+        reason: 'Razón',
+        holdReasonRequired: 'Se requiere una razón para bloquear.',
+        requestOnHold: 'Este solicitud está bloqueada. Revisa los comentarios para saber como proceder.',
+        confirmApprove: 'Confirma que quieres aprobar',
+        confirmApprovalAmount: 'Aprobar el total o solo la parte no bloqueada.',
+        confirmPay: 'Confirma que quieres pagar',
+        confirmPayAmount: 'Pagar todos los gastos por cuenta propia o solo el monto no bloqueado.',
+        payOnly: 'Solo pagar',
+        approveOnly: 'Solo aprobar',
+        hold: 'Bloqueada',
+        holdEducationalTitle: 'Esta solicitud está',
+        whatIsHoldTitle: '¿Qué es Bloquear?',
+        whatIsHoldExplain: 'Bloquear es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',
+        holdIsTemporaryTitle: 'Bloquear suele ser temporal',
+        holdIsTemporaryExplain: 'Se utiliza bloquear para aclarar confusión o aclarar un detalle importante antes del pago, no es permanente.',
         deleteHoldTitle: 'Eliminar lo que no se pagará',
-        deleteHoldExplain: 'En el raro caso de que algo se ponga en hold y no se pague, la persona que solicita el pago debe eliminarlo.',
+        deleteHoldExplain: 'En el raro caso de que algo se bloquear y no se pague, la persona que solicita el pago debe eliminarlo.',
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
@@ -1840,8 +1857,8 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         editor: {
-            descriptionInputLabel: 'Descripción del espacio de trabajo',
             nameInputLabel: 'Nombre',
+            descriptionInputLabel: 'Descripción',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
             currencyInputLabel: 'Moneda por defecto',
@@ -2777,7 +2794,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Falta ${tagName ?? 'etiqueta'}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: 'Importe superior al del recibo escaneado',
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
@@ -2788,8 +2805,9 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
-            `Recibo obligatorio${formattedLimit ? ` para importes sobre ${category ? 'el limite de la categoría de ' : ''}${formattedLimit}` : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) =>
+            `Recibo obligatorio${params ? ` para importes sobre${params.formattedLimit ? ` ${params.formattedLimit}` : ''}${params.category ? ' el límite de la categoría' : ''}` : ''}`,
+        reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
@@ -2810,5 +2828,14 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+    },
+    videoPlayer: {
+        play: 'Reproducir',
+        pause: 'Pausar',
+        fullscreen: 'Pantalla completa',
+        playbackSpeed: 'Velocidad',
+        expand: 'Expandir',
+        mute: 'Silenciar',
+        unmute: 'Activar sonido',
     },
 } satisfies EnglishTranslation;

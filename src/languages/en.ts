@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -114,6 +115,7 @@ type AllCountries = Record<Country, string>;
 export default {
     common: {
         cancel: 'Cancel',
+        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -127,6 +129,7 @@ export default {
         next: 'Next',
         previous: 'Previous',
         goBack: 'Go back',
+        create: 'Create',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
@@ -423,7 +426,6 @@ export default {
         oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
     },
     reportActionCompose: {
-        addAction: 'Actions',
         dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
@@ -583,6 +585,8 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
+        cancelPayment: 'Cancel payment',
+        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',
@@ -621,6 +625,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -661,6 +666,18 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
+        holdRequest: 'Hold Request',
+        unholdRequest: 'Unhold Request',
+        explainHold: "Explain why you're holding this request.",
+        reason: 'Reason',
+        holdReasonRequired: 'A reason is required when holding.',
+        requestOnHold: 'This request was put on hold. Review the comments for next steps.',
+        confirmApprove: 'Confirm what to approve',
+        confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
+        confirmPay: 'Confirm what to pay',
+        confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
+        payOnly: 'Pay only',
+        approveOnly: 'Approve only',
         holdEducationalTitle: 'This request is on',
         whatIsHoldTitle: 'What is hold?',
         whatIsHoldExplain: 'Hold is our way of streamlining financial collaboration. "Reject" is so harsh!',
@@ -1815,7 +1832,7 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
-            descriptionInputLabel: 'Workspace description',
+            descriptionInputLabel: 'Description',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
@@ -2288,7 +2305,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: 'Amount greater than scanned receipt',
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
@@ -2298,8 +2315,8 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
-            `Receipt required${formattedLimit ? ` over ${formattedLimit}${category ? ' category limit' : ''}` : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ' category limit' : ''}` : ''}`,
+        reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
@@ -2319,5 +2336,14 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+    },
+    videoPlayer: {
+        play: 'Play',
+        pause: 'Pause',
+        fullscreen: 'Fullscreen',
+        playbackSpeed: 'Playback speed',
+        expand: 'Expand',
+        mute: 'Mute',
+        unmute: 'Unmute',
     },
 } satisfies TranslationBase;
