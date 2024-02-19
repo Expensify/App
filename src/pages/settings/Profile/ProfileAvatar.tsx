@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
@@ -24,6 +25,7 @@ function ProfileAvatar({route, personalDetails, isLoadingApp = true}: ProfileAva
     const avatarURL = personalDetail?.avatar ?? '';
     const accountID = Number(route.params.accountID ?? '');
     const isLoading = personalDetail?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail);
 
     useEffect(() => {
         if (!ValidationUtils.isValidAccountRoute(Number(accountID)) ?? !!avatarURL) {
@@ -34,15 +36,14 @@ function ProfileAvatar({route, personalDetails, isLoadingApp = true}: ProfileAva
 
     return (
         <AttachmentModal
-            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
-            headerTitle={personalDetail?.displayName ?? ''}
+            headerTitle={displayName}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
                 Navigation.goBack();
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
-            isLoading={isLoading}
+            isLoading={!!isLoading}
             shouldShowNotFoundPage={!avatarURL}
         />
     );

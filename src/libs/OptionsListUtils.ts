@@ -10,12 +10,25 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTag,
+    PolicyTagList,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -52,6 +65,7 @@ type PayeePersonalDetails = {
     descriptiveText: string;
     login: string;
     accountID: number;
+    keyForList: string;
 };
 
 type CategorySection = {
@@ -103,15 +117,15 @@ type GetOptionsConfig = {
 
 type MemberForList = {
     text: string;
-    alternateText: string | null;
-    keyForList: string | null;
+    alternateText: string;
+    keyForList: string;
     isSelected: boolean;
-    isDisabled: boolean | null;
+    isDisabled: boolean;
     accountID?: number | null;
-    login: string | null;
-    rightElement: React.ReactNode | null;
+    login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
+    reportID: string;
 };
 
 type SectionForSearchTerm = {
@@ -490,14 +504,42 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 }
 
 /**
+ * Get the last actor display name from last actor details.
+ */
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
+    return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+        ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        : '';
+}
+
+/**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
+function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
     const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
+    const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
     const lastActionName = lastReportAction?.actionName ?? '';
 
-    if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    if (ReportUtils.isArchivedRoom(report)) {
+        const archiveReason =
+            (lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && lastOriginalReportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
+                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                });
+                break;
+            }
+            default: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+            }
+        }
+    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
@@ -519,9 +561,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
+        lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
@@ -622,27 +666,10 @@ function createOption(
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
-        const lastActorDisplayName =
-            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-                ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
-                : '';
-
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
-        const lastReportAction = lastReportActions[report.reportID ?? ''];
-        if (result.isArchivedRoom && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            const archiveReason = lastReportAction.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-            if (archiveReason === CONST.REPORT.ARCHIVE_REASON.DEFAULT || archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
-                lastMessageText = Localize.translate(preferredLocale, 'reportArchiveReasons.default');
-            } else {
-                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-                    policyName: ReportUtils.getPolicyName(report),
-                });
-            }
-        }
 
         const lastAction = visibleReportActionItems[report.reportID];
         const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -768,7 +795,7 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories): boolean {
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
     return Object.values(options).some((option) => option.enabled);
 }
 
@@ -944,6 +971,22 @@ function getCategoryListSections(
         return categorySections;
     }
 
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
+    const numberOfVisibleCategories = enabledAndSelectedCategories.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(enabledAndSelectedCategories),
+        });
+
+        return categorySections;
+    }
+
     if (selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
@@ -956,24 +999,8 @@ function getCategoryListSections(
         indexOffset += selectedOptions.length;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
-    const numberOfVisibleCategories = selectedOptions.length + filteredCategories.length;
-
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(filteredCategories),
-        });
-
-        return categorySections;
-    }
-
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -992,6 +1019,8 @@ function getCategoryListSections(
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
+
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
@@ -1086,7 +1115,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         .map((tag) => ({name: tag, enabled: true}));
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
-    if (selectedOptions) {
+    if (selectedOptions.length) {
         const selectedTagOptions = selectedOptions.map((option) => {
             const tagObject = tags.find((tag) => tag.name === option.name);
             return {
@@ -1129,6 +1158,15 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     });
 
     return tagSections;
+}
+
+/**
+ * Verifies that there is at least one enabled tag
+ */
+function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+
+    return hasEnabledOptions(policyTagValueList);
 }
 
 type PolicyTaxRateWithDefault = {
@@ -1459,16 +1497,11 @@ function getOptions(
         if (accountIDs.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
             reportMapForAccountIDs[accountIDs[0]] = report;
         }
-        const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-
-        // Checks to see if the current user is the admin of the policy, if so the policy
-        // name preview will be shown.
-        const isPolicyChatAdmin = ReportUtils.isPolicyExpenseChatAdmin(report, policies);
 
         allReportOptions.push(
             createOption(accountIDs, personalDetails, report, reportActions, {
                 showChatPreviewLine,
-                forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin : forcePolicyNamePreview,
+                forcePolicyNamePreview,
             }),
         );
     });
@@ -1564,7 +1597,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login ?? ''))) {
+            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -1694,6 +1727,19 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
     return options;
 }
 
+function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
+    return getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        sortByReportTypeInSearch: true,
+        includePersonalDetails: true,
+        forcePolicyNamePreview: true,
+        includeOwnedWorkspaceChats: true,
+    });
+}
+
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
@@ -1713,6 +1759,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
         descriptiveText: amountText,
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
+        keyForList: String(personalDetail.accountID),
     };
 }
 
@@ -1730,7 +1777,7 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: Record<string, Report>,
+    reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
@@ -1811,11 +1858,7 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
-    if (!member) {
-        return undefined;
-    }
-
+function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
     const accountID = member.accountID;
 
     return {
@@ -1825,14 +1868,13 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         keyForList: member.keyForList || String(accountID ?? 0) || '',
-        isSelected: false,
-        isDisabled: false,
+        isSelected: member.isSelected ?? false,
+        isDisabled: member.isDisabled ?? false,
         accountID,
         login: member.login ?? '',
-        rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
-        ...config,
+        reportID: member.reportID,
     };
 }
 
@@ -1914,15 +1956,16 @@ function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
-    filteredPersonalDetails: PersonalDetails[],
+    filteredPersonalDetails: ReportUtils.OptionData[],
+    maxOptionsSelected: boolean,
+    indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
-    indexOffset = 0,
 ): SectionForSearchTerm {
-    // We show the selected participants at the top of the list when there is no search term
+    // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '') {
+    if (searchTerm === '' || maxOptionsSelected) {
         return {
             section: {
                 title: undefined,
@@ -1985,12 +2028,17 @@ export {
     getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,
+    getLastActorDisplayName,
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
+    hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
+    getShareLogOptions,
 };
+
+export type {MemberForList, CategorySection, GetOptions};
