@@ -181,10 +181,10 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     {shouldShowDeleteButton && (
                                         <View style={[styles.flexRow, styles.pb2, styles.mnw120]}>
                                             <Button
-                                                accessibilityLabel={translate('workspace.common.deleteWorkspace')}
+                                                accessibilityLabel={translate('common.delete')}
                                                 small
                                                 icon={Expensicons.Trashcan}
-                                                text={translate('workspace.common.deleteWorkspace')}
+                                                text={translate('common.delete')}
                                                 style={[styles.mt4]}
                                                 onPress={() => setIsDeleteModalOpen(true)}
                                             />
