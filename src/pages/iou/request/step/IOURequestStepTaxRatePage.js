@@ -103,7 +103,7 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepTaxRatePage);
