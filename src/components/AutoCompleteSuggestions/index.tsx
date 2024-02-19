@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import {measureHeightOfSuggestioContainer} from '@libs/SuggestionUtils';
+import {measureHeightOfSuggestionsContainer} from '@libs/SuggestionUtils';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import type {AutoCompleteSuggestionsProps} from './types';
 
@@ -19,7 +19,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
     const StyleUtils = useStyleUtils();
     const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const suggestionContainerHeight = measureHeightOfSuggestioContainer(props.suggestions.length, props.isSuggestionPickerLarge);
+    const suggestionContainerHeight = measureHeightOfSuggestionsContainer(props.suggestions.length, props.isSuggestionPickerLarge);
     const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,
         left: 0,
@@ -56,7 +56,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
         <BaseAutoCompleteSuggestions<TSuggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            shouldBelowParentContainer={shouldBelowContainer}
+            shouldBeDisplayedBelowParentContainer={shouldBelowContainer}
             ref={containerRef}
         />
     );

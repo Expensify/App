@@ -793,7 +793,7 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldBelowParentContainer: boolean): ViewStyle {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldBeDisplayedBelowParentContainer: boolean): ViewStyle {
     'worklet';
 
     const borderWidth = 2;
@@ -803,7 +803,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldBelo
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + (shouldBelowParentContainer ? -2 : 1) * (CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth)),
+        top: -(height + (shouldBeDisplayedBelowParentContainer ? -2 : 1) * (CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth)),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
