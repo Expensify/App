@@ -23,17 +23,12 @@ const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
 
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
-
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     policy: {},
-    policyTaxRates: {},
     transaction: {},
 };
 
@@ -47,7 +42,6 @@ function IOURequestStepTaxRatePage({
         params: {backTo},
     },
     policy,
-    policyTaxRates,
     transaction,
 }) {
     const {translate} = useLocalize();
@@ -102,9 +96,6 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
-        },
-        policyTaxRates: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
     }),
