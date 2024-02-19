@@ -1,6 +1,7 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, ScrollView, View} from 'react-native';
+import type {VirtualizedList} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -466,10 +467,13 @@ function AddressSearch(
                             // to prevent a lingering border when there are no address suggestions.
                             setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
                             setIsFocused(true);
-                            const {target} = event.nativeEvent as unknown as BaseSyntheticEvent;
-                            const data = target.getScrollResponder().props.data;
-                            resultRef.current = data;
-                            maxIndexRef.current = data.length;
+                            const nativeEvent = event.nativeEvent as unknown as BaseSyntheticEvent<ScrollView>;
+                            const target = nativeEvent.target.getScrollResponder() as unknown as VirtualizedList<HTMLElement>;
+                            const data = target?.props?.data;
+                            if (data) {
+                                resultRef.current = data;
+                                maxIndexRef.current = data.length;
+                            }
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
