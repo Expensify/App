@@ -171,6 +171,9 @@ type Policy = {
         trackingEnabled: boolean;
     };
 
+    /** Email of the reimburser when reimbursement is set direct */
+    reimbursersEmail?: string;
+
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 

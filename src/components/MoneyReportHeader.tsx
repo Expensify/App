@@ -59,10 +59,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
-    const isPayer = isPaidGroupPolicy
-        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isManager)
-        : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isPayer = PolicyUtils.isPolicyPayer(policy, session, isApproved, isManager, isPolicyAdmin);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 

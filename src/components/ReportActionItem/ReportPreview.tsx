@@ -210,10 +210,7 @@ function ReportPreview({
 
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPaidGroupPolicy
-        ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isCurrentUserManager)
-        : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
+    const isPayer = PolicyUtils.isPolicyPayer(policy, session, isApproved, isCurrentUserManager, isPolicyAdmin);
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(
