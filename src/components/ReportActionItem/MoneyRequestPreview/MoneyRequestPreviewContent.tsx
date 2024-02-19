@@ -3,9 +3,7 @@ import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {GestureResponderEvent} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
@@ -13,6 +11,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
+import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -24,86 +23,22 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
+import * as Localize from '@libs/Localize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import * as Localize from '@src/libs/Localize';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import ReportActionItemImages from './ReportActionItemImages';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {MoneyRequestPreviewProps} from './types';
 
-type MoneyRequestPreviewOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    /** Chat report associated with iouReport */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** IOU report data object */
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The transaction attached to the action.message.iouTransactionID */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Information about the user accepting the terms for payments */
-    walletTerms: OnyxEntry<OnyxTypes.WalletTerms>;
-};
-
-type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
-    /** The active IOUReport, used for Onyx subscription */
-    // The iouReportID is used inside withOnyx HOC
-    // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: string;
-
-    /** The associated chatReport */
-    chatReportID: string;
-
-    /** The ID of the current report */
-    reportID: string;
-
-    /** Callback for the preview pressed */
-    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;
-
-    /** All the data of the action, used for showing context menu */
-    action: OnyxTypes.ReportAction;
-
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive?: () => void;
-
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: StyleProp<ViewStyle>;
-
-    /** True if this is this IOU is a split instead of a 1:1 request */
-    isBillSplit: boolean;
-
-    /** True if the IOU Preview card is hovered */
-    isHovered?: boolean;
-
-    /** Whether or not an IOU report contains money requests in a different currency
-     * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
-     */
-    shouldShowPendingConversionMessage?: boolean;
-
-    /** Whether a message is a whisper */
-    isWhisper?: boolean;
-};
-
-function MoneyRequestPreview({
+function MoneyRequestPreviewContent({
     iouReport,
     isBillSplit,
     session,
@@ -121,6 +56,7 @@ function MoneyRequestPreview({
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
+    transactionViolations,
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -128,10 +64,6 @@ function MoneyRequestPreview({
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const parser = new ExpensiMark();
-
-    if (isEmptyObject(iouReport) && !isBillSplit) {
-        return null;
-    }
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -153,7 +85,9 @@ function MoneyRequestPreview({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const hasViolations = TransactionUtils.hasViolation(transaction, transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
+    const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
@@ -213,7 +147,14 @@ function MoneyRequestPreview({
         }
 
         let message = translate('iou.cash');
-        if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
+        if (hasViolations && transaction) {
+            const violations = TransactionUtils.getTransactionViolations(transaction, transactionViolations);
+            if (violations?.[0]) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
+                const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
+                message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
+            }
+        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
@@ -280,7 +221,7 @@ function MoneyRequestPreview({
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
                                     {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
-                                {!isSettled && hasFieldErrors && (
+                                {!isSettled && shouldShowRBR && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={theme.danger}
@@ -367,28 +308,6 @@ function MoneyRequestPreview({
     );
 }
 
-MoneyRequestPreview.displayName = 'MoneyRequestPreview';
+MoneyRequestPreviewContent.displayName = 'MoneyRequestPreview';
 
-export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    transaction: {
-        key: ({action}) => {
-            const originalMessage = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : undefined;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${originalMessage?.IOUTransactionID ?? 0}`;
-        },
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-})(MoneyRequestPreview);
+export default MoneyRequestPreviewContent;
