@@ -16,9 +16,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as reportActions from '@src/libs/actions/Report';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
+import * as reportActions from '@src/libs/actions/Report';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
@@ -68,38 +68,39 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                {ReportUtils.reportFieldsEnabled(report) &&
-                    sortedPolicyReportFields.map((reportField) => {
-                        const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
-                        const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
-                        const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+                {ReportUtils.reportFieldsEnabled(report)
+                    ? sortedPolicyReportFields.map((reportField) => {
+                          const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
+                          const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
+                          const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
 
-                        return (
-                            <OfflineWithFeedback
-                                pendingAction={report.pendingFields?.[reportField.fieldID]}
-                                errors={report.errorFields?.[reportField.fieldID]}
-                                errorRowStyles={styles.ph5}
-                                onClose={() => reportActions.clearReportFieldErrors(report.reportID, reportField.fieldID)}
-                                key={`menuItem-${reportField.fieldID}`}
-                            >
-                                <MenuItemWithTopDescription
-                                    description={Str.UCFirst(reportField.name)}
-                                    title={fieldValue}
-                                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
-                                    shouldShowRightIcon
-                                    disabled={isFieldDisabled}
-                                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                                    shouldGreyOutWhenDisabled={false}
-                                    numberOfLinesTitle={0}
-                                    interactive
-                                    shouldStackHorizontally={false}
-                                    onSecondaryInteraction={() => {}}
-                                    hoverAndPressStyle={false}
-                                    titleWithTooltips={[]}
-                                />
-                            </OfflineWithFeedback>
-                        );
-                    })}
+                          return (
+                              <OfflineWithFeedback
+                                  pendingAction={report.pendingFields?.[reportField.fieldID]}
+                                  errors={report.errorFields?.[reportField.fieldID]}
+                                  errorRowStyles={styles.ph5}
+                                  onClose={() => reportActions.clearReportFieldErrors(report.reportID, reportField.fieldID)}
+                                  key={`menuItem-${reportField.fieldID}`}
+                              >
+                                  <MenuItemWithTopDescription
+                                      description={Str.UCFirst(reportField.name)}
+                                      title={fieldValue}
+                                      onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
+                                      shouldShowRightIcon
+                                      disabled={isFieldDisabled}
+                                      wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                                      shouldGreyOutWhenDisabled={false}
+                                      numberOfLinesTitle={0}
+                                      interactive
+                                      shouldStackHorizontally={false}
+                                      onSecondaryInteraction={() => {}}
+                                      hoverAndPressStyle={false}
+                                      titleWithTooltips={[]}
+                                  />
+                              </OfflineWithFeedback>
+                          );
+                      })
+                    : null}
                 <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text
