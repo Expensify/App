@@ -89,10 +89,22 @@ const defaultProps = {
     policyTaxRates: {},
 };
 
-function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
+const getTaxAmount = (transactionAmount, transactionTaxCode, policyTaxRates) => {
+    const percentage = (transactionTaxCode ? policyTaxRates.taxes[transactionTaxCode].value : policyTaxRates.defaultValue) || '';
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
+};
+
+function EditRequestPage({report, route, policy, policyTaxRates, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
-    const {amount: transactionAmount, currency: transactionCurrency, category: transactionCategory, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
+    const {
+        amount: transactionAmount,
+        taxAmount: transactionTaxAmount,
+        taxCode: transactionTaxCode,
+        currency: transactionCurrency,
+        category: transactionCategory,
+        tag: transactionTag,
+    } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
@@ -101,6 +113,8 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+
+    const taxRateTitle = TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
