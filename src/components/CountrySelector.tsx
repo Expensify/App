@@ -43,7 +43,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange, onB
         }
         didOpenContrySelector.current = false;
         onBlur();
-    }, [isFocus, rest]);
+    }, [isFocus, onBlur]);
 
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to country name
