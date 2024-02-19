@@ -46,14 +46,7 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({
-    thumbnail,
-    image,
-    enablePreviewModal = false,
-    transaction,
-    isLocalFile = false,
-    isSingleImage = true,
-}: ReportActionItemImageProps) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, isLocalFile = false, isSingleImage = true}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
@@ -91,7 +84,6 @@ function ReportActionItemImage({
         );
     }
 
-    console.log('transaction22', transaction);
     if (enablePreviewModal) {
         return (
             <ShowContextMenuContext.Consumer>
