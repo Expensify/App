@@ -117,6 +117,8 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
             prevProps.report?.statusNum === nextProps.report?.statusNum &&
             prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
             prevProps.report?.description === nextProps.report?.description &&
-            prevProps.personalDetails === nextProps.personalDetails,
+            prevProps.personalDetails === nextProps.personalDetails &&
+            prevProps.policy?.description === nextProps.policy?.description &&
+            prevProps.report?.reportName === nextProps.report?.reportName,
     ),
 );

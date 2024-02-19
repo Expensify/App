@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -39,8 +40,17 @@ const propTypes = {
 
     /** The policy of the report */
     policy: PropTypes.shape({
-        /** Is Tax tracking Enabled */
+        /**
+         * Whether or not the policy has tax tracking enabled
+         *
+         * @deprecated - use tax.trackingEnabled instead
+         */
         isTaxTrackingEnabled: PropTypes.bool,
+
+        /** Whether or not the policy has tax tracking enabled */
+        tax: PropTypes.shape({
+            trackingEnabled: PropTypes.bool,
+        }),
     }),
 };
 
@@ -74,7 +84,7 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+    const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
 
     useFocusEffect(
         useCallback(() => {
@@ -105,7 +115,7 @@ function IOURequestStepAmount({
     }, []);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     const navigateToCurrencySelectionPage = () => {
