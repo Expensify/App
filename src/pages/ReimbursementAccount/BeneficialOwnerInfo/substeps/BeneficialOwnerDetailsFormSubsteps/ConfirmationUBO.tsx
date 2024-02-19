@@ -15,7 +15,8 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 type ConfirmationUBOOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -121,6 +122,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
 ConfirmationUBO.displayName = 'ConfirmationUBO';
 
 export default withOnyx<ConfirmationUBOProps, ConfirmationUBOOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
