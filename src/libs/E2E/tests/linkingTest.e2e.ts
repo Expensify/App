@@ -44,7 +44,7 @@ const test = (config: TestConfig) => {
                     const res = getViewableItems();
                     console.debug('[E2E] Viewable items retrieved, verifying correct message…');
 
-                    if (res[0]?.item?.reportActionID === linkedReportActionID) {
+                    if (!!res && res[0]?.item?.reportActionID === linkedReportActionID) {
                         E2EClient.submitTestResults({
                             branch: Config.E2E_BRANCH,
                             name: 'Comment linking',

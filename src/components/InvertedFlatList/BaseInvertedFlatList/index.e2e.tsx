@@ -9,15 +9,27 @@ type BaseInvertedFlatListProps<T> = FlatListProps<T> & {
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
-let localViewableItems: unknown;
-const getViewableItems = () => localViewableItems;
+type ViewableItem<T extends {reportActionID: string}> = {
+    item: T;
+    index: number;
+    key: string;
+    isViewable: boolean;
+};
 
-function BaseInvertedFlatListE2e<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+let localViewableItems: Array<ViewableItem<{reportActionID: string}>> | undefined;
+
+const getViewableItems = <T extends {reportActionID: string}>(): Array<ViewableItem<T>> | undefined => localViewableItems as Array<ViewableItem<T>> | undefined;
+
+function BaseInvertedFlatListE2e<T extends {reportActionID: string}>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList<T>>) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
 
-    const handleViewableItemsChanged = ({viewableItems}: { viewableItems: unknown }) => {
-        localViewableItems = viewableItems;
-    };
+    const handleViewableItemsChanged = useMemo(
+        () =>
+            ({viewableItems}: {viewableItems: Array<ViewableItem<T>>}) => {
+                localViewableItems = viewableItems;
+            },
+        [],
+    );
 
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
@@ -33,7 +45,7 @@ function BaseInvertedFlatListE2e<T>(props: BaseInvertedFlatListProps<T>, ref: Fo
     }, [shouldEnableAutoScrollToTopThreshold]);
 
     return (
-        <FlatList
+        <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             ref={ref}
