@@ -100,7 +100,6 @@ function ComposerWithSuggestions({
     listHeight,
     isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
-    resetFullComposerSize,
     // Refs
     suggestionsRef,
     animatedRef,
