@@ -13,7 +13,7 @@ type RoomNameInputProps = {
     onBlur?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
     autoFocus?: boolean;
     shouldDelayFocus?: boolean;
-    isFocused?: boolean;
+    isFocused: boolean;
 };
 
 export default RoomNameInputProps;
