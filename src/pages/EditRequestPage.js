@@ -136,13 +136,13 @@ function EditRequestPage({report, route, policy, policyTaxRates, policyCategorie
 
     const updateTaxAmount = (transactionChanges) => {
         const newTaxAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
-        IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount);
+        IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount, policy, policyTags, policyCategories);
         Navigation.dismissModal(report.reportID);
     };
 
     const updateTaxRate = (transactionChanges) => {
         const newTaxCode = transactionChanges.data.code;
-        IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode);
+        IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode, policy, policyTags, policyCategories);
         Navigation.dismissModal(report.reportID);
     };
 

@@ -1349,20 +1349,34 @@ function updateMoneyRequestTag(
 }
 
 /** Updates the created tax amount of a money request */
-function updateMoneyRequestTaxAmount(transactionID: string, optimisticReportActionID: string, taxAmount: number) {
+function updateMoneyRequestTaxAmount(
+    transactionID: string,
+    optimisticReportActionID: string,
+    taxAmount: number,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
     const transactionChanges = {
         taxAmount,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
 }
 
 /** Updates the created tax rate of a money request */
-function updateMoneyRequestTaxRate(transactionID: string, optimisticReportActionID: string, taxCode: string) {
+function updateMoneyRequestTaxRate(
+    transactionID: string,
+    optimisticReportActionID: string,
+    taxCode: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
     const transactionChanges = {
         taxCode,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
 }
 
