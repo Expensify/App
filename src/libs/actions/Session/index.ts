@@ -961,4 +961,5 @@ export {
     validateTwoFactorAuth,
     waitForUserSignIn,
     canAccessRouteByAnonymousUser,
+    signInWithSupportAuthToken,
 };

@@ -31,8 +31,10 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
             if (isLoggingInAsNewUser) {
                 SessionActions.signOutAndRedirectToSignIn();
             }
-            if (route.params.supportAuthToken !== '') {
-                SessionActions.setSupportAuthToken(route.params.supportAuthToken, route.params.email, Number(route.params.accountID));
+
+            if (route.params.supportAuthToken !== "") {
+                SessionActions.signInWithSupportAuthToken(route.params.supportAuthToken);
+                return;
             }
 
             // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
