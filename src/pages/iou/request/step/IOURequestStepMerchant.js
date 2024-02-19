@@ -81,7 +81,7 @@ function IOURequestStepMerchant({
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const {merchant} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const isMerchantRequired = _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat)) || ReportUtils.isGroupPolicy(report);
+    const isMerchantRequired = ReportUtils.isGroupPolicy(report) || _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
