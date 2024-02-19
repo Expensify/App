@@ -7,6 +7,8 @@ import _ from 'underscore';
 import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -27,8 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
-import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 
 const propTypes = {
     /** Constant, list of available currencies */
