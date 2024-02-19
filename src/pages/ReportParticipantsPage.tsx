@@ -49,10 +49,10 @@ const getAllParticipants = (
                 !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
-            const pendingVisibleChatMember = (report?.pendingVisibleChatMembers ?? []).find((member) => member.accountID === accountID.toString());
+            const pendingVisibleChatMember = report?.pendingVisibleChatMembers ? report?.pendingVisibleChatMembers.find((member) => member.accountID === accountID.toString()) : undefined
             return {
                 alternateText: userLogin,
-                pendingAction: pendingVisibleChatMember?.pendingAction,
+                pendingAction: pendingVisibleChatMember?.pendingAction ?? undefined,
                 displayName,
                 accountID: userPersonalDetail?.accountID ?? accountID,
                 icons: [
