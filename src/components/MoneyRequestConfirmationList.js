@@ -42,7 +42,6 @@ import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
-import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
