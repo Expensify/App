@@ -35,17 +35,12 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
-
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
     policy: {},
-    policyTaxRates: {},
 };
 
 const getTaxAmount = (transaction, defaultTaxValue) => {
@@ -61,7 +56,6 @@ function IOURequestStepTaxAmountPage({
     transaction: {currency},
     report,
     policy,
-    policyTaxRates,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -181,9 +175,6 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
-        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
