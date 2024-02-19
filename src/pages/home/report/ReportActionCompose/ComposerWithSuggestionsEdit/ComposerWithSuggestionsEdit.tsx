@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import type {TextInput} from 'react-native';
 import Composer from '@components/Composer';
 import type {ComposerProps} from '@components/Composer/types';
-import type {SuggestionsRef} from '@libs/actions/SuggestionsAction';
+import type {SuggestionsRef} from '@libs/actions/SuggestionsActions';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 
 type ComposerWithSuggestionsEditProps = {

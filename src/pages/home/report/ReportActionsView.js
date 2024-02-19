@@ -11,7 +11,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
-import * as SuggestionsAction from '@libs/actions/SuggestionsAction';
+import * as SuggestionsAction from '@libs/actions/SuggestionsActions';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';

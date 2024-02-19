@@ -783,7 +783,7 @@ type GetBaseAutoCompleteSuggestionContainerStyleParams = {
  */
 function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetBaseAutoCompleteSuggestionContainerStyleParams): ViewStyle {
     return {
-        // ...positioning.pFixed,
+        ...positioning.pFixed,
         bottom,
         left,
         width,

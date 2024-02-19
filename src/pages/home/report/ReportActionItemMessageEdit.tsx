@@ -21,7 +21,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as SuggestionsAction from '@libs/actions/SuggestionsAction';
+import * as SuggestionsAction from '@libs/actions/SuggestionsActions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
