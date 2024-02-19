@@ -20,7 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ImageCropView from './ImageCropView';

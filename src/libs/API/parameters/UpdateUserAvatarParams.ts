@@ -1,4 +1,4 @@
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 
 type UpdateUserAvatarParams = {
     file: File | CustomRNImageManipulatorResult;

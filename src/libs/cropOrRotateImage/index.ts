@@ -1,5 +1,5 @@
 import {manipulateAsync} from 'expo-image-manipulator';
-import type CropOrRotateImage from './types';
+import type {CropOrRotateImage} from './types';
 import getSaveFormat from './utils';
 
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>

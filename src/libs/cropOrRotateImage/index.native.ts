@@ -1,6 +1,6 @@
 import {manipulateAsync} from 'expo-image-manipulator';
 import RNFetchBlob from 'react-native-blob-util';
-import type CropOrRotateImage from './types';
+import type {CropOrRotateImage} from './types';
 import getSaveFormat from './utils';
 
 /**
