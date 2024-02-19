@@ -210,6 +210,7 @@ function ReportScreen({
             oldPolicyName: reportProp.oldPolicyName,
             policyName: reportProp.policyName,
             isOptimisticReport: reportProp.isOptimisticReport,
+            lastMentionedTime: reportProp.lastMentionedTime,
         }),
         [
             reportProp.lastReadTime,
@@ -246,6 +247,7 @@ function ReportScreen({
             reportProp.oldPolicyName,
             reportProp.policyName,
             reportProp.isOptimisticReport,
+            reportProp.lastMentionedTime,
         ],
     );
 
@@ -298,7 +300,8 @@ function ReportScreen({
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     useEffect(() => {
-        if (!report || !report.reportID || shouldHideReport) {
+        if (!report.reportID || shouldHideReport) {
+            wasReportAccessibleRef.current = false;
             return;
         }
         wasReportAccessibleRef.current = true;
@@ -509,6 +512,7 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const reportIDFromParams = lodashGet(route.params, 'reportID');
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         () =>
@@ -519,8 +523,9 @@ function ReportScreen({
                 !reportMetadata.isLoadingInitialReportActions &&
                 !isLoading &&
                 !userLeavingStatus) ||
-            shouldHideReport,
-        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
+            shouldHideReport ||
+            (reportIDFromParams && !ReportUtils.isValidReportIDFromPath(reportIDFromParams)),
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportIDFromParams],
     );
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
@@ -724,6 +729,7 @@ export default compose(
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
             prevProps.currentReportID === nextProps.currentReportID &&
             prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
+            _.isEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
             _.isEqual(prevProps.report, nextProps.report),
     ),
 );

@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionName, ChangeLog, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
+import type {ActionName, ChangeLog, OriginalMessageActionableMentionWhisper, OriginalMessageIOU, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -77,6 +77,19 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        // When signed out, value is undefined
+        if (!value) {
+            return;
+        }
+
+        currentUserAccountID = value.accountID;
+    },
+});
+
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
@@ -105,7 +118,7 @@ function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): b
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
-function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction & OriginalMessageIOU {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
@@ -119,6 +132,16 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
 
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+}
+
+/**
+ * Checks whether the report action is a whisper targeting someone other than the current user.
+ */
+function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (!isWhisperAction(reportAction)) {
+        return false;
+    }
+    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID ?? 0);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -414,6 +437,16 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return false;
+    }
+
+    // Ignore markedAsReimbursed action here since we're already display message that explains the request was paid
+    // elsewhere in the IOU reportAction
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
+        return false;
+    }
+
+    if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
 
@@ -858,6 +891,36 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
 }
 
 /**
+ * Checks if a given report action corresponds to an actionable mention whisper.
+ * @param reportAction
+ */
+function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+}
+
+/**
+ * Constructs a message for an actionable mention whisper report action.
+ * @param reportAction
+ * @returns the actionable mention whisper message.
+ */
+function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction>): string {
+    const originalMessage = reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'];
+    const targetAccountIDs: number[] = originalMessage?.inviteeAccountIDs ?? [];
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const mentionElements = targetAccountIDs.map((accountID): string => {
+        const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
+        const displayName = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
+        const handleText = _.isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
+        return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
+    });
+    const preMentionsText = 'Heads up, ';
+    const mentions = mentionElements.join(', ').replace(/, ([^,]*)$/, ' and $1');
+    const postMentionsText = ` ${mentionElements.length > 1 ? "aren't members" : "isn't a member"} of this room.`;
+
+    return `${preMentionsText}${mentions}${postMentionsText}`;
+}
+
+/**
  * @private
  */
 function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime: string) {
@@ -921,6 +984,7 @@ export {
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
+    isWhisperActionTargetedToOthers,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldHideNewMarker,
@@ -933,6 +997,8 @@ export {
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
+    isActionableMentionWhisper,
+    getActionableMentionWhisperMessage,
     isCurrentActionUnread,
 };
 

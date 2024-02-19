@@ -10,7 +10,7 @@ type Rate = {
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Attributes = {
@@ -22,7 +22,7 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
 
@@ -159,11 +159,17 @@ type Policy = {
     /** Whether the workspace has multiple levels of tags enabled */
     hasMultipleTagLists?: boolean;
 
-    /** When tax tracking is enabled */
+    /**
+     * Whether or not the policy has tax tracking enabled
+     *
+     * @deprecated - use tax.trackingEnabled instead
+     */
     isTaxTrackingEnabled?: boolean;
 
-    /** The email of the reimburser set when reimbursement is direct */
-    reimburserEmail?: string;
+    /** Whether or not the policy has tax tracking enabled */
+    tax?: {
+        trackingEnabled: boolean;
+    };
 
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
@@ -177,4 +183,4 @@ type Policy = {
 
 export default Policy;
 
-export type {Unit, CustomUnit};
+export type {Unit, CustomUnit, Attributes, Rate};
