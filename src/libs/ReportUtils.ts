@@ -4851,7 +4851,7 @@ function getNonHeldAndFullAmount(iouReportID: string): string[] {
     // }, 0);
 
     // return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
-    return !!iouReportID ? ['Unheld', 'All'] : [];
+    return iouReportID ? ['Unheld', 'All'] : [];
 }
 
 /**

@@ -220,7 +220,7 @@ function ReportPreview({
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
     const shouldShowPayButton = useMemo(
         () => !hasHeldRequests && isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport],
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport, hasHeldRequests],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {
@@ -230,7 +230,7 @@ function ReportPreview({
             return false;
         }
         return isCurrentUserManager && !hasHeldRequests && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
+    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled, hasHeldRequests]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     /*
