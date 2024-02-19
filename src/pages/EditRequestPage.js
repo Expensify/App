@@ -67,12 +67,6 @@ const propTypes = {
 
     /** Transaction that stores the request data */
     transaction: transactionPropTypes,
-    /* Onyx Props */
-    /** The policy of the report */
-    policy: PropTypes.shape({
-        /** Is Tax tracking Enabled */
-        isTaxTrackingEnabled: PropTypes.bool,
-    }),
 
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
@@ -85,7 +79,6 @@ const defaultProps = {
     policyTags: {},
     parentReportActions: {},
     transaction: {},
-    policy: {},
     policyTaxRates: {},
 };
 
@@ -307,9 +300,6 @@ export default compose(
         },
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
-        },
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,

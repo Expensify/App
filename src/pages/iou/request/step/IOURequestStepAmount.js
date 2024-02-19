@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -27,21 +26,6 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
-
-    /** The policy of the report */
-    policy: PropTypes.shape({
-        /**
-         * Whether or not the policy has tax tracking enabled
-         *
-         * @deprecated - use tax.trackingEnabled instead
-         */
-        isTaxTrackingEnabled: PropTypes.bool,
-
-        /** Whether or not the policy has tax tracking enabled */
-        tax: PropTypes.shape({
-            trackingEnabled: PropTypes.bool,
-        }),
-    }),
 };
 
 const defaultProps = {

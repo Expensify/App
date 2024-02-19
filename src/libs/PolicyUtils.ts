@@ -215,7 +215,7 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
 }
 
 function isTaxPolicyEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>): boolean {
-    return (isPolicyExpenseChat && (policy?.tax?.trackingEnabled || policy?.isTaxTrackingEnabled)) ?? false;
+    return (isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled)) ?? false;
 }
 
 /**
