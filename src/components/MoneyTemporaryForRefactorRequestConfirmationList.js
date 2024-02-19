@@ -481,23 +481,29 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestMerchant(transaction.transactionID, distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
-    // Auto select the category if there is only one enabled category
+    // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
         const enabledCategories = _.filter(policyCategories, (category) => category.enabled);
-        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1) {
+        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
         IOU.setMoneyRequestCategory_temporaryForRefactor(transaction.transactionID, enabledCategories[0].name);
-    }, [iouCategory, shouldShowCategories, policyCategories, transaction]);
+    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
 
-    // Auto select the tag if there is only one enabled tag
+    // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
-        const enabledTags = _.filter(policyTagList, (tag) => tag.enabled);
-        if (iouTag || !shouldShowTags || enabledTags.length !== 1) {
-            return;
+        let updatedTagsString = '';
+        policyTagLists.forEach((tagList, index) => {
+            const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
+            if (enabledTags.length !== 1 || !tagList.required || TransactionUtils.getTag(transaction, index)) {
+                return;
+            }
+            updatedTagsString = IOUUtils.insertTagIntoReportTagsString(updatedTagsString, enabledTags[0].name, index);
+        });
+        if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
+            IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
         }
-        IOU.setMoneyRequestTag(transaction.transactionID, enabledTags[0].name);
-    }, [shouldShowTags, policyTagList, iouTag, transaction]);
+    }, [policyTagLists, transaction]);
 
     /**
      * @param {Object} option
@@ -554,17 +560,20 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
+                    console.log('333333333333333333 step 2', {selectedParticipants});
                     return;
                 }
 
                 if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
+                    console.log('333333333333333333 step 3', {selectedParticipants});
                     return;
                 }
 
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
+                console.log('111111111111111111111111');
                 onConfirm(selectedParticipants);
             }
         },
@@ -938,17 +947,17 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         policyCategories: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${'062D53707053B5B9'}`,
         },
         policyTags: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${'062D53707053B5B9'}`,
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
         policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${'062D53707053B5B9'}`,
         },
         policyTaxRates: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
