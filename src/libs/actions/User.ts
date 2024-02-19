@@ -1,4 +1,5 @@
 import {isBefore} from 'date-fns';
+import {Platform} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -550,8 +551,13 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                         return playSound(SOUNDS.SUCCESS);
                     }
 
-                    // plain message
-                    if ('html' in message) {
+                    if (
+                        // plain message
+                        'html' in message &&
+                        // exclude mobile platforms, since they play sound when notification is delivered (in native code)
+                        Platform.OS !== 'android' &&
+                        Platform.OS !== 'ios'
+                    ) {
                         return playSound(SOUNDS.RECEIVE);
                     }
                 }
