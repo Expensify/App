@@ -107,10 +107,10 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             builder.setChannelId(CHANNEL_MESSAGES_ID);
         } else {
             builder.setPriority(PRIORITY_MAX);
+            // Set sound for versions below Oreo
+            // for Oreo and above we set sound on the notification's channel level
+            builder.setSound(getSoundFile(context));
         }
-
-        // Set sound for versions below Oreo
-        builder.setSound(getSoundFile(context));
 
         // Attempt to parse data and apply custom notification styling
         if (message.containsKey(PAYLOAD_KEY)) {
