@@ -4574,8 +4574,6 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
         workspaceWorkflowsIcon: {
-            height: 48,
-            width: 48,
             marginRight: 12,
             zIndex: 2,
             paddingBottom: 15,

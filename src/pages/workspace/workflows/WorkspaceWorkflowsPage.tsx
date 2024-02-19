@@ -27,7 +27,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const items: OptionType[] = [
         {
-            Illustration: Illustrations.ReceiptEnvelope,
+            icon: Illustrations.ReceiptEnvelope,
             title: translate('workflowsPage.delaySubmissionTitle'),
             subtitle: translate('workflowsPage.delaySubmissionDescription'),
             onToggle: (isEnabled: boolean) => {
@@ -47,7 +47,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             hasBeenToggled: policy?.harvesting?.enabled ?? false
         },
         {
-            Illustration: Illustrations.Approval,
+            icon: Illustrations.Approval,
             title: translate('workflowsPage.addApprovalsTitle'),
             subtitle: translate('workflowsPage.addApprovalsDescription'),
             onToggle: (isEnabled: boolean) => {
@@ -68,7 +68,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             hasBeenToggled: policy?.isAutoApprovalEnabled ?? false,
         },
         {
-            Illustration: Illustrations.WalletAlt,
+            icon: Illustrations.WalletAlt,
             title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
             subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
             onToggle: () => {
@@ -92,7 +92,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const renderItem = ({item}: {item: OptionType}) => (
         <View style={styles.mt7}>
             <ToggleSettingOptionRow
-                Illustration={item.Illustration}
+                icon={item.icon}
                 title={item.title}
                 subtitle={item.subtitle}
                 onToggle={item.onToggle}
