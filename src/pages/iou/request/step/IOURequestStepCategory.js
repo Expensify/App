@@ -50,8 +50,8 @@ function IOURequestStepCategory({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditing && isSplitBill ? splitDraftTransaction : transaction);
+    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
+    const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill ? splitDraftTransaction : transaction);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -65,18 +65,19 @@ function IOURequestStepCategory({
         const isSelectedCategory = category.searchText === transactionCategory;
         const updatedCategory = isSelectedCategory ? '' : category.searchText;
 
-        // The case edit split bill
-        if (isSplitBill && isEditing) {
+        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+        if (isEditingSplitBill) {
             IOU.setDraftSplitTransaction(transaction.transactionID, {category: category.searchText});
             navigateBack();
             return;
         }
-        // The casse edit request
+
         if (isEditing) {
             IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
             Navigation.dismissModal();
             return;
         }
+
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
         navigateBack();
     };
