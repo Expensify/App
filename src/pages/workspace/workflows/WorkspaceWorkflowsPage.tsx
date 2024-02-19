@@ -38,6 +38,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     title={translate('workflowsPage.submissionFrequency')}
                     titleStyle={styles.workspaceWorkflowsSubMenuTitle}
                     descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
+                    // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
+                    // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
                     description={translate('workflowsPage.weeklyFrequency')}
                     shouldShowRightIcon
                     wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
@@ -60,6 +62,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     descriptionTextStyle={styles.workspaceWorkflowsSubMenuDescription}
                     description={policy?.owner ?? ''}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
+                    // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                     shouldShowRightIcon
                     wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
@@ -72,13 +75,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
             subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
             onToggle: () => {
-                // TODO call API routes && set onyx optimistic data
+                // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
             subMenuItems: (
                 <MenuItem
                     descriptionTextStyle={[styles.workspaceWorkflowsSubMenuDescription, styles.textSupporting]}
                     description={translate('workflowsPage.connectBankAccount')}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
+                    // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
                     shouldShowRightIcon
                     wrapperStyle={styles.workspaceWorkflowsSubMenuContainer}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
