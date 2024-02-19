@@ -98,6 +98,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isCollectPolicy = PolicyUtils.isCollectPolicy(policy);
+    const isControlPolicy = PolicyUtils.isControlPolicy(policy);
+    const isFreePolicy = PolicyUtils.isFreePolicy(policy);
 
     const protectedMenuItems: WorkspaceMenuItem[] = [
         {
@@ -147,7 +149,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
-    const collectPolicyMenuItems: WorkspaceMenuItem[] = [
+    const moreFeaturesMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
@@ -164,8 +166,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
         },
-        ...(isCollectPolicy ? collectPolicyMenuItems : []),
-        ...(shouldShowProtectedItems ? protectedMenuItems : []),
+        ...(shouldShowProtectedItems && isCollectPolicy || isControlPolicy ? moreFeaturesMenuItems : []),
+        ...(shouldShowProtectedItems && isFreePolicy ? protectedMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
