@@ -21,6 +21,8 @@ Tap **Reports**.
 Tap the **+** icon.
 Choose your desired report type.
 
+**Note:** If your workspace has Instant Submit set as the Scheduled Submit frequency, you can’t create a new report if you already have a report that is currently in the Processing state. 
+
 # How to edit a report
 
 ## Adding expenses to a report
@@ -86,7 +88,7 @@ There are three ways you can change the report layout under the Details section 
 
 # How to submit a report
 
-1. Click **Submit** in the top-left of the report (or **Submit Report** at the top in the mobile app).
+1.Click **Submit** in the top-left of the Open report (or **Submit Report** at the top in the mobile app).
 2. Verify the approver and click **Submit** again.
 
 # How to retract your report (Undo Submit)
@@ -96,6 +98,8 @@ As long as the report is still in a Processing state, you can retract this submi
 To retract a **Processing** report on the web app, click the Undo Submit button at the upper left-hand corner of the report. 
 
 To complete this from the mobile app, simply open the report from within your app and click the **Retract** button at the top of the report. 
+
+**Note:** The Retract option is not available for reports on workspaces with Instant Submit set as the Scheduled Submit frequency, since expenses are submitted instantly and cannot be retracted
 
 # How to share a report
 
