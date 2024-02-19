@@ -126,7 +126,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPageInner({ credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true }: SignInPageInnerProps) {
+function SignInPageInner({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
