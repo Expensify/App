@@ -86,6 +86,8 @@ const lightTheme = {
     loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
     white: colors.white,
+    progressBarBackground: colors.green800,
+    progressBarFill: colors.green400,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.

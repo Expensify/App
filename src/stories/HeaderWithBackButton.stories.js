@@ -24,6 +24,8 @@ function Template(args) {
 const Default = Template.bind({});
 const Attachment = Template.bind({});
 const Profile = Template.bind({});
+const ProgressBar = Template.bind({});
+
 Default.args = {
     title: 'Settings',
 };
@@ -35,6 +37,11 @@ Profile.args = {
     title: 'Profile',
     shouldShowBackButton: true,
 };
+ProgressBar.args = {
+    title: 'ProgressBar',
+    shouldShowBackButton: true,
+    progressBarPercentage: 33,
+};
 
 export default story;
-export {Default, Attachment, Profile};
+export {Default, Attachment, Profile, ProgressBar};

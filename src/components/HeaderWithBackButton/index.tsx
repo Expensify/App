@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -58,6 +58,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
+    progressBarPercentage,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -69,6 +70,36 @@ function HeaderWithBackButton({
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
+
+    const middleContent = useMemo(() => {
+        if (progressBarPercentage) {
+            return (
+                <View>
+                    <View style={styles.progressBarWrapper}>
+                        <View style={[{width: `${progressBarPercentage}%`}, styles.progressBar]} />
+                    </View>
+                </View>
+            );
+        }
+
+        if (shouldShowAvatarWithDisplay) {
+            return (
+                <AvatarWithDisplayName
+                    report={report}
+                    policy={policy}
+                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                />
+            );
+        }
+
+        return (
+            <Header
+                title={title}
+                subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
+            />
+        );
+    }, [StyleUtils, policy, progressBarPercentage, report, shouldEnableDetailPageNavigation, shouldShowAvatarWithDisplay, stepCounter, styles.progressBar, styles.progressBarWrapper, subtitle, title, titleColor, translate]);
 
     return (
         <View
@@ -118,19 +149,7 @@ function HeaderWithBackButton({
                         additionalStyles={[styles.mr2]}
                     />
                 )}
-                {shouldShowAvatarWithDisplay ? (
-                    <AvatarWithDisplayName
-                        report={report}
-                        policy={policy}
-                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    />
-                ) : (
-                    <Header
-                        title={title}
-                        subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                        textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH1]}
-                    />
-                )}
+                {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                     {children}
                     {shouldShowDownloadButton && (

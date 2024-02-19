@@ -4343,6 +4343,21 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
+        progressBarWrapper: {
+            position: 'absolute',
+            width: variables.componentSizeMedium,
+            height: 4,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.progressBarBackground,
+            alignSelf: 'center',
+        },
+
+        progressBar: {
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: '100%',
+            backgroundColor: theme.progressBarFill,
+        },
+
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
