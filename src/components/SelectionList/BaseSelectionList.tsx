@@ -23,9 +23,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BaseListItem from './BaseListItem';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType} from './types';
 
-function BaseSelectionList<TItem extends User | RadioItem>(
+function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
         canSelectMultiple = false,

@@ -10,6 +10,7 @@ import type Picker from '@components/Picker';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
+import type ValuePicker from '@components/ValuePicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
@@ -32,7 +33,8 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof AmountForm
     | typeof BusinessTypePicker
-    | typeof StateSelector;
+    | typeof StateSelector
+    | typeof ValuePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {

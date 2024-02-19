@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -10,14 +10,15 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import type {ListItem} from '@components/SelectionList/types';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -27,51 +28,25 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Session} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import reportPropTypes from './reportPropTypes';
 
-const propTypes = {
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
-
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** ID of the policy */
-        id: PropTypes.string,
-    }),
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** reportID passed via route: /workspace/:reportID/members */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
-
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
+type RoomMembersPageOnyxProps = {
+    session: OnyxEntry<Session>;
 };
 
-const defaultProps = {
-    session: {
-        accountID: 0,
-    },
-    report: {},
-    policies: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
+type RoomMembersPageProps = WithReportOrNotFoundProps &
+    WithCurrentUserPersonalDetailsProps &
+    RoomMembersPageOnyxProps &
+    StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
 
-function RoomMembersPage(props) {
+function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();
-    const [selectedMembers, setSelectedMembers] = useState([]);
+    const {formatPhoneNumber, translate} = useLocalize();
+    const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
@@ -81,9 +56,12 @@ function RoomMembersPage(props) {
      * Get members for the current room
      */
     const getRoomMembers = useCallback(() => {
-        Report.openRoomMembersPage(props.report.reportID);
+        if (!report) {
+            return;
+        }
+        Report.openRoomMembersPage(report.reportID);
         setDidLoadRoomMembers(true);
-    }, [props.report.reportID]);
+    }, [report]);
 
     useEffect(() => {
         getRoomMembers();
@@ -94,8 +72,11 @@ function RoomMembersPage(props) {
      * Open the modal to invite a user
      */
     const inviteUser = () => {
+        if (!report) {
+            return;
+        }
         setSearchValue('');
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(props.report.reportID));
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID));
     };
 
     /**
@@ -103,64 +84,58 @@ function RoomMembersPage(props) {
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
-        Report.removeFromRoom(props.report.reportID, selectedMembers);
+        if (report) {
+            Report.removeFromRoom(report.reportID, selectedMembers);
+        }
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
 
     /**
      * Add user from the selectedMembers list
-     *
-     * @param {String} login
      */
-    const addUser = useCallback((accountID) => {
+    const addUser = useCallback((accountID: number) => {
         setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
     }, []);
 
     /**
      * Remove user from the selectedEmployees list
-     *
-     * @param {String} login
      */
-    const removeUser = useCallback((accountID) => {
-        setSelectedMembers((prevSelected) => _.without(prevSelected, accountID));
+    const removeUser = useCallback((accountID: number) => {
+        setSelectedMembers((prevSelected) => prevSelected.filter((selected) => selected !== accountID));
     }, []);
 
-    /**
-     * Toggle user from the selectedMembers list
-     *
-     * @param {String} accountID
-     * @param {String} pendingAction
-     *
-     */
+    /** Toggle user from the selectedMembers list */
     const toggleUser = useCallback(
-        (accountID, pendingAction) => {
-            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        ({accountID, pendingAction}: ListItem) => {
+            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !accountID) {
                 return;
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (_.contains(selectedMembers, Number(accountID))) {
-                removeUser(Number(accountID));
+            if (selectedMembers.includes(accountID)) {
+                removeUser(accountID);
             } else {
-                addUser(Number(accountID));
+                addUser(accountID);
             }
         },
         [selectedMembers, addUser, removeUser],
     );
 
-    /**
-     * Add or remove all users passed from the selectedMembers list
-     * @param {Object} memberList
-     */
-    const toggleAllUsers = (memberList) => {
-        const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
-        const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedMembers, Number(member.keyForList)));
+    /** Add or remove all users passed from the selectedMembers list */
+    const toggleAllUsers = (memberList: ListItem[]) => {
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
+        const everyoneSelected = enabledAccounts.every((member) => {
+            if (!member.accountID) {
+                return false;
+            }
+            return selectedMembers.includes(member.accountID);
+        });
 
         if (everyoneSelected) {
             setSelectedMembers([]);
         } else {
-            const everyAccountId = _.map(enabledAccounts, (member) => Number(member.keyForList));
+            const everyAccountId = enabledAccounts.map((member) => member.accountID).filter((accountID): accountID is number => !!accountID);
             setSelectedMembers(everyAccountId);
         }
     };
@@ -172,10 +147,10 @@ function RoomMembersPage(props) {
         setRemoveMembersConfirmModalVisible(true);
     };
 
-    const getMemberOptions = () => {
-        let result = [];
+    const getMemberOptions = (): ListItem[] => {
+        let result: ListItem[] = [];
 
-        _.each(props.report.visibleChatMemberAccountIDs, (accountID) => {
+        report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
             const details = personalDetails[accountID];
 
             if (!details) {
@@ -209,15 +184,15 @@ function RoomMembersPage(props) {
 
             result.push({
                 keyForList: String(accountID),
-                accountID: Number(accountID),
-                isSelected: _.contains(selectedMembers, Number(accountID)),
-                isDisabled: accountID === props.session.accountID,
-                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: props.formatPhoneNumber(details.login),
+                accountID,
+                isSelected: selectedMembers.includes(accountID),
+                isDisabled: accountID === session?.accountID,
+                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                alternateText: formatPhoneNumber(details.login),
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
+                        name: details.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                         id: Number(accountID),
                     },
@@ -225,14 +200,19 @@ function RoomMembersPage(props) {
             });
         });
 
-        result = _.sortBy(result, (value) => value.text.toLowerCase());
+        result = result.sort((value1, value2) => value1.text.localeCompare(value2.text.toLowerCase()));
 
         return result;
     };
 
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
+    const isPolicyMember = useMemo(() => {
+        if (!report?.policyID || policies === null) {
+            return false;
+        }
+        return PolicyUtils.isPolicyMember(report.policyID, policies);
+    }, [report?.policyID, policies]);
     const data = getMemberOptions();
-    const headerMessage = searchValue.trim() && !data.length ? props.translate('roomMembersPage.memberNotFound') : '';
+    const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -240,34 +220,36 @@ function RoomMembersPage(props) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.report) || !isPolicyMember}
-                subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
+                shouldShow={isEmptyObject(report) || !isPolicyMember}
+                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+                }}
             >
                 <HeaderWithBackButton
-                    title={props.translate('workspace.common.members')}
-                    subtitle={ReportUtils.getReportName(props.report)}
+                    title={translate('workspace.common.members')}
+                    subtitle={ReportUtils.getReportName(report)}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                     }}
                 />
                 <ConfirmModal
                     danger
-                    title={props.translate('workspace.people.removeMembersTitle')}
+                    title={translate('workspace.people.removeMembersTitle')}
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={props.translate('roomMembersPage.removeMembersPrompt')}
-                    confirmText={props.translate('common.remove')}
-                    cancelText={props.translate('common.cancel')}
+                    prompt={translate('roomMembersPage.removeMembersPrompt')}
+                    confirmText={translate('common.remove')}
+                    cancelText={translate('common.cancel')}
                 />
                 <View style={[styles.w100, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
                         <Button
                             medium
                             success
-                            text={props.translate('common.invite')}
+                            text={translate('common.invite')}
                             onPress={inviteUser}
                         />
                         <Button
@@ -275,7 +257,7 @@ function RoomMembersPage(props) {
                             danger
                             style={[styles.ml2]}
                             isDisabled={selectedMembers.length === 0}
-                            text={props.translate('common.remove')}
+                            text={translate('common.remove')}
                             onPress={askForConfirmationToRemove}
                         />
                     </View>
@@ -283,12 +265,12 @@ function RoomMembersPage(props) {
                         <SelectionList
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
-                            textInputLabel={props.translate('optionsSelector.findMember')}
+                            textInputLabel={translate('optionsSelector.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
-                            onSelectRow={(item) => toggleUser(item.keyForList)}
+                            onSelectRow={(item) => toggleUser(item)}
                             onSelectAll={() => toggleAllUsers(data)}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
@@ -301,21 +283,6 @@ function RoomMembersPage(props) {
     );
 }
 
-RoomMembersPage.propTypes = propTypes;
-RoomMembersPage.defaultProps = defaultProps;
 RoomMembersPage.displayName = 'RoomMembersPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withReportOrNotFound(),
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
-    withCurrentUserPersonalDetails,
-)(RoomMembersPage);
+export default withReportOrNotFound()(withCurrentUserPersonalDetails(withOnyx<RoomMembersPageProps, RoomMembersPageOnyxProps>({session: {key: ONYXKEYS.SESSION}})(RoomMembersPage)));
