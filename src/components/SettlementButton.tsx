@@ -95,7 +95,7 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     enterKeyEventListenerPriority?: number;
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
-    confirmApproval?: () => void,
+    confirmApproval?: () => void;
 };
 
 function SettlementButton({

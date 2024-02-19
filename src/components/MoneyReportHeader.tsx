@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';

@@ -56,9 +56,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             <View style={[styles.m5]}>
                 <View>
                     <View style={[styles.flexRow, styles.mb4]}>
-                        <Header
-                            title={title}
-                        />
+                        <Header title={title} />
                         <Tooltip text={translate('common.close')}>
                             <PressableWithoutFeedback
                                 onPress={onClose}

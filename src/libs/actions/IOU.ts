@@ -3288,7 +3288,13 @@ function getSendMoneyParams(
     };
 }
 
-function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType, full: boolean): PayMoneyRequestData {
+function getPayMoneyRequestParams(
+    chatReport: OnyxTypes.Report,
+    iouReport: OnyxTypes.Report,
+    recipient: Participant,
+    paymentMethodType: PaymentMethodType,
+    full: boolean,
+): PayMoneyRequestData {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         -(iouReport.total ?? 0),

@@ -3,8 +3,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import * as IOU from '@userActions/IOU';
 import type * as OnyxTypes from '@src/types/onyx';
+import {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import DecisionModal from './DecisionModal';
-import {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
 
 type ProcessMoneyRequestHoldMenuProps = {
     /** The chat report this report is linked to */
