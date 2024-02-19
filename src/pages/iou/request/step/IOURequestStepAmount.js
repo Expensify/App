@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -28,10 +27,6 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
-
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
 
     /** The policy of the report */
     policy: PropTypes.shape({
@@ -68,9 +63,6 @@ function IOURequestStepAmount({
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
-
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
 
     useFocusEffect(
         useCallback(() => {
