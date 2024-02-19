@@ -141,17 +141,17 @@ function SidebarLinksData({
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
     const reportsWithErrorsIds = useMemo(() => {
-        const reportKeys = _.keys(allReportActions);
+        const reportKeys = _.keys(chatReports);
         return _.reduce(
             reportKeys,
             (errorsMap, reportKey) => {
-                const report = chatReports[reportKey.replace('reportActions_', 'report_')];
-                const allReportsActions = _.reduce(allReportActions[reportKey], (acc, reportAction) => ({...acc, [reportAction.reportActionID]: reportAction}), {});
+                const report = chatReports[reportKey];
+                const allReportsActions = _.reduce(allReportActions[reportKey.replace('report_', 'reportActions_')], (acc, reportAction) => ({...acc, [reportAction.reportActionID]: reportAction}), {});
                 const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions) || {};
                 if (_.size(errors) === 0) {
                     return errorsMap;
                 }
-                return {...errorsMap, [reportKey.replace('reportActions_', '')]: OptionsListUtils.getAllReportErrors(report, allReportsActions) || {}};
+                return {...errorsMap, [reportKey.replace('report_', '')]: errors};
             },
             {},
         );
