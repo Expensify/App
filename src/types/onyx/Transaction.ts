@@ -22,6 +22,7 @@ type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 type Comment = {
     comment?: string;
+    hold?: string;
     waypoints?: WaypointCollection;
     isLoading?: boolean;
     type?: string;
@@ -166,7 +167,7 @@ type Transaction = {
     taxRate?: TaxRate;
 
     /** Pending fields for the transaction */
-    pendingFields?: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    pendingFields?: Partial<{[K in keyof Transaction | keyof Comment]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
 
     /** Card Transactions */
 

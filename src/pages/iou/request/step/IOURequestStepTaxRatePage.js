@@ -13,7 +13,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -56,7 +55,7 @@ function IOURequestStepTaxRatePage({
     const {translate} = useLocalize();
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     const selectedTaxRate = TransactionUtils.getDefaultTaxName(policyTaxRates, transaction);
@@ -67,7 +66,7 @@ function IOURequestStepTaxRatePage({
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
 
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     return (

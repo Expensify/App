@@ -34,7 +34,7 @@ type TooltipRenderedOnPageBodyProps = {
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical?: number;
-} & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text'>;
+} & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow'>;
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
@@ -54,6 +54,7 @@ function TooltipRenderedOnPageBody({
     numberOfLines,
     maxWidth = 0,
     renderTooltipContent,
+    shouldForceRenderingBelow = false,
 }: TooltipRenderedOnPageBodyProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -95,8 +96,23 @@ function TooltipRenderedOnPageBody({
                 tooltipWrapperHeight: wrapperMeasuredHeight,
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
+                shouldForceRenderingBelow,
             }),
-        [StyleUtils, animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical],
+        [
+            StyleUtils,
+            animation,
+            windowWidth,
+            xOffset,
+            yOffset,
+            targetWidth,
+            targetHeight,
+            maxWidth,
+            contentMeasuredWidth,
+            wrapperMeasuredHeight,
+            shiftHorizontal,
+            shiftVertical,
+            shouldForceRenderingBelow,
+        ],
     );
 
     let content;

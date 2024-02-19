@@ -242,12 +242,10 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
     const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !props.isDistanceRequest && !isSplitWithScan;
 
-    // Fetches the first tag list of the policy
-    const policyTag = PolicyUtils.getTag(props.policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(props.policyTags), [props.policyTags]);
+
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
+    const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // A flag for showing tax rate
     const shouldShowTax = isTaxPolicyEnabled(props.isPolicyExpenseChat, props.policy);
@@ -256,9 +254,9 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
-    const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
-    const formattedAmount = isDistanceRequestWithoutRoute
-        ? translate('common.tbd')
+    const isDistanceRequestWithPendingRoute = props.isDistanceRequest && (!hasRoute || !rate);
+    const formattedAmount = isDistanceRequestWithPendingRoute
+        ? ''
         : CurrencyUtils.convertToDisplayString(
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
@@ -284,12 +282,12 @@ function MoneyRequestConfirmationList(props) {
     const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+        if (shouldDisplayFieldError && props.hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -330,7 +328,7 @@ function MoneyRequestConfirmationList(props) {
         let text;
         if (isSplitBill && props.iouAmount === 0) {
             text = translate('iou.split');
-        } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
+        } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
             if (props.iouAmount !== 0) {
                 text = translate('iou.requestAmount', {amount: formattedAmount});
@@ -345,7 +343,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.iouType,
             },
         ];
-    }, [isSplitBill, isTypeRequest, props.iouType, props.iouAmount, props.receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate]);
+    }, [isSplitBill, isTypeRequest, props.iouType, props.iouAmount, props.receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
@@ -424,9 +422,17 @@ function MoneyRequestConfirmationList(props) {
         if (!props.isDistanceRequest) {
             return;
         }
+
+        /*
+         Set pending waypoints based on the route status. We should handle this dynamically to cover cases such as:
+         When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
+         In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
+        */
+        IOU.setMoneyRequestPendingFields(props.transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
+
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
-    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
+        IOU.setMoneyRequestMerchant(props.transactionID, distanceMerchant, false);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
      * @param {Object} option
@@ -480,14 +486,13 @@ function MoneyRequestConfirmationList(props) {
             } else {
                 // validate the amount for distance requests
                 const decimals = CurrencyUtils.getCurrencyDecimals(props.iouCurrencyCode);
-                if (props.isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount), decimals)) {
+                if (props.isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
 
                 if (props.isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
-                    setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
 
@@ -503,7 +508,7 @@ function MoneyRequestConfirmationList(props) {
             props.iouType,
             props.isDistanceRequest,
             props.iouCategory,
-            isDistanceRequestWithoutRoute,
+            isDistanceRequestWithPendingRoute,
             props.iouCurrencyCode,
             props.iouAmount,
             transaction,
@@ -557,7 +562,7 @@ function MoneyRequestConfirmationList(props) {
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
                 {button}
@@ -576,7 +581,6 @@ function MoneyRequestConfirmationList(props) {
         formError,
         styles.ph1,
         styles.mb2,
-        translate,
     ]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} =
@@ -663,11 +667,15 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    if (props.isEditingSplitBill) {
-                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(props.iouType, props.reportID));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            props.iouType,
+                            transaction.transactionID,
+                            props.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    );
                 }}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -691,11 +699,15 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -723,11 +735,15 @@ function MoneyRequestConfirmationList(props) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -761,33 +777,36 @@ function MoneyRequestConfirmationList(props) {
                             rightLabel={canUseViolations && Boolean(props.policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
-                    {shouldShowTags && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly}
-                            title={PolicyUtils.getCleanedTagName(props.iouTag)}
-                            description={policyTagListName}
-                            numberOfLinesTitle={2}
-                            onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT,
-                                            props.transaction.transactionID,
-                                            props.reportID,
-                                            Navigation.getActiveRouteWithoutParams(),
-                                        ),
-                                    );
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm}
-                            interactive={!props.isReadOnly}
-                            rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
-                        />
-                    )}
+                    {shouldShowTags &&
+                        _.map(policyTagLists, ({name}, index) => (
+                            <MenuItemWithTopDescription
+                                key={name}
+                                shouldShowRightIcon={!props.isReadOnly}
+                                title={TransactionUtils.getTag(transaction, index)}
+                                description={name}
+                                numberOfLinesTitle={2}
+                                onPress={() => {
+                                    if (props.isEditingSplitBill) {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                CONST.IOU.TYPE.SPLIT,
+                                                index,
+                                                props.transaction.transactionID,
+                                                props.reportID,
+                                                Navigation.getActiveRouteWithoutParams(),
+                                            ),
+                                        );
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                disabled={didConfirm}
+                                interactive={!props.isReadOnly}
+                                rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
+                            />
+                        ))}
 
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
