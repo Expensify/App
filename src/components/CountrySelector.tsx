@@ -28,7 +28,7 @@ type CountrySelectorProps = {
     onPress: () => void;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange, onBlur = () => {}, onPress = () => {}, ...rest}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange, onBlur = () => {}, onPress = () => {}}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
