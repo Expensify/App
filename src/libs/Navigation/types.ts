@@ -496,6 +496,8 @@ type AuthScreensParamList = {
         shouldForceLogin: string;
         email: string;
         shortLivedAuthToken: string;
+        supportAuthToken: string;
+        accountID: number;
         exitTo: string;
     };
     [SCREENS.CONCIERGE]: undefined;
