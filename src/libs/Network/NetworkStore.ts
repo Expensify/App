@@ -103,10 +103,6 @@ function getSupportAuthToken(): string | null {
     return supportAuthToken;
 }
 
-function setSupportAuthToken(newSupportAuthToken: string) {
-    supportAuthToken = newSupportAuthToken;
-}
-
 function setAuthToken(newAuthToken: string | null) {
     authToken = newAuthToken;
 }
@@ -140,6 +136,5 @@ export {
     getCredentials,
     checkRequiredData,
     getSupportAuthToken,
-    setSupportAuthToken,
     isSupportRequest,
 };
