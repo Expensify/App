@@ -45,11 +45,16 @@ function removeLineBreakAndEmojiTag(html: string) {
 
 /**
  * Split the string containing emoji into an array
- * @param text
+ * @param html
  * @returns
  */
 function getTextMatrix(text: string) {
-    return text.split(CONST.REGEX.EMOJI_SPLIT).filter((value) => value !== '');
+    const html = text.replace(CONST.REGEX.EMOJIS, (match) => `<emoji>${match}</emoji>`);
+    return html
+        .split('<emoji>')
+        .map((tx) => tx.split('</emoji>'))
+        .reduce((a, b) => a.concat(b))
+        .filter((tx) => Boolean(tx));
 }
 
 function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
@@ -89,7 +94,7 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
                 displayAsGroup={displayAsGroup}
             />
             {textMatrix.map((tx) => {
-                const isEmoji = CONST.REGEX.EMOJI.test(tx);
+                const isEmoji = EmojiUtils.containsOnlyEmojis(tx);
                 return isEmoji ? (
                     <EmojiWithTooltip
                         emojiCode={tx}

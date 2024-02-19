@@ -30,7 +30,7 @@ function EmojiWithTooltip({emojiCode, style = undefined}: EmojiWithTooltipProps)
 
     return (
         <Tooltip renderTooltipContent={emojiTooltipContent}>
-            <Text style={style}>{emojiCode}</Text>
+            <Text style={[style, styles.cursorDefault]}>{emojiCode}</Text>
         </Tooltip>
     );
 }
