@@ -24,9 +24,11 @@ type CountrySelectorProps = {
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
+    onBlur: () => void;
+    onPress: () => void;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange, ...rest}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange, onBlur = () => {}, onPress = () => {}, ...rest}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -36,10 +38,11 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange, ...
     const didOpenContrySelector = useRef(false);
     const isFocus = useIsFocused();
     useEffect(() => {
-        if (isFocus && didOpenContrySelector.current) {
-            didOpenContrySelector.current = false;
-            rest.onBlur && rest.onBlur();
+        if (!isFocus || !didOpenContrySelector.current) {
+            return;
         }
+        didOpenContrySelector.current = false;
+        onBlur();
     }, [isFocus, rest]);
 
     useEffect(() => {
@@ -58,7 +61,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange, ...
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRouteWithoutParams();
-                    rest.onPress && rest.onPress();
+                    onPress();
                     didOpenContrySelector.current = true;
                     Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
                 }}
