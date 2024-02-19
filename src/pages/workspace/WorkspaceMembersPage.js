@@ -5,16 +5,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
-import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
@@ -39,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -442,72 +440,62 @@ function WorkspaceMembersPage(props) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            style={[styles.defaultModalContainer]}
-            testID={WorkspaceMembersPage.displayName}
+        <WorkspacePageWithSections
+            headerText={props.translate('workspace.common.members')}
+            route={props.route}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
             shouldShowOfflineIndicatorInWideScreen
+            headerContent={!isSmallScreenWidth && getHeaderButtons()}
+            icon={Illustrations.ReceiptWrangler}
+            testID={WorkspaceMembersPage.displayName}
+            shouldShowLoading={false}
         >
-            <FullPageNotFoundView
-                shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
-                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-            >
-                <HeaderWithBackButton
-                    title={props.translate('workspace.common.members')}
-                    icon={Illustrations.ReceiptWrangler}
-                    onBackButtonPress={() => {
-                        setSearchValue('');
-                        Navigation.goBack();
-                    }}
-                    shouldShowBackButton={isSmallScreenWidth}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                >
-                    {!isSmallScreenWidth && getHeaderButtons()}
-                </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ConfirmModal
-                    danger
-                    title={props.translate('workspace.people.removeMembersTitle')}
-                    isVisible={removeMembersConfirmModalVisible}
-                    onConfirm={removeUsers}
-                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={props.translate('workspace.people.removeMembersPrompt')}
-                    confirmText={props.translate('common.remove')}
-                    cancelText={props.translate('common.cancel')}
-                    onModalHide={() =>
-                        InteractionManager.runAfterInteractions(() => {
-                            if (!textInputRef.current) {
-                                return;
-                            }
-                            textInputRef.current.focus();
-                        })
-                    }
-                />
-                <View style={[styles.w100, styles.flex1]}>
-                    <SelectionList
-                        canSelectMultiple
-                        sections={[{data, indexOffset: 0, isDisabled: false}]}
-                        textInputLabel={props.translate('optionsSelector.findMember')}
-                        textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            SearchInputManager.searchInput = value;
-                            setSearchValue(value);
-                        }}
-                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        headerMessage={getHeaderMessage()}
-                        headerContent={getHeaderContent()}
-                        onSelectRow={(item) => toggleUser(item.accountID)}
-                        onSelectAll={() => toggleAllUsers(data)}
-                        onDismissError={dismissError}
-                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
-                        showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        inputRef={textInputRef}
+            {() => (
+                <>
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    <ConfirmModal
+                        danger
+                        title={props.translate('workspace.people.removeMembersTitle')}
+                        isVisible={removeMembersConfirmModalVisible}
+                        onConfirm={removeUsers}
+                        onCancel={() => setRemoveMembersConfirmModalVisible(false)}
+                        prompt={props.translate('workspace.people.removeMembersPrompt')}
+                        confirmText={props.translate('common.remove')}
+                        cancelText={props.translate('common.cancel')}
+                        onModalHide={() =>
+                            InteractionManager.runAfterInteractions(() => {
+                                if (!textInputRef.current) {
+                                    return;
+                                }
+                                textInputRef.current.focus();
+                            })
+                        }
                     />
-                </View>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                    <View style={[styles.w100, styles.flex1]}>
+                        <SelectionList
+                            canSelectMultiple
+                            sections={[{data, indexOffset: 0, isDisabled: false}]}
+                            textInputLabel={props.translate('optionsSelector.findMember')}
+                            textInputValue={searchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                            headerMessage={getHeaderMessage()}
+                            headerContent={getHeaderContent()}
+                            onSelectRow={(item) => toggleUser(item.accountID)}
+                            onSelectAll={() => toggleAllUsers(data)}
+                            onDismissError={dismissError}
+                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
+                            showScrollIndicator
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                            inputRef={textInputRef}
+                        />
+                    </View>
+                </>
+            )}
+        </WorkspacePageWithSections>
     );
 }
 
@@ -526,9 +514,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     withCurrentUserPersonalDetails,

@@ -168,12 +168,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     useEffect(() => {
-        if (!shouldShowNotFoundPage || !isEmptyObject(policy)) {
+        if (!shouldShowNotFoundPage) {
             return;
         }
+        // We are dismissing any modals that are open when the NotFound view is shown
         Navigation.dismissModal();
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.NOT_FOUND, CONST.NAVIGATION.TYPE.FORCED_UP);
     }, [policy, shouldShowNotFoundPage]);
 
     return (

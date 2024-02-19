@@ -77,6 +77,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * taller header on desktop and different font of the title.
          * */
         icon?: IconAsset;
+
+        /** Content to be added to the header */
+        headerContent?: ReactNode;
+
+        /** TestID of the component */
+        testID?: string;
     };
 
 function fetchData(skipVBBACal?: boolean) {
@@ -105,6 +111,8 @@ function WorkspacePageWithSections({
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
     icon,
+    headerContent,
+    testID,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
@@ -149,7 +157,7 @@ function WorkspacePageWithSections({
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={WorkspacePageWithSections.displayName}
+            testID={testID ?? WorkspacePageWithSections.displayName}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
@@ -157,6 +165,7 @@ function WorkspacePageWithSections({
                 onLinkPress={goBack}
                 shouldShow={shouldShow}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldForceFullScreen
             >
                 <HeaderWithBackButton
                     title={headerText}
@@ -164,7 +173,9 @@ function WorkspacePageWithSections({
                     shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                     icon={icon}
-                />
+                >
+                    {headerContent}
+                </HeaderWithBackButton>
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
