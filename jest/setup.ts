@@ -1,12 +1,10 @@
 import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
-import * as reanimatedJestUtils from 'react-native-reanimated/src/reanimated2/jestUtils';
 import 'setimmediate';
 import setupMockImages from './setupMockImages';
 
 setupMockImages();
-reanimatedJestUtils.setUpTests();
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
