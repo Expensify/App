@@ -184,7 +184,7 @@ Onyx.connect({
             return;
         }
 
-        getPersonalDetails(val.accountID)
+        getPersonalDetails(val.accountID);
     },
 });
 
