@@ -871,7 +871,7 @@ function getMoneyRequestInformation(
           }
         : {};
 
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, needsToBeManuallySubmitted ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
