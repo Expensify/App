@@ -232,9 +232,10 @@ function PaymentMethodList({
 
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
+                const cartTitle = card.lastFourPAN ? `${card.bank} - ${card.lastFourPAN}` : card.bank;
                 return {
                     key: card.cardID,
-                    title: isExpensifyCard ? expensifyCardDescription : card.cardName,
+                    title: isExpensifyCard ? expensifyCardDescription : cartTitle,
                     description: card.domainName,
                     onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName)) : () => {},
                     shouldShowRightIcon: isExpensifyCard,
