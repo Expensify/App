@@ -137,7 +137,7 @@ function SearchPageWrapper(args: SearchPageProps) {
 }
 
 type CreateAddListenerMock = {
-    triggerTransitionEnd?: () => Record<string, unknown>,
+    triggerTransitionEnd?: () => void,
     addListener?: () => Record<string, unknown>,
 };
 
@@ -173,7 +173,7 @@ test('[Search Page] should render selection list', async () => {
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
-        await waitFor(triggerTransitionEnd);
+        await waitFor(triggerTransitionEnd as Awaited<() => Promise<void>>);
         await screen.findByTestId('selection-list');
         await screen.findByText(smallMockedPersonalDetails['1'].login as TextMatch);
         await screen.findByText(smallMockedPersonalDetails['2'].login as TextMatch);
@@ -229,7 +229,7 @@ test('[Search Page] should click on list item', async () => {
         const input = screen.getByTestId('selection-list-text-input');
         await waitFor(triggerTransitionEnd);
 
-        const searchValue = mockedPersonalDetails['4'].login;
+        const searchValue = mockedPersonalDetails['4'].login as TextMatch;
         fireEvent.changeText(input, searchValue);
 
         const optionButton = await screen.findByText(searchValue);

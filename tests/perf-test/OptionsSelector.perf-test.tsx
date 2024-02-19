@@ -8,7 +8,7 @@ import {measurePerformance} from 'reassure';
 import OptionsSelector from '@src/components/OptionsSelector';
 import variables from '@src/styles/variables';
 
-jest.mock('../../src/components/withLocalize', () => (Component: ComponentType<WithLocalizeProps>) => {
+jest.mock('@src/components/withLocalize', () => (Component: ComponentType<WithLocalizeProps>) => {
     function WrappedComponent(props: WithLocalizeProps) {
         return (
             <Component
@@ -22,7 +22,7 @@ jest.mock('../../src/components/withLocalize', () => (Component: ComponentType<W
     return WrappedComponent;
 });
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
+jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
     function WithNavigationFocus(props: WithNavigationFocusProps) {
         return (
             <Component
@@ -100,8 +100,6 @@ test('[OptionsSelector] should press a list items', () => {
 
     measurePerformance(<OptionsSelectorWrapper />, {scenario});
 });
-
-// type GenerateEventData = Record<string, {nativeEvent: {contentOffset: {y: number}, contentSize: {height: number, width: number}, layoutMeasurement: {height: number, width: number}}}>;
 
 test('[OptionsSelector] should scroll and press few items', () => {
     const sections = generateSections(mutlipleSectionsConfig);
