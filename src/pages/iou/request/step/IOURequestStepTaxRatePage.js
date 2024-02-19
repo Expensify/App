@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -31,6 +32,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    policy: {},
     policyTaxRates: {},
     transaction: {},
 };
@@ -44,6 +46,7 @@ function IOURequestStepTaxRatePage({
     route: {
         params: {backTo},
     },
+    policy,
     policyTaxRates,
     transaction,
 }) {
@@ -52,13 +55,13 @@ function IOURequestStepTaxRatePage({
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
-
-    const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const taxRates = lodashGet(policy, 'taxRates', {});
+    const defaultTaxKey = taxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
     const selectedTaxRate = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const updateTaxRates = (taxes) => {
-        const taxAmount = getTaxAmount(policyTaxRates, taxes.text, transaction.amount);
+        const taxAmount = getTaxAmount(taxRates, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
@@ -80,7 +83,7 @@ function IOURequestStepTaxRatePage({
                     />
                     <TaxPicker
                         selectedTaxRate={selectedTaxRate}
-                        policyTaxRates={policyTaxRates}
+                        policyTaxRates={taxRates}
                         insets={insets}
                         onSubmit={updateTaxRates}
                     />
@@ -98,6 +101,9 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+        },
         policyTaxRates: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
