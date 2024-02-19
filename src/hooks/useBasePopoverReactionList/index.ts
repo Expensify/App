@@ -47,7 +47,6 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
             if (reactionListAnchor && 'measureInWindow' in reactionListAnchor) {
                 reactionListAnchor.measureInWindow((x, y) => resolve({x, y}));
             } else {
-                // If the anchor is not available or does not have the measureInWindow method, we return 0, 0
                 resolve({x: 0, y: 0});
             }
         });

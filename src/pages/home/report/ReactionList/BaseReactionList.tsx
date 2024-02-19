@@ -22,7 +22,7 @@ type BaseReactionListProps = ReactionListProps & {
     users: PersonalDetails[];
 
     /**
-     * Returns true if the current account has reacted to the report action (with the given skin tone).
+     * Returns true if the current account has reacted to the report action
      */
     hasUserReacted?: boolean;
 
