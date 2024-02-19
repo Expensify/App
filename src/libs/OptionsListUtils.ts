@@ -1,5 +1,6 @@
 /* eslint-disable no-continue */
 import Str from 'expensify-common/lib/str';
+import _ from 'lodash';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
@@ -7,7 +8,6 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import _ from 'underscore';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
