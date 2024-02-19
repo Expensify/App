@@ -77,7 +77,8 @@ function ExpensifyCardPage({
         setIsNotFound(isEmptyObject(virtualCard) && isEmptyObject(physicalCard));
     }, [cardList, physicalCard, virtualCard]);
 
-    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard?.availableSpend ?? virtualCard?.availableSpend ?? 0);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- availableSpend can be 0
+    const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard?.availableSpend || virtualCard?.availableSpend || 0);
 
     const handleRevealDetails = () => {
         setIsLoading(true);
