@@ -77,7 +77,6 @@ function ReportActionItemFragment({
     isHoldReportAction = false,
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
-    isHoldReportAction = false,
     moderationDecision,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();

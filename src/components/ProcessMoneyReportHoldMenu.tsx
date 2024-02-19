@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as IOU from '@userActions/IOU';
 import type * as OnyxTypes from '@src/types/onyx';
 import DecisionModal from './DecisionModal';
+import {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
 
 type ProcessMoneyRequestHoldMenuProps = {
     /** The chat report this report is linked to */
@@ -28,7 +29,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     onClose: () => void;
 
     /** Type of payment */
-    paymentType: string;
+    paymentType: PaymentMethodType;
 
     /** Type of action handled either 'pay' or 'approve' */
     requestType?: string;
