@@ -89,6 +89,7 @@ To reject the report, click Reject rather than beginning the Review process. If 
 
 Rejecting a report will return the report back to the submitter in an Open status or, in the case of a multi-level approval workflow, back to the previous approver in a Processing status (awaiting their approval). You may need to do this if the submitter is not ready to submit the report, or perhaps the report as a whole needs to be rejected based on the configuration of your organization's expense Workspace.
 
+**Note:** Workspaces with Instant Submit set as the Scheduled Submit frequency won’t have the option to Reject entire reports, only individual expenses.
 
 ## Unapprove a Report
 You can click the red Unapprove button at the top of the report to undo approving a report. Keep in mind that you'll only see the Unapprove button if you're a report approver on an admin that has taken control of the report.​
