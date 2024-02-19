@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, ViewStyle} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import Switch from '@components/Switch';
@@ -10,12 +10,13 @@ type OptionType = {
     Illustration: React.ElementType<SvgProps>;
     title: string;
     subtitle: string;
+    hasBeenToggled: boolean;
     onToggle: (isEnabled: boolean) => void;
     subMenuItems?: React.ReactNode;
     isEndOptionRow?: boolean;
 };
 
-function ToggleSettingOptionRow({Illustration, title, subtitle, onToggle, subMenuItems, isEndOptionRow}: OptionType) {
+function ToggleSettingOptionRow({Illustration, title, subtitle, onToggle, subMenuItems, isEndOptionRow, hasBeenToggled}: OptionType) {
     const [isEnabled, setIsEnabled] = useState(false);
     const styles = useThemeStyles();
 
@@ -37,6 +38,10 @@ function ToggleSettingOptionRow({Illustration, title, subtitle, onToggle, subMen
         left: isSmallScreenWidth ? '6%' : '2.45%',
     } as ViewStyle);
 
+    useEffect(() => {
+        setIsEnabled(hasBeenToggled);
+    }, []);
+
     return (
         <View style={styles.pRelative}>
             <View style={styles.workspaceWorkflowContainer}>
@@ -57,7 +62,7 @@ function ToggleSettingOptionRow({Illustration, title, subtitle, onToggle, subMen
                     />
                 </View>
             </View>
-            {isEnabled && <View>{subMenuItems}</View>}
+            {isEnabled && subMenuItems}
         </View>
     );
 }
