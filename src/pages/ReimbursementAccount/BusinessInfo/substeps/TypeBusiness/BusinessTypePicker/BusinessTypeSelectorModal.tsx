@@ -61,7 +61,6 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={translate('businessInfoStep.companyType')}
                     sections={[{data: incorporationTypes, indexOffset: 0}]}
                     initiallyFocusedOptionKey={currentBusinessType}
                     onSelectRow={onBusinessTypeSelected}
