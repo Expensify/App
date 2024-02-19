@@ -87,9 +87,9 @@ function filterDisplayName(displayName: string): string {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: NonNullable<OnyxCollection<Report>>,
-    betas: NonNullable<OnyxEntry<Beta[]>>,
-    policies: NonNullable<OnyxCollection<Policy>>,
+    allReports: Record<string, Report>,
+    betas: Beta[],
+    policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: OnyxCollection<ReportAction[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -121,7 +121,36 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
 
-    const isWorkspaceFilterPresent = Boolean(currentPolicyID) || policyMemberAccountIDs.length > 0;
+    const reportIDsWithViolations: Record<string, boolean> = {};
+
+    // Filter out all the reports that shouldn't be displayed
+    let reportsToDisplay = allReportsDictValues.filter((report) => {
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
+        const parentReportActions = allReportActions?.[parentReportActionsKey];
+        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const doesReportHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        if (doesReportHaveViolations) {
+            reportIDsWithViolations[report.reportID] = true;
+        }
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: currentReportId ?? '',
+            isInGSDMode,
+            betas,
+            policies,
+            excludeEmptyChats: true,
+            doesReportHaveViolations,
+        });
+    });
+
+    if (reportsToDisplay.length === 0) {
+        // Display Concierge chat report when there is no report to be displayed
+        const conciergeChatReport = allReportsDictValues.find(ReportUtils.isConciergeChatReport);
+        if (conciergeChatReport) {
+            reportsToDisplay.push(conciergeChatReport);
+        }
+    }
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
@@ -137,41 +166,18 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
 
-    allReportsDictValues.forEach((report) => {
-        if (!report) {
-            return;
-        }
-        if (isWorkspaceFilterPresent && !ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID)) {
-            return;
-        }
-        // Filter out all the reports that shouldn't be displayed
-        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
-        const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
-        const doesReportHaveViolations =
-            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
-
-        const shouldDisplayReportInLHN = ReportUtils.shouldReportBeInOptionList({
-            report,
-            currentReportId: currentReportId ?? '',
-            isInGSDMode,
-            betas,
-            policies,
-            excludeEmptyChats: true,
-            doesReportHaveViolations,
-        });
-
-        if (!shouldDisplayReportInLHN) {
-            return;
-        }
-
+    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID));
+    }
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
+    reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
         report.displayName = filterDisplayName(ReportUtils.getReportName(report));
 
-        const hasRBR = report.reportID in reportsWithErrorsIds || doesReportHaveViolations;
+        const hasRBR = report.reportID in reportsWithErrorsIds || report.reportID in reportIDsWithViolations;
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
@@ -185,14 +191,6 @@ function getOrderedReportIDs(
             nonArchivedReports.push(report);
         }
     });
-
-    if (pinnedAndGBRReports.length === 0 && draftReports.length === 0 && nonArchivedReports.length === 0 && archivedReports.length === 0) {
-        // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = allReportsDictValues.find(ReportUtils.isConciergeChatReport);
-        if (conciergeChatReport) {
-            pinnedAndGBRReports.push(conciergeChatReport);
-        }
-    }
 
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()) : 0));
