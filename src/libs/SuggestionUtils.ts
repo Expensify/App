@@ -20,24 +20,24 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
     return availableHeight > menuHeight;
 }
 
-const measureHeightOfSuggestionsContainer = (numRows: number, isSuggestionPickerLarge: boolean): number => {
+const measureHeightOfSuggestionsContainer = (numRows: number, isSuggestionsPickerLarge: boolean): number => {
     const borderAndPadding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + 2;
-    let suggestionHeight = 0;
+    let suggestionsHeight = 0;
 
-    if (isSuggestionPickerLarge) {
+    if (isSuggestionsPickerLarge) {
         if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
             // On large screens, if there are more than 5 suggestions, we display a scrollable window with a height of 5 items, indicating that there are more items available
-            suggestionHeight = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+            suggestionsHeight = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
         } else {
-            suggestionHeight = numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+            suggestionsHeight = numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
         }
     } else if (numRows > 2) {
         // On small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
-        suggestionHeight = CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+        suggestionsHeight = CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
     } else {
-        suggestionHeight = numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+        suggestionsHeight = numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
     }
-    return suggestionHeight + borderAndPadding;
+    return suggestionsHeight + borderAndPadding;
 };
 
 export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu, measureHeightOfSuggestionsContainer};
