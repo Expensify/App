@@ -55,7 +55,7 @@ const setConfigPath = (configPathParam) => {
     if (!configPath.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require(configPath);
+    const customConfig = require(configPath).default;
     config = _.extend(defaultConfig, customConfig);
 };
 
