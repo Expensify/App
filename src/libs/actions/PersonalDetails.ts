@@ -21,7 +21,8 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {DateOfBirthForm} from '@src/types/form';
+import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
 
@@ -112,7 +113,7 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 /**
@@ -133,7 +134,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
@@ -170,7 +171,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
         ],
     });
 
-    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack();
 }
 
 /**
@@ -241,7 +242,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
 /**
  * Fetches additional personal data like legal name, date of birth, address
  */
-function openPersonalDetailsPage() {
+function openPersonalDetails() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -272,7 +273,7 @@ function openPersonalDetailsPage() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS_PAGE, {}, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -455,7 +456,7 @@ export {
     clearAvatarErrors,
     deleteAvatar,
     getPrivatePersonalDetails,
-    openPersonalDetailsPage,
+    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,

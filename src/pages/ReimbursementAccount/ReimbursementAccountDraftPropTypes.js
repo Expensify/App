@@ -33,7 +33,6 @@ export default PropTypes.shape({
     requestorAddressZipCode: PropTypes.string,
     dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
     ssnLast4: PropTypes.string,
-    isControllingOfficer: PropTypes.bool,
     isOnfidoSetupComplete: PropTypes.bool,
 
     /** Props needed for ACHContractStep */
@@ -41,5 +40,6 @@ export default PropTypes.shape({
     hasOtherBeneficialOwners: PropTypes.bool,
     acceptTermsAndConditions: PropTypes.bool,
     certifyTrueInformation: PropTypes.bool,
-    beneficialOwners: PropTypes.arrayOf(PropTypes.string),
+    beneficialOwners: PropTypes.string,
+    beneficialOwnerKeys: PropTypes.arrayOf(PropTypes.string),
 });

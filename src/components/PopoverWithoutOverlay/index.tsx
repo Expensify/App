@@ -7,6 +7,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
@@ -119,8 +120,10 @@ function PopoverWithoutOverlay(
 
     return (
         <View
-            style={[modalStyle, {zIndex: 1}]}
+            style={[modalStyle, {zIndex: variables.popoverzIndex}]}
             ref={viewRef(withoutOverlayRef)}
+            // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+            onClick={(e) => e.stopPropagation()}
         >
             <View
                 style={{
