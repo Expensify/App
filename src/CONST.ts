@@ -103,7 +103,7 @@ const CONST = {
     },
 
     REPORT_DESCRIPTION: {
-        MAX_LENGTH: 1024,
+        MAX_LENGTH: 500,
     },
 
     PULL_REQUEST_NUMBER,
@@ -195,6 +195,27 @@ const CONST = {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        BENEFICIAL_OWNER_INFO_STEP: {
+            SUBSTEP: {
+                IS_USER_UBO: 1,
+                IS_ANYONE_ELSE_UBO: 2,
+                UBO_DETAILS_FORM: 3,
+                ARE_THERE_MORE_UBOS: 4,
+                UBOS_LIST: 5,
+            },
+            BENEFICIAL_OWNER_DATA: {
+                BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
+                PREFIX: 'beneficialOwner',
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'street',
+                CITY: 'city',
+                STATE: 'state',
+                ZIP_CODE: 'zipCode',
+            },
+        },
         PLAID: {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {
@@ -214,14 +235,18 @@ const CONST = {
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',
-            COMPANY: 'CompanyStep',
             REQUESTOR: 'RequestorStep',
+            COMPANY: 'CompanyStep',
+            BENEFICIAL_OWNERS: 'BeneficialOwnersStep',
             ACH_CONTRACT: 'ACHContractStep',
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
+        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEPS_HEADER_HEIGHT: 40,
         SUBSTEP: {
             MANUAL: 'manual',
+            PLAID: 'plaid',
         },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
@@ -493,6 +518,8 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
+    LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
+
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     OLDDOT_URLS: {
@@ -535,6 +562,7 @@ const CONST = {
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                HOLD: 'HOLD',
                 IOU: 'IOU',
                 MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
@@ -604,6 +632,7 @@ const CONST = {
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
+                    UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -619,9 +648,14 @@ const CONST = {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     LEAVE_ROOM: 'LEAVEROOM',
+                    UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                UNHOLD: 'UNHOLD',
             },
             THREAD_DISABLED: ['CREATED'],
+        },
+        CANCEL_PAYMENT_REASONS: {
+            ADMIN: 'CANCEL_REASON_ADMIN',
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
@@ -958,6 +992,10 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
+    ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
+    ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
+    ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
+    ATTACHMENT_DURATION_ATTRIBUTE: 'data-expensify-duration',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -1335,9 +1373,9 @@ const CONST = {
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
         REIMBURSEMENT_CHOICES: {
-            REIMBURSEMENT_YES: 'reimburseYes', // Direct
-            REIMBURSEMENT_NO: 'reimburseNo', // None
-            REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
+            REIMBURSEMENT_YES: 'reimburseYes',
+            REIMBURSEMENT_NO: 'reimburseNo',
+            REIMBURSEMENT_MANUAL: 'reimburseManual',
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
@@ -1554,6 +1592,15 @@ const CONST = {
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
         ];
+    },
+
+    // Emails that profile view is prohibited
+    get RESTRICTED_EMAILS(): readonly string[] {
+        return [this.EMAIL.NOTIFICATIONS];
+    },
+    // Account IDs that profile view is prohibited
+    get RESTRICTED_ACCOUNT_IDS() {
+        return [this.ACCOUNT_ID.NOTIFICATIONS];
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
@@ -3170,6 +3217,29 @@ const CONST = {
         REPORT: 'REPORT',
     },
 
+    THUMBNAIL_IMAGE: {
+        SMALL_SCREEN: {
+            SIZE: 250,
+        },
+        WIDE_SCREEN: {
+            SIZE: 350,
+        },
+        NAN_ASPECT_RATIO: 1.5,
+    },
+
+    VIDEO_PLAYER: {
+        POPOVER_Y_OFFSET: -30,
+        PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2],
+        HIDE_TIME_TEXT_WIDTH: 250,
+        MIN_WIDTH: 170,
+        MIN_HEIGHT: 120,
+        CONTROLS_POSITION: {
+            NATIVE: 32,
+            NORMAL: 8,
+        },
+        DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+    },
+
     INTRO_CHOICES: {
         TRACK: 'newDotTrack',
         SUBMIT: 'newDotSubmit',
@@ -3194,6 +3264,42 @@ const CONST = {
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    DEBUG_CONSOLE: {
+        LEVELS: {
+            INFO: 'INFO',
+            ERROR: 'ERROR',
+            RESULT: 'RESULT',
+            DEBUG: 'DEBUG',
+        },
+    },
+    REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX: {
+        BANK_ACCOUNT: {
+            ACCOUNT_NUMBERS: 0,
+        },
+        PERSONAL_INFO: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            SSN: 2,
+            ADDRESS: 3,
+        },
+        BUSINESS_INFO: {
+            BUSINESS_NAME: 0,
+            TAX_ID_NUMBER: 1,
+            COMPANY_WEBSITE: 2,
+            PHONE_NUMBER: 3,
+            COMPANY_ADDRESS: 4,
+            COMPANY_TYPE: 5,
+            INCORPORATION_DATE: 6,
+            INCORPORATION_STATE: 7,
+        },
+        UBO: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            SSN: 2,
+            ADDRESS: 3,
+        },
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
