@@ -232,7 +232,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     onToggleBillable,
     payeePersonalDetails,
     policy,
-    policy: {taxRates},
     policyCategories,
     policyID,
     policyTags,
@@ -257,6 +256,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));

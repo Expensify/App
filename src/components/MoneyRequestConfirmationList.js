@@ -228,6 +228,7 @@ function MoneyRequestConfirmationList(props) {
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
+    const taxRates = lodashGet(props.policy, 'taxRates', {});
 
     // A flag for showing the categories field
     const shouldShowCategories = props.isPolicyExpenseChat && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
@@ -264,7 +265,6 @@ function MoneyRequestConfirmationList(props) {
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
 
-    const taxRates = lodashGet(props.policy, 'taxRates', {});
     const defaultTaxKey = taxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
     const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
