@@ -7,7 +7,6 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let hasSelectedPurpose: boolean | undefined;
 let hasProvidedPersonalDetails: boolean | undefined;
-let currentUserAccountID: number | undefined;
 let isFirstTimeNewExpensifyUser: boolean | undefined;
 let hasDismissedModal: boolean | undefined;
 let hasSelectedChoice: boolean | undefined;
@@ -92,6 +91,21 @@ function checkOnReady() {
     resolveIsReadyPromise?.();
 }
 
+function getPersonalDetails(accountID: number | undefined) {
+    Onyx.connect({
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        initWithStoredValues: true,
+        callback: (value) => {
+            if (!value || !accountID) {
+                return;
+            }
+
+            hasProvidedPersonalDetails = !!value[accountID]?.firstName && !!value[accountID]?.lastName;
+            isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
+        },
+    });
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
@@ -170,20 +184,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = val.accountID;
-
-        Onyx.connect({
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            initWithStoredValues: true,
-            callback: (value) => {
-                if (!value || !currentUserAccountID) {
-                    return;
-                }
-
-                hasProvidedPersonalDetails = !!value[currentUserAccountID]?.firstName && !!value[currentUserAccountID]?.lastName;
-                isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
-            },
-        });
+        getPersonalDetails(val.accountID)
     },
 });
 
