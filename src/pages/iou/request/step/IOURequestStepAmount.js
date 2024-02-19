@@ -47,6 +47,7 @@ const propTypes = {
         tax: PropTypes.shape({
             trackingEnabled: PropTypes.bool,
         }),
+        taxRates: taxPropTypes,
     }),
 };
 
