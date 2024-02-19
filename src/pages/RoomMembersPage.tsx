@@ -1,5 +1,3 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -183,7 +181,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
-            const pendingVisibleChatMember = _.find(props.report.pendingVisibleChatMembers, (member) => member.accountID === accountID.toString());
+            const pendingVisibleChatMember = report?.pendingVisibleChatMembers ? report?.pendingVisibleChatMembers.find((member) => member.accountID === accountID.toString()) : undefined;
 
             result.push({
                 keyForList: String(accountID),
@@ -200,7 +198,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         id: Number(accountID),
                     },
                 ],
-                pendingAction: lodashGet(pendingVisibleChatMember, 'pendingAction', undefined),
+                pendingAction: pendingVisibleChatMember?.pendingAction ?? undefined
             });
         });
 
