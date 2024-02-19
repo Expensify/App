@@ -11,7 +11,7 @@ const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const ActionUtils = __nccwpck_require__(970);
-const GitUtils = __nccwpck_require__(669);
+const GitUtils = (__nccwpck_require__(1547)["default"]);
 const GithubUtils = __nccwpck_require__(7999);
 
 async function run() {
@@ -118,163 +118,6 @@ CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}
 CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 
 module.exports = CONST;
-
-
-/***/ }),
-
-/***/ 669:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const _ = __nccwpck_require__(5067);
-const {spawn, execSync} = __nccwpck_require__(2081);
-const CONST = __nccwpck_require__(4097);
-const sanitizeStringForJSONParse = __nccwpck_require__(9338);
-const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
-
-/**
- * @param {String} tag
- * @param {String} [shallowExcludeTag] when fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
- */
-function fetchTag(tag, shallowExcludeTag = '') {
-    let shouldRetry = true;
-    let needsRepack = false;
-    while (shouldRetry) {
-        try {
-            let command = '';
-            if (needsRepack) {
-                // We have seen some scenarios where this fixes the git fetch.
-                // Why? Who knows... https://github.com/Expensify/App/pull/31459
-                command = 'git repack -d';
-                console.log(`Running command: ${command}`);
-                execSync(command);
-            }
-
-            command = `git fetch origin tag ${tag} --no-tags`;
-
-            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
-            if (shallowExcludeTag && shallowExcludeTag !== tag) {
-                command += ` --shallow-exclude=${shallowExcludeTag}`;
-            }
-
-            console.log(`Running command: ${command}`);
-            execSync(command);
-            shouldRetry = false;
-        } catch (e) {
-            console.error(e);
-            if (!needsRepack) {
-                console.log('Attempting to repack and retry...');
-                needsRepack = true;
-            } else {
-                console.error("Repack didn't help, giving up...");
-                shouldRetry = false;
-            }
-        }
-    }
-}
-
-/**
- * Get merge logs between two tags (inclusive) as a JavaScript object.
- *
- * @param {String} fromTag
- * @param {String} toTag
- * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
- */
-function getCommitHistoryAsJSON(fromTag, toTag) {
-    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
-
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-    return new Promise((resolve, reject) => {
-        let stdout = '';
-        let stderr = '';
-        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
-        const spawnedProcess = spawn('git', args);
-        spawnedProcess.on('message', console.log);
-        spawnedProcess.stdout.on('data', (chunk) => {
-            console.log(chunk.toString());
-            stdout += chunk.toString();
-        });
-        spawnedProcess.stderr.on('data', (chunk) => {
-            console.error(chunk.toString());
-            stderr += chunk.toString();
-        });
-        spawnedProcess.on('close', (code) => {
-            if (code !== 0) {
-                return reject(new Error(`${stderr}`));
-            }
-
-            resolve(stdout);
-        });
-        spawnedProcess.on('error', (err) => reject(err));
-    }).then((stdout) => {
-        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => sanitizeStringForJSONParse(subject));
-
-        // Then remove newlines, format as JSON and convert to a proper JS object
-        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
-
-        return JSON.parse(json);
-    });
-}
-
-/**
- * Parse merged PRs, excluding those from irrelevant branches.
- *
- * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<Number>}
- */
-function getValidMergedPRs(commits) {
-    const mergedPRs = new Set();
-    _.each(commits, (commit) => {
-        const author = commit.authorName;
-        if (author === CONST.OS_BOTIFY) {
-            return;
-        }
-
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
-        if (!_.isArray(match) || match.length < 2) {
-            return;
-        }
-
-        const pr = Number.parseInt(match[1], 10);
-        if (mergedPRs.has(pr)) {
-            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
-            // That also means that we don't want to include it in the current checklist, so we remove it now.
-            mergedPRs.delete(pr);
-            return;
-        }
-
-        mergedPRs.add(pr);
-    });
-
-    return Array.from(mergedPRs);
-}
-
-/**
- * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- *
- * @param {String} fromTag
- * @param {String} toTag
- * @returns {Promise<Array<Number>>} – Pull request numbers
- */
-async function getPullRequestsMergedBetween(fromTag, toTag) {
-    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
-
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-    return pullRequestNumbers;
-}
-
-module.exports = {
-    getValidMergedPRs,
-    getPullRequestsMergedBetween,
-};
 
 
 /***/ }),
@@ -808,6 +651,14 @@ class GithubUtils {
             .then((events) => _.filter(events, (event) => event.event === 'closed'))
             .then((closedEvents) => lodashGet(_.last(closedEvents), 'actor.login', ''));
     }
+
+    static getArtifactByName(artefactName) {
+        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            per_page: 100,
+        }).then((artifacts) => _.findWhere(artifacts, {name: artefactName}));
+    }
 }
 
 module.exports = GithubUtils;
@@ -852,8 +703,20 @@ module.exports = function (inputString) {
 /***/ }),
 
 /***/ 8007:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "MAX_INCREMENTS": () => (/* binding */ MAX_INCREMENTS),
+/* harmony export */   "SEMANTIC_VERSION_LEVELS": () => (/* binding */ SEMANTIC_VERSION_LEVELS),
+/* harmony export */   "getPreviousVersion": () => (/* binding */ getPreviousVersion),
+/* harmony export */   "getVersionNumberFromString": () => (/* binding */ getVersionNumberFromString),
+/* harmony export */   "getVersionStringFromNumber": () => (/* binding */ getVersionStringFromNumber),
+/* harmony export */   "incrementMinor": () => (/* binding */ incrementMinor),
+/* harmony export */   "incrementPatch": () => (/* binding */ incrementPatch),
+/* harmony export */   "incrementVersion": () => (/* binding */ incrementVersion)
+/* harmony export */ });
 const _ = __nccwpck_require__(5067);
 
 const SEMANTIC_VERSION_LEVELS = {
@@ -921,8 +784,8 @@ const incrementPatch = (major, minor, patch) => {
 /**
  * Increments a build version
  *
- * @param {Number} version
- * @param {Number} level
+ * @param {String} version
+ * @param {String} level
  * @returns {String}
  */
 const incrementVersion = (version, level) => {
@@ -983,18 +846,7 @@ function getPreviousVersion(currentVersion, level) {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 
-module.exports = {
-    getVersionNumberFromString,
-    getVersionStringFromNumber,
-    incrementVersion,
 
-    // For tests
-    MAX_INCREMENTS,
-    SEMANTIC_VERSION_LEVELS,
-    incrementMinor,
-    incrementPatch,
-    getPreviousVersion,
-};
 
 
 /***/ }),
@@ -14070,6 +13922,164 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 1547:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const child_process_1 = __nccwpck_require__(2081);
+const CONST = __importStar(__nccwpck_require__(4097));
+const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(9338));
+const VERSION_UPDATER = __importStar(__nccwpck_require__(8007));
+/**
+ * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ */
+function fetchTag(tag, shallowExcludeTag = '') {
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                (0, child_process_1.execSync)(command);
+            }
+            command = `git fetch origin tag ${tag} --no-tags`;
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
+            }
+            console.log(`Running command: ${command}`);
+            (0, child_process_1.execSync)(command);
+            shouldRetry = false;
+        }
+        catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            }
+            else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
+        }
+    }
+}
+/**
+ * Get merge logs between two tags (inclusive) as a JavaScript object.
+ */
+function getCommitHistoryAsJSON(fromTag, toTag) {
+    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    return new Promise((resolve, reject) => {
+        let stdout = '';
+        let stderr = '';
+        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
+        console.log(`Running command: git ${args.join(' ')}`);
+        const spawnedProcess = (0, child_process_1.spawn)('git', args);
+        spawnedProcess.on('message', console.log);
+        spawnedProcess.stdout.on('data', (chunk) => {
+            console.log(chunk.toString());
+            stdout += chunk.toString();
+        });
+        spawnedProcess.stderr.on('data', (chunk) => {
+            console.error(chunk.toString());
+            stderr += chunk.toString();
+        });
+        spawnedProcess.on('close', (code) => {
+            if (code !== 0) {
+                return reject(new Error(`${stderr}`));
+            }
+            resolve(stdout);
+        });
+        spawnedProcess.on('error', (err) => reject(err));
+    }).then((stdout) => {
+        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => (0, sanitizeStringForJSONParse_1.default)(subject));
+        // Then remove newlines, format as JSON and convert to a proper JS object
+        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        return JSON.parse(json);
+    });
+}
+/**
+ * Parse merged PRs, excluding those from irrelevant branches.
+ */
+function getValidMergedPRs(commits) {
+    const mergedPRs = new Set();
+    commits.forEach((commit) => {
+        const author = commit.authorName;
+        if (author === CONST.OS_BOTIFY) {
+            return;
+        }
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        if (!Array.isArray(match) || match.length < 2) {
+            return;
+        }
+        const pr = Number.parseInt(match[1], 10);
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+        mergedPRs.add(pr);
+    });
+    return Array.from(mergedPRs);
+}
+/**
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ */
+async function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
+}
+exports["default"] = {
+    getValidMergedPRs,
+    getPullRequestsMergedBetween,
+};
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -16430,6 +16440,34 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";

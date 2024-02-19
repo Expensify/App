@@ -365,4 +365,4 @@ function toAlignment(value) {
         : 0;
 }
 
-module.exports = markdownTable;
+export default markdownTable;
