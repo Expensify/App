@@ -93,11 +93,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }
 
     const changeMoneyRequestStatus = () => {
+        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+
         if (isOnHold) {
-            IOU.unholdRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID);
+            IOU.unholdRequest(iouTransactionID, report?.reportID);
         } else {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type, parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? '', iouTransactionID, report?.reportID, activeRoute));
         }
     };
 

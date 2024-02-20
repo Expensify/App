@@ -2699,8 +2699,8 @@ function getReportDescriptionText(report: Report): string {
     return parser.htmlToText(report.description);
 }
 
-function getPolicyDescriptionText(policy: Policy): string {
-    if (!policy.description) {
+function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
+    if (!policy?.description) {
         return '';
     }
 

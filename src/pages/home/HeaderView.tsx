@@ -37,11 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import pick from '@src/utils/pick';
-
-type PickedPolicyValues = Pick<OnyxTypes.Policy, 'name' | 'avatar' | 'pendingAction'>;
 
 type HeaderViewOnyxProps = {
     /** URL to the assigned guide's appointment booking calendar */
@@ -57,7 +53,7 @@ type HeaderViewOnyxProps = {
     parentReport: OnyxEntry<ReportWithoutHasDraft>;
 
     /** The current policy of the report */
-    policy: PickedPolicyValues | EmptyObject;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type HeaderViewProps = HeaderViewOnyxProps & {
@@ -99,17 +95,17 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
-    const policyDescription = ReportUtils.getPolicyDescriptionText(props.policy);
-    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(props.report.reportID);
+    const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
+    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report.reportID);
     const shouldShowSubtitle = () => {
-        if (_.isEmpty(subtitle)) {
+        if (!subtitle) {
             return false;
         }
         if (isChatRoom) {
-            return _.isEmpty(reportDescription);
+            return !reportDescription;
         }
         if (isPolicyExpenseChat) {
-            return _.isEmpty(policyDescription);
+            return !policyDescription;
         }
         return true;
     };
@@ -171,7 +167,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     );
 
     const renderAdditionalText = () => {
-        if (shouldShowSubtitle() || isPersonalExpenseChat || _.isEmpty(policyName) || !_.isEmpty(parentNavigationSubtitleData)) {
+        if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData)) {
             return null;
         }
         return (
@@ -302,14 +298,14 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                                                 </Text>
                                             </PressableWithoutFeedback>
                                         )}
-                                        {isPolicyExpenseChat && !_.isEmpty(policyDescription) && _.isEmpty(parentNavigationSubtitleData) && (
+                                        {isPolicyExpenseChat && !!policyDescription && isEmptyObject(parentNavigationSubtitleData) && (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
-                                                    if (ReportUtils.canEditPolicyDescription(props.policy)) {
-                                                        Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(props.report.policyID));
+                                                    if (ReportUtils.canEditPolicyDescription(policy)) {
+                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? ''));
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));
+                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
                                                 }}
                                                 style={[styles.alignSelfStart, styles.mw100]}
                                                 accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}

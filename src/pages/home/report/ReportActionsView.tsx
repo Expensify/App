@@ -146,7 +146,7 @@ function ReportActionsView({
         }
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
-    const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
+    const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -164,7 +164,7 @@ function ReportActionsView({
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.isLoadingOlderReportActions, props.network.isOffline, oldestReportAction, reportID]);
+    }, [isLoadingOlderReportActions, network.isOffline, oldestReportAction, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
