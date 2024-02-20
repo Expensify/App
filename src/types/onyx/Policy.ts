@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
+import type {PolicyTaxRates} from './PolicyTaxRates';
 import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
