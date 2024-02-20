@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const run = () => {
     // Prefix path to the graphite metric
-    const GRAPHITE_PATH = 'bucket1.reassure';
+    const GRAPHITE_PATH = 'bucket-testing.reassure';
 
     let regressionOutput;
     try {
