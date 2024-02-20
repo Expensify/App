@@ -77,7 +77,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: string | boolean | Date): boolean {
+function isRequiredFulfilled(value?: string | boolean | Date | number[] | string[] | Record<string, string>): boolean {
     if (!value) {
         return false;
     }
