@@ -98,12 +98,4 @@ const formatDurationDiffChange = (entry: CompareEntry): string => {
     return output;
 };
 
-export default {
-    formatPercent,
-    formatPercentChange,
-    formatDuration,
-    formatDurationChange,
-    formatChange,
-    getDurationSymbols,
-    formatDurationDiffChange,
-};
+export {formatPercent, formatPercentChange, formatDuration, formatDurationChange, formatChange, getDurationSymbols, formatDurationDiffChange};
