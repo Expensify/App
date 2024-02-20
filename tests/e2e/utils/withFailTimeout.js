@@ -1,6 +1,6 @@
-const {INTERACTION_TIMEOUT} = require('../config');
+import CONFIG from '../config';
 
-const TIMEOUT = process.env.INTERACTION_TIMEOUT || INTERACTION_TIMEOUT;
+const TIMEOUT = process.env.INTERACTION_TIMEOUT || CONFIG.INTERACTION_TIMEOUT;
 
 const withFailTimeout = (promise, name) =>
     new Promise((resolve, reject) => {
@@ -20,4 +20,4 @@ const withFailTimeout = (promise, name) =>
             });
     });
 
-module.exports = withFailTimeout;
+export default withFailTimeout;
