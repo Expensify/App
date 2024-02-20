@@ -1,5 +1,4 @@
 import {FlashList} from '@shopify/flash-list';
-import _ from 'lodash';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -34,6 +33,7 @@ import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 const FILTER_TYPES = [CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, ''] as const;
@@ -188,11 +188,18 @@ function PaymentMethodList({
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
-            const assignedCards = _.chain(cardList)
+            const assignedCards = Object.values(cardList ?? {})
                 // Filter by physical, active cards associated with a domain
                 .filter((card) => !card.isVirtual && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0))
-                .sortBy((card) => !CardUtils.isExpensifyCard(card.cardID))
-                .value();
+                .toSorted((card1, card2) => {
+                    const isExpensifyCard1 = CardUtils.isExpensifyCard(card1.cardID);
+                    const isExpensifyCard2 = CardUtils.isExpensifyCard(card2.cardID);
+                    if (isExpensifyCard1 === isExpensifyCard2) {
+                        return 0;
+                    }
+
+                    return isExpensifyCard1 ? -1 : 1;
+                });
 
             const numberPhysicalExpensifyCards = assignedCards.filter((card) => CardUtils.isExpensifyCard(card.cardID)).length;
 
@@ -202,9 +209,10 @@ function PaymentMethodList({
 
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
+                const cartTitle = card.lastFourPAN ? `${card.bank} - ${card.lastFourPAN}` : card.bank;
                 return {
                     key: card.cardID.toString(),
-                    title: isExpensifyCard ? expensifyCardDescription : card.cardName,
+                    title: isExpensifyCard ? expensifyCardDescription : cartTitle,
                     description: card.domainName,
                     onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '')) : () => {},
                     shouldShowRightIcon: isExpensifyCard,
@@ -226,13 +234,13 @@ function PaymentMethodList({
         const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, filteredCardList, styles);
 
-        if (!_.isEmpty(filterType)) {
+        if (filterType !== '') {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterType);
         }
 
         if (!isOffline) {
             combinedPaymentMethods = combinedPaymentMethods.filter(
-                (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(paymentMethod.errors),
+                (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(paymentMethod.errors),
             );
         }
 
