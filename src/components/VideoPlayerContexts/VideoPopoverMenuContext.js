@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
@@ -14,6 +15,7 @@ function VideoPopoverMenuContextProvider({children}) {
     const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
+    const {isOffline} = useNetwork();
 
     const updatePlaybackSpeed = useCallback(
         (speed) => {
@@ -30,15 +32,8 @@ function VideoPopoverMenuContextProvider({children}) {
         });
     }, [currentVideoPlayerRef]);
 
-    const menuItems = useMemo(
-        () => [
-            {
-                icon: Expensicons.Download,
-                text: translate('common.download'),
-                onSelected: () => {
-                    downloadAttachment();
-                },
-            },
+    const menuItems = useMemo(() => {
+        const items = [
             {
                 icon: Expensicons.Meter,
                 text: translate('videoPlayer.playbackSpeed'),
@@ -53,9 +48,20 @@ function VideoPopoverMenuContextProvider({children}) {
                     })),
                 ],
             },
-        ],
-        [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed],
-    );
+        ];
+
+        if (!isOffline) {
+            items.push({
+                icon: Expensicons.Download,
+                text: translate('common.download'),
+                onSelected: () => {
+                    downloadAttachment();
+                },
+            });
+        }
+
+        return items;
+    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline]);
 
     const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
     return <VideoPopoverMenuContext.Provider value={contextValue}>{children}</VideoPopoverMenuContext.Provider>;
