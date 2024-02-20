@@ -9,6 +9,7 @@ module.exports = {
     importOrder: [
         '@assets/(.*)$',
         '@components/(.*)$',
+        '@desktop/(.*)$',
         '@hooks/(.*)$',
         '@libs/(.*)$',
         '@navigation/(.*)$',
@@ -16,7 +17,6 @@ module.exports = {
         '@styles/(.*)$',
         '@userActions/(.*)$',
         '@src/(.*)$',
-        '@desktop/(.*)$',
         '^[./]',
     ],
     importOrderSortSpecifiers: true,

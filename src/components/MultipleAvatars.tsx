@@ -230,7 +230,7 @@ function MultipleAvatars({
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                                 StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
-                                icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[3].type) : {},
+                                icons[3].type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[3].type),
                             ]}
                         >
                             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>
@@ -246,7 +246,7 @@ function MultipleAvatars({
         ))
     ) : (
         <View style={avatarContainerStyles}>
-            <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[0].type) : {}]}>
+            <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[0].type)]}>
                 <UserDetailsTooltip
                     accountID={Number(icons[0].id)}
                     icon={icons[0]}
