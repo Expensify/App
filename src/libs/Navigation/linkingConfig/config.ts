@@ -192,9 +192,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
                         },
-                        [SCREENS.SETTINGS.LOUNGE_ACCESS]: {
-                            path: ROUTES.SETTINGS_LOUNGE_ACCESS,
-                        },
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
