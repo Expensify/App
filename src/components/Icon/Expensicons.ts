@@ -59,6 +59,7 @@ import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
 import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
+import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -66,6 +67,7 @@ import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
+import Fullscreen from '@assets/images/fullscreen.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Globe from '@assets/images/globe.svg';
@@ -89,20 +91,23 @@ import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
+import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import Monitor from '@assets/images/monitor.svg';
-import NewExpensify from '@assets/images/new-expensify.svg';
+import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
+import Pause from '@assets/images/pause.svg';
 import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
+import Play from '@assets/images/play.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
@@ -123,6 +128,7 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
@@ -134,11 +140,12 @@ import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
+import VolumeHigh from '@assets/images/volume-high.svg';
+import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
-import LoungeAccess from './svgs/LoungeAccessIcon';
 
 export {
     ActiveRoomAvatar,
@@ -207,6 +214,7 @@ export {
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
+    Fullscreen,
     Gallery,
     Gear,
     Globe,
@@ -226,26 +234,29 @@ export {
     LinkCopy,
     Location,
     Lock,
-    LoungeAccess,
     Luggage,
     MagnifyingGlass,
     Mail,
     Menu,
+    Meter,
     Megaphone,
     MoneyBag,
     MoneyCircle,
     Monitor,
-    NewExpensify,
+    Mute,
+    ExpensifyLogoNew,
     NewWindow,
     NewWorkspace,
     Offline,
     OfflineCloud,
     OldDotWireframe,
     Paperclip,
+    Pause,
     Paycheck,
     Pencil,
     Phone,
     Pin,
+    Play,
     Plus,
     Printer,
     Profile,
@@ -258,6 +269,7 @@ export {
     Scan,
     Send,
     Shield,
+    Stopwatch,
     Sync,
     Task,
     ThumbsUp,
@@ -270,6 +282,8 @@ export {
     UploadAlt,
     User,
     Users,
+    VolumeHigh,
+    VolumeLow,
     Wallet,
     Workspace,
     Zoom,
