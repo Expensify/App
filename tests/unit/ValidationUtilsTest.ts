@@ -1,6 +1,6 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
-import * as ValidationUtils from '@src/libs/ValidationUtils';
 import CONST from '@src/CONST';
+import * as ValidationUtils from '@src/libs/ValidationUtils';
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
