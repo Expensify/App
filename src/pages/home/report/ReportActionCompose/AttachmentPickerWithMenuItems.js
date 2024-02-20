@@ -145,12 +145,12 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.SPLIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID)),
+                onSelected: () => IOU.startMoneyRequest_temporaryForRefactor(CONST.IOU.TYPE.SPLIT, report.reportID),
             },
             [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID)),
+                onSelected: () => IOU.startMoneyRequest_temporaryForRefactor(CONST.IOU.TYPE.REQUEST, report.reportID),
             },
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
