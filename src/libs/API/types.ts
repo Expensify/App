@@ -126,6 +126,8 @@ const WRITE_COMMANDS = {
     UPDATE_MONEY_REQUEST_CATEGORY: 'UpdateMoneyRequestCategory',
     UPDATE_MONEY_REQUEST_DESCRIPTION: 'UpdateMoneyRequestDescription',
     UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY: 'UpdateMoneyRequestAmountAndCurrency',
+    HOLD_MONEY_REQUEST: 'HoldRequest',
+    UNHOLD_MONEY_REQUEST: 'UnHoldRequest',
     UPDATE_DISTANCE_REQUEST: 'UpdateDistanceRequest',
     REQUEST_MONEY: 'RequestMoney',
     SPLIT_BILL: 'SplitBill',
@@ -267,6 +269,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.HOLD_MONEY_REQUEST]: Parameters.HoldMoneyRequestParams;
+    [WRITE_COMMANDS.UNHOLD_MONEY_REQUEST]: Parameters.UnHoldMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.REQUEST_MONEY]: Parameters.RequestMoneyParams;

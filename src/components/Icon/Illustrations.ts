@@ -12,7 +12,6 @@ import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.s
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
 import JewelBoxPink from '@assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '@assets/images/product-illustrations/jewel-box--yellow.svg';
-import Lounge from '@assets/images/product-illustrations/lounge.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
@@ -109,7 +108,6 @@ export {
     CreditCardsNew,
     InvoiceBlue,
     LockOpen,
-    Lounge,
     Luggage,
     MoneyIntoWallet,
     MoneyWings,

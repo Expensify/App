@@ -37,6 +37,9 @@ const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInpu
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
+// Explicit type annotation is required
+const cardActiveStates: number[] = [2, 3, 4, 7];
+
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
@@ -123,7 +126,7 @@ const CONST = {
     },
 
     DATE_BIRTH: {
-        MIN_AGE: 5,
+        MIN_AGE: 0,
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
@@ -145,23 +148,23 @@ const CONST = {
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
             CONTAINER_MINHEIGHT: 200,
-            VIEW_HEIGHT: 185,
+            VIEW_HEIGHT: 240,
         },
         WIDE_SCREEN: {
             IMAGE_HEIGHT: 450,
             CONTAINER_MINHEIGHT: 500,
-            VIEW_HEIGHT: 275,
+            VIEW_HEIGHT: 390,
         },
         MONEY_OR_TASK_REPORT: {
             SMALL_SCREEN: {
                 IMAGE_HEIGHT: 300,
                 CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 220,
+                VIEW_HEIGHT: 240,
             },
             WIDE_SCREEN: {
                 IMAGE_HEIGHT: 450,
                 CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 275,
+                VIEW_HEIGHT: 390,
             },
         },
     },
@@ -562,6 +565,7 @@ const CONST = {
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                HOLD: 'HOLD',
                 IOU: 'IOU',
                 MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
@@ -647,7 +651,9 @@ const CONST = {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     LEAVE_ROOM: 'LEAVEROOM',
+                    UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                UNHOLD: 'UNHOLD',
             },
             THREAD_DISABLED: ['CREATED'],
         },
@@ -1438,7 +1444,7 @@ const CONST = {
             CLOSED: 6,
             STATE_SUSPENDED: 7,
         },
-        ACTIVE_STATES: [2, 3, 4, 7],
+        ACTIVE_STATES: cardActiveStates,
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
