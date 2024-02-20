@@ -1,4 +1,4 @@
-const {execSync} = require('child_process');
+import {execSync} from 'child_process';
 
 const getCurrentBranchName = () => {
     const stdout = execSync('git rev-parse --abbrev-ref HEAD', {
@@ -7,4 +7,4 @@ const getCurrentBranchName = () => {
     return stdout.trim();
 };
 
-module.exports = getCurrentBranchName;
+export default getCurrentBranchName;
