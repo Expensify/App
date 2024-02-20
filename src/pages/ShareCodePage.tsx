@@ -14,7 +14,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
