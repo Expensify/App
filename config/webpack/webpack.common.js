@@ -22,6 +22,8 @@ const includeModules = [
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    '@react-native/assets',
+    'expo-av',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -97,6 +99,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
+                {from: 'web/gtm.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
@@ -240,6 +243,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+            crypto: false,
         },
     },
 

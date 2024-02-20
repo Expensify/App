@@ -115,7 +115,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
 test('[ReportActionCompose] should press add attachemnt button', async () => {
     const scenario = async () => {
         // Query for the attachment button
-        const hintAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAction');
+        const hintAttachmentButtonText = Localize.translateLocal('common.create');
         const attachmentButton = await screen.findByLabelText(hintAttachmentButtonText);
 
         fireEvent.press(attachmentButton, mockEvent);
