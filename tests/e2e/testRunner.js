@@ -14,19 +14,20 @@
  */
 
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
-const fs = require('fs');
-const _ = require('underscore');
-const defaultConfig = require('./config');
-const Logger = require('./utils/logger');
-const execAsync = require('./utils/execAsync');
-const killApp = require('./utils/killApp');
-const launchApp = require('./utils/launchApp');
-const createServerInstance = require('./server');
-const installApp = require('./utils/installApp');
-const withFailTimeout = require('./utils/withFailTimeout');
-const reversePort = require('./utils/androidReversePort');
-const sleep = require('./utils/sleep');
-const compare = require('./compare/compare');
+import {execSync} from 'child_process';
+import fs from 'fs';
+import _ from 'underscore';
+import compare from './compare/compare';
+import defaultConfig from './config';
+import createServerInstance from './server';
+import reversePort from './utils/androidReversePort';
+import execAsync from './utils/execAsync';
+import installApp from './utils/installApp';
+import killApp from './utils/killApp';
+import launchApp from './utils/launchApp';
+import * as Logger from './utils/logger';
+import sleep from './utils/sleep';
+import withFailTimeout from './utils/withFailTimeout';
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -54,7 +55,7 @@ const setConfigPath = (configPathParam) => {
     if (!configPath.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require(configPath);
+    const customConfig = require(configPath).default;
     config = _.extend(defaultConfig, customConfig);
 };
 
@@ -73,7 +74,7 @@ let buildMode = 'full';
 // When we are in dev mode we want to apply certain default params and configs
 const isDevMode = args.includes('--development');
 if (isDevMode) {
-    setConfigPath('config.local.js');
+    setConfigPath('config.local.ts');
     buildMode = 'js-only';
 }
 
@@ -324,6 +325,11 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
+        // For each test case we allow the test to fail three times before we stop the test run:
+        const errorCountRef = {
+            errorCount: 0,
+            allowedExceptions: 3,
+        };
         for (let i = 0; i < config.RUNS; i++) {
             progressText = `Suite '${suite.name}' [${suiteIndex + 1}/${suites.length}], iteration [${i + 1}/${config.RUNS}]\n`;
             testLog.updateText(progressText);
@@ -335,7 +341,21 @@ const runTests = async () => {
             await killApp('android', config.MAIN_APP_PACKAGE);
 
             Logger.log('Starting main app');
-            await launchApp('android', config.MAIN_APP_PACKAGE);
+            await launchApp('android', config.MAIN_APP_PACKAGE, config.ACTIVITY_PATH, {
+                mockNetwork: true,
+            });
+
+            const onError = (e) => {
+                testLog.done();
+                errorCountRef.errorCount += 1;
+                if (i === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
+                    // If the error happened on the first test run, the test is broken
+                    // and we should not continue running it. Or if we have reached the
+                    // maximum number of allowed exceptions, we should stop the test run.
+                    throw e;
+                }
+                console.error(e);
+            };
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -350,16 +370,16 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
 
             Logger.log('Killing main app');
             await killApp('android', config.MAIN_APP_PACKAGE);
 
             Logger.log('Starting delta app');
-            await launchApp('android', config.DELTA_APP_PACKAGE);
+            await launchApp('android', config.DELTA_APP_PACKAGE, config.ACTIVITY_PATH, {
+                mockNetwork: true,
+            });
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -374,9 +394,7 @@ const runTests = async () => {
                     progressText,
                 );
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
         }
         testLog.done();
@@ -403,13 +421,13 @@ const run = async () => {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
-        require('child_process').execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
-        require('child_process').execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
-        require('child_process').execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
+        execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
+        execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
+        execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
 
-        require('child_process').execSync(`cat ${config.LOG_FILE}`);
+        execSync(`cat ${config.LOG_FILE}`);
         try {
-            require('child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+            execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
         } catch (ignoredError) {
             // the error is ignored, as the file might not exist if the test
             // run wasn't started with an emulator

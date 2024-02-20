@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>New Expensify</title>
-    <meta name="description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay. One app, all free.">
+    <meta name="description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
     <meta name="theme-color" content="">
     <meta property="twitter:card" content="summary">
     <meta property="twitter:site" content="@expensify">
@@ -11,7 +11,7 @@
     <meta property="og:site_name" content="New Expensify">
     <meta property="og:url" content="https://new.expensify.com">
     <meta property="og:title" content="New Expensify">
-    <meta property="og:description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay. One app, all free.">
+    <meta property="og:description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
     <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
@@ -70,32 +70,6 @@
             display: none;
         }
 
-        /* Customizes the background and text colors for autofill inputs in Chrome */
-        /* Chrome on iOS does not support the autofill pseudo class because it is a non-standard webkit feature.
-        We should rely on the chrome-autofilled property being added to the input when users use auto-fill */
-        input[chrome-autofilled],
-        input[chrome-autofilled]:hover,
-        input[chrome-autofilled]:focus,
-        textarea[chrome-autofilled],
-        textarea[chrome-autofilled]:hover,
-        textarea[chrome-autofilled]:focus,
-        select[chrome-autofilled],
-        select[chrome-autofilled]:hover,
-        select[chrome-autofilled]:focus,
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus,
-        textarea:-webkit-autofill,
-        textarea:-webkit-autofill:hover,
-        textarea:-webkit-autofill:focus,
-        select:-webkit-autofill,
-        select:-webkit-autofill:hover,
-        select:-webkit-autofill:focus {
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: #ffffff;
-            caret-color: #ffffff;
-        }
-
         /* Customize Plaid iframe */
         [id^="plaid-link-iframe"] {
             color-scheme: dark !important;
@@ -148,8 +122,8 @@
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
         <% if (htmlWebpackPlugin.options.isProduction) { %>
-            <!-- Google Tag Manager - This was provided by our partner marketing agency -->
-            <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N4M3FLJZ');</script>
+            <!-- Google Tag Manager -->
+            <script async="" src="gtm.js"></script>
             <!-- End Google Tag Manager -->
         <% } %>
     <% } %>
