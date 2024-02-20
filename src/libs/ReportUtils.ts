@@ -5028,7 +5028,7 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
 }
 
 /**
- * Checks if report chat contains add bank account action
+ * Checks if report chat contains missing payment method
  */
 function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID: string): boolean {
     const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
