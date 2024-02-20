@@ -12,14 +12,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
-function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
+function TaxPicker({selectedTaxRate, policy, insets, onSubmit}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyTaxRatesCount = TransactionUtils.getEnabledTaxRateCount(policyTaxRates.taxes);
-    const isTaxRatesCountBelowThreshold = policyTaxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
+    const taxRates = policy.taxRates;
+    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
+    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
@@ -56,10 +57,10 @@ function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
             false,
             false,
             true,
-            policyTaxRates,
+            taxRates,
         );
         return policyTaxRatesOptions;
-    }, [policyTaxRates, searchValue, selectedOptions]);
+    }, [taxRates, searchValue, selectedOptions]);
 
     const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (taxRate) => taxRate.searchText === selectedTaxRate)[0], 'keyForList');
 
@@ -90,7 +91,7 @@ TaxPicker.propTypes = propTypes;
 TaxPicker.defaultProps = defaultProps;
 
 export default withOnyx({
-    policyTaxRates: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
 })(TaxPicker);
