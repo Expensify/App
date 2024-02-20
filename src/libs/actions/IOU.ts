@@ -871,7 +871,7 @@ function getMoneyRequestInformation(
           }
         : {};
 
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, needsToBeManuallySubmitted ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
@@ -979,6 +979,36 @@ function createDistanceRequest(
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
+}
+
+/**
+ * Compute the diff amount when we update the transaction
+ */
+function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTransaction: OnyxEntry<OnyxTypes.Transaction>, transaction: OnyxEntry<OnyxTypes.Transaction>): number {
+    if (!iouReport) {
+        return 0;
+    }
+    const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+    const updatedCurrency = TransactionUtils.getCurrency(updatedTransaction);
+    const currentCurrency = TransactionUtils.getCurrency(transaction);
+
+    const currentAmount = TransactionUtils.getAmount(transaction, isExpenseReport);
+    const updatedAmount = TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
+
+    if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
+        // Add the diff to the total if we change the currency from a different currency to the currency of the IOU report
+        return updatedAmount;
+    }
+    if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
+        // Subtract the diff from the total if we change the currency from the currency of IOU report to a different currency
+        return -updatedAmount;
+    }
+    if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
+        // Calculate the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
+        return updatedAmount - currentAmount;
+    }
+
+    return 0;
 }
 
 /**
@@ -1097,23 +1127,21 @@ function getUpdateMoneyRequestParams(
                 },
             },
         });
-    }
 
-    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-    // Should only update if the transaction matches the currency of the report, else we wait for the update
-    // from the server with the currency conversion
-    let updatedMoneyRequestReport = {...iouReport};
-    if ((hasPendingWaypoints || updatedTransaction?.modifiedAmount) && updatedTransaction?.currency === iouReport?.currency) {
-        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+        // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+        let updatedMoneyRequestReport = {...iouReport};
+        const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+
         if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-            updatedMoneyRequestReport.total += diff;
+            // For expense report, the amount is negative so we should subtract total from diff
+            updatedMoneyRequestReport.total -= diff;
         } else {
             updatedMoneyRequestReport = iouReport
-                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
+                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
                 : {};
         }
+        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency);
 
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.currency);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -2356,6 +2384,10 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             updatedTransaction.modifiedMerchant,
             {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
             updatedTransaction.filename,
+            undefined,
+            updatedTransaction.category,
+            updatedTransaction.tag,
+            updatedTransaction.billable,
         );
 
         const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
@@ -2789,23 +2821,18 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport: OnyxTypes.Report | null;
+    const currency = TransactionUtils.getCurrency(transaction);
     const updatedReportPreviewAction: OnyxTypes.ReportAction | EmptyObject = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     if (iouReport && ReportUtils.isExpenseReport(iouReport)) {
         updatedIOUReport = {...iouReport};
 
-        if (typeof updatedIOUReport.total === 'number') {
+        if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency) {
             // Because of the Expense reports are stored as negative values, we add the total from the amount
             updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
         }
     } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-            iouReport,
-            reportAction.actorAccountID ?? -1,
-            TransactionUtils.getAmount(transaction, false),
-            TransactionUtils.getCurrency(transaction),
-            true,
-        );
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? -1, TransactionUtils.getAmount(transaction, false), currency, true);
     }
 
     if (updatedIOUReport) {
@@ -3638,6 +3665,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
         stateNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
         statusNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
     }
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, statusNum);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3662,6 +3690,14 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
         },
     ];
 
+    if (!isFree) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStep,
+        });
+    }
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3679,7 +3715,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport.reportActionID ?? '']: {
+                [optimisticReportAction.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
@@ -3701,6 +3737,13 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
                 hasOutstandingChildRequest: true,
                 iouReportID: expenseReport.reportID,
             },
+        });
+    }
+    if (!isFree) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.REIMBURSED),
         });
     }
 
@@ -3850,6 +3893,10 @@ function setMoneyRequestParticipants(participants: Participant[], isSplitRequest
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
+function setShownHoldUseExplanation() {
+    Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
+}
+
 function setUpDistanceTransaction() {
     const transactionID = NumberUtils.rand64();
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -3906,6 +3953,102 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
     return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
 
+/**
+ * Put money request on HOLD
+ */
+function putOnHold(transactionID: string, comment: string, reportID: string) {
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: createdReportAction.reportActionID,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'HoldRequest',
+        {
+            transactionID,
+            comment,
+            reportActionID: createdReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
+ * Remove money request from HOLD
+ */
+function unholdRequest(transactionID: string, reportID: string) {
+    const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'UnHoldRequest',
+        {
+            transactionID,
+            reportActionID: createdReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData: []},
+    );
+}
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string,
@@ -3978,6 +4121,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setUpDistanceTransaction,
+    setShownHoldUseExplanation,
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
@@ -3991,6 +4135,8 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    putOnHold,
+    unholdRequest,
     cancelPayment,
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,
