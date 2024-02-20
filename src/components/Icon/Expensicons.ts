@@ -128,6 +128,7 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
@@ -145,7 +146,6 @@ import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
-import LoungeAccess from './svgs/LoungeAccessIcon';
 
 export {
     ActiveRoomAvatar,
@@ -234,7 +234,6 @@ export {
     LinkCopy,
     Location,
     Lock,
-    LoungeAccess,
     Luggage,
     MagnifyingGlass,
     Mail,
@@ -270,6 +269,7 @@ export {
     Scan,
     Send,
     Shield,
+    Stopwatch,
     Sync,
     Task,
     ThumbsUp,
