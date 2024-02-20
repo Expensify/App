@@ -81,7 +81,7 @@ type OptimisticCustomUnits = {
     outputCurrency: string;
 };
 
-type PoliciesRecord = Record<string, OnyxEntry<Policy>>;
+type PoliciesRecord = Record<string, Policy>;
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -206,8 +206,8 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
-function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord): boolean {
-    const adminFreePolicies = Object.values(policies).filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+function hasActiveFreePolicy(policies: OnyxEntry<Policy[] | PoliciesRecord>): boolean {
+    const adminFreePolicies = Object.values(policies ?? {}).filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 
     if (adminFreePolicies.length === 0) {
         return false;
