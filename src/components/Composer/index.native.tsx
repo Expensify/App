@@ -1,9 +1,9 @@
-import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -31,7 +31,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    const textInput = useRef<AnimatedTextInputRef | null>(null);
+    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle();
@@ -42,7 +42,7 @@ function Composer(
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedTextInputRef) => {
+    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef) => {
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
@@ -68,7 +68,7 @@ function Composer(
     const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
-        <MarkdownTextInput
+        <RNMarkdownTextInput
             multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
