@@ -5,7 +5,6 @@ type BootSplashModule = {
     navigationBarHeight: number;
     hide: () => Promise<void>;
     getVisibilityStatus: () => Promise<VisibilityStatus>;
-    closeReactNativeApp: () => Promise<void>;
 };
 
 export type {BootSplashModule, VisibilityStatus};
