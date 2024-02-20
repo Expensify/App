@@ -365,9 +365,14 @@ function getBillable(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Return the tag from the transaction. This "tag" field has no "modified" complement.
+ * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
+ * This "tag" field has no "modified" complement.
  */
-function getTag(transaction: OnyxEntry<Transaction>): string {
+function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+    if (tagIndex !== undefined) {
+        return transaction?.tag?.split(CONST.COLON)[tagIndex] ?? '';
+    }
+
     return transaction?.tag ?? '';
 }
 
@@ -532,10 +537,34 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction is on hold
+ */
+function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    return !!transaction.comment?.hold;
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function hasViolation(transactionOrID: Transaction | OnyxEntry<Transaction> | string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    if (!transactionOrID) {
+        return false;
+    }
+    const transactionID = typeof transactionOrID === 'string' ? transactionOrID : transactionOrID.transactionID;
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+}
+
+function getTransactionViolations(transactionOrID: OnyxEntry<Transaction> | string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
+    if (!transactionOrID) {
+        return null;
+    }
+    const transactionID = typeof transactionOrID === 'string' ? transactionOrID : transactionOrID.transactionID;
+
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
 /**
@@ -576,6 +605,7 @@ export {
     getCategory,
     getBillable,
     getTag,
+    getTransactionViolations,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
@@ -589,6 +619,7 @@ export {
     isCardTransaction,
     isPending,
     isPosted,
+    isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
