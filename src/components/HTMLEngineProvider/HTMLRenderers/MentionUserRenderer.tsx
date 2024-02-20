@@ -43,7 +43,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
-        displayNameOrLogin = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1).toLowerCase();
+        displayNameOrLogin = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
 
         accountID = PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin])?.[0];
         navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
