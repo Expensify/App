@@ -12,6 +12,7 @@ import searchCountryOptions from '@libs/searchCountryOptions';
 import type {CountryData} from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
+import type {Route} from '@src/ROUTES';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
@@ -64,12 +65,12 @@ function StateSelectionPage() {
                 Navigation.goBack();
             } else if (!_.isEmpty(backTo) && navigation.getState().routes.length === 1) {
                 // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                // @ts-expect-error Navigation.goBack does take a param
-                Navigation.goBack(appendParam(backTo, 'state', option.value));
-            } else {
+                Navigation.goBack(appendParam(backTo, 'state', option.value) as Route);
+            } else if (!_.isEmpty(backTo)) {
                 // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                // @ts-expect-error Navigation.navigate does take a param
-                Navigation.navigate(appendParam(backTo, 'state', option.value));
+                Navigation.navigate(appendParam(backTo, 'state', option.value) as Route);
+            } else {
+                Navigation.goBack();
             }
         },
         [navigation, params?.backTo],

@@ -133,16 +133,13 @@ const ROUTES = {
     },
     SETTINGS_ADDRESS_STATE: {
         route: 'settings/profile/address/state',
-        getRoute: (state: string, backTo?: string, label?: string) => {
-            let route = `settings/profile/address/state?state=${state}`;
-            if (backTo) {
-                route += `&backTo=${encodeURIComponent(backTo)}`;
-            }
-            if (label) {
-                route += `&label=${encodeURIComponent(label)}`;
-            }
-            return route;
-        },
+
+        getRoute: (state?: string, backTo?: string, label?: string) =>
+            `${getUrlWithBackToParam(`settings/profile/address/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
+                // Nullish operator ?? doesnt seem to be a replacement for || here
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
+            }` as const,
     },
     SETTINGS_CONTACT_METHODS: {
         route: 'settings/profile/contact-methods',

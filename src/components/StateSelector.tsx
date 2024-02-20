@@ -83,7 +83,6 @@ function StateSelector({errorText, shouldUseStateFromUrl = true, value: stateCod
                 description={label || translate('common.state')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRoute();
-                    // @ts-expect-error Navigation.navigate does take a param
                     Navigation.navigate(ROUTES.SETTINGS_ADDRESS_STATE.getRoute(stateCode, activeRoute, label));
                 }}
                 wrapperStyle={wrapperStyle}
