@@ -1621,6 +1621,14 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
             avatar: UserUtils.getDefaultAvatar(accountID),
         };
     }
+    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+        return {
+            accountID,
+            displayName: 'Expensify',
+            login: CONST.EMAIL.NOTIFICATIONS,
+            avatar: UserUtils.getDefaultAvatar(accountID),
+        };
+    }
     return (
         allPersonalDetails?.[accountID] ?? {
             avatar: UserUtils.getDefaultAvatar(accountID),
