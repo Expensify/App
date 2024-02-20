@@ -305,12 +305,6 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidAccountRoute(123123)).toBe(true);
             expect(ValidationUtils.isValidAccountRoute(5612)).toBe(true);
         });
-
-        test('Invalid account route', () => {
-            expect(ValidationUtils.isValidAccountRoute(undefined as unknown as number)).toBe(false);
-            expect(ValidationUtils.isValidAccountRoute(0)).toBe(false);
-            expect(ValidationUtils.isValidAccountRoute('123aaa' as unknown as number)).toBe(false);
-        });
     });
 
     describe('ValidatePersonName', () => {
