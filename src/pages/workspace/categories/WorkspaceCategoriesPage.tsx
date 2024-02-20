@@ -44,7 +44,7 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
 
     const categoryList = useMemo<PolicyForList[]>(
         () =>
@@ -52,7 +52,7 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
                 value: value.name,
                 text: value.name,
                 keyForList: value.name,
-                isSelected: selectedCategories.includes(value.name),
+                isSelected: !!selectedCategories[value.name],
                 rightElement: (
                     <View style={styles.flexRow}>
                         <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}</Text>
@@ -69,21 +69,15 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
     );
 
     const toggleCategory = (category: PolicyForList) => {
-        setSelectedCategories((prev) => {
-            if (prev.includes(category.value)) {
-                return prev.filter((item) => item !== category.value);
-            }
-            return [...prev, category.value];
-        });
+        setSelectedCategories((prev) => ({
+            ...prev,
+            [category.value]: !prev[category.value],
+        }));
     };
 
     const toggleAllCategories = () => {
-        const isAllSelected = categoryList.every((category) => category.isSelected);
-        if (isAllSelected) {
-            setSelectedCategories([]);
-        } else {
-            setSelectedCategories(categoryList.map((item) => item.value));
-        }
+        const isAllSelected = categoryList.every((category) => !!selectedCategories[category.value]);
+        setSelectedCategories(isAllSelected ? {} : Object.fromEntries(categoryList.map((item) => [item.value, true])));
     };
 
     return (
