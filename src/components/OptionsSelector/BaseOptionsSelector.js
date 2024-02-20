@@ -113,19 +113,19 @@ class BaseOptionsSelector extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
-            if (this.state.disableEnterShortCut) {
-                this.unsubscribeEnter();
-            } else {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unsubscribeEnter();
+            if (!this.state.disableEnterShortCut) {
                 this.subscribeToEnterShortcut();
             }
         }
 
         if (prevProps.isFocused !== this.props.isFocused) {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unSubscribeFromKeyboardShortcut();
             if (this.props.isFocused) {
                 this.subscribeToEnterShortcut();
                 this.subscribeToCtrlEnterShortcut();
-            } else {
-                this.unSubscribeFromKeyboardShortcut();
             }
         }
 

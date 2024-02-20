@@ -21,7 +21,7 @@ const darkTheme = {
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
-    syntax: colors.productDark600,
+    syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
     buttonDefaultBG: colors.productDark400,
@@ -83,9 +83,10 @@ const darkTheme = {
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
-    loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
     white: colors.white,
+    videoPlayerBG: `${colors.productDark100}cc`,
+    transparentWhite: `${colors.white}51`,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.
@@ -105,7 +106,7 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-            backgroundColor: colors.blue500,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.WORKSPACES]: {
@@ -115,10 +116,6 @@ const darkTheme = {
         [SCREENS.SETTINGS.WALLET.ROOT]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.SETTINGS.SECURITY]: {
-            backgroundColor: colors.ice500,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.PROFILE.STATUS]: {
             backgroundColor: colors.productDark100,
@@ -132,8 +129,8 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.ABOUT]: {
-            backgroundColor: colors.yellow600,
+        [SCREENS.SETTINGS.TROUBLESHOOT]: {
+            backgroundColor: colors.blue700,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.REFERRAL_DETAILS]: {
