@@ -297,14 +297,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 {(hovered) => (
                     <ListItem
                         item={item}
-                        textStyles={[
-                            styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            styles.sidebarLinkTextBold,
-                            styles.pre,
-                            item.alternateText ? styles.mb1 : null,
-                        ]}
-                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         isDisabled={isDisabled}
                         onSelectRow={() => onSelectRow(item)}
                         showTooltip={showTooltip}

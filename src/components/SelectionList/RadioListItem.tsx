@@ -4,7 +4,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ListItemProps} from './types';
 
-function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: ListItemProps) {
+function RadioListItem({item, isFocused, showTooltip}: ListItemProps) {
     const styles = useThemeStyles();
 
     return (
@@ -12,14 +12,20 @@ function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: Lis
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
                 text={item.text}
-                textStyles={textStyles}
+                textStyles={[
+                    styles.optionDisplayName,
+                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                    styles.sidebarLinkTextBold,
+                    styles.pre,
+                    item.alternateText ? styles.mb1 : null,
+                ]}
             />
 
             {!!item.alternateText && (
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
                     text={item.alternateText}
-                    textStyles={alternateTextStyles}
+                    textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                 />
             )}
         </View>

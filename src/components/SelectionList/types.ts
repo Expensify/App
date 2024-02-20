@@ -4,7 +4,6 @@ import type {
     InputModeOptions,
     LayoutChangeEvent,
     SectionListData,
-    SectionListRenderItemInfo,
     StyleProp,
     TextStyle,
     ViewStyle
@@ -15,12 +14,6 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
-
-    /** Style to be applied to Text */
-    textStyles?: StyleProp<TextStyle>;
-
-    /** Style to be applied on the alternate text */
-    alternateTextStyles?: StyleProp<TextStyle>;
 
     /** Whether this item is disabled */
     isDisabled?: boolean;

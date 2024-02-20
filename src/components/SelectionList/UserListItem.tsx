@@ -8,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ListItemProps} from './types';
 
-function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style, isFocused, isHovered}: ListItemProps) {
+function UserListItem({item, showTooltip, style, isFocused, isHovered}: ListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -45,13 +45,20 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
                     text={item.text}
-                    textStyles={[textStyles, style]}
+                    textStyles={[
+                        styles.optionDisplayName,
+                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                        styles.sidebarLinkTextBold,
+                        styles.pre,
+                        item.alternateText ? styles.mb1 : null,
+                        style
+                    ]}
                 />
                 {!!item.alternateText && (
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={item.alternateText}
-                        textStyles={[alternateTextStyles, style]}
+                        textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre, style]}
                     />
                 )}
             </View>
