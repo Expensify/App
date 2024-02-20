@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -32,7 +32,7 @@ type CommonListItemProps<TItem> = {
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
 };
 
-type User = {
+type ListItem = {
     /** Text to display */
     text: string;
 
@@ -49,13 +49,13 @@ type User = {
     isDisabled?: boolean;
 
     /** User accountID */
-    accountID?: number;
+    accountID?: number | null;
 
     /** User login */
     login?: string;
 
     /** Element to show on the right side of the item */
-    rightElement?: ReactElement;
+    rightElement?: ReactNode;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: Icon[];
@@ -73,51 +73,29 @@ type User = {
 
     /** Represents the index of the option within the section it came from */
     index?: number;
+
+    /** Whether this option should show subscript */
+    shouldShowSubscript?: boolean;
 };
 
-type UserListItemProps = CommonListItemProps<User> & {
+type ListItemProps = CommonListItemProps<ListItem> & {
     /** The section list item */
-    item: User;
+    item: ListItem;
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
+
+    /** Is item hovered */
+    isHovered?: boolean;
 };
 
-type RadioItem = {
-    /** Text to display */
-    text: string;
-
-    /** Alternate text to display */
-    alternateText?: string;
-
-    /** Key used internally by React */
-    keyForList: string;
-
-    /** Whether this option is selected */
-    isSelected?: boolean;
-
-    /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
-
-    /** Represents the index of the section it came from  */
-    sectionIndex?: number;
-
-    /** Represents the index of the option within the section it came from */
-    index?: number;
-};
-
-type RadioListItemProps = CommonListItemProps<RadioItem> & {
-    /** The section list item */
-    item: RadioItem;
-};
-
-type BaseListItemProps<TItem extends User | RadioItem> = CommonListItemProps<TItem> & {
+type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
 };
 
-type Section<TItem extends User | RadioItem> = {
+type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
 
@@ -129,9 +107,12 @@ type Section<TItem extends User | RadioItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean;
+
+    /** Whether this section should be shown or not */
+    shouldShow?: boolean;
 };
 
-type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {
+type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
@@ -145,7 +126,7 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     onSelectAll?: () => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: () => void;
+    onDismissError?: (item: TItem) => void;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -230,6 +211,12 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Whether to show the loading indicator for new options */
+    isLoadingNewOptions?: boolean;
+
+    /** Fired when the list is displayed with the items */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type ItemLayout = {
@@ -237,7 +224,7 @@ type ItemLayout = {
     offset: number;
 };
 
-type FlattenedSectionsReturn<TItem extends User | RadioItem> = {
+type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
     selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
@@ -247,17 +234,15 @@ type FlattenedSectionsReturn<TItem extends User | RadioItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType<TItem extends User | RadioItem> = SectionListData<TItem, Section<TItem>>;
+type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, Section<TItem>>;
 
 export type {
     BaseSelectionListProps,
     CommonListItemProps,
-    UserListItemProps,
     Section,
-    RadioListItemProps,
     BaseListItemProps,
-    User,
-    RadioItem,
+    ListItem,
+    ListItemProps,
     FlattenedSectionsReturn,
     ItemLayout,
     ButtonOrCheckBoxRoles,

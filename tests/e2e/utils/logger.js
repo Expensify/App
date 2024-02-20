@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const {LOG_FILE} = require('../config');
+import fs from 'fs';
+import path from 'path';
+import CONFIG from '../config';
 
 let isVerbose = true;
 const setLogLevelVerbose = (value) => {
@@ -23,18 +23,18 @@ const log = (...args) => {
     }
 
     // Write to log file
-    if (!fs.existsSync(LOG_FILE)) {
+    if (!fs.existsSync(CONFIG.LOG_FILE)) {
         // Check that the directory exists
-        const logDir = path.dirname(LOG_FILE);
+        const logDir = path.dirname(CONFIG.LOG_FILE);
         if (!fs.existsSync(logDir)) {
             fs.mkdirSync(logDir);
         }
 
-        fs.writeFileSync(LOG_FILE, '');
+        fs.writeFileSync(CONFIG.LOG_FILE, '');
     }
     const time = new Date();
     const timeStr = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} ${time.getMilliseconds()}`;
-    fs.appendFileSync(LOG_FILE, `[${timeStr}]   ${args.join(' ')}\n`);
+    fs.appendFileSync(CONFIG.LOG_FILE, `[${timeStr}]   ${args.join(' ')}\n`);
 };
 
 const info = (...args) => {
@@ -99,14 +99,4 @@ const progressInfo = (textParam) => {
     };
 };
 
-module.exports = {
-    log,
-    info,
-    warn,
-    note,
-    error,
-    success,
-    important,
-    progressInfo,
-    setLogLevelVerbose,
-};
+export {log, info, warn, note, error, success, important, progressInfo, setLogLevelVerbose};
