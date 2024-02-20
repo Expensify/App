@@ -225,7 +225,7 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (canUseViolations && hasViolations(field, data)) {
+            if (canUseViolations && hasViolations(field)) {
                 const violations = getViolationsForField(field);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
