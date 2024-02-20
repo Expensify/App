@@ -8,9 +8,9 @@ import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventH
 import 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 
-interface HybridAppModule {
+type HybridAppModule = {
     closeReactNativeApp: () => void;
-}
+};
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
