@@ -573,7 +573,7 @@ function MenuItem(
                                 {badgeText && (
                                     <Badge
                                         text={badgeText}
-                                        textStyles={styles.menuItemBadge}
+                                        textStyles={styles.textStrong}
                                         badgeStyles={[
                                             styles.alignSelfCenter,
                                             brickRoadIndicator ? styles.mr2 : undefined,

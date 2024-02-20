@@ -838,11 +838,6 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.noWrap,
         },
 
-        menuItemBadge: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontWeight: FontUtils.fontWeight.bold,
-        },
-
         activeItemBadge: {
             borderColor: theme.buttonHoveredBG,
         },
