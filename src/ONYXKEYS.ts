@@ -389,6 +389,11 @@ const ONYXKEYS = {
         PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
         PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
     },
+
+    /** A persisted initial (deeplinked) url. Could store a previous launch value.
+     * It means that even after a refresh, when there is no a new value, it keeps storing an old one.
+     */
+    INITIAL_URL: 'initialUrl',
 } as const;
 
 type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
@@ -557,6 +562,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
+    [ONYXKEYS.INITIAL_URL]: string;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
