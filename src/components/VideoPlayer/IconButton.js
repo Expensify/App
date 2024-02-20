@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
@@ -40,26 +39,23 @@ const defaultProps = {
 function IconButton({src, fill, onPress, style, hoverStyle, tooltipText, small, shouldForceRenderingTooltipBelow}) {
     const styles = useThemeStyles();
     return (
-        <Hoverable>
-            {(isHovered) => (
-                <Tooltip
-                    text={tooltipText}
-                    shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
-                >
-                    <PressableWithoutFeedback
-                        accessibilityLabel={tooltipText}
-                        onPress={onPress}
-                        style={[styles.videoIconButton, isHovered && [styles.videoIconButtonHovered, hoverStyle], style]}
-                    >
-                        <Icon
-                            src={src}
-                            fill={fill}
-                            small={small}
-                        />
-                    </PressableWithoutFeedback>
-                </Tooltip>
-            )}
-        </Hoverable>
+        <Tooltip
+            text={tooltipText}
+            shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
+        >
+            <PressableWithoutFeedback
+                accessibilityLabel={tooltipText}
+                onPress={onPress}
+                style={[styles.videoIconButton, style]}
+                hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
+            >
+                <Icon
+                    src={src}
+                    fill={fill}
+                    small={small}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
 
