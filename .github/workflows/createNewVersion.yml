@@ -46,7 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
   createNewVersion:
-    runs-on: macos-latest
+    runs-on: macos-14
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
 
