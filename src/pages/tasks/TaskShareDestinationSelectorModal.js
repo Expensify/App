@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -60,6 +61,9 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
+    const {isOffline} = useNetwork();
+
+    const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
     const options = useMemo(() => {
         const filteredReports = reportFilter(reports);
@@ -99,6 +103,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}) {
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             showLoadingPlaceholder={!didScreenTransitionEnd}
                             isLoadingNewOptions={isSearchingForReports}
+                            textInputHint={textInputHint}
                         />
                     </View>
                 </>
