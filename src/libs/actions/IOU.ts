@@ -3292,7 +3292,7 @@ function getSendMoneyParams(
     };
 }
 
-function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): { failureData: OnyxUpdate[]; successData: OnyxUpdate[]; params: { amount: number; reportActionID: string; iouReportID: string; paymentMethodType: "Expensify" | "ACH" | "Elsewhere" | "delete" | "create" | "cancel" | "pay" | "approve" | "split" | "decline" | "ach" | "instant"; chatReportID: string }; optimisticData: OnyxUpdate[] } {
+function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
     const amount = -(iouReport.total ?? 0);
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,

@@ -5,6 +5,7 @@ type PayMoneyRequestParams = {
     chatReportID: string;
     reportActionID: string;
     paymentMethodType: PaymentMethodType;
+    amount?: number;
 };
 
 export default PayMoneyRequestParams;
