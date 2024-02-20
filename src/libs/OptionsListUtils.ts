@@ -17,7 +17,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyCategory,
     PolicyTag,
     PolicyTagList,
     Report,
@@ -797,8 +796,8 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategory[] | PolicyTag[]): boolean {
-    return options.some((option) => option.enabled);
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
+    return Object.values(options).some((option) => option.enabled);
 }
 
 /**
@@ -974,7 +973,7 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = sortedCategories.filter((category) => category.enabled || selectedOptionNames.includes(category.name));
+    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
     const numberOfVisibleCategories = enabledAndSelectedCategories.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {

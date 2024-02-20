@@ -258,14 +258,14 @@ function buildNextStep(
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: managerDisplayName,
                         type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'pay',
                         type: 'strong',
                     },
                     {
@@ -276,10 +276,23 @@ function buildNextStep(
 
             // Another owner
             if (!isOwner) {
-                optimisticNextStep.title = 'Finished!';
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required!',
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'you',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'pay',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
                     },
                 ];
             }

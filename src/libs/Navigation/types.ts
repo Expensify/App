@@ -109,7 +109,6 @@ type SettingsNavigatorParamList = {
         /** URL of the generated file to share logs in a report */
         source: string;
     };
-    [SCREENS.SETTINGS.LOUNGE_ACCESS]: undefined;
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
@@ -391,6 +390,7 @@ type SignInNavigatorParamList = {
 type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: {
         contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+        backTo: string;
     };
 };
 
