@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -26,10 +26,11 @@ type PhoneNumberBusinessProps = PhoneNumberBusinessOnyxProps & SubStepProps;
 const COMPANY_PHONE_NUMBER_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE;
 const STEP_FIELDS = [COMPANY_PHONE_NUMBER_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>, inputValue: string): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-    if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if ((values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) || inputValue.trim() !== inputValue) {
         errors.companyPhone = 'bankAccount.error.phoneNumber';
     }
 
@@ -41,6 +42,12 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
     const styles = useThemeStyles();
     const defaultCompanyPhoneNumber = reimbursementAccount?.achData?.companyPhone ?? '';
 
+    const [inputValue, setInputValue] = useState(defaultCompanyPhoneNumber);
+
+    const handleInputChange = (newValue: string) => {
+        setInputValue(newValue);
+    };
+
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         isEditing,
@@ -51,7 +58,7 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            validate={validate}
+            validate={(values) => validate(values, inputValue)}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
@@ -68,6 +75,7 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
                 defaultValue={defaultCompanyPhoneNumber}
                 shouldSaveDraft={!isEditing}
                 containerStyles={[styles.mt6]}
+                onChangeText={handleInputChange}
             />
         </FormProvider>
     );
