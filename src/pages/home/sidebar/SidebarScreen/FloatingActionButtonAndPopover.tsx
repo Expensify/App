@@ -1,4 +1,4 @@
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -25,13 +25,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
-    allPolicies: OnyxEntry<Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>>;
+    allPolicies: OnyxEntry<Record<string, Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>>>;
     isLoading: OnyxEntry<boolean>;
 };
 
 type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxProps & {
     /* Callback function when the menu is shown */
-    onShowCreateMenu: () => void;
+    onShowCreateMenu?: () => void;
 
     /* Callback function before the menu is hidden */
     onHideCreateMenu: () => void;
@@ -49,7 +49,6 @@ function FloatingActionButtonAndPopover(
     {onHideCreateMenu = () => {}, onShowCreateMenu = () => {}, isLoading, allPolicies}: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
-    console.log('allPolices', allPolicies);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
@@ -200,7 +199,7 @@ function FloatingActionButtonAndPopover(
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
-    policy && {
+    !!policy && {
         type: policy.type,
         role: policy.role,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,

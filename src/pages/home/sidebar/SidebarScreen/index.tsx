@@ -1,10 +1,13 @@
 import React from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
-import sidebarPropTypes from './sidebarPropTypes';
 
-function SidebarScreen(props) {
+type SidebarScreenProps = {
+    onLayout: (event: LayoutChangeEvent) => void;
+};
+function SidebarScreen(props: SidebarScreenProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
@@ -17,7 +20,6 @@ function SidebarScreen(props) {
     );
 }
 
-SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default SidebarScreen;

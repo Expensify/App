@@ -7,7 +7,6 @@ import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import sidebarPropTypes from './sidebarPropTypes';
 
 /**
  * Function called when a pinned chat is selected.
@@ -44,7 +43,6 @@ function BaseSidebarScreen() {
     );
 }
 
-BaseSidebarScreen.propTypes = sidebarPropTypes;
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
 export default BaseSidebarScreen;
