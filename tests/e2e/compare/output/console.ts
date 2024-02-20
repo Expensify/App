@@ -1,4 +1,4 @@
-import {formatDurationDiffChange} from './format';
+import * as format from './format';
 
 type Entry = {
     name: string;
@@ -10,13 +10,13 @@ type Data = {
 };
 
 const printRegularLine = (entry: Entry) => {
-    console.debug(` - ${entry.name}: ${formatDurationDiffChange(entry)}`);
+    console.debug(` - ${entry.name}: ${format.formatDurationDiffChange(entry)}`);
 };
 
 /**
  * Prints the result simply to console.
  */
-const consoleMock = (data: Data) => {
+export default (data:: Data) => {
     // No need to log errors or warnings as these were be logged on the fly
     console.debug('');
     console.debug('❇️  Performance comparison results:');
