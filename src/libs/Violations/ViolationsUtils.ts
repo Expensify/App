@@ -83,9 +83,6 @@ const ViolationsUtils = {
                 if (hasTagOutOfPolicyViolation && selectedTag && isTagInPolicy) {
                     newTransactionViolations = reject(newTransactionViolations, {
                         name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                        data: {
-                            tagName: key,
-                        },
                     });
                 }
 
@@ -93,9 +90,6 @@ const ViolationsUtils = {
                 if (hasMissingTagViolation && isTagInPolicy) {
                     newTransactionViolations = reject(newTransactionViolations, {
                         name: CONST.VIOLATIONS.MISSING_TAG,
-                        data: {
-                            tagName: key,
-                        },
                     });
                 }
 
