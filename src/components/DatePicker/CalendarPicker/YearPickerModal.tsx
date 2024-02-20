@@ -6,14 +6,14 @@ import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type CalendarPickerRadioItem from './types';
+import type CalendarPickerListItem from './types';
 
 type YearPickerModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
     /** The list of years to render */
-    years: CalendarPickerRadioItem[];
+    years: CalendarPickerListItem[];
 
     /** Currently selected year */
     currentYear?: number;
@@ -72,7 +72,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
-                    onSelectRow={(option: CalendarPickerRadioItem) => {
+                    onSelectRow={(option) => {
                         onYearChange?.(option.value);
                     }}
                     initiallyFocusedOptionKey={currentYear.toString()}
