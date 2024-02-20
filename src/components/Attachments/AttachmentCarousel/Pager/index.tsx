@@ -31,9 +31,10 @@ type AttachmentCarouselPagerProps = {
     initialIndex: number;
     onPageSelected: () => void;
     onRequestToggleArrows: (showArrows?: boolean) => void;
+    onClose: () => void;
 };
 
-function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onRequestToggleArrows}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onRequestToggleArrows, onClose}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
@@ -98,9 +99,10 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
             isPagerScrolling,
             isScrollEnabled,
             onTap: handleTap,
+            onSwipeDown: onClose,
             onScaleChanged: handleScaleChange,
         }),
-        [isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
+        [isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
     );
 
     const animatedProps = useAnimatedProps(() => ({

@@ -103,6 +103,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [setShouldShowArrows],
     );
 
+    const goBack = useCallback(() => {
+        Navigation.goBack();
+    }, []);
+
     /**
      * Defines how a single attachment should be rendered
      * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
@@ -152,6 +156,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 initialIndex={page}
                                 onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                                onClose={goBack}
                                 ref={pagerRef}
                             />
                         </>

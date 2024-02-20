@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
+import {runOnJS, useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -13,7 +13,18 @@ const PAN_DECAY_DECELARATION = 0.9915;
 
 type UsePanGestureProps = Pick<
     MultiGestureCanvasVariables,
-    'canvasSize' | 'contentSize' | 'zoomScale' | 'totalScale' | 'offsetX' | 'offsetY' | 'panTranslateX' | 'panTranslateY' | 'isPagerSwiping' | 'isSwipingDownToClose' | 'stopAnimation'
+    | 'canvasSize'
+    | 'contentSize'
+    | 'zoomScale'
+    | 'totalScale'
+    | 'offsetX'
+    | 'offsetY'
+    | 'panTranslateX'
+    | 'panTranslateY'
+    | 'isPagerSwiping'
+    | 'isSwipingDownToClose'
+    | 'stopAnimation'
+    | 'onSwipeDown'
 >;
 
 const usePanGesture = ({
@@ -28,6 +39,7 @@ const usePanGesture = ({
     isPagerSwiping,
     isSwipingDownToClose,
     stopAnimation,
+    onSwipeDown,
 }: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
@@ -120,10 +132,21 @@ const usePanGesture = ({
                 });
             }
         } else {
-            // Animated back to the boundary
-            offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG, () => {
-                isSwipingDownToClose.value = false;
-            });
+            const finalTranslateY = offsetY.value + panVelocityY.value * 0.2;
+
+            // TODO: calculate these values (250/500) programmatically
+            if (finalTranslateY > 250) {
+                offsetY.value = withSpring(500, SPRING_CONFIG, () => {
+                    isSwipingDownToClose.value = false;
+                });
+
+                runOnJS(onSwipeDown)();
+            } else {
+                // Animated back to the boundary
+                offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG, () => {
+                    isSwipingDownToClose.value = false;
+                });
+            }
         }
 
         // Reset velocity variables after we finished the pan gesture

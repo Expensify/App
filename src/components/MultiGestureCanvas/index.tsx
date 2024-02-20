@@ -55,6 +55,7 @@ function MultiGestureCanvas({
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {
         onTap,
+        onSwipeDown,
         onScaleChanged: onScaleChangedContext,
         isPagerScrolling: isPagerSwiping,
         pagerRef,
@@ -62,6 +63,7 @@ function MultiGestureCanvas({
         () =>
             attachmentCarouselPagerContext ?? {
                 onTap: () => {},
+                onSwipeDown: () => {},
                 onScaleChanged: () => {},
                 pagerRef: undefined,
                 isPagerScrolling: isSwipingInPagerFallback,
@@ -189,6 +191,7 @@ function MultiGestureCanvas({
         isPagerSwiping,
         isSwipingDownToClose,
         stopAnimation,
+        onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
         .withRef(panGestureRef);
