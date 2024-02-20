@@ -11,11 +11,10 @@ import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {Form} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormProps, InputRefs} from './types';
+import type {FormInputErrors, FormProps, InputRefs} from './types';
 
 type FormWrapperOnyxProps = {
     /** Contains the form state that must be accessed outside the component */
@@ -28,8 +27,11 @@ type FormWrapperProps = ChildrenProps &
         /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
+        /** Whether to apply flex to the submit button */
+        submitFlexEnabled?: boolean;
+
         /** Server side errors keyed by microtime */
-        errors: Errors;
+        errors: FormInputErrors;
 
         /** Assuming refs are React refs */
         inputRefs: RefObject<InputRefs>;
@@ -49,6 +51,7 @@ function FormWrapper({
     isSubmitButtonVisible = true,
     style,
     submitButtonStyles,
+    submitFlexEnabled = true,
     enabledWhenOffline,
     isSubmitActionDangerous = false,
     formID,
@@ -109,7 +112,7 @@ function FormWrapper({
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
@@ -134,6 +137,7 @@ function FormWrapper({
             styles.mh0,
             styles.mt5,
             submitButtonStyles,
+            submitFlexEnabled,
             submitButtonText,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,

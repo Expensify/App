@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashThrottle from 'lodash/throttle';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -146,17 +146,17 @@ function ReportActionsView({
         }
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
+    const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadOlderChats = () => {
+    const loadOlderChats = useCallback(() => {
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (!!network.isOffline || isLoadingOlderReportActions) {
             return;
         }
-
-        const oldestReportAction = reportActions.at(-1);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -164,7 +164,7 @@ function ReportActionsView({
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    };
+    }, [props.isLoadingOlderReportActions, props.network.isOffline, oldestReportAction, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -201,7 +201,7 @@ function ReportActionsView({
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = () => {
+    const recordTimeToMeasureItemLayout = useCallback(() => {
         if (didLayout.current) {
             return;
         }
@@ -216,7 +216,7 @@ function ReportActionsView({
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
-    };
+    }, [hasCachedActions]);
 
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
