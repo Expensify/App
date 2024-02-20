@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-import {incrementVersion} from '../../.github/libs/versionUpdater.js';
+import {getPreviousVersion} from '../../.github/libs/versionUpdater';
 
-const version = process.argv[2];
+const currentVersion = process.argv[2];
 const level = process.argv[3];
 
 /* eslint-disable no-console */
 const realConsoleLog = console.log;
 console.log = () => {};
 
-const output = incrementVersion(version, level);
+const output = getPreviousVersion(currentVersion, level);
 
 console.log = realConsoleLog;
 console.log(output);
