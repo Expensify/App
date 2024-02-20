@@ -1,12 +1,13 @@
 import {SaveFormat} from 'expo-image-manipulator';
+import CONST from '@src/CONST';
 
 function getSaveFormat(type: string) {
     switch (type) {
-        case 'image/png':
+        case CONST.FILE_FORMAT.PNG:
             return SaveFormat.PNG;
-        case 'image/webp':
+        case CONST.FILE_FORMAT.WEBP:
             return SaveFormat.WEBP;
-        case 'image/jpeg':
+        case CONST.FILE_FORMAT.JPEG:
             return SaveFormat.JPEG;
         default:
             return SaveFormat.JPEG;
