@@ -40,12 +40,12 @@ const defaultProps = {
 function IconButton({src, fill, onPress, style, hoverStyle, tooltipText, small, shouldForceRenderingTooltipBelow}) {
     const styles = useThemeStyles();
     return (
-        <Tooltip
-            text={tooltipText}
-            shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
-        >
-            <Hoverable>
-                {(isHovered) => (
+        <Hoverable>
+            {(isHovered) => (
+                <Tooltip
+                    text={tooltipText}
+                    shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
+                >
                     <PressableWithoutFeedback
                         accessibilityLabel={tooltipText}
                         onPress={onPress}
@@ -57,9 +57,9 @@ function IconButton({src, fill, onPress, style, hoverStyle, tooltipText, small, 
                             small={small}
                         />
                     </PressableWithoutFeedback>
-                )}
-            </Hoverable>
-        </Tooltip>
+                </Tooltip>
+            )}
+        </Hoverable>
     );
 }
 
