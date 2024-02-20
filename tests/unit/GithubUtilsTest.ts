@@ -13,7 +13,7 @@ type DeployBlockers = {
     isResolved: boolean;
 };
 
-type PR = {
+type PullRequest = {
     url: string;
     number: number;
     isVerified: boolean;
@@ -33,7 +33,7 @@ type Label = {
 };
 
 type ExpectedReponse = {
-    PRList: PR[];
+    PRList: PullRequest[];
     labels: Label[];
     tag: string;
     title: string;
