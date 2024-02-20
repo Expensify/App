@@ -58,7 +58,7 @@ function ChooseTransferAccountPage(props) {
                 title={props.translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
             />
-            <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
+            <View style={[styles.mt3, styles.flexShrink1, styles.flexBasisAuto]}>
                 <PaymentMethodList
                     onPress={selectAccountAndNavigateBack}
                     shouldShowSelectedState
