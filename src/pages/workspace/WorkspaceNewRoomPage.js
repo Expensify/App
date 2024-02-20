@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import localeCompare from '@libs/LocaleCompare';
 import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -114,7 +115,7 @@ function WorkspaceNewRoomPage(props) {
                     label: policy.name,
                     value: policy.id,
                 }),
-            ).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())),
+            ).sort((a, b) => localeCompare(a.label, b.label)),
         [props.policies],
     );
     const [policyID, setPolicyID] = useState(() => {

@@ -16,6 +16,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -200,7 +201,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             });
         });
 
-        result = result.sort((value1, value2) => value1.text.localeCompare(value2.text.toLowerCase()));
+        result = result.sort((value1, value2) => localeCompare(value1.text, value2.text));
 
         return result;
     };
