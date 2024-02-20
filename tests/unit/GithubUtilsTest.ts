@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
+import type {Writable} from 'type-fest';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
@@ -57,9 +58,7 @@ type ObjectMethodData<T> = {
     data: T;
 };
 
-type Mutable<T> = {-readonly [P in keyof T]: T[P]};
-
-const asMutable = <T>(value: T): Mutable<T> => value as Mutable<T>;
+const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
 
 beforeAll(() => {
     // Mock core module
