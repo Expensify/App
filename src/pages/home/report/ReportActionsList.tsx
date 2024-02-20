@@ -151,7 +151,7 @@ function ReportActionsList({
 
     const previousLastIndex = useRef(lastActionIndex);
 
-    const linkedReportActionID = route.params.reportActionID ?? '';
+    const linkedReportActionID = route.params?.reportActionID ?? '';
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
