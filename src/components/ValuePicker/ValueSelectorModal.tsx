@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ValueSelectorModalProps} from './types';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
@@ -40,6 +41,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
                     initiallyFocusedOptionKey={selectedItem?.value}
                     shouldStopPropagation
                     shouldShowTooltips={shouldShowTooltips}
+                    renderItem={() => RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

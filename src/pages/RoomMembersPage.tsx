@@ -33,6 +33,7 @@ import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import UserListItem from "@components/SelectionList/UserListItem";
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
@@ -275,6 +276,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                            renderItem={() => UserListItem}
                         />
                     </View>
                 </View>

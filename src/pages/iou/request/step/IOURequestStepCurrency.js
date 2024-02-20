@@ -16,6 +16,7 @@ import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 /**
  * IOU Currency selection for selecting currency
@@ -126,6 +127,7 @@ function IOURequestStepCurrency({
             {({didScreenTransitionEnd}) => (
                 <SelectionList
                     sections={sections}
+                    renderItem={() => RadioListItem}
                     textInputLabel={translate('common.search')}
                     textInputValue={searchValue}
                     onChangeText={setSearchValue}

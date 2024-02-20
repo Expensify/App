@@ -6,6 +6,7 @@ import Text from '@components/Text';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -89,6 +90,7 @@ function Default(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={sections}
+            renderItem={() => RadioListItem}
             onSelectRow={onSelectRow}
         />
     );
@@ -137,6 +139,7 @@ function WithTextInput(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={sections}
+            renderItem={() => RadioListItem}
             textInputValue={searchText}
             onChangeText={setSearchText}
             onSelectRow={onSelectRow}
@@ -260,6 +263,7 @@ function MultipleSelection(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={memo.sections}
+            renderItem={() => RadioListItem}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />
@@ -322,6 +326,7 @@ function WithSectionHeader(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={memo.sections}
+            renderItem={() => RadioListItem}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />
@@ -382,6 +387,7 @@ function WithConfirmButton(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={memo.sections}
+            renderItem={() => RadioListItem}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />

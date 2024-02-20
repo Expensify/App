@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -35,6 +36,7 @@ function LanguagePage(props) {
             />
             <SelectionList
                 sections={[{data: localesToLanguages}]}
+                renderItem={() => RadioListItem}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
                 initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => locale.isSelected).keyForList}
             />

@@ -31,6 +31,7 @@ import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import UserListItem from "@components/SelectionList/UserListItem";
 
 type RoomInvitePageOnyxProps = {
     /** All of the personal details for everyone */
@@ -225,6 +226,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
+                    renderItem={() => UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={setSearchTerm}

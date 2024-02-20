@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WorkspaceRateAndUnit} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type OptionRow = {
     value: Unit;
@@ -90,6 +91,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 
                     <SelectionList
                         sections={[{data: unitOptions}]}
+                        renderItem={() => RadioListItem}
                         onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
                         initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
                     />

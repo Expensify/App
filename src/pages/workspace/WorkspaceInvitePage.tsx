@@ -35,6 +35,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import UserListItem from "@components/SelectionList/UserListItem";
 
 type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
@@ -304,6 +305,7 @@ function WorkspaceInvitePage({
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
+                    renderItem={() => UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {

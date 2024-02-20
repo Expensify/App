@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** The theme of the app */
@@ -48,6 +49,7 @@ function ThemePage(props) {
 
             <SelectionList
                 sections={[{data: localesToThemes}]}
+                renderItem={() => RadioListItem}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
                 initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}
             />

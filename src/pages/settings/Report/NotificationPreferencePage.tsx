@@ -12,6 +12,7 @@ import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNot
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
 
@@ -39,6 +40,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 />
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
+                    renderItem={() => RadioListItem}
                     onSelectRow={(option) =>
                         report && ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)
                     }

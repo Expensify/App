@@ -10,6 +10,7 @@ import searchCountryOptions from '@libs/searchCountryOptions';
 import type {CountryData} from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type State = keyof typeof COMMON_CONST.STATES;
 
@@ -100,6 +101,7 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
                     initiallyFocusedOptionKey={currentState}
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
+                    renderItem={() => RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

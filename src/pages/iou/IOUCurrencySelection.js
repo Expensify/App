@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 /**
  * IOU Currency selection for selecting currency
@@ -165,6 +166,7 @@ function IOUCurrencySelection(props) {
                     />
                     <SelectionList
                         sections={sections}
+                        renderItem={() => RadioListItem}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchValue}
                         onChangeText={setSearchValue}

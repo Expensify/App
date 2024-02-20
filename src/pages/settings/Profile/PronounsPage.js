@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -100,6 +101,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
                         textInputPlaceholder={translate('pronounsPage.placeholderText')}
                         textInputValue={searchValue}
                         sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                        renderItem={() => RadioListItem}
                         onSelectRow={updatePronouns}
                         onChangeText={setSearchValue}
                         initiallyFocusedOptionKey={currentPronounsKey}

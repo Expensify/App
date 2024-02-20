@@ -39,6 +39,7 @@ import ROUTES from '@src/ROUTES';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import UserListItem from "@components/SelectionList/UserListItem";
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -488,6 +489,7 @@ function WorkspaceMembersPage(props) {
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        renderItem={() => UserListItem}
                         textInputLabel={props.translate('optionsSelector.findMember')}
                         textInputValue={searchValue}
                         onChangeText={(value) => {

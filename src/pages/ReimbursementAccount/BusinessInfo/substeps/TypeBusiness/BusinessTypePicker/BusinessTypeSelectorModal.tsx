@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {BusinessTypeItemType, IncorporationType} from './types';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type BusinessTypeSelectorModalProps = {
     /** Whether the modal is visible */
@@ -66,6 +67,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     onSelectRow={onBusinessTypeSelected}
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
+                    renderItem={() => RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type WriteCapabilityPageOnyxProps = {
     /** The policy object for the current route */
@@ -52,6 +53,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
                 />
                 <SelectionList
                     sections={[{data: writeCapabilityOptions}]}
+                    renderItem={() => RadioListItem}
                     onSelectRow={(option) => report && ReportActions.updateWriteCapabilityAndNavigate(report, option.value)}
                     initiallyFocusedOptionKey={writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList}
                 />

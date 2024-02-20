@@ -12,6 +12,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TIMEZONES from '@src/TIMEZONES';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -97,6 +98,7 @@ function TimezoneSelectPage(props) {
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
                 showScrollIndicator
                 shouldShowTooltips={false}
+                renderItem={() => RadioListItem}
             />
         </ScreenWrapper>
     );

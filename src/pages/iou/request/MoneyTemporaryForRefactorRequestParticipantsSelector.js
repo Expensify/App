@@ -21,6 +21,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** Beta features list */
@@ -337,6 +338,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             <SelectionList
                 onConfirm={handleConfirmSelection}
                 sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                // TODO: check this one live
+                renderItem={() => RadioListItem}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}

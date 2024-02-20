@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type CalendarPickerListItem from './types';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type YearPickerModalProps = {
     /** Whether the modal is visible */
@@ -78,6 +79,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
+                    renderItem={() => RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

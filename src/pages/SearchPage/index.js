@@ -20,6 +20,7 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SearchPageFooter from './SearchPageFooter';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /* Onyx Props */
@@ -153,6 +154,8 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                            // TODO: check this one live
+                            renderItem={() => RadioListItem}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputHint={offlineMessage}

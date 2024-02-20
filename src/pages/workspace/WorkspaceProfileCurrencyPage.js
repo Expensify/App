@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** Constant, list of available currencies */
@@ -90,6 +91,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
 
                 <SelectionList
                     sections={sections}
+                    renderItem={() => RadioListItem}
                     textInputLabel={translate('workspace.editor.currencyInputLabel')}
                     textInputValue={searchText}
                     onChangeText={setSearchText}

@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** The chat priority mode */
@@ -57,6 +58,7 @@ function PriorityModePage(props) {
             <Text style={[styles.mh5, styles.mv3]}>{props.translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
+                renderItem={() => RadioListItem}
                 onSelectRow={updateMode}
                 initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}
             />

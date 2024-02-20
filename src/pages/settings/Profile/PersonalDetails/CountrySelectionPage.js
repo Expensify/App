@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** Route from navigation */
@@ -93,6 +94,7 @@ function CountrySelectionPage({route, navigation}) {
                 textInputLabel={translate('common.country')}
                 textInputValue={searchValue}
                 sections={[{data: searchResults, indexOffset: 0}]}
+                renderItem={() => RadioListItem}
                 onSelectRow={selectCountry}
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}

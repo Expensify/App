@@ -24,6 +24,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** All reports shared with the user */
@@ -203,6 +204,8 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <SelectionList
                             sections={didScreenTransitionEnd && !isLoading ? sections : CONST.EMPTY_ARRAY}
+                            // TODO: check this one live
+                            renderItem={() => RadioListItem}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             textInputValue={searchValue}
