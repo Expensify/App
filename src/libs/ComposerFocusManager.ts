@@ -73,7 +73,7 @@ function releaseInput(input: InputElement) {
     if (input === focusedInput) {
         focusedInput = null;
     }
-    [...focusMap].forEach(([key, value]) => {
+    focusMap.forEach((value, key) => {
         if (value.input !== input) {
             return;
         }
@@ -99,7 +99,7 @@ function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BU
     }
 
     if (shouldClearFocusWithType) {
-        [...focusMap].forEach(([key, value]) => {
+        focusMap.forEach((value, key) => {
             if (value.businessType !== businessType) {
                 return;
             }
@@ -145,12 +145,7 @@ function restoreFocusState(
     restoreFocusType: RestoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT,
     businessType: BusinessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT,
 ) {
-    if (!id) {
-        return;
-    }
-
-    // The stack is empty
-    if (activeModals.length < 1) {
+    if (!id || !activeModals.length) {
         return;
     }
     const index = activeModals.indexOf(id);
@@ -219,7 +214,7 @@ function getKey(id: ModalId) {
     if (promiseMap.size < 1) {
         return 0;
     }
-    return [...promiseMap.keys()].slice(-1)[0];
+    return [...promiseMap.keys()].at(-1);
 }
 
 function setReadyToFocus(id?: ModalId) {
