@@ -5,6 +5,7 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from "@components/SelectionList/types";
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchCountryOptions from '@libs/searchCountryOptions';
@@ -22,7 +23,7 @@ type StateSelectorModalProps = {
     currentState?: State;
 
     /** Function to call when the user selects a State */
-    onStateSelected?: (state: CountryData) => void;
+    onStateSelected?: (state: ListItem) => void;
 
     /** Function to call when the user closes the State modal */
     onClose?: () => void;
