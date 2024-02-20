@@ -1,10 +1,10 @@
 import sanitizeStringForJSONParse from '../../.github/libs/sanitizeStringForJSONParse';
 
 // Bad inputs should cause an error to be thrown
-const badInputs = [null, undefined, 42, true];
+const badInputs: Array<null | undefined | number | boolean> = [null, undefined, 42, true];
 
 // Invalid JSON Data should be able to get parsed and the parsed result should match the input text.
-const invalidJSONData: string[][] = [
+const invalidJSONData: Array<[string, string]> = [
     ['Hello \t world!', 'Hello \t world!'],
     ['Hello \n world!', 'Hello \n world!'],
     ['Hello \n\tworld!', 'Hello \n\tworld!'],
@@ -21,7 +21,7 @@ const invalidJSONData: string[][] = [
 ];
 
 // Valid JSON Data should be able to get parsed and the input text should be unmodified.
-const validJSONData: string[][] = [
+const validJSONData: Array<[string, string]> = [
     ['', ''],
     ['Hello world!', 'Hello world!'],
     ['Hello\\\\world!', 'Hello\\\\world!'],
