@@ -1471,7 +1471,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumsContainer: {
-            height: 24,
+            minHeight: 24,
         },
 
         breadcrumb: {
