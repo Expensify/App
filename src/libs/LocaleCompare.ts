@@ -14,6 +14,14 @@ Onyx.connect({
     },
 });
 
+/**
+ * This is a wrapper around the localeCompare function that uses the preferred locale from the user's settings.
+ *
+ * It re-uses Intl.Collator for performance reasons. See https://github.com/facebook/hermes/issues/867 for more details.
+ * @param a
+ * @param b
+ * @returns -1 if a < b, 1 if a > b, 0 if a === b
+ */
 function localeCompare(a: string, b: string) {
     return collator.compare(a, b);
 }
