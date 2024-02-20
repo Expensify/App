@@ -22,6 +22,8 @@ const includeModules = [
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    '@react-native/assets',
+    'expo-av',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -58,7 +60,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         publicPath: '/',
     },
     stats: {
-        warningsFilter: [],
+        // We can ignore the "module not installed" warning from lottie-react-native
+        // because we are not using the library for JSON format of Lottie animations.
+        warningsFilter: ['./node_modules/lottie-react-native/lib/module/LottieView/index.web.js'],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -95,6 +99,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
+                {from: 'web/gtm.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
@@ -238,6 +243,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+            crypto: false,
         },
     },
 

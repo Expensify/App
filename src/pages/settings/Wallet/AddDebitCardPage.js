@@ -20,6 +20,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -118,7 +119,7 @@ function DebitCardPage(props) {
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="nameOnCard"
+                    inputID={INPUT_IDS.NAME_ON_CARD}
                     label={translate('addDebitCardPage.nameOnCard')}
                     aria-label={translate('addDebitCardPage.nameOnCard')}
                     role={CONST.ROLE.PRESENTATION}
@@ -127,7 +128,7 @@ function DebitCardPage(props) {
                 />
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="cardNumber"
+                    inputID={INPUT_IDS.CARD_NUMBER}
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
                     role={CONST.ROLE.PRESENTATION}
@@ -138,7 +139,7 @@ function DebitCardPage(props) {
                     <View style={[styles.flex1, styles.mr2]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="expirationDate"
+                            inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate('addDebitCardPage.expiration')}
                             aria-label={translate('addDebitCardPage.expiration')}
                             role={CONST.ROLE.PRESENTATION}
@@ -150,7 +151,7 @@ function DebitCardPage(props) {
                     <View style={[styles.flex1]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="securityCode"
+                            inputID={INPUT_IDS.SECURITY_CODE}
                             label={translate('addDebitCardPage.cvv')}
                             aria-label={translate('addDebitCardPage.cvv')}
                             role={CONST.ROLE.PRESENTATION}
@@ -162,7 +163,7 @@ function DebitCardPage(props) {
                 <View>
                     <InputWrapper
                         InputComponent={AddressSearch}
-                        inputID="addressStreet"
+                        inputID={INPUT_IDS.ADDRESS_STREET}
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
@@ -172,7 +173,7 @@ function DebitCardPage(props) {
                 </View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="addressZipCode"
+                    inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
                     role={CONST.ROLE.PRESENTATION}
@@ -184,13 +185,13 @@ function DebitCardPage(props) {
                 <View style={[styles.mt4, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={StatePicker}
-                        inputID="addressState"
+                        inputID={INPUT_IDS.ADDRESS_STATE}
                     />
                 </View>
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
-                    inputID="acceptTerms"
+                    inputID={INPUT_IDS.ACCEPT_TERMS}
                     defaultValue={false}
                     LabelComponent={() => (
                         <Text>

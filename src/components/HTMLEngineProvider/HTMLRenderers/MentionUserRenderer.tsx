@@ -36,7 +36,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     let navigationRoute: Route;
 
     if (!isEmpty(htmlAttribAccountID)) {
-        const user = personalDetails.htmlAttribAccountID;
+        const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || user?.displayName || translate('common.hidden');

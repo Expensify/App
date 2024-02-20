@@ -1,5 +1,4 @@
 import React from 'react';
-import type {TextStyle} from 'react-native';
 import {splitBoxModelStyle} from 'react-native-render-html';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
@@ -41,7 +40,7 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
 
     return (
         <InlineCodeBlock
-            defaultRendererProps={{...defaultRendererProps, style: style as TextStyle}}
+            defaultRendererProps={{...defaultRendererProps, style: {}}}
             TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}
