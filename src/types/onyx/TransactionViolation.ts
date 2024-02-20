@@ -9,7 +9,6 @@ type ViolationName = (typeof CONST.VIOLATIONS)[keyof typeof CONST.VIOLATIONS];
 type TransactionViolation = {
     type: string;
     name: ViolationName;
-    userMessage: string;
     data?: {
         rejectedBy?: string;
         rejectReason?: string;

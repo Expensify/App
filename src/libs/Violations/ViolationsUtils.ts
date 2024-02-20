@@ -30,7 +30,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation'});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -45,7 +45,7 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
+                newTransactionViolations.push({name: 'missingCategory', type: 'violation'});
             }
         }
 
@@ -57,7 +57,6 @@ const ViolationsUtils = {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: 'violation',
-                    userMessage: '',
                 });
             }
 
@@ -72,7 +71,6 @@ const ViolationsUtils = {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                         type: 'violation',
-                        userMessage: '',
                         data: {
                             tagName: key,
                         },
@@ -98,7 +96,6 @@ const ViolationsUtils = {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.MISSING_TAG,
                         type: 'violation',
-                        userMessage: '',
                         data: {
                             tagName: key,
                         },
