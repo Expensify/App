@@ -1008,7 +1008,7 @@ const CONST = {
         VIDEO: 'video',
     },
 
-    FILE_FORMAT: {
+    IMAGE_FILE_FORMAT: {
         PNG: 'image/png',
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
