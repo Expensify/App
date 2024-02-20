@@ -142,10 +142,7 @@ function MoneyRequestView({
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
-    const hasViolations = useCallback(
-        (field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0,
-        [canUseViolations, getViolationsForField],
-    );
+    const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -388,9 +385,7 @@ function MoneyRequestView({
                                         ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={
-                                    getErrorForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                                }
+                                brickRoadIndicator={getErrorForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 error={getErrorForField('tag')}
                             />
                         </OfflineWithFeedback>
