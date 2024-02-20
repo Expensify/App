@@ -82,26 +82,22 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
         return MapboxToken.stop;
     }, []);
 
-    return (
-        <>
-            {!isOffline && Boolean(mapboxAccessToken?.token) ? (
-                <DistanceMapView
-                    accessToken={mapboxAccessToken?.token ?? ''}
-                    mapPadding={CONST.MAP_PADDING}
-                    pitchEnabled={false}
-                    initialState={{
-                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
-                    }}
-                    directionCoordinates={coordinates as Array<[number, number]>}
-                    style={[styles.mapView, styles.br4]}
-                    waypoints={waypointMarkers}
-                    styleURL={CONST.MAPBOX.STYLE_URL}
-                />
-            ) : (
-                <PendingMapView />
-            )}
-        </>
+    return !isOffline && Boolean(mapboxAccessToken?.token) ? (
+        <DistanceMapView
+            accessToken={mapboxAccessToken?.token ?? ''}
+            mapPadding={CONST.MAP_PADDING}
+            pitchEnabled={false}
+            initialState={{
+                zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
+            }}
+            directionCoordinates={coordinates as Array<[number, number]>}
+            style={[styles.mapView, styles.br4]}
+            waypoints={waypointMarkers}
+            styleURL={CONST.MAPBOX.STYLE_URL}
+        />
+    ) : (
+        <PendingMapView />
     );
 }
 

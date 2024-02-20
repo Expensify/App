@@ -19,28 +19,25 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
 
     return (
         <>
-            {!!item.icons && (
-                <>
-                    {item.shouldShowSubscript ? (
-                        <SubscriptAvatar
-                            mainAvatar={item.icons[0]}
-                            secondaryAvatar={item.icons[1]}
-                            showTooltip={showTooltip}
-                            backgroundColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                        />
-                    ) : (
-                        <MultipleAvatars
-                            icons={item.icons ?? []}
-                            shouldShowTooltip={showTooltip}
-                            secondAvatarStyle={[
-                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                            ]}
-                        />
-                    )}
-                </>
-            )}
+            {!!item.icons &&
+                (item.shouldShowSubscript ? (
+                    <SubscriptAvatar
+                        mainAvatar={item.icons[0]}
+                        secondaryAvatar={item.icons[1]}
+                        showTooltip={showTooltip}
+                        backgroundColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                    />
+                ) : (
+                    <MultipleAvatars
+                        icons={item.icons ?? []}
+                        shouldShowTooltip={showTooltip}
+                        secondAvatarStyle={[
+                            StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                            isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                            isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                        ]}
+                    />
+                ))}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
