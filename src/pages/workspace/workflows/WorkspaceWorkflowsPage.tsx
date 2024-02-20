@@ -111,7 +111,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     return (
         <WorkspacePageWithSections
-            shouldUseScrollView
             headerText={translate('workspace.common.workflows')}
             icon={Illustrations.Workflows}
             route={route}
