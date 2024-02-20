@@ -26,6 +26,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
     allPolicies: OnyxEntry<Record<string, Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>>>;
+
+    /** Wheater app is in loading state */
     isLoading: OnyxEntry<boolean>;
 };
 
@@ -199,12 +201,14 @@ function FloatingActionButtonAndPopover(
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
-    !!policy && {
-        type: policy.type,
-        role: policy.role,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
-        pendingAction: policy.pendingAction,
-    };
+    policy
+        ? {
+              type: policy.type,
+              role: policy.role,
+              isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+              pendingAction: policy.pendingAction,
+          }
+        : null;
 
 export default withOnyx<FloatingActionButtonAndPopoverProps, FloatingActionButtonAndPopoverOnyxProps>({
     allPolicies: {
