@@ -3438,6 +3438,10 @@ function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
     return allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
 }
 
+function getCurrentUserDisplayNameOrEmail(): string | undefined {
+    return allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail;
+}
+
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param [created] - Action created time
@@ -3464,7 +3468,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
@@ -3500,7 +3504,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         originalMessage: {
@@ -3541,7 +3545,7 @@ function buildOptimisticHoldReportAction(comment: string, created = DateUtils.ge
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
@@ -3572,7 +3576,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
@@ -3617,7 +3621,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
@@ -3644,7 +3648,7 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
@@ -3687,7 +3691,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+                text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
         reportActionID: NumberUtils.rand64(),
