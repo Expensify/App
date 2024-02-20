@@ -87,7 +87,6 @@ module.exports = {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             plugins: ['react'],
             rules: {
-                'prefer-regex-literals': 'off',
                 'import/no-relative-packages': 'off',
                 'react/no-unused-class-component-methods': 'off',
                 'import/no-import-module-exports': 'off',
@@ -96,6 +95,7 @@ module.exports = {
                 'react/sort-comp': 'off',
                 'default-param-last': 'off',
 
+                'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
