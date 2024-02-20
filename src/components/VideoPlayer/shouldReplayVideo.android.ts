@@ -1,4 +1,4 @@
-import {AVPlaybackStatusSuccess} from 'expo-av';
+import type {AVPlaybackStatusSuccess} from 'expo-av';
 
 /**
  * Whether to replay the video when users press play button
