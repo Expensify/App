@@ -133,7 +133,7 @@ function ReportActionItemFragment({
             }
 
             if (isHoldReportAction) {
-                return <Text style={[styles.chatItemMessage, styles.colorMuted]}>{isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}</Text>;
+                return <Text>{isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}</Text>;
             }
 
             return (
