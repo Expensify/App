@@ -4,6 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -12,7 +13,6 @@ import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNot
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
 

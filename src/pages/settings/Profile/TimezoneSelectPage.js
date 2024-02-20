@@ -4,6 +4,7 @@ import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +13,6 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TIMEZONES from '@src/TIMEZONES';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,

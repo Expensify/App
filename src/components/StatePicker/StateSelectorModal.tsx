@@ -4,13 +4,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import type {CountryData} from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type State = keyof typeof COMMON_CONST.STATES;
 

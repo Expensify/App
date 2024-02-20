@@ -5,6 +5,7 @@ import _, {compose} from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** The chat priority mode */

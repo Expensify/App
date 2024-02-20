@@ -16,6 +16,7 @@ import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -39,7 +40,6 @@ import ROUTES from '@src/ROUTES';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import UserListItem from "@components/SelectionList/UserListItem";
 
 const propTypes = {
     /** All personal details asssociated with user */

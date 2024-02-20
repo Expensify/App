@@ -11,6 +11,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
@@ -21,7 +22,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** Beta features list */

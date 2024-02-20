@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WorkspaceRateAndUnit} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type OptionRow = {
     value: Unit;

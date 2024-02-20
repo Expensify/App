@@ -2,11 +2,11 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

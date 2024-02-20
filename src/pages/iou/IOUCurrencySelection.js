@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -19,7 +20,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 /**
  * IOU Currency selection for selecting currency

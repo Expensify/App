@@ -5,12 +5,12 @@ import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** Route from navigation */

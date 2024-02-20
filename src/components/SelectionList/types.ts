@@ -1,13 +1,5 @@
 import type {JSXElementConstructor, ReactElement, ReactNode} from 'react';
-import type {
-    GestureResponderEvent,
-    InputModeOptions,
-    LayoutChangeEvent,
-    SectionListData,
-    StyleProp,
-    TextStyle,
-    ViewStyle
-} from 'react-native';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 

@@ -5,6 +5,7 @@ import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -16,7 +17,6 @@ import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 /**
  * IOU Currency selection for selecting currency

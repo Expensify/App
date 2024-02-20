@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +25,6 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     /** All reports shared with the user */

@@ -4,11 +4,11 @@ import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 const propTypes = {
     ...withLocalizePropTypes,

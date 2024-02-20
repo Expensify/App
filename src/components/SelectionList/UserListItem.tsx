@@ -6,10 +6,20 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseListItem from "@components/SelectionList/BaseListItem";
+import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
-function UserListItem({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onSelectRow, onDismissError, shouldPreventDefaultFocusOnSelectRow, rightHandSideComponent}: BaseListItemProps<ListItem>) {
+function UserListItem({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onSelectRow,
+    onDismissError,
+    shouldPreventDefaultFocusOnSelectRow,
+    rightHandSideComponent,
+}: BaseListItemProps<ListItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();

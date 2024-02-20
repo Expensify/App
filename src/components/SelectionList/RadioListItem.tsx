@@ -2,10 +2,20 @@ import React from 'react';
 import {View} from 'react-native';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseListItem from "@components/SelectionList/BaseListItem";
+import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
-function RadioListItem({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onSelectRow, onDismissError, shouldPreventDefaultFocusOnSelectRow, rightHandSideComponent}: BaseListItemProps<ListItem>) {
+function RadioListItem({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onSelectRow,
+    onDismissError,
+    shouldPreventDefaultFocusOnSelectRow,
+    rightHandSideComponent,
+}: BaseListItemProps<ListItem>) {
     const styles = useThemeStyles();
 
     return (

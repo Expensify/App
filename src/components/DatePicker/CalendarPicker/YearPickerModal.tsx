@@ -3,11 +3,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type CalendarPickerListItem from './types';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 type YearPickerModalProps = {
     /** Whether the modal is visible */
