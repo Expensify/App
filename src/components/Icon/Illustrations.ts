@@ -12,7 +12,6 @@ import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.s
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
 import JewelBoxPink from '@assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '@assets/images/product-illustrations/jewel-box--yellow.svg';
-import Lounge from '@assets/images/product-illustrations/lounge.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
@@ -42,6 +41,7 @@ import HandCard from '@assets/images/simple-illustrations/simple-illustration__h
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
 import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
+import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
@@ -54,7 +54,8 @@ import MoneyWings from '@assets/images/simple-illustrations/simple-illustration_
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
-import QrCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
@@ -89,6 +90,7 @@ export {
     MoneyMousePink,
     ReceiptsSearchYellow,
     ReceiptYellow,
+    ReceiptWrangler,
     RocketBlue,
     RocketOrange,
     SanFrancisco,
@@ -104,7 +106,6 @@ export {
     CreditCardsNew,
     InvoiceBlue,
     LockOpen,
-    Lounge,
     Luggage,
     MoneyIntoWallet,
     MoneyWings,
@@ -127,5 +128,6 @@ export {
     PalmTree,
     LockClosed,
     Gears,
-    QrCode,
+    QRCode,
+    House,
 };

@@ -26,6 +26,6 @@ module.exports = {
     setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect', '<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.js'],
     cacheDirectory: '<rootDir>/.jest-cache',
     moduleNameMapper: {
-        '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.js',
+        '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
     },
 };
