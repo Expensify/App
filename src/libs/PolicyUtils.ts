@@ -110,15 +110,15 @@ const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => poli
 
 const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
-const isPolicyPayer = (policy: OnyxEntry<Policy> | EmptyObject, session: OnyxEntry<Session>, isApproved: boolean, isManager: boolean, isPolicyAdmin: boolean): boolean => {
+const isPolicyPayer = (policy: OnyxEntry<Policy> | EmptyObject, session: OnyxEntry<Session>, isApproved: boolean, isManager: boolean, isAdmin: boolean): boolean => {
     if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
         const isReimburser = session?.email === policy?.reimbursersEmail;
         return isReimburser && (isApproved || isManager);
-    } else if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-        return isPolicyAdmin && (isApproved || isManager);
-    } else {
-        return false;
     }
+    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        return isAdmin && (isApproved || isManager);
+    }
+    return false;
 };
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
