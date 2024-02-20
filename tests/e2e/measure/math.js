@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 
 const filterOutliersViaIQR = (data) => {
     let q1;
@@ -46,6 +46,5 @@ const getStats = (entries) => {
     };
 };
 
-module.exports = {
-    getStats,
-};
+// eslint-disable-next-line import/prefer-default-export
+export default getStats;
