@@ -88,7 +88,6 @@ module.exports = {
             plugins: ['react'],
             rules: {
                 'react/no-unstable-nested-components': 'off',
-                'import/no-useless-path-segments': 'off',
 
                 'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
