@@ -15,7 +15,7 @@ type CommonListItemProps<TItem> = {
     alternateTextStyles?: StyleProp<TextStyle>;
 
     /** Whether this item is disabled */
-    isDisabled?: boolean | null;
+    isDisabled?: boolean;
 
     /** Whether this item should show Tooltip */
     showTooltip: boolean;
@@ -35,25 +35,25 @@ type CommonListItemProps<TItem> = {
 
 type ListItem = {
     /** Text to display */
-    text?: string;
+    text: string;
 
     /** Alternate text to display */
-    alternateText?: string | null;
+    alternateText?: string;
 
     /** Key used internally by React */
-    keyForList?: string | null;
+    keyForList: string;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean | null;
+    isDisabled?: boolean;
 
     /** User accountID */
     accountID?: number | null;
 
     /** User login */
-    login?: string | null;
+    login?: string;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -77,7 +77,7 @@ type ListItem = {
 
     /** ID of the report */
     reportID?: string;
-    
+
     /** Whether this option should show subscript */
     shouldShowSubscript?: boolean;
 };
@@ -96,7 +96,7 @@ type ListItemProps = CommonListItemProps<ListItem> & {
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
-    keyForList?: string | null;
+    keyForList: string;
 };
 
 type Section<TItem extends ListItem> = {

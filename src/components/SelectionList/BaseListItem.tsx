@@ -55,13 +55,13 @@ function BaseListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
-                accessibilityLabel={item.text ?? ''}
+                accessibilityLabel={item.text}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList ?? ''}
+                nativeID={keyForList}
             >
                 {({hovered}) => (
                     <>
