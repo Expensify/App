@@ -42,7 +42,7 @@ function FocusModeNotification() {
             }
             isVisible
             image={Illustrations.ThreeLeggedLaptopWoman}
-            titleStyles={styles.textHeadline}
+            titleStyles={[styles.textHeadline, styles.mbn3]}
         />
     );
 }
