@@ -1475,9 +1475,11 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxCo
  */
 function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): Icon {
     const workspaceName = getPolicyName(report, false, policy);
-    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
-        ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
-        : getDefaultWorkspaceAvatar(workspaceName);
+    const rootParentReport = getRootParentReport(report);
+    const hasCustomAvatar =
+        !(isEmptyObject(rootParentReport) || isDefaultRoom(rootParentReport) || isChatRoom(rootParentReport) || isArchivedRoom(rootParentReport)) &&
+        allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar;
+    const policyExpenseChatAvatarSource = hasCustomAvatar ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar : getDefaultWorkspaceAvatar(workspaceName);
 
     const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
