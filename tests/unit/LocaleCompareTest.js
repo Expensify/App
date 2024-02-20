@@ -1,6 +1,20 @@
-const {default: localeCompare} = require('@libs/LocaleCompare');
+import Onyx from 'react-native-onyx';
+import localeCompare from '@libs/LocaleCompare';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('localeCompare', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: {NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE},
+            initialKeyStates: {[ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT},
+        });
+        return waitForBatchedUpdates();
+    });
+
+    afterEach(() => Onyx.clear());
+
     it('should return -1 for descending comparison', () => {
         const result = localeCompare('Da Vinci', 'Tesla');
 
