@@ -11,6 +11,7 @@ import type Picker from '@components/Picker';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
+import type ValuePicker from '@components/ValuePicker';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
@@ -34,7 +35,8 @@ type ValidInputs =
     | typeof AmountForm
     | typeof BusinessTypePicker
     | typeof StatePicker
-    | typeof DatePicker;
+    | typeof DatePicker
+    | typeof ValuePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {
