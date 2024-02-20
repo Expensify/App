@@ -67,7 +67,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 return;
             }
             setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
-        }, [initialState, setCurrentPosition, cachedUserLocation]);
+        }, [initialState, cachedUserLocation]);
 
         useFocusEffect(
             useCallback(() => {
