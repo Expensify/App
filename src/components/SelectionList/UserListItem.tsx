@@ -31,14 +31,7 @@ function UserListItem({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[
-                styles.flex1,
-                styles.justifyContentBetween,
-                styles.sidebarLinkInner,
-                styles.userSelectNone,
-                styles.peopleRow,
-                isFocused && styles.sidebarLinkActive,
-            ]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
             selectMultipleStyle={[
                 StyleUtils.getCheckboxContainerStyle(20),
                 styles.mr3,
