@@ -179,7 +179,7 @@ function BaseValidateCodeForm(props) {
             setInput = setRecoveryCode;
         }
 
-        setInput(text.trim());
+        setInput(text);
         setFormError((prevError) => ({...prevError, [key]: ''}));
 
         if (props.account.errors) {
@@ -283,7 +283,7 @@ function BaseValidateCodeForm(props) {
                     setFormError({recoveryCode: 'recoveryCodeForm.error.pleaseFillRecoveryCode'});
                     return;
                 }
-                if (!ValidationUtils.isValidRecoveryCode(recoveryCode)) {
+                if (!ValidationUtils.isValidRecoveryCode(recoveryCode.trim())) {
                     setFormError({recoveryCode: 'recoveryCodeForm.error.incorrectRecoveryCode'});
                     return;
                 }
@@ -303,7 +303,7 @@ function BaseValidateCodeForm(props) {
         }
         setFormError({});
 
-        const recoveryCodeOr2faCode = props.isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
+        const recoveryCodeOr2faCode = props.isUsingRecoveryCode ? recoveryCode.trim() : twoFactorAuthCode;
 
         const accountID = lodashGet(props.credentials, 'accountID');
         if (accountID) {
