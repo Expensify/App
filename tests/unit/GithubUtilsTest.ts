@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 /**
  * @jest-environment node
  */
@@ -24,7 +26,6 @@ type Label = {
     id: number;
     number?: number;
     isVerified?: boolean;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     node_id: string;
     url: string;
     name: string;
@@ -72,7 +73,6 @@ beforeAll(() => {
                     Promise.resolve({
                         data: {
                             ...arg,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             html_url: 'https://github.com/Expensify/App/issues/29',
                         },
                     }),
@@ -100,7 +100,6 @@ describe('GithubUtils', () => {
             labels: [
                 {
                     id: 2783847782,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                     name: 'StagingDeployCash',
@@ -142,7 +141,6 @@ describe('GithubUtils', () => {
                     description: '',
                     id: 2783847782,
                     name: 'StagingDeployCash',
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                 },
@@ -323,7 +321,6 @@ describe('GithubUtils', () => {
             {
                 number: 1,
                 title: 'Test PR 1',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/1',
                 user: {login: 'testUser'},
                 labels: [],
@@ -331,7 +328,6 @@ describe('GithubUtils', () => {
             {
                 number: 2,
                 title: 'Test PR 2',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/2',
                 user: {login: 'testUser'},
                 labels: [],
@@ -339,7 +335,6 @@ describe('GithubUtils', () => {
             {
                 number: 3,
                 title: 'Test PR 3',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/3',
                 user: {login: 'testUser'},
                 labels: [],
@@ -347,7 +342,6 @@ describe('GithubUtils', () => {
             {
                 number: 4,
                 title: '[NO QA] Test No QA PR uppercase',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/4',
                 user: {login: 'testUser'},
                 labels: [],
@@ -355,7 +349,6 @@ describe('GithubUtils', () => {
             {
                 number: 5,
                 title: '[NoQa] Test No QA PR Title Case',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/5',
                 user: {login: 'testUser'},
                 labels: [],
@@ -363,13 +356,11 @@ describe('GithubUtils', () => {
             {
                 number: 6,
                 title: '[Internal QA] Test Internal QA PR',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/6',
                 user: {login: 'testUser'},
                 labels: [
                     {
                         id: 1234,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
                         url: 'https://api.github.com/Expensify/App/labels/InternalQA',
                         name: 'InternalQA',
@@ -389,13 +380,11 @@ describe('GithubUtils', () => {
             {
                 number: 7,
                 title: '[Internal QA] Another Test Internal QA PR',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'https://github.com/Expensify/App/pull/7',
                 user: {login: 'testUser'},
                 labels: [
                     {
                         id: 1234,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
                         url: 'https://api.github.com/Expensify/App/labels/InternalQA',
                         name: 'InternalQA',
