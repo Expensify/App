@@ -192,6 +192,7 @@ class BaseOptionsSelector extends Component {
         }
 
         this.unSubscribeFromKeyboardShortcut();
+        this.unSubscribeActiveElement();
     }
 
     /**
@@ -360,6 +361,7 @@ class BaseOptionsSelector extends Component {
         }
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     focus() {
         if (!this.textInput) {
             return;

@@ -87,7 +87,6 @@ module.exports = {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             plugins: ['react'],
             rules: {
-                'react/no-unused-class-component-methods': 'off',
                 'import/no-import-module-exports': 'off',
                 'react/no-unstable-nested-components': 'off',
                 'import/no-useless-path-segments': 'off',
