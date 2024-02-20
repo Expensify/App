@@ -3,7 +3,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type DownloadQRCodeProps from '@pages/workspace/download/types';
+import type DownloadQRCodeProps from './types';
 
 function DownloadMenuItem({download}: DownloadQRCodeProps) {
     const themeStyles = useThemeStyles();
