@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useStyleUtils from "@hooks/useStyleUtils";
 import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
@@ -17,10 +18,27 @@ function RadioListItem({
     rightHandSideComponent,
 }: BaseListItemProps<ListItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     return (
         <BaseListItem
             item={item}
+            wrapperStyle={[
+                styles.flex1,
+                styles.justifyContentBetween,
+                styles.sidebarLinkInner,
+                styles.userSelectNone,
+                styles.optionRow,
+                isFocused && styles.sidebarLinkActive,
+            ]}
+            selectMultipleStyle={[
+                StyleUtils.getCheckboxContainerStyle(20),
+                styles.mr3,
+                item.isSelected && styles.checkedContainer,
+                item.isSelected && styles.borderColorFocus,
+                item.isDisabled && styles.cursorDisabled,
+                item.isDisabled && styles.buttonOpacityDisabled,
+            ]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}

@@ -14,7 +14,8 @@ import type {BaseListItemProps, ListItem} from './types';
 
 function BaseListItem<TItem extends ListItem>({
     item,
-    isFocused = false,
+    wrapperStyle,
+    selectMultipleStyle,
     isDisabled = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
@@ -62,31 +63,13 @@ function BaseListItem<TItem extends ListItem>({
             >
                 {({hovered}) => (
                     <>
-                        <View
-                            style={[
-                                styles.flex1,
-                                styles.justifyContentBetween,
-                                styles.sidebarLinkInner,
-                                styles.userSelectNone,
-                                isUserItem ? styles.peopleRow : styles.optionRow,
-                                isFocused && styles.sidebarLinkActive,
-                            ]}
-                        >
+                        <View style={wrapperStyle}>
                             {canSelectMultiple && (
                                 <View
                                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     style={StyleUtils.getCheckboxPressableStyle()}
                                 >
-                                    <View
-                                        style={[
-                                            StyleUtils.getCheckboxContainerStyle(20),
-                                            styles.mr3,
-                                            item.isSelected && styles.checkedContainer,
-                                            item.isSelected && styles.borderColorFocus,
-                                            item.isDisabled && styles.cursorDisabled,
-                                            item.isDisabled && styles.buttonOpacityDisabled,
-                                        ]}
-                                    >
+                                    <View style={selectMultipleStyle}>
                                         {item.isSelected && (
                                             <Icon
                                                 src={Expensicons.Checkmark}

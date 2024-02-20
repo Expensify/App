@@ -87,6 +87,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
+    wrapperStyle?: StyleProp<ViewStyle>;
+    selectMultipleStyle?: StyleProp<ViewStyle>;
     children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
 };
 
