@@ -17,7 +17,7 @@ const run = () => {
 
     const creationDate = regressionOutput.metadata.current.creationDate;
     const timestampInMili = new Date(creationDate).getTime();
-    
+
     // Graphite accepts timestamp in seconds
     const timestamp = Math.floor(timestampInMili / 1000);
 
