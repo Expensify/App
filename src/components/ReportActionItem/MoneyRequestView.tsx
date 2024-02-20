@@ -58,9 +58,6 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     /** Collection of tags attached to a policy */
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
 
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: OnyxEntry<OnyxTypes.PolicyTaxRates>;
-
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -87,7 +84,6 @@ function MoneyRequestView({
     transaction,
     policyTagList,
     policy,
-    policyTaxRates,
     transactionViolations,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
@@ -490,9 +486,6 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     },
     policyTagList: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
-    },
-    policyTaxRates: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report.policyID}`,
     },
     parentReport: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
