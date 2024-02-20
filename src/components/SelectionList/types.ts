@@ -95,7 +95,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
-    children: (hovered: boolean) => ReactElement<ListItemProps>;
+    children?: (hovered: boolean) => ReactElement<ListItemProps>;
 };
 
 type Section<TItem extends ListItem> = {
@@ -120,7 +120,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Default renderer for every item in the list */
-    renderItem: () => JSXElementConstructor<ListItemProps>;
+    renderItem: () => JSXElementConstructor<BaseListItemProps<TItem>>;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;

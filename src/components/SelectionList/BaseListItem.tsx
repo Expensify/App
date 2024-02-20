@@ -16,7 +16,6 @@ function BaseListItem<TItem extends ListItem>({
     item,
     isFocused = false,
     isDisabled = false,
-    showTooltip,
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
@@ -100,7 +99,7 @@ function BaseListItem<TItem extends ListItem>({
                                 </View>
                             )}
 
-                            {children(hovered)}
+                            {children?.(hovered)}
 
                             {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                                 <View

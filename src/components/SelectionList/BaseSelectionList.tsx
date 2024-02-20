@@ -22,7 +22,6 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import BaseListItem from './BaseListItem';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
@@ -282,7 +281,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const ListItem = renderItem();
 
         return (
-            <BaseListItem
+            <ListItem
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
@@ -293,18 +292,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
-            >
-                {(hovered) => (
-                    <ListItem
-                        item={item}
-                        isDisabled={isDisabled}
-                        onSelectRow={() => onSelectRow(item)}
-                        showTooltip={showTooltip}
-                        isFocused={isFocused}
-                        isHovered={hovered}
-                    />
-                )}
-            </BaseListItem>
+            />
         );
     };
 

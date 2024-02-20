@@ -6,9 +6,10 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ListItemProps} from './types';
+import BaseListItem from "@components/SelectionList/BaseListItem";
+import type {BaseListItemProps, ListItem} from './types';
 
-function UserListItem({item, showTooltip, style, isFocused, isHovered}: ListItemProps) {
+function UserListItem({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onSelectRow, onDismissError, shouldPreventDefaultFocusOnSelectRow, rightHandSideComponent}: BaseListItemProps<ListItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -18,52 +19,67 @@ function UserListItem({item, showTooltip, style, isFocused, isHovered}: ListItem
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     return (
-        <>
-            {!!item.icons && (
+        <BaseListItem
+            item={item}
+            isFocused={isFocused}
+            isDisabled={isDisabled}
+            showTooltip={showTooltip}
+            canSelectMultiple={canSelectMultiple}
+            onSelectRow={onSelectRow}
+            onDismissError={onDismissError}
+            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            rightHandSideComponent={rightHandSideComponent}
+            keyForList={item.keyForList}
+        >
+            {(hovered) => (
                 <>
-                    {item.shouldShowSubscript ? (
-                        <SubscriptAvatar
-                            mainAvatar={item.icons[0]}
-                            secondaryAvatar={item.icons[1]}
-                            showTooltip={showTooltip}
-                            backgroundColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                        />
-                    ) : (
-                        <MultipleAvatars
-                            icons={item.icons ?? []}
+                    {!!item.icons && (
+                        <>
+                            {item.shouldShowSubscript ? (
+                                <SubscriptAvatar
+                                    mainAvatar={item.icons[0]}
+                                    secondaryAvatar={item.icons[1]}
+                                    showTooltip={showTooltip}
+                                    backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    icons={item.icons ?? []}
+                                    shouldShowTooltip={showTooltip}
+                                    secondAvatarStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]}
+                                />
+                            )}
+                        </>
+                    )}
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                        <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            secondAvatarStyle={[
-                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                            text={item.text}
+                            textStyles={[
+                                styles.optionDisplayName,
+                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                styles.sidebarLinkTextBold,
+                                styles.pre,
+                                item.alternateText ? styles.mb1 : null,
+                                // style
                             ]}
                         />
-                    )}
+                        {!!item.alternateText && (
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={item.alternateText}
+                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre /* , style */]}
+                            />
+                        )}
+                    </View>
+                    {!!item.rightElement && item.rightElement}
                 </>
             )}
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
-                    text={item.text}
-                    textStyles={[
-                        styles.optionDisplayName,
-                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                        styles.sidebarLinkTextBold,
-                        styles.pre,
-                        item.alternateText ? styles.mb1 : null,
-                        style
-                    ]}
-                />
-                {!!item.alternateText && (
-                    <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
-                        text={item.alternateText}
-                        textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre, style]}
-                    />
-                )}
-            </View>
-            {!!item.rightElement && item.rightElement}
-        </>
+        </BaseListItem>
     );
 }
 
