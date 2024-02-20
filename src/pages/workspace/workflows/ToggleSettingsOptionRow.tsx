@@ -8,6 +8,8 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import ImageSVG from '@components/ImageSVG';
+import Dot from '@assets/images/dot.svg';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -30,6 +32,22 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
     };
     const {isSmallScreenWidth} = useWindowDimensions();
 
+
+    const VerticalDots = ({count}: {count: number}) => {
+        return (
+        <View style={StyleUtils.getWorkspaceWorkflowsDotStyle(isEnabled, isSmallScreenWidth) as ViewStyle}>
+            {Array.from({length: count}, (_, index) => (
+            <ImageSVG
+            contentFit="contain"
+            src={Dot}
+            height={isSmallScreenWidth ? 4 : 6}
+            width={isSmallScreenWidth ? 4 : 6}
+            pointerEvents="none"
+            />))}
+        </View>
+        );
+    };
+
     return (
         <View style={styles.pRelative}>
             <View style={StyleUtils.getWorkflowsStyle('container')}>
@@ -41,7 +59,9 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                         additionalStyles={StyleUtils.getWorkflowsStyle('icon')}
                     />
                     <View style={StyleUtils.getWorkflowsStyle('timelineOverride')} />
-                    {!isEndOptionRow && <View style={StyleUtils.getWorkspaceWorkflowsDotStyle(isEnabled, isSmallScreenWidth) as ViewStyle} />}
+                    {!isEndOptionRow && (
+                        <VerticalDots count={7}/>
+                    )}
                     <View style={StyleUtils.getWorkflowsStyle('wrapperText')}>
                         <Text style={StyleUtils.getWorkflowsStyle('heading')}>{title}</Text>
                         <Text style={StyleUtils.getWorkflowsStyle('subtitle')}>{subtitle}</Text>
@@ -62,3 +82,4 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
 
 export type {ToggleSettingOptionRowProps};
 export default ToggleSettingOptionRow;
+

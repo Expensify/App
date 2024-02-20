@@ -1480,12 +1480,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ({
         position: 'absolute',
         width: 6,
-        backgroundImage: 'radial-gradient(circle at 2.5px, #1A3D32 1.25px, rgba(255, 255, 255, 0) 2.5px)',
-        backgroundSize: '5px 15px',
-        backgroundRepeat: 'repeat-y',
         top: isSmallScreenWidth ? '32%' : '12%',
-        bottom: enabled ? '-180%' : '-100%',
-        left: isSmallScreenWidth ? '6%' : '2.45%',
+        bottom: enabled ? '-140%' : '-80%',
+        left: isSmallScreenWidth ? '8%' : '4%',
+        display: 'flex',
+        justifyContent: 'space-between',
     }),
 
     getWorkflowsStyle: (type: string): Object => {
@@ -1552,8 +1551,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 return {
                     backgroundColor: defaultTheme.cardBG,
                     zIndex: 1,
-                    height: 19,
-                    width: 19,
+                    height: 29,
+                    width: 29,
                     position: 'absolute',
                     left: 0,
                 };
