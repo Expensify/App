@@ -467,7 +467,7 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-            children = <ReportActionItemBasicMessage message={props.translate('iou.heldRequest', {comment: props.action?.message[1]?.text ?? ''})} />;
+            children = <ReportActionItemBasicMessage message={props.translate('iou.heldRequest', {comment: lodashGet(props, 'action.message[1].text', '')})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={props.translate('iou.unheldRequest')} />;
         } else {
