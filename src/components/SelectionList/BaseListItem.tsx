@@ -99,7 +99,7 @@ function BaseListItem<TItem extends ListItem>({
                                 </View>
                             )}
 
-                            {children?.(hovered)}
+                            {typeof children === 'function' ? children(hovered) : children}
 
                             {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                                 <View
