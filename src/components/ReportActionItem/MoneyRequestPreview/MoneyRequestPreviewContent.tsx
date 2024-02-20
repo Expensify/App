@@ -259,7 +259,6 @@ function MoneyRequestPreviewContent({
                                                         icons={sortedParticipantAvatars}
                                                         shouldStackHorizontally
                                                         size="small"
-                                                        isHovered={isHovered}
                                                         shouldUseCardBackground
                                                     />
                                                 </View>
