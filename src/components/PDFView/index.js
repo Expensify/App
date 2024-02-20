@@ -22,6 +22,7 @@ import PDFViewConstants from './constants';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import PDFDocument from './WebPDFDocument';
+import useConstructor from '@hooks/useContructor';
 
 function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, translate, ...props}) {
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
@@ -37,7 +38,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const prevWindowHeight = usePrevious(windowHeight);
 
-    useEffect(() => {
+    useConstructor(() => {
+        console.log('callback');
         const workerURL = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
         if (pdfjs.GlobalWorkerOptions.workerSrc !== workerURL) {
             pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
@@ -57,8 +59,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         if (!props.maxCanvasWidth) {
             CanvasSize.retrieveMaxCanvasWidth();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
