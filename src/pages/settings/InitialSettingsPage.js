@@ -265,7 +265,6 @@ function InitialSettingsPage(props) {
                     {_.map(menuItemsData.items, (item, index) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                         const isPaymentItem = item.translationKey === 'common.wallet';
-                        const isFocusedItem = activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '');
 
                         return (
                             <MenuItem
@@ -286,7 +285,6 @@ function InitialSettingsPage(props) {
                                 })}
                                 iconStyles={item.iconStyles}
                                 badgeText={getWalletBalance(isPaymentItem)}
-                                badgeStyle={[styles.badgeBordered, isFocusedItem ? styles.activeItemBadge : undefined]}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 floatRightAvatars={item.floatRightAvatars}
@@ -296,7 +294,7 @@ function InitialSettingsPage(props) {
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={isFocusedItem}
+                                focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
@@ -307,8 +305,6 @@ function InitialSettingsPage(props) {
             );
         },
         [
-            styles.badgeBordered,
-            styles.activeItemBadge,
             styles.pb4,
             styles.mh3,
             styles.sectionTitle,
