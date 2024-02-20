@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -14,7 +14,7 @@ import type {Transaction} from '@src/types/onyx';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicated whether the report data is loading */
-    transaction: OnyxCollection<Transaction>;
+    transaction: OnyxEntry<Transaction>;
 };
 
 type WithFullTransactionOrNotFoundProps = WithFullTransactionOrNotFoundOnyxProps & StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_DATE>;
@@ -22,7 +22,7 @@ type WithFullTransactionOrNotFoundProps = WithFullTransactionOrNotFoundOnyxProps
 export default function <TProps extends WithFullTransactionOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const transactionID = props.route.params.transactionID;
+        const transactionID = props.transaction?.transactionID;
 
         const isFocused = useIsFocused();
 
@@ -49,8 +49,14 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps, TRef
             key: ({route}) => {
                 const transactionID = route.params.transactionID ?? 0;
                 const userAction = route.params.action ?? CONST.IOU.ACTION.CREATE;
-                return `${userAction === CONST.IOU.ACTION.CREATE ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+
+                if (userAction === CONST.IOU.ACTION.CREATE) {
+                    return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+                }
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
     })(forwardRef(WithFullTransactionOrNotFound));
 }
+
+export type {WithFullTransactionOrNotFoundProps};
