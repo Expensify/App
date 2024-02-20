@@ -44,7 +44,9 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
                         accessibilityLabel={accessibilityLabel}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={onPress}
-                        onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                        onLongPress={(event) =>
+                            showContextMenuForReport(event, anchor, (report && report.reportID) || '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))
+                        }
                     >
                         <View style={[styles.videoThumbnailPlayButton]}>
                             <Icon
