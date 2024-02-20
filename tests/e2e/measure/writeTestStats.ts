@@ -1,18 +1,28 @@
 import fs from 'fs';
 import config from '../config';
 
+type Stats = {
+    /** The name for the test, used in outputs. */
+    name: string;
+
+    /** The average time for the test to run. */
+    mean: number;
+
+    /** The standard deviation of the test. */
+    stdev: number;
+
+    /** The data points */
+    entries: number[];
+
+    /** The number of times the test was run. */
+    runs: number;
+};
+
 /**
  * Writes the results of `getStats` to the {@link OUTPUT_FILE_CURRENT} file.
- *
- * @param {Object} stats
- * @param {string} stats.name - The name for the test, used in outputs.
- * @param {number} stats.mean - The average time for the test to run.
- * @param {number} stats.stdev - The standard deviation of the test.
- * @param {number} stats.entries - The data points
- * @param {number} stats.runs - The number of times the test was run.
- * @param {string} [path] - The path to write to. Defaults to {@link OUTPUT_FILE_CURRENT}.
+ * @param [path] - The path to write to. Defaults to {@link OUTPUT_FILE_CURRENT}.
  */
-export default (stats, path = config.OUTPUT_FILE_CURRENT) => {
+function writeTestStats(stats: Stats, path = config.OUTPUT_FILE_CURRENT) {
     if (!stats.name || stats.mean == null || stats.stdev == null || !stats.entries || !stats.runs) {
         throw new Error(`Invalid stats object:\n${JSON.stringify(stats, null, 2)}\n\n`);
     }
@@ -29,4 +39,6 @@ export default (stats, path = config.OUTPUT_FILE_CURRENT) => {
         console.error(`Error writing ${path}`, error);
         throw error;
     }
-};
+}
+
+export default writeTestStats;
