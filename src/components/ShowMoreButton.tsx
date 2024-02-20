@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +11,7 @@ import Text from './Text';
 
 type ShowMoreButtonProps = {
     /** Additional styles for container */
-    containerStyle?: ViewStyle;
+    containerStyle?: StyleProp<ViewStyle>;
 
     /** The number of currently shown items */
     currentCount?: number;
@@ -23,12 +23,12 @@ type ShowMoreButtonProps = {
     onPress: () => void;
 };
 
-function ShowMoreButton({containerStyle = {}, currentCount, totalCount, onPress}: ShowMoreButtonProps) {
+function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}: ShowMoreButtonProps) {
     const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const shouldShowCounter = typeof currentCount === 'number' && typeof totalCount === 'number';
+    const shouldShowCounter = !!(currentCount && totalCount);
 
     return (
         <View style={[styles.alignItemsCenter, containerStyle]}>

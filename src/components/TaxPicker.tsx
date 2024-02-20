@@ -4,13 +4,14 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {PolicyTaxRateWithDefault} from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import OptionsSelector from './OptionsSelector';
 
 type TaxPickerProps = {
     /** Collection of tax rates attached to a policy */
-    policyTaxRates?: OptionsListUtils.PolicyTaxRateWithDefault;
+    policyTaxRates: PolicyTaxRateWithDefault;
 
     /** The selected tax rate of an expense */
     selectedTaxRate?: string;
@@ -70,11 +71,11 @@ function TaxPicker({selectedTaxRate = '', policyTaxRates = {} as OptionsListUtil
         );
         return policyTaxRatesOptions;
     }, [policyTaxRates, searchValue, selectedOptions]);
-    const selectedOptionKey = sections?.[0]?.data?.filter((taxRate) => taxRate.searchText === selectedTaxRate)[0]?.keyForList;
+    const selectedOptionKey = sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
 
     return (
         <OptionsSelector
-            // @ts-expect-error TODO: TS migration
+            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
             contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
             optionHoveredStyle={styles.hoveredComponentBG}
             sectionHeaderStyle={styles.mt5}
