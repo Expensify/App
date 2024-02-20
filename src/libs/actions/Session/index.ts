@@ -87,14 +87,14 @@ function isSupportalToken(): boolean {
 }
 
 /**
- * Sets the SupportToken
+ * Sets the SupportToken. This method will only be used on SignOut when an user
+ * is using a token of type support or on dev.
  */
 function setSupportAuthToken(supportAuthToken: string, email?: string, accountID?: number) {
     if (supportAuthToken) {
         Onyx.merge(ONYXKEYS.SESSION, {
-            authTokenType: 'supportal',
-            authToken: 'dummy-token-supportal-will-be-used',
-            supportAuthToken,
+            authTokenType: 'support',
+            authToken: supportAuthToken,
             email,
             accountID,
         }).then(() => {
