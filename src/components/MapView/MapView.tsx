@@ -56,7 +56,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
-                shouldInitializeCurrentPosition.current = true;
+                shouldInitializeCurrentPosition.current = false;
 
                 if (!shouldPanMapToCurrentPosition()) {
                     setCurrentPositionToInitialState();
