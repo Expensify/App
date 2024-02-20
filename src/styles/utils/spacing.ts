@@ -377,6 +377,10 @@ export default {
         paddingVertical: 40,
     },
 
+    pv12: {
+        paddingVertical: 48,
+    },
+
     ph0: {
         paddingHorizontal: 0,
     },

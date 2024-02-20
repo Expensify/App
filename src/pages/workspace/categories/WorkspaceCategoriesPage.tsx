@@ -10,6 +10,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
+import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -92,13 +93,24 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
                 title={translate('workspace.common.categories')}
                 shouldShowBackButton={isSmallScreenWidth}
             />
-            <SelectionList
-                canSelectMultiple
-                sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
-                onSelectRow={toggleCategory}
-                onSelectAll={toggleAllCategories}
-                showScrollIndicator
-            />
+            <View style={[styles.ph5, styles.pb5]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+            </View>
+            {categoryList.length ? (
+                <SelectionList
+                    canSelectMultiple
+                    sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
+                    onSelectRow={toggleCategory}
+                    onSelectAll={toggleAllCategories}
+                    showScrollIndicator
+                />
+            ) : (
+                <WorkspaceEmptyStateSection
+                    title={translate('workspace.categories.emptyCategories.title')}
+                    icon={Illustrations.EmptyStateExpenses}
+                    subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                />
+            )}
         </ScreenWrapper>
     );
 }

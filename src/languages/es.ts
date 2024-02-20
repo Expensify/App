@@ -1736,6 +1736,13 @@ export default {
             control: 'Control',
             collect: 'Recolectar',
         },
+        categories: {
+            subtitle: 'Obtenga una mejor visión general de dónde se gasta el dinero. Utilice nuestras categorías predeterminadas o agregue las suyas propias.',
+            emptyCategories: {
+                title: 'No has creado ninguna categoría',
+                subtitle: 'Agregue una categoría para organizar su gasto.',
+            },
+        },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
             subtitle: 'En los espacios de trabajo podrás chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas, y mucho más - todo en un mismo lugar.',

@@ -1712,6 +1712,13 @@ export default {
             control: 'Control',
             collect: 'Collect',
         },
+        categories: {
+            subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
+            emptyCategories: {
+                title: "You haven't created any categories",
+                subtitle: 'Add a category to organize your spend.',
+            },
+        },
         emptyWorkspace: {
             title: 'Create a workspace',
             subtitle: 'Workspaces are where you’ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more - all in one place.',
