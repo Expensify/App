@@ -6,25 +6,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const categoryOutOfPolicyViolation = {
     name: 'categoryOutOfPolicy',
     type: 'violation',
-    userMessage: '',
 };
 
 const missingCategoryViolation = {
     name: 'missingCategory',
     type: 'violation',
-    userMessage: '',
 };
 
 const tagOutOfPolicyViolation = {
     name: 'tagOutOfPolicy',
     type: 'violation',
-    userMessage: '',
 };
 
 const missingTagViolation = {
     name: 'missingTag',
     type: 'violation',
-    userMessage: '',
 };
 
 describe('getViolationsOnyxData', () => {
@@ -56,8 +52,8 @@ describe('getViolationsOnyxData', () => {
 
     it('should handle multiple violations', () => {
         transactionViolations = [
-            {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
-            {name: 'receiptRequired', type: 'violation', userMessage: ''},
+            {name: 'duplicatedTransaction', type: 'violation'},
+            {name: 'receiptRequired', type: 'violation'},
         ];
         const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
         expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
@@ -90,8 +86,8 @@ describe('getViolationsOnyxData', () => {
         it('should add categoryOutOfPolicy violation to existing violations if they exist', () => {
             transaction.category = 'Bananas';
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
-                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+                {name: 'duplicatedTransaction', type: 'violation'},
+                {name: 'receiptRequired', type: 'violation'},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
@@ -102,8 +98,8 @@ describe('getViolationsOnyxData', () => {
         it('should add missingCategory violation to existing violations if they exist', () => {
             transaction.category = undefined;
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
-                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+                {name: 'duplicatedTransaction', type: 'violation'},
+                {name: 'receiptRequired', type: 'violation'},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
@@ -171,8 +167,8 @@ describe('getViolationsOnyxData', () => {
         it('should add tagOutOfPolicy violation to existing violations if transaction has tag that is not in the policy', () => {
             transaction.tag = 'Bananas';
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
-                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+                {name: 'duplicatedTransaction', type: 'violation'},
+                {name: 'receiptRequired', type: 'violation'},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
@@ -183,8 +179,8 @@ describe('getViolationsOnyxData', () => {
         it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
             transaction.tag = undefined;
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation', userMessage: ''},
-                {name: 'receiptRequired', type: 'violation', userMessage: ''},
+                {name: 'duplicatedTransaction', type: 'violation'},
+                {name: 'receiptRequired', type: 'violation'},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
