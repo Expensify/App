@@ -162,6 +162,10 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
+
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
 };
