@@ -1,8 +1,8 @@
-const _ = require('underscore');
-const {computeProbability, computeZ} = require('./math');
-const {getStats} = require('../measure/math');
-const printToConsole = require('./output/console');
-const writeToMarkdown = require('./output/markdown');
+import _ from 'underscore';
+import getStats from '../measure/math';
+import * as math from './math';
+import printToConsole from './output/console';
+import writeToMarkdown from './output/markdown';
 
 /*
  * base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
@@ -36,8 +36,8 @@ function buildCompareEntry(name, compare, baseline) {
     const diff = compare.mean - baseline.mean;
     const relativeDurationDiff = diff / baseline.mean;
 
-    const z = computeZ(baseline.mean, baseline.stdev, compare.mean, compare.runs);
-    const prob = computeProbability(z);
+    const z = math.computeZ(baseline.mean, baseline.stdev, compare.mean, compare.runs);
+    const prob = math.computeProbability(z);
 
     const isDurationDiffOfSignificance = prob < PROBABILITY_CONSIDERED_SIGNIFICANCE && Math.abs(diff) >= DURATION_DIFF_THRESHOLD_SIGNIFICANCE;
 
@@ -106,8 +106,9 @@ function compareResults(compareEntries, baselineEntries) {
     };
 }
 
-module.exports = (main, delta, outputFile, outputFormat = 'all') => {
-    const outputData = compareResults(main, delta);
+export default (main, delta, outputFile, outputFormat = 'all') => {
+    // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
+    const outputData = compareResults(delta, main);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
         printToConsole(outputData);
