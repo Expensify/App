@@ -486,6 +486,8 @@ function ReportActionItem(props) {
                                             CONST.REPORT.ACTIONS.TYPE.IOU,
                                             CONST.REPORT.ACTIONS.TYPE.APPROVED,
                                             CONST.REPORT.ACTIONS.TYPE.MOVED,
+                                            CONST.REPORT.ACTIONS.TYPE.HOLD,
+                                            CONST.REPORT.ACTIONS.TYPE.UNHOLD,
                                         ],
                                         props.action.actionName,
                                     )
