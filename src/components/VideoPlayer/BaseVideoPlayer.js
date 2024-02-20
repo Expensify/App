@@ -6,6 +6,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -43,6 +44,7 @@ function BaseVideoPlayer({
     const {isSmallScreenWidth} = useWindowDimensions();
     const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
         usePlaybackContext();
+    const {playbackSpeed} = useVideoPopoverMenuContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -207,6 +209,7 @@ function BaseVideoPlayer({
                                             source={{
                                                 uri: sourceURL,
                                             }}
+                                            rate={playbackSpeed}
                                             shouldPlay={false}
                                             useNativeControls={false}
                                             resizeMode={resizeMode}
