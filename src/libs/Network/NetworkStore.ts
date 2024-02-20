@@ -5,7 +5,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 
 let credentials: Credentials | null = null;
 let authToken: string | null = null;
-let supportAuthToken: string | null = null;
+let authTokenType: string | null = null;
 let currentUserEmail: string | null = null;
 let offline = false;
 let authenticating = false;
@@ -51,7 +51,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = val?.authToken ?? null;
-        supportAuthToken = val?.supportAuthToken ?? null;
+        authTokenType = val?.authTokenType ?? null;
         currentUserEmail = val?.email ?? null;
         checkRequiredData();
     },
@@ -99,8 +99,8 @@ function isSupportRequest(command: string): boolean {
     return [READ_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT].some((cmd) => cmd === command);
 }
 
-function getSupportAuthToken(): string | null {
-    return supportAuthToken;
+function isSupportAuthToken(): boolean {
+    return authTokenType === 'support';
 }
 
 function setAuthToken(newAuthToken: string | null) {
@@ -135,6 +135,6 @@ export {
     setIsAuthenticating,
     getCredentials,
     checkRequiredData,
-    getSupportAuthToken,
+    isSupportAuthToken,
     isSupportRequest,
 };
