@@ -5,7 +5,7 @@ type ReportWithoutHasDraft = Omit<Report, 'hasDraft'>;
 
 export default function reportWithoutHasDraftSelector(report: OnyxEntry<Report>): OnyxEntry<ReportWithoutHasDraft> {
     if (!report) {
-        return report;
+        return null;
     }
     const {hasDraft, ...reportWithoutHasDraft} = report;
     return reportWithoutHasDraft;
