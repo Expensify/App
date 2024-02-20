@@ -81,12 +81,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const isRequestModifiable = !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
-    let canDeleteRequest = canModifyRequest;
-
-    if (ReportUtils.isPaidGroupPolicyExpenseReport(moneyRequestReport)) {
-        // If it's a paid policy expense report, only allow deleting the request if it's not submitted or the user is the policy admin
-        canDeleteRequest = canDeleteRequest && (ReportUtils.isDraftExpenseReport(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
-    }
 
     const changeMoneyRequestStatus = () => {
         if (isOnHold) {
@@ -98,12 +92,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     };
 
     useEffect(() => {
-        if (canDeleteRequest) {
+        if (canModifyRequest) {
             return;
         }
 
         setIsDeleteModalVisible(false);
-    }, [canDeleteRequest]);
+    }, [canModifyRequest]);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
     if (isRequestModifiable) {
@@ -165,13 +159,11 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     ),
             });
         }
-        if (canDeleteRequest) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                onSelected: () => setIsDeleteModalVisible(true),
-            });
-        }
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+            onSelected: () => setIsDeleteModalVisible(true),
+        });
     }
 
     return (
