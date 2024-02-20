@@ -7,6 +7,8 @@ import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -44,6 +46,8 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
                         accessibilityLabel={accessibilityLabel}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={onPress}
+                        onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={() => ControlSelection.unblock()}
                         onLongPress={(event) =>
                             showContextMenuForReport(event, anchor, (report && report.reportID) || '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))
                         }
