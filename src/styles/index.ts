@@ -843,6 +843,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        activeItemBadge: {
+            borderColor: theme.buttonHoveredBG,
+        },
+
         border: {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
