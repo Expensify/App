@@ -195,6 +195,19 @@ class BaseOptionsSelector extends Component {
         this.unSubscribeActiveElement();
     }
 
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
+    }
+
     /**
      * @param {Array<Object>} allOptions
      * @returns {Number}
@@ -259,19 +272,6 @@ class BaseOptionsSelector extends Component {
         });
 
         this.props.onChangeText(value);
-    }
-
-    handleFocusIn() {
-        const activeElement = document.activeElement;
-        this.setState({
-            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
-        });
-    }
-
-    handleFocusOut() {
-        this.setState({
-            disableEnterShortCut: false,
-        });
     }
 
     subscribeActiveElement() {

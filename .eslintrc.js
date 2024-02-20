@@ -89,7 +89,6 @@ module.exports = {
             rules: {
                 'react/no-unstable-nested-components': 'off',
                 'import/no-useless-path-segments': 'off',
-                'react/sort-comp': 'off',
 
                 'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
