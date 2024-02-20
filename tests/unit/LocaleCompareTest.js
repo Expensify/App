@@ -38,4 +38,14 @@ describe('localeCompare', () => {
 
         expect(result).toBe(0);
     });
+
+    it('distinguishes spanish diacritic characters', async () => {
+        await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
+
+        const input = ['zorro', 'árbol', 'jalapeño', 'jalapeno', 'nino', 'niño'];
+
+        input.sort(localeCompare);
+
+        expect(input).toEqual(['árbol', 'jalapeno', 'jalapeño', 'nino', 'niño', 'zorro']);
+    });
 });
