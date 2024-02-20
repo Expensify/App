@@ -13,6 +13,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -22,6 +23,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -38,7 +40,20 @@ const defaultProps = {
 const parser = new ExpensiMark();
 function TaskDescriptionPage(props) {
     const styles = useThemeStyles();
-    const validate = useCallback(() => ({}), []);
+
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        }
+
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {
@@ -102,8 +117,8 @@ function TaskDescriptionPage(props) {
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
-                            inputID="description"
-                            name="description"
+                            inputID={INPUT_IDS.DESCRIPTION}
+                            name={INPUT_IDS.DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                             defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
