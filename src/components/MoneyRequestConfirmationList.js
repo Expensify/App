@@ -25,6 +25,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +43,6 @@ import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
-import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
@@ -166,6 +166,10 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /* Onyx Props */
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
