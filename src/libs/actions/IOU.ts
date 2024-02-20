@@ -1140,8 +1140,7 @@ function getUpdateMoneyRequestParams(
                 ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
                 : {};
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction?.modifiedCurrency || updatedTransaction?.currency);
+        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
