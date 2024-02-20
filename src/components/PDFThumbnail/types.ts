@@ -11,7 +11,10 @@ type PDFThumbnailProps = {
     isAuthTokenRequired?: boolean;
 
     /** Whether need to skip loading password protected PDF */
-    skipLoadingProtectedPDF?: (() => void) | boolean;
+    shouldLoadPDFThumbnail?: boolean;
+
+    /** Callback to call if PDF is password protected */
+    onPasswordCallback?: () => void;
 };
 
 export default PDFThumbnailProps;

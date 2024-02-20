@@ -14,7 +14,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     ).toString();
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, skipLoadingProtectedPDF = false}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, shouldLoadPDFThumbnail = true, onPasswordCallback = () => {}}: PDFThumbnailProps) {
     const styles = useThemeStyles();
 
     const thumbnail = useMemo(
@@ -28,23 +28,18 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ski
                 }}
                 externalLinkTarget="_blank"
                 onPassword={() => {
-                    if (typeof skipLoadingProtectedPDF !== 'function') {
-                        return;
-                    }
-                    skipLoadingProtectedPDF();
+                    onPasswordCallback();
                 }}
             >
                 <Thumbnail pageIndex={0} />
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, skipLoadingProtectedPDF],
+        [isAuthTokenRequired, previewSourceURL, onPasswordCallback],
     );
 
     return (
         <View style={[style, styles.overflowHidden]}>
-            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                {!(typeof skipLoadingProtectedPDF === 'boolean' && skipLoadingProtectedPDF) && thumbnail}
-            </View>
+            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>{shouldLoadPDFThumbnail && thumbnail}</View>
         </View>
     );
 }

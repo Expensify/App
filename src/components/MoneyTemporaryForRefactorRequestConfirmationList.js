@@ -864,7 +864,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     previewSourceURL={receiptImage}
                     style={styles.moneyRequestImage}
                     // We don't support scaning password protected PDF receipt
-                    skipLoadingProtectedPDF={isAttachmentInvalid ? true : () => setIsAttachmentInvalid(true)}
+                    shouldLoadPDFThumbnail={!isAttachmentInvalid}
+                    onPasswordCallback={() => setIsAttachmentInvalid(true)}
                 />
             ) : (
                 <Image
