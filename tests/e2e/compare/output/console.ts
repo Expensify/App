@@ -16,7 +16,7 @@ const printRegularLine = (entry: Entry) => {
 /**
  * Prints the result simply to console.
  */
-export default (data:: Data) => {
+export default (data: Data) => {
     // No need to log errors or warnings as these were be logged on the fly
     console.debug('');
     console.debug('❇️  Performance comparison results:');
@@ -29,5 +29,3 @@ export default (data:: Data) => {
 
     console.debug('');
 };
-
-export default consoleMock;
