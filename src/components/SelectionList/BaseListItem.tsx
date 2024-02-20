@@ -25,13 +25,13 @@ function BaseListItem<TItem extends ListItem>({
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
+    ListItem,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isUserItem = 'icons' in item && item?.icons?.length && item.icons.length > 0;
-    const ListItem = isUserItem ? UserListItem : RadioListItem;
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {

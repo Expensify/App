@@ -1,5 +1,14 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {JSXElementConstructor, ReactElement, ReactNode} from 'react';
+import type {
+    GestureResponderEvent,
+    InputModeOptions,
+    LayoutChangeEvent,
+    SectionListData,
+    SectionListRenderItemInfo,
+    StyleProp,
+    TextStyle,
+    ViewStyle
+} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -93,6 +102,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
+    ListItem: JSXElementConstructor<ListItemProps>;
 };
 
 type Section<TItem extends ListItem> = {
@@ -115,6 +125,9 @@ type Section<TItem extends ListItem> = {
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListData<TItem, Section<TItem>>>;
+
+    /** Default renderer for every item in the list */
+    renderItem: () => JSXElementConstructor<ListItemProps>;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;

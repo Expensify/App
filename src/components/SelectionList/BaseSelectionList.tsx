@@ -28,6 +28,7 @@ import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsRet
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
+        renderItem,
         canSelectMultiple = false,
         onSelectRow,
         onSelectAll,
@@ -271,7 +272,7 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
+    const getRenderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
         const indexOffset = section.indexOffset ? section.indexOffset : 0;
         const normalizedIndex = index + indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -291,6 +292,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                ListItem={renderItem()}
             />
         );
     };
@@ -453,7 +455,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     sections={sections}
                                     stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
-                                    renderItem={renderItem}
+                                    renderItem={getRenderItem}
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
