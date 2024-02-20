@@ -120,11 +120,11 @@ function MoneyRequestView({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-
+    const taxRates = policy?.taxRates;
     const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
 
-    const policyTaxRatesDescription = policyTaxRates?.name;
-    const taxRateTitle = (transactionTaxCode && policyTaxRates && TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode)) ?? '';
+    const policyTaxRatesDescription = taxRates?.name;
+    const taxRateTitle = (transactionTaxCode && taxRates && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode)) ?? '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
