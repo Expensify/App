@@ -135,8 +135,7 @@ function ReportActionItemFragment({
             if (isHoldReportAction) {
                 return (
                     <Text
-                        numberOfLines={isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessage]}
+                        style={[styles.colorMuted]}
                     >
                         {isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}
                     </Text>
