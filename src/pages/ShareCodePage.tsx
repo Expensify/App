@@ -37,7 +37,6 @@ function ShareCodePage({report}: ShareCodePageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
@@ -69,10 +68,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
     const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
     return (
-        <ScreenWrapper
-            testID={ShareCodePage.displayName}
-            shouldShowOfflineIndicatorInWideScreen={!isReport}
-        >
+        <ScreenWrapper testID={ShareCodePage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : undefined)}
