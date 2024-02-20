@@ -79,7 +79,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
                 shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
-                <View style={[themeStyles.workspaceSectionMobile, themeStyles.mh5]}>
+                <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
                     <QRShareWithDownload
                         ref={qrCodeRef}
                         url={url}
@@ -100,7 +100,6 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         successText={translate('qrCodes.copied')}
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
-                        wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                     />
 
                     {isNative && (
@@ -110,7 +109,6 @@ function ShareCodePage({report}: ShareCodePageProps) {
                             icon={Expensicons.Download}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
-                            wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                         />
                     )}
 
@@ -118,7 +116,6 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
                         icon={Expensicons.Cash}
                         onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRouteWithoutParams()))}
-                        wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                         shouldShowRightIcon
                     />
                 </View>
