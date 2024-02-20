@@ -133,13 +133,7 @@ function ReportActionItemFragment({
             }
 
             if (isHoldReportAction) {
-                return (
-                    <Text
-                        style={[styles.colorMuted]}
-                    >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}
-                    </Text>
-                );
+                return <Text style={[styles.colorMuted]}>{isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}</Text>;
             }
 
             return (
