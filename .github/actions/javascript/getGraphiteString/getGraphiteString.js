@@ -17,10 +17,11 @@ const run = () => {
 
     const creationDate = regressionOutput.metadata.current.creationDate;
     const timestampInMili = new Date(creationDate).getTime();
+    
     // Graphite accepts timestamp in seconds
     const timestamp = Math.floor(timestampInMili / 1000);
 
-    // get PR number from the github context
+    // Get PR number from the github context
     const prNumber = github.context.payload.pull_request.number;
 
     // We need to combine all tests from the 4 buckets
