@@ -3529,7 +3529,7 @@ function buildOptimisticHoldReportAction(comment: string, created = DateUtils.ge
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: `held this money request with the comment: ${comment}`,
+                text: Localize.translateLocal('iou.heldRequest', {comment}),
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -3564,7 +3564,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: `unheld this money request`,
+                text: Localize.translateLocal('iou.unheldRequest'),
             },
         ],
         person: [
