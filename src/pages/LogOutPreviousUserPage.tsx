@@ -32,7 +32,7 @@ function LogOutPreviousUserPage({session, route}: LogOutPreviousUserPageProps) {
                 SessionActions.signOutAndRedirectToSignIn();
             }
 
-            if (route.params.supportAuthToken !== "") {
+            if (route.params.supportAuthToken !== '') {
                 SessionActions.signInWithSupportAuthToken(route.params.supportAuthToken);
                 return;
             }
