@@ -5,7 +5,6 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, Report, ReportMetadata} from '@src/types/onyx';
 import type {ReportScreenWrapperProps} from './ReportScreenWrapper';
