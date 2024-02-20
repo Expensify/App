@@ -5,11 +5,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
-import * as ReportUtils from '@libs/ReportUtils';
 
 const propTypes = {
     onPress: PropTypes.func.isRequired,
@@ -39,27 +39,26 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
             )}
             <ShowContextMenuContext.Consumer>
                 {({anchor, report, action, checkIfContextMenuActive}) => (
-                <PressableWithoutFeedback
-                    style={[styles.videoThumbnailContainer]}
-                    accessibilityLabel={accessibilityLabel}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    onPress={onPress}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                >
-                    <View style={[styles.videoThumbnailPlayButton]}>
-                        <Icon
-                            src={Expensicons.Play}
-                            fill="white"
-                            width={variables.iconSizeXLarge}
-                            height={variables.iconSizeXLarge}
-                            additionalStyles={[styles.ml1]}
-                        />
-                    </View>
-                </PressableWithoutFeedback>
+                    <PressableWithoutFeedback
+                        style={[styles.videoThumbnailContainer]}
+                        accessibilityLabel={accessibilityLabel}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        onPress={onPress}
+                        onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    >
+                        <View style={[styles.videoThumbnailPlayButton]}>
+                            <Icon
+                                src={Expensicons.Play}
+                                fill="white"
+                                width={variables.iconSizeXLarge}
+                                height={variables.iconSizeXLarge}
+                                additionalStyles={[styles.ml1]}
+                            />
+                        </View>
+                    </PressableWithoutFeedback>
                 )}
             </ShowContextMenuContext.Consumer>
         </View>
-            
     );
 }
 
