@@ -5,6 +5,7 @@ type SplitBillParams = {
     comment: string;
     currency: string;
     merchant: string;
+    created: string;
     category: string;
     tag: string;
     billable: boolean;
