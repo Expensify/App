@@ -2,6 +2,8 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CategoryPicker from '@components/CategoryPicker';
 import categoryPropTypes from '@components/categoryPropTypes';
 import tagPropTypes from '@components/tagPropTypes';
@@ -11,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
@@ -72,6 +75,9 @@ function IOURequestStepCategory({
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill ? splitDraftTransaction : transaction);
 
+    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
+    const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -100,6 +106,10 @@ function IOURequestStepCategory({
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
         navigateBack();
     };
+
+    if (!shouldShowCategories) {
+        return <FullPageNotFoundView shouldShow />;
+    }
 
     return (
         <StepScreenWrapper
