@@ -89,9 +89,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
 
-    useEffect(() => {
-        SearchInputManager.searchInput = '';
-    }, []);
+    useEffect(
+        () => () => {
+            SearchInputManager.searchInput = '';
+        },
+        [],
+    );
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -152,6 +155,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
                 return res?.accountID ?? id;
             });
+            // This is an equivalent of the lodash intersection function. The reduce method below is used to filter the items that exist in both arrays.
             return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails))].reduce((prev, members) =>
                 prev.filter((item) => members.includes(item)),
             );
