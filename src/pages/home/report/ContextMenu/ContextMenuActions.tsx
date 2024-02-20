@@ -281,11 +281,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
             const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
-            const isReportPreviewAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
-            const isIOUAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
-            return !subscribed && !isWhisperAction && (isCommentAction || isReportPreviewAction || isIOUAction) && (!isDeletedAction || shouldDisplayThreadReplies);
+            return !subscribed && !isWhisperAction && isCommentAction && (!isDeletedAction || shouldDisplayThreadReplies);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
@@ -356,8 +353,21 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
+                } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
+                    const {expenseReportID} = reportAction.originalMessage;
+                    const expenseReport = ReportUtils.getReport(expenseReportID);
+                    const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
+                    Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    const displayMessage = ReportUtils.getReportPreviewMessage(
+                        ReportUtils.getReport(ReportUtils.getOriginalReportID(reportID, reportAction)),
+                        reportAction,
+                        false,
+                        false,
+                        null,
+                        false,
+                        true,
+                    );
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
@@ -367,6 +377,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(logMessage);
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, ReportUtils.getReport(reportID) as OnyxEntry<ReportType>, false));
+                } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
+                    const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
+                    setClipboardMessage(mentionWhisperMessage);
                 } else if (content) {
                     setClipboardMessage(content);
                 } else if (messageText) {
