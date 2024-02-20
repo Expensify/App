@@ -90,7 +90,6 @@ module.exports = {
                 'react/no-unstable-nested-components': 'off',
                 'import/no-useless-path-segments': 'off',
                 'react/sort-comp': 'off',
-                'default-param-last': 'off',
 
                 'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
