@@ -29,7 +29,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
     const thumbnail = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const thumbnailSource = tryResolveUrlFromApiRoot((thumbnail as string) || '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
     const sortedWaypoints = useMemo<WaypointCollection>(
         () =>
