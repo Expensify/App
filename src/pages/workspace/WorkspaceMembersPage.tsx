@@ -10,10 +10,12 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import type {User} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -35,7 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMember, PolicyMembers} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
@@ -45,6 +47,8 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 type WorkspaceMembersPageOnyxProps = {
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<Session>;
 };
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
@@ -61,7 +65,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
     return inverted;
 }
 
-type MemberOption = Omit<User, 'accountID'> & {accountID: number};
+type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
@@ -173,6 +177,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Remove selected users from the workspace
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         if (!isEmptyObject(errors)) {
@@ -363,7 +368,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             });
         });
 
-        result = result.sort((a, b) => a.text.localeCompare(b.text.toLowerCase()));
+        result = result.sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase()));
 
         return result;
     };
@@ -390,6 +395,30 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             />
         );
     };
+
+    const getHeaderButtons = () => (
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <Button
+                medium
+                success
+                onPress={inviteUser}
+                text={translate('workspace.invite.member')}
+                icon={Expensicons.Plus}
+                iconStyles={{transform: [{scale: 0.6}]}}
+                innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
+                style={[isSmallScreenWidth && styles.flexGrow1]}
+            />
+            <Button
+                medium
+                danger
+                style={[styles.ml2, isSmallScreenWidth && styles.w50]}
+                isDisabled={selectedEmployees.length === 0}
+                text={translate('common.remove')}
+                onPress={askForConfirmationToRemove}
+            />
+        </View>
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -404,13 +433,17 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
+                    icon={Illustrations.ReceiptWrangler}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack();
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                />
+                >
+                    {!isSmallScreenWidth && getHeaderButtons()}
+                </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     danger
                     title={translate('workspace.people.removeMembersTitle')}
@@ -429,45 +462,27 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                         });
                     }}
                 />
-                <View style={[styles.w100, styles.flex1, styles.mt3]}>
-                    <View style={[styles.w100, styles.flexRow, styles.ph5]}>
-                        <Button
-                            medium
-                            success
-                            text={translate('common.invite')}
-                            onPress={inviteUser}
-                        />
-                        <Button
-                            medium
-                            danger
-                            style={[styles.ml2]}
-                            isDisabled={selectedEmployees.length === 0}
-                            text={translate('common.remove')}
-                            onPress={askForConfirmationToRemove}
-                        />
-                    </View>
-                    <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data, indexOffset: 0, isDisabled: false}]}
-                            textInputLabel={translate('optionsSelector.findMember')}
-                            textInputValue={searchValue}
-                            onChangeText={(value) => {
-                                SearchInputManager.searchInput = value;
-                                setSearchValue(value);
-                            }}
-                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                            headerMessage={getHeaderMessage()}
-                            headerContent={getHeaderContent()}
-                            onSelectRow={(item) => toggleUser(item.accountID)}
-                            onSelectAll={() => toggleAllUsers(data)}
-                            onDismissError={dismissError}
-                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
-                            showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            ref={textInputRef}
-                        />
-                    </View>
+                <View style={[styles.w100, styles.flex1]}>
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        textInputLabel={translate('optionsSelector.findMember')}
+                        textInputValue={searchValue}
+                        onChangeText={(value) => {
+                            SearchInputManager.searchInput = value;
+                            setSearchValue(value);
+                        }}
+                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                        headerMessage={getHeaderMessage()}
+                        headerContent={getHeaderContent()}
+                        onSelectRow={(item) => toggleUser(item.accountID)}
+                        onSelectAll={() => toggleAllUsers(data)}
+                        onDismissError={dismissError}
+                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
+                        showScrollIndicator
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        ref={textInputRef}
+                    />
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -481,6 +496,9 @@ export default withCurrentUserPersonalDetails(
         withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
             personalDetails: {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+            session: {
+                key: ONYXKEYS.SESSION,
             },
         })(WorkspaceMembersPage),
     ),
