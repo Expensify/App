@@ -143,6 +143,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
             includeSafeAreaPaddingBottom={false}
             testID={SearchPage.displayName}
             onEntryTransitionEnd={handleScreenTransitionEnd}
+            shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
