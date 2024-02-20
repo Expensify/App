@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CategoryPicker from '@components/CategoryPicker';
 import categoryPropTypes from '@components/categoryPropTypes';
 import tagPropTypes from '@components/tagPropTypes';
@@ -107,15 +106,12 @@ function IOURequestStepCategory({
         navigateBack();
     };
 
-    if (!shouldShowCategories) {
-        return <FullPageNotFoundView shouldShow />;
-    }
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.category')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
+            shouldShowNotFoundPage={!shouldShowCategories}
             testID={IOURequestStepCategory.displayName}
         >
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
