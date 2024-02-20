@@ -102,7 +102,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
-    ListItem: JSXElementConstructor<ListItemProps>;
+    children: (hovered: boolean) => ReactElement<ListItemProps>;
 };
 
 type Section<TItem extends ListItem> = {

@@ -279,6 +279,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
+        const ListItem = renderItem();
 
         return (
             <BaseListItem
@@ -292,8 +293,26 @@ function BaseSelectionList<TItem extends ListItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
-                ListItem={renderItem()}
-            />
+            >
+                {(hovered) => (
+                    <ListItem
+                        item={item}
+                        textStyles={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkTextBold,
+                            styles.pre,
+                            item.alternateText ? styles.mb1 : null,
+                        ]}
+                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        isDisabled={isDisabled}
+                        onSelectRow={() => onSelectRow(item)}
+                        showTooltip={showTooltip}
+                        isFocused={isFocused}
+                        isHovered={hovered}
+                    />
+                )}
+            </BaseListItem>
         );
     };
 

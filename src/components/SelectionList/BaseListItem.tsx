@@ -10,9 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import RadioListItem from './RadioListItem';
 import type {BaseListItemProps, ListItem} from './types';
-import UserListItem from './UserListItem';
 
 function BaseListItem<TItem extends ListItem>({
     item,
@@ -25,7 +23,7 @@ function BaseListItem<TItem extends ListItem>({
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
-    ListItem,
+    children,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -102,22 +100,7 @@ function BaseListItem<TItem extends ListItem>({
                                 </View>
                             )}
 
-                            <ListItem
-                                item={item}
-                                textStyles={[
-                                    styles.optionDisplayName,
-                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                    styles.sidebarLinkTextBold,
-                                    styles.pre,
-                                    item.alternateText ? styles.mb1 : null,
-                                ]}
-                                alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                isDisabled={isDisabled}
-                                onSelectRow={() => onSelectRow(item)}
-                                showTooltip={showTooltip}
-                                isFocused={isFocused}
-                                isHovered={hovered}
-                            />
+                            {children(hovered)}
 
                             {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                                 <View
