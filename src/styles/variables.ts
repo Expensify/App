@@ -156,7 +156,8 @@ export default {
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
     popoverWidth: 375,
-    addPaymentPopoverTopSpacing: 8,
+    bankAccountActionPopoverRightSpacing: 32,
+    bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
     anonymousReportFooterBreakpoint: 650,
     dropDownButtonDividerHeight: 28,
@@ -187,12 +188,13 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
+    popoverzIndex: 10000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
     oldDotWireframeIconWidth: 263.38,
     oldDotWireframeIconHeight: 143.28,
-    sectionIllustrationHeight: 240,
+    sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
@@ -214,4 +216,5 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
+    workspaceProfileName: 20,
 } as const;
