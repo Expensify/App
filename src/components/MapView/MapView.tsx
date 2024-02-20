@@ -30,7 +30,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [isIdle, setIsIdle] = useState(false);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
-        const hasAskedForLocationPermission = useRef(false);
+        const shouldInitializeCurrentPosition = useRef(true);
 
         // Determines if map can be panned to user's detected
         // location without bothering the user. It will return
@@ -52,16 +52,17 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
-                if (hasAskedForLocationPermission.current) {
+                if (!shouldInitializeCurrentPosition.current) {
                     return;
                 }
 
+                shouldInitializeCurrentPosition.current = true;
+                
                 if (!shouldPanMapToCurrentPosition()) {
                     setCurrentPositionToInitialState();
                     return;
                 }
 
-                hasAskedForLocationPermission.current = true;
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
                     setCurrentPosition(currentCoords);

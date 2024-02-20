@@ -53,7 +53,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
-        const hasAskedForLocationPermission = useRef(false);
+        const shouldInitializeCurrentPosition = useRef(true);
 
         // Determines if map can be panned to user's detected
         // location without bothering the user. It will return
@@ -75,16 +75,17 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
-                if (hasAskedForLocationPermission.current) {
+                if (!shouldInitializeCurrentPosition.current) {
                     return;
                 }
+
+                shouldInitializeCurrentPosition.current = false;
 
                 if (!shouldPanMapToCurrentPosition()) {
                     setCurrentPositionToInitialState();
                     return;
                 }
 
-                hasAskedForLocationPermission.current = true;
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
                     setCurrentPosition(currentCoords);
