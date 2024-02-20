@@ -36,6 +36,18 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
+    const getMarkerComponent = useCallback(
+        (icon: IconAsset): ReactNode => (
+            <ImageSVG
+                src={icon}
+                width={CONST.MAP_MARKER_SIZE}
+                height={CONST.MAP_MARKER_SIZE}
+                fill={theme.icon}
+            />
+        ),
+        [theme],
+    );
+
     const getWaypointMarkers = useCallback(
         (waypointsData: WaypointCollection): WayPoint[] => {
             const numberOfWaypoints = Object.keys(waypointsData).length;
@@ -60,19 +72,12 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                     return {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat] as const,
-                        markerComponent: (): ReactNode => (
-                            <ImageSVG
-                                src={MarkerComponent}
-                                width={CONST.MAP_MARKER_SIZE}
-                                height={CONST.MAP_MARKER_SIZE}
-                                fill={theme.icon}
-                            />
-                        ),
+                        markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
                     };
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint);
         },
-        [theme],
+        [getMarkerComponent],
     );
 
     const waypointMarkers = getWaypointMarkers(waypoints);

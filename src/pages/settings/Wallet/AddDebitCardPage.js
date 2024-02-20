@@ -35,6 +35,17 @@ const defaultProps = {
     },
 };
 
+function IAcceptTheLabel() {
+    const {translate} = useLocalize();
+
+    return (
+        <Text>
+            {`${translate('common.iAcceptThe')}`}
+            <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
+        </Text>
+    );
+}
+
 function DebitCardPage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -193,12 +204,7 @@ function DebitCardPage(props) {
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID={INPUT_IDS.ACCEPT_TERMS}
                     defaultValue={false}
-                    LabelComponent={() => (
-                        <Text>
-                            {`${translate('common.iAcceptThe')}`}
-                            <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
-                        </Text>
-                    )}
+                    LabelComponent={IAcceptTheLabel}
                     style={[styles.mt4]}
                 />
             </FormProvider>

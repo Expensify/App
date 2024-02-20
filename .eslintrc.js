@@ -87,8 +87,6 @@ module.exports = {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             plugins: ['react'],
             rules: {
-                'react/no-unstable-nested-components': 'off',
-
                 'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',

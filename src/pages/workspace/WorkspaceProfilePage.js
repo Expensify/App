@@ -54,6 +54,23 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
+function DefaultAvatar(policy) {
+    const styles = useThemeStyles();
+    const policyName = lodashGet(policy, 'name', '');
+
+    return (
+        <Avatar
+            containerStyles={styles.avatarXLarge}
+            imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+            source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+            size={CONST.AVATAR_SIZE.XLARGE}
+            name={policyName}
+            type={CONST.ICON_TYPE_WORKSPACE}
+        />
+    );
+}
+
 function WorkspaceProfilePage({policy, currencyList, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -96,17 +113,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 avatarStyle={styles.avatarXLarge}
                                 enablePreview
-                                DefaultAvatar={() => (
-                                    <Avatar
-                                        containerStyles={styles.avatarXLarge}
-                                        imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                                        source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
-                                        name={policyName}
-                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                    />
-                                )}
+                                DefaultAvatar={DefaultAvatar}
                                 type={CONST.ICON_TYPE_WORKSPACE}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[styles.mb3, styles.mtn17, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
