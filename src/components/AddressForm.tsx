@@ -11,11 +11,12 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type {OnyxFormValuesFields} from './Form/types';
+import type {FormOnyxValues} from './Form/types';
 import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
@@ -90,7 +91,7 @@ function AddressForm({
      * @returns - An object containing the errors for each inputID
      */
 
-    const validator = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): Errors => {
+    const validator = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): Errors => {
         const errors: Errors & {
             zipPostCode?: string | string[];
         } = {};
@@ -128,7 +129,7 @@ function AddressForm({
 
         ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
 
-        if (countrySpecificZipRegex) {
+        if (countrySpecificZipRegex && values.zipPostCode) {
             if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
                 if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
                     errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
@@ -136,7 +137,7 @@ function AddressForm({
                     errors.zipPostCode = 'common.error.fieldRequired';
                 }
             }
-        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
+        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
             errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
         }
 
@@ -155,7 +156,7 @@ function AddressForm({
             <View>
                 <InputWrapper
                     InputComponent={AddressSearch}
-                    inputID="addressLine1"
+                    inputID={INPUT_IDS.ADDRESS_LINE_1}
                     label={translate('common.addressLine', {lineNumber: 1})}
                     onValueChange={(data: unknown, key: string) => {
                         onAddressChanged(data, key);
@@ -164,12 +165,12 @@ function AddressForm({
                     }}
                     defaultValue={street1}
                     renamedInputKeys={{
-                        street: 'addressLine1',
-                        street2: 'addressLine2',
-                        city: 'city',
-                        state: 'state',
-                        zipCode: 'zipPostCode',
-                        country: 'country',
+                        street: INPUT_IDS.ADDRESS_LINE_1,
+                        street2: INPUT_IDS.ADDRESS_LINE_2,
+                        city: INPUT_IDS.CITY,
+                        state: INPUT_IDS.STATE,
+                        zipCode: INPUT_IDS.ZIP_POST_CODE,
+                        country: INPUT_IDS.COUNTRY,
                     }}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     shouldSaveDraft={shouldSaveDraft}
@@ -178,7 +179,7 @@ function AddressForm({
             <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="addressLine2"
+                inputID={INPUT_IDS.ADDRESS_LINE_2}
                 label={translate('common.addressLine', {lineNumber: 2})}
                 aria-label={translate('common.addressLine', {lineNumber: 2})}
                 role={CONST.ROLE.PRESENTATION}
@@ -191,7 +192,7 @@ function AddressForm({
             <View style={styles.mhn5}>
                 <InputWrapper
                     InputComponent={CountrySelector}
-                    inputID="country"
+                    inputID={INPUT_IDS.COUNTRY}
                     value={country}
                     shouldSaveDraft={shouldSaveDraft}
                 />
@@ -201,7 +202,7 @@ function AddressForm({
                 <View style={styles.mhn5}>
                     <InputWrapper
                         InputComponent={StatePicker}
-                        inputID="state"
+                        inputID={INPUT_IDS.STATE}
                         defaultValue={state}
                         onValueChange={onAddressChanged}
                         shouldSaveDraft={shouldSaveDraft}
@@ -210,7 +211,7 @@ function AddressForm({
             ) : (
                 <InputWrapper
                     InputComponent={TextInput}
-                    inputID="state"
+                    inputID={INPUT_IDS.STATE}
                     label={translate('common.stateOrProvince')}
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ROLE.PRESENTATION}
@@ -224,7 +225,7 @@ function AddressForm({
             <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="city"
+                inputID={INPUT_IDS.CITY}
                 label={translate('common.city')}
                 aria-label={translate('common.city')}
                 role={CONST.ROLE.PRESENTATION}
@@ -237,7 +238,7 @@ function AddressForm({
             <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="zipPostCode"
+                inputID={INPUT_IDS.ZIP_POST_CODE}
                 label={translate('common.zipPostCode')}
                 aria-label={translate('common.zipPostCode')}
                 role={CONST.ROLE.PRESENTATION}
