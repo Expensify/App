@@ -126,7 +126,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
                 listWrapperStyle={[
                     listStyle,
                     {
-                        width: windowWidth,
+                        width: Math.floor(windowWidth),
                     },
                 ]}
                 ref={emojiListRef}

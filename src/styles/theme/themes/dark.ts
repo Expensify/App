@@ -83,9 +83,10 @@ const darkTheme = {
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
-    loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
     white: colors.white,
+    videoPlayerBG: `${colors.productDark100}cc`,
+    transparentWhite: `${colors.white}51`,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.

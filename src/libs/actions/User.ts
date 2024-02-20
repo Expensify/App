@@ -678,13 +678,11 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
         },
     ];
 
-    if (autoSwitchedToFocusMode) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
-            value: true,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
+        value: true,
+    });
 
     const parameters: UpdateChatPriorityModeParams = {
         value: mode,

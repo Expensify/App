@@ -42,6 +42,7 @@ type Message = {
     /** Fragment edited flag */
     isEdited?: boolean;
 
+    /** Whether thread's parent message is deleted or not */
     isDeletedParentAction?: boolean;
 
     /** Whether the pending transaction was reversed and didn't post to the card */
