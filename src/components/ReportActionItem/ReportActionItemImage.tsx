@@ -5,6 +5,7 @@ import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import type {IconSize} from '@components/EReceiptThumbnail';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
@@ -13,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
@@ -29,7 +31,7 @@ type ReportActionItemImageProps = {
     /** URI for the image or local numeric reference for the image  */
     image?: string;
 
-    /** whether or not to enable the image preview modal */
+    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
@@ -44,8 +46,8 @@ type ReportActionItemImageProps = {
     /** Filename of attachment */
     filename?: string;
 
-    /** number of images displayed in the same parent container */
-    iconSize?: IconSize;
+    /** Whether there are other images displayed in the same parent container */
+    isSingleImage?: boolean;
 };
 
 /**
@@ -64,7 +66,7 @@ function ReportActionItemImage({
     isLocalFile = false,
     fileExtension,
     filename,
-    iconSize = 'large',
+    isSingleImage = true,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,9 +77,14 @@ function ReportActionItemImage({
     let propsObj: ReceiptImageProps;
 
     if (isEReceipt) {
-        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: iconSize as IconSize};
+        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
     } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource)) {
-        propsObj = {shouldUseThumbnailImage: true, source: thumbnailSource};
+        propsObj = {
+            shouldUseThumbnailImage: true,
+            source: thumbnailSource,
+            fallbackIcon: Expensicons.Receipt,
+            fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
+        };
     } else {
         propsObj = {isThumbnail, fileExtension, transactionID: transaction?.transactionID, source: thumbnail ?? image ?? ''};
     }
