@@ -466,6 +466,10 @@ function ReportActionItem(props) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
+        } else if (props.action.actionName === 'HOLD') {
+            children = <ReportActionItemBasicMessage message={props.translate('iou.heldRequest', props.action.message[1].text)} />;
+        } else if (props.action.actionName === 'UNHOLD') {
+            children = <ReportActionItemBasicMessage message={props.translate('iou.unheldRequest')} />;
         } else {
             const hasBeenFlagged =
                 !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision) &&

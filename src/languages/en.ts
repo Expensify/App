@@ -668,6 +668,8 @@ export default {
         hold: 'Hold',
         holdRequest: 'Hold Request',
         unholdRequest: 'Unhold Request',
+        heldRequest: (comment) => `held this money request with the comment: ${comment}`,
+        unheldRequest: 'unheld this money request',
         explainHold: "Explain why you're holding this request.",
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',

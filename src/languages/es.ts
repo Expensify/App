@@ -662,6 +662,8 @@ export default {
         enableWallet: 'Habilitar Billetera',
         holdRequest: 'Bloquear solicitud de dinero',
         unholdRequest: 'Desbloquear solicitud de dinero',
+        heldRequest: (comment) => `celebró esta solicitud de dinero con el comentario: ${comment}`,
+        unheldRequest: 'esta solicitud de dinero no retenida',
         explainHold: 'Explica la razón para bloquear esta solicitud.',
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
