@@ -56,7 +56,6 @@ function MoneyRequestPreviewContent({
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
-    optimisticFlowStatus = '',
     transactionViolations,
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
@@ -87,15 +86,16 @@ function MoneyRequestPreviewContent({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isPartialOnHold = optimisticFlowStatus === CONST.REPORT.OPTIMISTIC_FLOW_STATUS.PARTIAL && isOnHold;
+    const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
+    const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction, transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
-    const shouldShowRBR = hasViolations || hasFieldErrors || isPartialOnHold;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const shouldShowRBR = hasViolations || hasFieldErrors || (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold);
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -157,13 +157,13 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
                 message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
             }
-        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport) && !isPartialOnHold) {
+        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport) && !isPartialHold) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
-        } else if (isOnHold && optimisticFlowStatus !== CONST.REPORT.OPTIMISTIC_FLOW_STATUS.FULL) {
+        } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
             message += ` • ${translate('iou.hold')}`;
         }
         return message;
@@ -224,7 +224,7 @@ function MoneyRequestPreviewContent({
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU && !isPartialOnHold ? ` • ${getSettledMessage()}` : '')}
+                                    {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU && !isPartialHold ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
                                 {!isSettled && shouldShowRBR && (
                                     <Icon
@@ -245,7 +245,7 @@ function MoneyRequestPreviewContent({
                                     >
                                         {displayAmount}
                                     </Text>
-                                    {ReportUtils.isSettled(iouReport?.reportID) && !isPartialOnHold && !isBillSplit && (
+                                    {ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
                                                 src={Expensicons.Checkmark}
@@ -310,7 +310,7 @@ function MoneyRequestPreviewContent({
                 styles.moneyRequestPreviewBox,
                 containerStyles,
                 shouldDisableOnPress && styles.cursorDefault,
-                (isSettled || ReportUtils.isReportApproved(iouReport)) && optimisticFlowStatus === CONST.REPORT.OPTIMISTIC_FLOW_STATUS.PARTIAL && styles.offlineFeedback.pending,
+                (isSettled || ReportUtils.isReportApproved(iouReport)) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
             ]}
         >
             {childContainer}

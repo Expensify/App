@@ -98,7 +98,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport.reportID);
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport);
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
@@ -170,7 +170,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
-                            formattedAmount={formattedAmount}
+                            formattedAmount={ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount}
                             isDisabled={!canAllowSettlement}
                         />
                     </View>
@@ -201,7 +201,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
-                            formattedAmount={formattedAmount}
+                            formattedAmount={ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount}
                             isDisabled={!canAllowSettlement}
                         />
                     </View>

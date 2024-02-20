@@ -83,7 +83,6 @@ function MoneyRequestAction({
     const {isOffline} = useNetwork();
 
     const isSplitBillAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
-    const optimisticFlowStatus = iouReport?.optimisticFlowStatus ?? undefined;
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
@@ -135,7 +134,6 @@ function MoneyRequestAction({
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
             isHovered={isHovered}
             isWhisper={isWhisper}
-            optimisticFlowStatus={optimisticFlowStatus}
         />
     );
 }

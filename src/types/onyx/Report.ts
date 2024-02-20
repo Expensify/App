@@ -131,6 +131,7 @@ type Report = {
     participantAccountIDs?: number[];
     visibleChatMemberAccountIDs?: number[];
     total?: number;
+    unheldTotal?: number;
     currency?: string;
     errors?: OnyxCommon.Errors;
     managerEmail?: string;
@@ -174,9 +175,6 @@ type Report = {
 
     /** If the report contains reportFields, save the field id and its value */
     reportFields?: Record<string, PolicyReportField>;
-
-    /** Optimistic status used for handling of partial payment/approval flow in offline */
-    optimisticFlowStatus?: ValueOf<typeof CONST.REPORT.OPTIMISTIC_FLOW_STATUS>;
 };
 
 export default Report;

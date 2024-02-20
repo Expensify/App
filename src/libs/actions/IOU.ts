@@ -3330,7 +3330,6 @@ function getPayMoneyRequestParams(
                 iouReportID: null,
                 lastMessageText: optimisticIOUReportAction.message?.[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
-                optimisticFlowStatus: CONST.REPORT.OPTIMISTIC_FLOW_STATUS[full ? 'FULL' : 'PARTIAL'],
             },
         },
         {
@@ -3355,6 +3354,7 @@ function getPayMoneyRequestParams(
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -3384,10 +3384,10 @@ function getPayMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
-                optimisticFlowStatus: null,
                 pendingFields: {
                     preview: null,
                     reimbursed: null,
+                    partial: null,
                 },
             },
         },
@@ -3408,7 +3408,6 @@ function getPayMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
-                optimisticFlowStatus: null,
             },
         },
         {
@@ -3509,7 +3508,9 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
             lastMessageHtml: optimisticApprovedReportAction.message?.[0].html,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            optimisticFlowStatus: CONST.REPORT.OPTIMISTIC_FLOW_STATUS[full ? 'FULL' : 'PARTIAL'],
+            pendingFields: {
+                partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            }
         },
     };
     const optimisticNextStepData: OnyxUpdate = {
@@ -3533,7 +3534,9 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                optimisticFlowStatus: null,
+                pendingFields: {
+                    partial: null,
+                }
             },
         },
     ];
@@ -3552,7 +3555,9 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                optimisticFlowStatus: null,
+                pendingFields: {
+                    partial: null,
+                }
             },
         },
         {
@@ -3994,6 +3999,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 comment: {
                     hold: createdReportAction.reportActionID,
                 },
@@ -4001,13 +4007,22 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+    ];
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: null,
                 comment: {
                     hold: null,
                 },
@@ -4044,6 +4059,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 comment: {
                     hold: null,
                 },
@@ -4056,9 +4072,20 @@ function unholdRequest(transactionID: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: null,
                 comment: {
                     hold: null,
                 },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
             },
         },
     ];
@@ -4069,7 +4096,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             transactionID,
             reportActionID: createdReportAction.reportActionID,
         },
-        {optimisticData, successData, failureData: []},
+        {optimisticData, successData, failureData},
     );
 }
 // eslint-disable-next-line rulesdir/no-negated-variables

@@ -4835,26 +4835,6 @@ function hasOnlyHeldExpenses(iouReportID: string): boolean {
 }
 
 /**
- * Return held and full amount formatted with used currency
- */
-function getNonHeldAndFullAmount(iouReportID: string): string[] {
-    // const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    // const usedCurrency = transactions[0].currency;
-    //
-    // let fullAmount = 0;
-    // const nonheldAmount = transactions.reduce((previousValue, transaction) => {
-    //     fullAmount += transaction.amount * -1;
-    //     if (!TransactionUtils.isOnHold(transaction)) {
-    //         return previousValue + transaction.amount * -1;
-    //     }
-    //     return previousValue;
-    // }, 0);
-
-    // return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
-    return iouReportID ? ['Unheld', 'All'] : [];
-}
-
-/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -4875,6 +4855,25 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
     const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
 
     return !(hasPendingTransaction && hasTransactionWithDifferentCurrency);
+}
+
+/**
+ * Return held and full amount formatted with used currency
+ */
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID ?? '');
+    const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
+
+    if (hasUpdatedTotal(iouReport) && hasPendingTransaction) {
+        console.log('%%%%%\n', 'updatedTotal');
+        const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
+        console.log('%%%%%\n', 'unheldTotal: ', unheldTotal);
+
+        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
+    }
+    console.log('%%%%%\n', 'notUpdatedTotal');
+
+    return [CurrencyUtils.convertToDisplayString(iouReport?.unheldTotal ?? 0, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
 }
 
 /**

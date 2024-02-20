@@ -66,9 +66,6 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
 
     /** Whether a message is a whisper */
     isWhisper?: boolean;
-
-    /** Optimistic status of the report used in partial payment/approval flow when there are some money requests on hold */
-    optimisticFlowStatus?: string;
 };
 
 export type {MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps};
