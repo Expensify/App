@@ -1,5 +1,4 @@
 import {isBefore} from 'date-fns';
-import {Platform} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -30,6 +29,7 @@ import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import playReceiveSound from '@libs/Sound/playReceiveSound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -551,14 +551,9 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                         return playSound(SOUNDS.SUCCESS);
                     }
 
-                    if (
-                        // plain message
-                        'html' in message &&
-                        // exclude mobile platforms, since they play sound when notification is delivered (in native code)
-                        Platform.OS !== 'android' &&
-                        Platform.OS !== 'ios'
-                    ) {
-                        return playSound(SOUNDS.RECEIVE);
+                    // plain message
+                    if ('html' in message) {
+                        return playReceiveSound();
                     }
                 }
             } catch (e) {
