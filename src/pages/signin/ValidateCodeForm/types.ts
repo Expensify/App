@@ -4,6 +4,8 @@ type ValidateCodeFormProps = {
 
     /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
     setIsUsingRecoveryCode: (value: boolean) => void;
+
+    isVisible: boolean;
 };
 
 export default ValidateCodeFormProps;
