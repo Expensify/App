@@ -19,7 +19,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const personalDetails = usePersonalDetails();
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
-    let userDisplayName = ReportUtils.getDisplayNameForParticipant(accountID) ?? (userDetails.displayName ? userDetails.displayName.trim() : '');
+    let userDisplayName = ReportUtils.getDisplayNameForParticipant(accountID) || (userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;

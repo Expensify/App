@@ -417,9 +417,8 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {isLoading ? (
-                        <FullScreenLoadingIndicator />
-                    ) : (
+                    {isLoading && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, isLoading && styles.opacity0]}>
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
@@ -451,7 +450,7 @@ function IOURequestStepConfirmation({
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
-                    )}
+                    </View>
                 </View>
             )}
         </ScreenWrapper>
