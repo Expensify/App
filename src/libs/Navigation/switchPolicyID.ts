@@ -2,7 +2,7 @@ import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {getPathFromState} from '@react-navigation/native';
 import type {ValueOf, Writable} from 'type-fest';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -95,7 +95,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     // If the layout is wide we need to push matching central pane route to the stack.
-    if (!getIsSmallScreenWidth()) {
+    if (!getIsNarrowLayout()) {
         // Case when the user selects "All" workspace from the specific workspace settings
         if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.ALL_SETTINGS) && !policyID) {
             root.dispatch({
@@ -122,9 +122,9 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
                 params.policyID = policyID;
             }
 
-            // We need to redirect non admin users to overview screen, when switching workspace.
-            if (!isPolicyAdmin && isWorkspaceScreen && screen !== SCREENS.WORKSPACE.OVERVIEW) {
-                screen = SCREENS.WORKSPACE.OVERVIEW;
+            // We need to redirect non admin users to profile screen, when switching workspace.
+            if (!isPolicyAdmin && isWorkspaceScreen && screen !== SCREENS.WORKSPACE.PROFILE) {
+                screen = SCREENS.WORKSPACE.PROFILE;
             }
 
             // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
