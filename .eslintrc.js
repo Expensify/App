@@ -72,8 +72,8 @@ const restrictedImportPatterns = [
 ];
 
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:react-native-a11y/basic', 'plugin:@dword-design/import-alias/recommended', 'prettier'],
-    plugins: ['react-hooks', 'react-native-a11y'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-native-a11y/basic', 'plugin:@dword-design/import-alias/recommended', 'prettier'],
+    plugins: ['react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
     env: {
