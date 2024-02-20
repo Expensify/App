@@ -10,7 +10,7 @@ type Rate = {
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Attributes = {
@@ -22,13 +22,25 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
 
 type DisabledFields = {
     defaultBillable?: boolean;
     reimbursable?: boolean;
+};
+
+// These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
+// This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
+// Once the data is being used, these types should be defined appropriately.
+type ConnectionLastSync = Record<string, unknown>;
+type ConnectionData = Record<string, unknown>;
+type ConnectionConfig = Record<string, unknown>;
+type Connection = {
+    lastSync?: ConnectionLastSync;
+    data: ConnectionData;
+    config: ConnectionConfig;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -147,19 +159,28 @@ type Policy = {
     /** Whether the workspace has multiple levels of tags enabled */
     hasMultipleTagLists?: boolean;
 
-    /** When tax tracking is enabled */
+    /**
+     * Whether or not the policy has tax tracking enabled
+     *
+     * @deprecated - use tax.trackingEnabled instead
+     */
     isTaxTrackingEnabled?: boolean;
 
-    /** The email of the reimburser set when reimbursement is direct */
-    reimburserEmail?: string;
+    /** Whether or not the policy has tax tracking enabled */
+    tax?: {
+        trackingEnabled: boolean;
+    };
 
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 
     /** ReportID of the announce room for this workspace */
     chatReportIDAnnounce?: number;
+
+    /** All the integration connections attached to the policy */
+    connections?: Record<string, Connection>;
 };
 
 export default Policy;
 
-export type {Unit, CustomUnit};
+export type {Unit, CustomUnit, Attributes, Rate};

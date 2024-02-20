@@ -33,12 +33,12 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
@@ -161,12 +161,15 @@ function ReportActionItem(props) {
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID && props.action.reportActionID && props.linkedReportActionID === props.action.reportActionID;
 
+    const reportScrollManager = useReportScrollManager();
+
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
         [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
     );
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
+    const prevActionResolution = usePrevious(lodashGet(props.action, 'originalMessage.resolution', null));
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
@@ -298,6 +301,18 @@ function ReportActionItem(props) {
         [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
     );
 
+    // Handles manual scrolling to the bottom of the chat when the last message is an actionable mention whisper and it's resolved.
+    // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
+    useEffect(() => {
+        if (props.index !== 0 || !ReportActionsUtils.isActionableMentionWhisper(props.action)) {
+            return;
+        }
+
+        if (prevActionResolution !== lodashGet(props.action, 'originalMessage.resolution', null)) {
+            reportScrollManager.scrollToIndex(props.index);
+        }
+    }, [props.index, props.action, prevActionResolution, reportScrollManager]);
+
     const toggleReaction = useCallback(
         (emoji) => {
             Report.toggleEmojiReaction(props.report.reportID, props.action, emoji, props.emojiReactions);
@@ -316,7 +331,7 @@ function ReportActionItem(props) {
     );
 
     const actionableItemButtons = useMemo(() => {
-        if (!(props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && !lodashGet(props.action, 'originalMessage.resolution', null))) {
+        if (!(ReportActionsUtils.isActionableMentionWhisper(props.action) && !lodashGet(props.action, 'originalMessage.resolution', null))) {
             return [];
         }
         return [
@@ -332,7 +347,7 @@ function ReportActionItem(props) {
                 onPress: () => Report.resolveActionableMentionWhisper(props.report.reportID, props.action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [props.action, props.report]);
+    }, [props.action, props.report.reportID]);
 
     /**
      * Get the content of ReportActionItem
@@ -451,10 +466,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, props.report.ownerAccountID));
-            const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
-
-            children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
@@ -710,6 +722,18 @@ function ReportActionItem(props) {
         originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         !isSendingMoney
     ) {
+        return null;
+    }
+
+    // if action is actionable mention whisper and resolved by user, then we don't want to render anything
+    if (ReportActionsUtils.isActionableMentionWhisper(props.action) && lodashGet(props.action, 'originalMessage.resolution', null)) {
+        return null;
+    }
+
+    // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
+    // This is a temporary solution needed for comment-linking.
+    // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
+    if (ReportActionsUtils.isWhisperActionTargetedToOthers(props.action)) {
         return null;
     }
 
