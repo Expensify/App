@@ -171,11 +171,25 @@ let conciergeChatReportID: string | undefined;
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
-Linking.getInitialURL().then((url) => {
-    const params = new URLSearchParams(url ?? '');
-    const exitToRoute = params.get('exitTo') ?? '';
-    const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
-    reportIDDeeplinkedFromOldDot = reportID;
+Onyx.connect({
+    key: ONYXKEYS.INITIAL_URL,
+    callback: (value) => {
+        Linking.getInitialURL().then((url) => {
+            const currentParams = new URLSearchParams(url ?? '');
+            const currentExitToRoute = currentParams.get('exitTo') ?? '';
+            const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
+
+            const prevParams = new URLSearchParams(value ?? '');
+            const prevExitToRoute = prevParams.get('exitTo') ?? '';
+            const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
+
+            reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
+
+            if (currentReportID) {
+                Onyx.set(ONYXKEYS.INITIAL_URL, url);
+            }
+        });
+    },
 });
 
 let lastVisitedPath: string | undefined;
