@@ -3074,7 +3074,6 @@ const styles = (theme: ThemeColors) =>
 
         primaryMediumText: {
             fontSize: variables.iconSizeNormal,
-            lineHeight: variables.iconSizeNormal,
         },
 
         workspaceOwnerAvatarWrapper: {
