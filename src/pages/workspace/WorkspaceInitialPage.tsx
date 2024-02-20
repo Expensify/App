@@ -98,6 +98,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isFreePolicy = PolicyUtils.isFreePolicy(policy);
+    const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
 
     const protectedMenuItems: WorkspaceMenuItem[] = [
         {
@@ -164,8 +165,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
         },
-        ...(shouldShowProtectedItems && PolicyUtils.isPaidGroupPolicy(policy) ? moreFeaturesMenuItems : []),
-        ...(shouldShowProtectedItems && isFreePolicy ? protectedMenuItems : []),
+        ...(isPaidGroupPolicy && shouldShowProtectedItems ? moreFeaturesMenuItems : []),
+        ...(isFreePolicy && shouldShowProtectedItems ? protectedMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
