@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as POLICY from '@src/libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, Report, ReportActions} from '@src/types/onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

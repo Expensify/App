@@ -64,7 +64,7 @@ describe('getViolationsOnyxData', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            policyCategories = {Food: {name:'Food', enabled: true, areCommentsRequired: false, 'GL Code': '1234', externalID: '1234', origin: '12345'}};
+            policyCategories = {Food: {name: 'Food', enabled: true, areCommentsRequired: false, 'GL Code': '1234', externalID: '1234', origin: '12345'}};
             transaction.category = 'Food';
         });
 

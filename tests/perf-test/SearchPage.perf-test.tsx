@@ -1,18 +1,18 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type * as NativeNavigation from '@react-navigation/native';
+import type {TextMatch} from '@testing-library/react-native/build/matches';
 import React from 'react';
 import type {ComponentType} from 'react';
-import type {TextMatch} from '@testing-library/react-native/build/matches';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import SearchPage from '@pages/SearchPage';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report} from '@src/types/onyx'
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
@@ -56,8 +56,6 @@ jest.mock('@react-navigation/native', () => {
         createNavigationContainerRef: jest.fn(),
     } as typeof NativeNavigation;
 });
-
-
 
 jest.mock('../../src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
     function WithNavigationFocus(props: WithNavigationFocusProps) {
@@ -115,13 +113,13 @@ afterEach(() => {
 });
 
 type SearchPageProps = {
-    betas?: string[],
+    betas?: string[];
 
-    reports?: Report,
+    reports?: Report;
 
-    isSearchingForReports?: boolean,
+    isSearchingForReports?: boolean;
 
-    navigation: Record<string, unknown>,
+    navigation: Record<string, unknown>;
 };
 
 function SearchPageWrapper(args: SearchPageProps) {
@@ -137,8 +135,8 @@ function SearchPageWrapper(args: SearchPageProps) {
 }
 
 type CreateAddListenerMock = {
-    triggerTransitionEnd?: () => void,
-    addListener?: () => Record<string, unknown>,
+    triggerTransitionEnd?: () => void;
+    addListener?: () => Record<string, unknown>;
 };
 
 test.skip('[Search Page] should interact when text input changes', async () => {

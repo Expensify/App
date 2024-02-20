@@ -1,10 +1,10 @@
 import {fireEvent} from '@testing-library/react-native';
+import type {RenderResult} from '@testing-library/react-native';
 import React from 'react';
 import type {ComponentType} from 'react';
+import {measurePerformance} from 'reassure';
 import type {WithLocalizeProps} from '@components/withLocalize';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
-import type {RenderResult} from '@testing-library/react-native';
-import {measurePerformance} from 'reassure';
 import OptionsSelector from '@src/components/OptionsSelector';
 import variables from '@src/styles/variables';
 
@@ -38,9 +38,9 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
     return WithNavigationFocus;
 });
 
-type GenerateSectionProps = Array<{numItems: number, indexOffset: number, shouldShow?: boolean}>;
+type GenerateSectionsProps = Array<{numItems: number; indexOffset: number; shouldShow?: boolean}>;
 
-const generateSections = (sectionConfigs: GenerateSectionProps) =>
+const generateSections = (sectionConfigs: GenerateSectionsProps) =>
     sectionConfigs.map(({numItems, indexOffset, shouldShow = true}) => ({
         // eslint-disable-next-line @typescript-eslint/naming-convention
         data: Array.from({length: numItems}, (_v, i) => ({
