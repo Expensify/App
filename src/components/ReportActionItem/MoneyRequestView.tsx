@@ -389,15 +389,9 @@ function MoneyRequestView({
                                     )
                                 }
                                 brickRoadIndicator={
-                                    getErrorForField('tag', {
-                                        tagName: name,
-                                    })
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
+                                    getErrorForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                                 }
-                                error={getErrorForField('tag', {
-                                    tagName: name,
-                                })}
+                                error={getErrorForField('tag')}
                             />
                         </OfflineWithFeedback>
                     ))}
