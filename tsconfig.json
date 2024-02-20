@@ -20,7 +20,7 @@
             "es2022.object",
             "es2022.string",
             "ES2021.Intl",
-            "ES2023.Array",
+            "ES2023.Array"
         ],
         "allowJs": true,
         "checkJs": false,
