@@ -42,7 +42,8 @@
             "@pages/*": ["./src/pages/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"]
+            "@userActions/*": ["./src/libs/actions/*"],
+            "@desktop/*": ["./desktop/*"]
         }
     },
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"],

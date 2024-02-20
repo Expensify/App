@@ -87,7 +87,6 @@ module.exports = {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             plugins: ['react'],
             rules: {
-                'import/no-relative-packages': 'off',
                 'react/no-unused-class-component-methods': 'off',
                 'import/no-import-module-exports': 'off',
                 'react/no-unstable-nested-components': 'off',
@@ -121,6 +120,7 @@ module.exports = {
                             '@styles': './src/styles',
                             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                             '@src': './src',
+                            '@desktop': './desktop',
                         },
                     },
                 ],
