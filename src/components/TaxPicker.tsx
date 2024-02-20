@@ -23,7 +23,7 @@ type TaxPickerProps = {
     onSubmit: () => void;
 };
 
-function TaxPicker({selectedTaxRate = '', policyTaxRates = {} as OptionsListUtils.PolicyTaxRateWithDefault, insets, onSubmit}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', policyTaxRates, insets, onSubmit}: TaxPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
