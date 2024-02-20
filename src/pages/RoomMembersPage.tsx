@@ -198,7 +198,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     },
                 ],
                 pendingAction: pendingAccounts?.[accountID]?.pendingAction,
-                errors: pendingAccounts?.[accountID]?.errors
+                errors: pendingAccounts?.[accountID]?.errors,
             });
         });
 
@@ -212,7 +212,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
      */
     const dismissError = useCallback(
         (item: ListItem) => {
-            if(!item.accountID){
+            if (!item.accountID) {
                 return;
             }
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
