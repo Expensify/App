@@ -73,7 +73,7 @@ type MoneyRequestConfirmationListOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 
     /** The policy of root parent report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -253,7 +253,6 @@ function MoneyRequestConfirmationList({
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
     const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !isDistanceRequest && !isSplitWithScan;
-
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     // A flag for showing the tags field
     const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledTags(policyTagLists));
@@ -600,7 +599,7 @@ function MoneyRequestConfirmationList({
         styles.mb2,
     ]);
 
-    const receiptData = ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename);
+    const receiptData = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : null;
     return (
         // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
         <OptionsSelector
@@ -626,10 +625,10 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {receiptData.image || receiptData.thumbnail ? (
+            {receiptData?.image ?? receiptData?.thumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: receiptData.thumbnail ?? receiptData.image}}
+                    source={{uri: receiptData?.thumbnail ?? receiptData?.image}}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
