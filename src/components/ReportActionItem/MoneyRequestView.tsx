@@ -143,7 +143,7 @@ function MoneyRequestView({
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
+        (field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0,
         [canUseViolations, getViolationsForField],
     );
 
@@ -226,7 +226,7 @@ function MoneyRequestView({
 
             // Return violations if there are any
             if (canUseViolations && hasViolations(field, data)) {
-                const violations = getViolationsForField(field, data);
+                const violations = getViolationsForField(field);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
