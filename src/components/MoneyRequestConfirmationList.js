@@ -229,6 +229,7 @@ function MoneyRequestConfirmationList(props) {
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
+    const taxRates = lodashGet(props.policy, 'taxRates', {});
 
     // A flag for showing the categories field
     const shouldShowCategories = props.isPolicyExpenseChat && (props.iouCategory || OptionsListUtils.hasEnabledOptions(_.values(props.policyCategories)));
@@ -262,7 +263,7 @@ function MoneyRequestConfirmationList(props) {
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
-    const taxRateTitle = TransactionUtils.getDefaultTaxName(props.policyTaxRates, transaction);
+    const taxRateTitle = TransactionUtils.getDefaultTaxName(taxRates, transaction);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -812,7 +813,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={taxRateTitle}
-                            description={props.policyTaxRates.name}
+                            description={taxRates.name}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
