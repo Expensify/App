@@ -85,7 +85,7 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
                             inputID={INPUT_IDS.REASON}
                             value={reason as string}
                             items={reasons}
-                            onPress={(value) => setReason(value as ExitReason)}
+                            onPress={setReason as (value: string) => void}
                             shouldSaveDraft
                         />
                     </>
