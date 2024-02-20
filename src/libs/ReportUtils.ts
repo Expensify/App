@@ -1218,7 +1218,7 @@ function getOneTransactionThreadReportID(reportOrID: OnyxEntry<Report> | string)
 
     // Get all IOU report actions for the report.
     const iouReportAction = ReportActionsUtils.getIOUReportActions(report?.reportID ?? '')?.find(reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.childReportID);
-    return String(iouReportAction?.childReportID) ?? '0';
+    return iouReportAction ? String(iouReportAction.childReportID) : '0'
 }
 
 /**

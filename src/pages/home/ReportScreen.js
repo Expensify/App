@@ -268,7 +268,6 @@ function ReportScreen({
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isEmptyChat = useMemo(() => _.isEmpty(reportActions), [reportActions]);
-    // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS_NUM.CLOSED;
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
@@ -285,7 +284,6 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const isOneTransactionReport = ReportUtils.isOneTransactionReport(report);
 
     useEffect(() => {
         if (!report.reportID || shouldHideReport) {
@@ -565,7 +563,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={isOneTransactionReport ? ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions) : reportActions}
+                                        reportActions={_.isEmpty(transactionThreadReportActions) ? reportActions : ReportActionsUtils.getCombinedReportActionsForDisplay(reportActions, transactionThreadReportActions)}
                                         report={report}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
@@ -619,7 +617,11 @@ export default compose(
                 selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
             transactionThreadReportActions: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ReportUtils.getOneTransactionThreadReportID(getReportID(route))}`,
+                key: ({route}) => {
+                    const reportID = getReportID(route);
+                    const transactionThreadReportID = reportID && ReportUtils.isOneTransactionReport(reportID) ? ReportUtils.getOneTransactionThreadReportID(reportID) : '0';
+                    return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`
+                },
                 canEvict: false,
                 selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
