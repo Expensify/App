@@ -67,7 +67,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     onSelectRow={onBusinessTypeSelected}
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
-                    renderItem={() => RadioListItem}
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

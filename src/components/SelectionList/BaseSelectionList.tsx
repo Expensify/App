@@ -27,7 +27,7 @@ import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsRet
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
-        renderItem,
+        ListItem,
         canSelectMultiple = false,
         onSelectRow,
         onSelectAll,
@@ -271,14 +271,13 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
-    const getRenderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
+    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
         const indexOffset = section.indexOffset ? section.indexOffset : 0;
         const normalizedIndex = index + indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
-        const ListItem = renderItem();
 
         return (
             <ListItem
@@ -454,7 +453,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     sections={sections}
                                     stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
-                                    renderItem={getRenderItem}
+                                    renderItem={renderItem}
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}

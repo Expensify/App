@@ -155,7 +155,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
                         <SelectionList
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                             // TODO: check this one live
-                            renderItem={() => RadioListItem}
+                            ListItem={RadioListItem}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputHint={offlineMessage}

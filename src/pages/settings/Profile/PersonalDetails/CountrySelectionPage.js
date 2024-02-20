@@ -94,7 +94,7 @@ function CountrySelectionPage({route, navigation}) {
                 textInputLabel={translate('common.country')}
                 textInputValue={searchValue}
                 sections={[{data: searchResults, indexOffset: 0}]}
-                renderItem={() => RadioListItem}
+                ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}

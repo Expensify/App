@@ -205,7 +205,7 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
                         <SelectionList
                             sections={didScreenTransitionEnd && !isLoading ? sections : CONST.EMPTY_ARRAY}
                             // TODO: check this one live
-                            renderItem={() => RadioListItem}
+                            ListItem={RadioListItem}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             textInputValue={searchValue}

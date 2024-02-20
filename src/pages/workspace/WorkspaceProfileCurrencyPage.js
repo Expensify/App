@@ -91,7 +91,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
 
                 <SelectionList
                     sections={sections}
-                    renderItem={() => RadioListItem}
+                    ListItem={RadioListItem}
                     textInputLabel={translate('workspace.editor.currencyInputLabel')}
                     textInputValue={searchText}
                     onChangeText={setSearchText}

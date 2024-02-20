@@ -98,7 +98,7 @@ function TimezoneSelectPage(props) {
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
                 showScrollIndicator
                 shouldShowTooltips={false}
-                renderItem={() => RadioListItem}
+                ListItem={RadioListItem}
             />
         </ScreenWrapper>
     );

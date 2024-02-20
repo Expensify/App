@@ -276,7 +276,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            renderItem={() => UserListItem}
+                            ListItem={UserListItem}
                         />
                     </View>
                 </View>

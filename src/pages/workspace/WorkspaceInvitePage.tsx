@@ -305,7 +305,7 @@ function WorkspaceInvitePage({
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
-                    renderItem={() => UserListItem}
+                    ListItem={UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {

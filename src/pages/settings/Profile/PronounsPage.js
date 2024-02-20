@@ -101,7 +101,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
                         textInputPlaceholder={translate('pronounsPage.placeholderText')}
                         textInputValue={searchValue}
                         sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                        renderItem={() => RadioListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
                         onChangeText={setSearchValue}
                         initiallyFocusedOptionKey={currentPronounsKey}

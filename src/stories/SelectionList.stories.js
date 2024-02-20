@@ -90,7 +90,7 @@ function Default(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={sections}
-            renderItem={() => RadioListItem}
+            ListItem={RadioListItem}
             onSelectRow={onSelectRow}
         />
     );
@@ -139,7 +139,7 @@ function WithTextInput(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={sections}
-            renderItem={() => RadioListItem}
+            ListItem={RadioListItem}
             textInputValue={searchText}
             onChangeText={setSearchText}
             onSelectRow={onSelectRow}
@@ -263,7 +263,7 @@ function MultipleSelection(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={memo.sections}
-            renderItem={() => RadioListItem}
+            ListItem={RadioListItem}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />
@@ -326,7 +326,7 @@ function WithSectionHeader(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={memo.sections}
-            renderItem={() => RadioListItem}
+            ListItem={RadioListItem}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />
@@ -387,7 +387,7 @@ function WithConfirmButton(args) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={memo.sections}
-            renderItem={() => RadioListItem}
+            ListItem={RadioListItem}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />

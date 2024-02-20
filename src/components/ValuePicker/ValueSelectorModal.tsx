@@ -41,7 +41,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
                     initiallyFocusedOptionKey={selectedItem?.value}
                     shouldStopPropagation
                     shouldShowTooltips={shouldShowTooltips}
-                    renderItem={() => RadioListItem}
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

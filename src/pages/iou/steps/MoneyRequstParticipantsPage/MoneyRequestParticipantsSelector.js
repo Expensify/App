@@ -350,7 +350,7 @@ function MoneyRequestParticipantsSelector({
                 onConfirm={handleConfirmSelection}
                 sections={sections}
                 // TODO: check this one live
-                renderItem={() => RadioListItem}
+                ListItem={RadioListItem}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}

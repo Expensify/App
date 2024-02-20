@@ -226,7 +226,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
-                    renderItem={() => UserListItem}
+                    ListItem={UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={setSearchTerm}

@@ -36,7 +36,7 @@ function LanguagePage(props) {
             />
             <SelectionList
                 sections={[{data: localesToLanguages}]}
-                renderItem={() => RadioListItem}
+                ListItem={RadioListItem}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
                 initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => locale.isSelected).keyForList}
             />

@@ -40,7 +40,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 />
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
-                    renderItem={() => RadioListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={(option) =>
                         report && ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)
                     }

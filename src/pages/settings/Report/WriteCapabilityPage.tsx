@@ -53,7 +53,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
                 />
                 <SelectionList
                     sections={[{data: writeCapabilityOptions}]}
-                    renderItem={() => RadioListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={(option) => report && ReportActions.updateWriteCapabilityAndNavigate(report, option.value)}
                     initiallyFocusedOptionKey={writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList}
                 />

@@ -166,7 +166,7 @@ function IOUCurrencySelection(props) {
                     />
                     <SelectionList
                         sections={sections}
-                        renderItem={() => RadioListItem}
+                        ListItem={RadioListItem}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchValue}
                         onChangeText={setSearchValue}

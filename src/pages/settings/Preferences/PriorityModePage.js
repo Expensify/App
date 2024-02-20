@@ -58,7 +58,7 @@ function PriorityModePage(props) {
             <Text style={[styles.mh5, styles.mv3]}>{props.translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
-                renderItem={() => RadioListItem}
+                ListItem={RadioListItem}
                 onSelectRow={updateMode}
                 initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}
             />

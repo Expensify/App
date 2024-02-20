@@ -91,7 +91,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 
                     <SelectionList
                         sections={[{data: unitOptions}]}
-                        renderItem={() => RadioListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
                         initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
                     />

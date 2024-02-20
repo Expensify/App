@@ -489,7 +489,7 @@ function WorkspaceMembersPage(props) {
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
-                        renderItem={() => UserListItem}
+                        ListItem={UserListItem}
                         textInputLabel={props.translate('optionsSelector.findMember')}
                         textInputValue={searchValue}
                         onChangeText={(value) => {

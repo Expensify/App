@@ -114,7 +114,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Default renderer for every item in the list */
-    renderItem: () => JSXElementConstructor<BaseListItemProps<TItem>>;
+    ListItem: JSXElementConstructor<BaseListItemProps<ListItem>>;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -210,7 +210,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;

@@ -79,7 +79,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
-                    renderItem={() => RadioListItem}
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

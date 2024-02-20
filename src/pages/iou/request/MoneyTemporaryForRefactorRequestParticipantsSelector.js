@@ -339,7 +339,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 onConfirm={handleConfirmSelection}
                 sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                 // TODO: check this one live
-                renderItem={() => RadioListItem}
+                ListItem={RadioListItem}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}

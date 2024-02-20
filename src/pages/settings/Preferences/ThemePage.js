@@ -49,7 +49,7 @@ function ThemePage(props) {
 
             <SelectionList
                 sections={[{data: localesToThemes}]}
-                renderItem={() => RadioListItem}
+                ListItem={RadioListItem}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
                 initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}
             />
