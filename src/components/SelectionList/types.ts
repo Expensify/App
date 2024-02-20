@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -220,7 +220,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     isLoadingNewOptions?: boolean;
 
     /** Custom callback when Selection List layout changes */
-    onLayout?: () => void;
+    onLayout?: (nativeEvent?: LayoutChangeEvent) => void;
 
     /**  Whether to auto focus the Search Input */
     autoFocus?: boolean;
