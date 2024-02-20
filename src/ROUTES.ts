@@ -459,6 +459,10 @@ const ROUTES = {
         route: 'workspace/:policyID/profile/description',
         getRoute: (policyID: string) => `workspace/${policyID}/profile/description` as const,
     },
+    WORKSPACE_PROFILE_SHARE: {
+        route: 'workspace/:policyID/profile/share',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/share` as const,
+    },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',
         getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,

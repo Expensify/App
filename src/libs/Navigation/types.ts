@@ -146,6 +146,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
+    [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
         policyID: string;
     };

@@ -7,6 +7,7 @@ import _ from 'underscore';
 import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,6 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -21,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
+import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +60,7 @@ const defaultProps = {
 function WorkspaceProfilePage({policy, currencyList, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) && !!policy.outputCurrency ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
@@ -64,6 +68,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy.id)), [policy.id]);
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy.id)), [policy.id]);
     const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy.id)), [policy.id]);
+    const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy.id)), [policy.id]);
 
     const policyName = lodashGet(policy, 'name', '');
     const policyDescription = lodashGet(policy, 'description', '');
@@ -168,6 +173,15 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     </Text>
                                 </View>
                             </OfflineWithFeedback>
+                            {!readOnly && (
+                                <Button
+                                    style={[StyleUtils.getWidthStyle(variables.avatarSizeLarge), styles.mt6, styles.p0]}
+                                    text={translate('common.share')}
+                                    onPress={onPressShare}
+                                    small
+                                    shouldUseDefaultHover={false}
+                                />
+                            )}
                         </Section>
                     </View>
                 </ScrollView>
