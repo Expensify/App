@@ -7,7 +7,7 @@ const defaultState: NetInfoState = {
     isInternetReachable: true,
     details: {
         isConnectionExpensive: true,
-        cellularGeneration: NetInfoCellularGeneration ? NetInfoCellularGeneration['3g'] : null,
+        cellularGeneration: NetInfoCellularGeneration?.['3g'],
         carrier: 'T-Mobile',
     },
 };
