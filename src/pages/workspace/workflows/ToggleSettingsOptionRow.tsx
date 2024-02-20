@@ -32,21 +32,21 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
     };
     const {isSmallScreenWidth} = useWindowDimensions();
 
-
-    const VerticalDots = ({count}: {count: number}) => {
+    function VerticalDots({count}: {count: number}) {
         return (
-        <View style={StyleUtils.getWorkspaceWorkflowsDotStyle(isEnabled, isSmallScreenWidth) as ViewStyle}>
-            {Array.from({length: count}, (_, index) => (
-            <ImageSVG
-            contentFit="contain"
-            src={Dot}
-            height={isSmallScreenWidth ? 4 : 6}
-            width={isSmallScreenWidth ? 4 : 6}
-            pointerEvents="none"
-            />))}
-        </View>
+            <View style={StyleUtils.getWorkspaceWorkflowsDotStyle(isEnabled, isSmallScreenWidth) as ViewStyle}>
+                {Array.from({length: count}, () => (
+                    <ImageSVG
+                        contentFit="contain"
+                        src={Dot}
+                        height={isSmallScreenWidth ? 4 : 6}
+                        width={isSmallScreenWidth ? 4 : 6}
+                        pointerEvents="none"
+                    />
+                ))}
+            </View>
         );
-    };
+    }
 
     return (
         <View style={styles.pRelative}>

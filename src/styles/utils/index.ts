@@ -1487,7 +1487,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         justifyContent: 'space-between',
     }),
 
-    getWorkflowsStyle: (type: string): Object => {
+    getWorkflowsStyle: (type: string): Record<string, string|number> => {
         switch (type) {
             case 'icon':
                 return {
@@ -1569,3 +1569,4 @@ const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
 export default createStyleUtils;
 export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};
+

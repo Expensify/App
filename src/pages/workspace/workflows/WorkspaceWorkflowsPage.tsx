@@ -15,9 +15,9 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import useStyleUtils from '@hooks/useStyleUtils';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
-import useStyleUtils from '@hooks/useStyleUtils';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
