@@ -15,8 +15,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData as BankAccountData, WalletTransfer} from '@src/types/onyx';
-import type {AccountData as FundAccountData} from '@src/types/onyx/Fund';
+import type {AccountData, WalletTransfer} from '@src/types/onyx';
 import PaymentMethodList from './PaymentMethodList';
 
 type ChooseTransferAccountPageOnyxProps = {
@@ -35,10 +34,10 @@ function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountP
      * @param accountType of the selected account type
      * @param account of the selected account data
      */
-    const selectAccountAndNavigateBack = (event: GestureResponderEvent | KeyboardEvent, accountType: string, account: BankAccountData | FundAccountData) => {
+    const selectAccountAndNavigateBack = (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, account?: AccountData) => {
         PaymentMethods.saveWalletTransferAccountTypeAndID(
-            accountType,
-            (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? (account as BankAccountData)?.bankAccountID?.toString() : (account as FundAccountData)?.fundID?.toString()) ?? '',
+            accountType ?? '',
+            (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? account?.bankAccountID?.toString() : account?.fundID?.toString()) ?? '',
         );
         Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };

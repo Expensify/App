@@ -164,7 +164,6 @@ function ExpensifyCardPage({
                                                 pan={details.pan}
                                                 expiration={CardUtils.formatCardExpiration(details.expiration)}
                                                 cvv={details.cvv}
-                                                privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
                                             />
                                         ) : (
