@@ -87,7 +87,6 @@ module.exports = {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             plugins: ['react'],
             rules: {
-                'no-unsafe-optional-chaining': 'off',
                 'react/jsx-no-useless-fragment': 'off',
                 'prefer-regex-literals': 'off',
                 'import/no-relative-packages': 'off',
