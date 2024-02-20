@@ -1,7 +1,10 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CategoryPicker from '@components/CategoryPicker';
+import categoryPropTypes from '@components/categoryPropTypes';
+import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +16,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {policyPropTypes} from '@src/pages/workspace/withPolicy';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -31,12 +35,24 @@ const propTypes = {
 
     /** The report attached to the transaction */
     report: reportPropTypes,
+
+    /** The policy of the report */
+    policy: policyPropTypes.policy,
+
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** Collection of tags attached to a policy */
+    policyTags: tagPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
     splitDraftTransaction: {},
+    policy: null,
+    policyTags: null,
+    policyCategories: null,
 };
 
 function IOURequestStepCategory({
@@ -46,6 +62,9 @@ function IOURequestStepCategory({
     },
     transaction,
     splitDraftTransaction,
+    policy,
+    policyTags,
+    policyCategories,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,8 +92,8 @@ function IOURequestStepCategory({
         }
 
         if (isEditing) {
-            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
-            Navigation.dismissModal();
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
+            navigateBack();
             return;
         }
 
@@ -112,6 +131,15 @@ export default compose(
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
             },
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepCategory);
