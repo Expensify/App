@@ -259,6 +259,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
@@ -293,7 +294,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
 
-    const taxRateTitle = TransactionUtils.getDefaultTaxName(policyTaxRates, transaction);
+    const taxRateTitle = TransactionUtils.getDefaultTaxName(taxRates, transaction);
 
     const previousTransactionTaxAmount = usePrevious(transaction.taxAmount);
 
@@ -359,13 +360,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue);
+        const taxAmount = getTaxAmount(transaction, taxRates.defaultValue);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
         if (previousTransactionTaxAmount !== transaction.taxAmount && amountInSmallestCurrencyUnits !== transaction.taxAmount) {
             return;
         }
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
-    }, [policyTaxRates.defaultValue, transaction, previousTransactionTaxAmount]);
+    }, [taxRates.defaultValue, transaction, previousTransactionTaxAmount]);
 
     /**
      * Returns the participants with amount
@@ -800,10 +801,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${taxRateTitle}`}
+                    key={`${taxRates.name}${taxRateTitle}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={taxRateTitle}
-                    description={policyTaxRates.name}
+                    description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
@@ -817,10 +818,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${formattedTaxAmount}`}
+                    key={`${taxRates.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={policyTaxRates.name}
+                    description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
