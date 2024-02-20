@@ -3,8 +3,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type DownloadQRCodeProps from '@pages/workspace/download/types';
 
-function DownloadMenuItem({download}: {download?: () => void}) {
+function DownloadMenuItem({download}: DownloadQRCodeProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     return (
