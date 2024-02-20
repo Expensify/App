@@ -36,7 +36,7 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.goBack();
     }, [prevIsLoading, account?.isLoading]);
 
     return <FullScreenLoadingIndicator />;
