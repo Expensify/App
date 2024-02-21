@@ -44,7 +44,7 @@ function WorkspaceProfileSharePage({policy}: Props) {
         >
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
                 icon={Illustrations.QRCode}
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
