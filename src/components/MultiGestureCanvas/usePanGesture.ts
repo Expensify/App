@@ -21,10 +21,10 @@ type UsePanGestureProps = Pick<
     | 'offsetY'
     | 'panTranslateX'
     | 'panTranslateY'
-    | 'isPagerSwiping'
-    | 'isSwipingDownToClose'
+    | 'shouldDisableTransformationGestures'
     | 'stopAnimation'
     | 'onSwipeDown'
+    | 'isSwipingDownToClose'
 >;
 
 const usePanGesture = ({
@@ -36,9 +36,9 @@ const usePanGesture = ({
     offsetY,
     panTranslateX,
     panTranslateY,
-    isPagerSwiping,
-    isSwipingDownToClose,
+    shouldDisableTransformationGestures,
     stopAnimation,
+    isSwipingDownToClose,
     onSwipeDown,
 }: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
@@ -162,12 +162,12 @@ const usePanGesture = ({
         })
         .onTouchesMove((evt, state) => {
             // We only allow panning when the content is zoomed in
-            if (zoomScale.value > 1) {
+            if (zoomScale.value > 1 && !shouldDisableTransformationGestures.value) {
                 state.activate();
             }
 
             // TODO: this needs tuning to work properly
-            if (!isPagerSwiping.value && zoomScale.value === 1 && previousTouch.value !== null) {
+            if (!shouldDisableTransformationGestures.value && zoomScale.value === 1 && previousTouch.value !== null) {
                 const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
                 const velocityY = evt.allTouches[0].y - previousTouch.value.y;
 
@@ -220,7 +220,7 @@ const usePanGesture = ({
             previousTouch.value = null;
 
             // If we are swiping (in the pager), we don't want to return to boundaries
-            if (isPagerSwiping.value) {
+            if (shouldDisableTransformationGestures.value) {
                 return;
             }
 
