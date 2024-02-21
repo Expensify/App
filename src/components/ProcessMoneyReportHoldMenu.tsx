@@ -29,7 +29,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     onClose: () => void;
 
     /** Type of payment */
-    paymentType: PaymentMethodType;
+    paymentType?: PaymentMethodType;
 
     /** Type of action handled either 'pay' or 'approve' */
     requestType?: string;
@@ -52,7 +52,7 @@ function ProcessMoneyRequestHoldMenu({
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
-        } else if (chatReport) {
+        } else if (chatReport && paymentType) {
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }
         onClose();

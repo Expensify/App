@@ -4865,13 +4865,10 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
 
     if (hasUpdatedTotal(iouReport) && hasPendingTransaction) {
-        console.log('%%%%%\n', 'updatedTotal');
         const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
-        console.log('%%%%%\n', 'unheldTotal: ', unheldTotal);
 
         return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
     }
-    console.log('%%%%%\n', 'notUpdatedTotal');
 
     return [CurrencyUtils.convertToDisplayString(iouReport?.unheldTotal ?? 0, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
 }

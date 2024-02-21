@@ -223,7 +223,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     </View>
                 )}
             </View>
-            {isHoldMenuVisible && paymentType && (
+            {isHoldMenuVisible && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
                     requestType={confirmationType}
