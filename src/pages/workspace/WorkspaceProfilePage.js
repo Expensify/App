@@ -175,11 +175,11 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                             </OfflineWithFeedback>
                             {!readOnly && (
                                 <Button
-                                    style={[StyleUtils.getWidthStyle(variables.avatarSizeLarge), styles.mt6, styles.p0]}
+                                    style={styles.mt6}
+                                    innerStyles={[StyleUtils.getHeight(variables.workspaceShareButtonHeight), StyleUtils.getWidthStyle(variables.workspaceShareButtonWidth)]}
                                     text={translate('common.share')}
                                     onPress={onPressShare}
                                     small
-                                    shouldUseDefaultHover={false}
                                 />
                             )}
                         </Section>
