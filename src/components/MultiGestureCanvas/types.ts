@@ -52,4 +52,4 @@ type MultiGestureCanvasVariables = {
     onSwipeDown: OnSwipeDownCallback;
 };
 
-export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, OnTapCallback, MultiGestureCanvasVariables};
+export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, OnTapCallback, MultiGestureCanvasVariables, OnSwipeDownCallback};
