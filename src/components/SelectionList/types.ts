@@ -1,9 +1,9 @@
-import type {JSXElementConstructor, ReactElement, ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import RadioListItem from "@components/SelectionList/RadioListItem";
-import UserListItem from "@components/SelectionList/UserListItem";
+import type RadioListItem from './RadioListItem';
+import type UserListItem from './UserListItem';
 
 type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
