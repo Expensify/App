@@ -92,18 +92,23 @@ function IOURequestStepDistance({
         }
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
+    
+    const nonEmptyWaypointsCount = useMemo(() => {
+        return _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length;
+    }, [waypoints]);
 
     const duplicateWaypointsError = useMemo(() => {
-        return _.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length;
+        return nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount;
     }, [waypoints]);
+
 
     const atLeastTwoDifferentWaypointsError = useMemo(() => {
-        return !(_.keys(waypoints.waypoint0).length == 0 && _.keys(waypoints.waypoint1).length == 0) && _.size(validatedWaypoints) < 2;
+        return nonEmptyWaypointsCount > 1 && _.size(validatedWaypoints) < 2;
     }, [waypoints]);
 
-    const hasError = useMemo(() => {
-        return (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading);
-    }, [waypoints]);
+    // const hasError = useMemo(() => {
+    //     return (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading);
+    // }, [waypoints]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -139,20 +144,22 @@ function IOURequestStepDistance({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     }, [report, iouType, reportID, transactionID, backTo]);
 
-    const getError = () => {
+    const getError = useMemo(() => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return ErrorUtils.getLatestErrorField(transaction, 'route');
+        }
+        
+        if (atLeastTwoDifferentWaypointsError) {
+            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
 
         if (duplicateWaypointsError) {
             return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
         }
 
-        if (atLeastTwoDifferentWaypointsError) {
-            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
-        }
-    };
+        return false;
+    }, [waypoints]);
 
     const updateWaypoints = useCallback(
         ({data}) => {
@@ -217,10 +224,10 @@ function IOURequestStepDistance({
                 </View>
                 <View style={[styles.w100, styles.pt2]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                    {hasError && (
+                    {getError && (
                         <DotIndicatorMessage
                             style={[styles.mh4, styles.mv3]}
-                            messages={getError()}
+                            messages={getError}
                             type="error"
                         />
                     )}
@@ -232,6 +239,7 @@ function IOURequestStepDistance({
                         onPress={submitWaypoints}
                         text={translate('common.next')}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
+                        isDisabled={nonEmptyWaypointsCount<2}
                     />
                 </View>
             </>
