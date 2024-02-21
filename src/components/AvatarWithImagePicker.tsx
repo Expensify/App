@@ -111,7 +111,7 @@ type AvatarWithImagePickerProps = {
     onViewPhotoPress?: () => void;
 
     /** Allows to open an image without Attachment Picker. */
-    enablePreview?: boolean,
+    enablePreview?: boolean;
 };
 
 function AvatarWithImagePicker({
