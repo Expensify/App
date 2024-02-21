@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet, WalletTerms} from '@src/types/onyx';
 import LongTermsForm from './TermsPage/LongTermsForm';
@@ -69,7 +70,8 @@ function TermsStep(props: TermsStepProps) {
                     LabelComponent={() => (
                         <Text>
                             {`${translate('termsStep.haveReadAndAgree')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
+
+                            <TextLink href={CONST.ELECTRONIC_DISCLOSURES_URL}>{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
                         </Text>
                     )}
                 />
@@ -80,11 +82,11 @@ function TermsStep(props: TermsStepProps) {
                         <Text>
                             {`${translate('termsStep.agreeToThe')} `}
 
-                            <TextLink href="https://use.expensify.com/privacy">{`${translate('common.privacy')} `}</TextLink>
+                            <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
 
                             {`${translate('common.and')} `}
 
-                            <TextLink href="https://use.expensify.com/walletagreement">{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+                            <TextLink href={CONST.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
                         </Text>
                     )}
                 />

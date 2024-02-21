@@ -150,7 +150,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                     <Text style={styles.mb3}>{translate('additionalDetailsStep.helpText')}</Text>
                     <TextLink
                         style={styles.mb3}
-                        href="https://use.expensify.com/usa-patriot-act"
+                        href={CONST.HELP_LINK_URL}
                     >
                         {translate('additionalDetailsStep.helpLink')}
                     </TextLink>

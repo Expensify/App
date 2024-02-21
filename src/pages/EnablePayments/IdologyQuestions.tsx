@@ -11,6 +11,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -105,7 +106,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 <Text style={styles.mb3}>{translate('additionalDetailsStep.helpTextIdologyQuestions')}</Text>
                 <TextLink
                     style={styles.mb3}
-                    href="https://use.expensify.com/usa-patriot-act"
+                    href={CONST.HELP_LINK_URL}
                 >
                     {translate('additionalDetailsStep.helpLink')}
                 </TextLink>

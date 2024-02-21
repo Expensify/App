@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletOnfido} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -60,11 +61,11 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                         <View style={[styles.mh5, styles.justifyContentCenter]}>
                             <Text style={[styles.mb5]}>
                                 {translate('onfidoStep.acceptTerms')}
-                                <TextLink href="https://onfido.com/facial-scan-policy-and-release/">{translate('onfidoStep.facialScan')}</TextLink>
+                                <TextLink href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}>{translate('onfidoStep.facialScan')}</TextLink>
                                 {', '}
-                                <TextLink href="https://onfido.com/privacy/">{translate('common.privacy')}</TextLink>
+                                <TextLink href={CONST.ONFIDO_PRIVACY_POLICY_URL}>{translate('common.privacy')}</TextLink>
                                 {` ${translate('common.and')} `}
-                                <TextLink href="https://onfido.com/terms-of-service/">{translate('common.termsOfService')}</TextLink>.
+                                <TextLink href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}>{translate('common.termsOfService')}</TextLink>.
                             </Text>
                         </View>
                     </FormScrollView>
