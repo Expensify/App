@@ -1,14 +1,15 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import OptionsSelector from './OptionsSelector';
+import SelectionList from './SelectionList';
+import type { ListItem } from './SelectionList/types';
 
 type CategoryPickerOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -20,16 +21,12 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
     selectedCategory: string;
-    onSubmit: (category: Pick<OnyxTypes.PolicyCategory, 'name' | 'enabled'>) => void;
+    onSubmit: (item: ListItem) => void;
 };
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}: CategoryPickerProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchValue, setSearchValue] = useState('');
-
-    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(policyCategories ?? {});
-    const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const selectedOptions = useMemo(() => {
         if (!selectedCategory) {
@@ -40,17 +37,19 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             {
                 name: selectedCategory,
                 enabled: true,
+                accountID: null,
+                isSelected: true,
             },
         ];
     }, [selectedCategory]);
 
-    const sections = useMemo(() => {
+    const [sections, headerMessage, shouldShowTextInput, selectedOptionKey] = useMemo(() => {
         const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter((p) => !isEmptyObject(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
             {},
             {},
             [],
-            searchValue,
+            debouncedSearchValue,
             selectedOptions,
             [],
             false,
@@ -61,33 +60,27 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
         );
 
-        return categoryOptions;
-    }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
+        const categorySection = categoryOptions?.[0];
+        const categoryData = categorySection?.data ?? [];
+        const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
+        const policiesCount = OptionsListUtils.getEnabledCategoriesCount(policyCategories ?? {});
+        const isCategoriesCountBelowThreshold = policiesCount < CONST.CATEGORY_LIST_THRESHOLD;
+        const showInput = !isCategoriesCountBelowThreshold;
 
-    const sectionsData = sections?.[0]?.data ?? [];
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sectionsData.length > 0, searchValue);
-    const shouldShowTextInput = !isCategoriesCountBelowThreshold;
-    const selectedOptionKey = sectionsData.filter((category) => category.searchText === selectedCategory)[0]?.keyForList;
+        const selectedKey = categoryData.filter((category) => category.searchText === selectedCategory)[0]?.keyForList;
+
+        return [categoryOptions, header, showInput, selectedKey];
+    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, selectedCategory]);
 
     return (
-        <OptionsSelector
-            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
-            optionHoveredStyle={styles.hoveredComponentBG}
-            sectionHeaderStyle={styles.mt5}
+        <SelectionList
             sections={sections}
-            selectedOptions={selectedOptions}
-            // Focus the first option when searching
-            focusedIndex={0}
-            // Focus the selected option on first load
-            initiallyFocusedOptionKey={selectedOptionKey}
             headerMessage={headerMessage}
-            shouldShowTextInput={shouldShowTextInput}
-            textInputLabel={translate('common.search')}
-            boldStyle
-            highlightSelectedOptions
-            isRowMultilineSupported
+            textInputValue={searchValue}
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
         />
     );
 }
