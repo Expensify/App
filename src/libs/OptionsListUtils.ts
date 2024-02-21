@@ -1,6 +1,5 @@
 /* eslint-disable no-continue */
 import Str from 'expensify-common/lib/str';
-import _ from 'lodash';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
@@ -1492,7 +1491,7 @@ function getOptions(
             return;
         }
 
-        if (_.isEmpty(accountIDs)) {
+        if (!accountIDs || accountIDs.length === 0) {
             return;
         }
 
