@@ -61,8 +61,8 @@ const ViolationsUtils = {
             }
 
             policyTagKeys.forEach((key, index) => {
-                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && violation.data?.tagName === key);
-                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG && violation.data?.tagName === key);
+                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
+                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
                 const selectedTag = selectedTags[index];
                 const isTagInPolicy = Boolean(policyTagList[key]?.tags[selectedTag]?.enabled);
 
