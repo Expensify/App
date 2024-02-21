@@ -102,7 +102,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const policyTaxRates = lodashGet(props.policy, 'taxRates', {});
+    const policyTaxRates = lodashGet(policy, 'taxRates', {});
 
     const taxRateTitle = TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode);
 
