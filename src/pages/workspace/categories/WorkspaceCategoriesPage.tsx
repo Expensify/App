@@ -124,5 +124,5 @@ export default withPaidPolicyAccessOrNotFound()(
                 key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
             },
         })(WorkspaceCategoriesPage),
-    ),
+    ) as React.ComponentType<Omit<WorkspaceCategoriesPageProps, 'policyCategories'>>,
 );
