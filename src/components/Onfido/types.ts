@@ -1,7 +1,12 @@
 import type {OnfidoResult} from '@onfido/react-native-sdk';
 import type * as OnfidoSDK from 'onfido-sdk-ui';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type OnfidoData = OnfidoSDK.SdkResponse | OnfidoResult;
+
+type OnfidoDataWithApplicantID = OnfidoData & {
+    applicantID: OnyxEntry<string>;
+};
 
 type OnfidoElement = HTMLDivElement & {onfidoOut?: OnfidoSDK.SdkHandle};
 
@@ -19,4 +24,4 @@ type OnfidoProps = {
     onError: (error?: string) => void;
 };
 
-export type {OnfidoProps, OnfidoElement, OnfidoData};
+export type {OnfidoProps, OnfidoElement, OnfidoData, OnfidoDataWithApplicantID};
