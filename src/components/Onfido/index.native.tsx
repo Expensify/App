@@ -1,13 +1,13 @@
-import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK} from '@onfido/react-native-sdk';
+import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
 import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnfidoProps} from './types';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
@@ -16,6 +16,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     useEffect(() => {
         OnfidoSDK.start({
             sdkToken,
+            theme: OnfidoTheme.AUTOMATIC,
             flowSteps: {
                 welcome: true,
                 captureFace: {
@@ -41,13 +42,13 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                     return;
                 }
 
-                if (!_.isEmpty(errorMessage) && getPlatform() === CONST.PLATFORM.IOS) {
+                if (!!errorMessage && getPlatform() === CONST.PLATFORM.IOS) {
                     checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA])
                         .then((statuses) => {
                             const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
                             const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
-                            let alertTitle = '';
-                            let alertMessage = '';
+                            let alertTitle: TranslationPaths | '' = '';
+                            let alertMessage: TranslationPaths | '' = '';
                             if (!isCameraAllowed) {
                                 alertTitle = 'onfidoStep.cameraPermissionsNotGranted';
                                 alertMessage = 'onfidoStep.cameraRequestMessage';
@@ -56,7 +57,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                 alertMessage = 'onfidoStep.microphoneRequestMessage';
                             }
 
-                            if (!_.isEmpty(alertTitle) && !_.isEmpty(alertMessage)) {
+                            if (!!alertTitle && !!alertMessage) {
                                 Alert.alert(
                                     translate(alertTitle),
                                     translate(alertMessage),

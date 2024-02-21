@@ -1,5 +1,7 @@
-import {OnfidoError, OnfidoResult} from '@onfido/react-native-sdk';
-import * as OnfidoSDK from 'onfido-sdk-ui';
+import type {OnfidoResult} from '@onfido/react-native-sdk';
+import type * as OnfidoSDK from 'onfido-sdk-ui';
+
+type OnfidoData = OnfidoSDK.SdkResponse | OnfidoResult;
 
 type OnfidoElement = HTMLDivElement & {onfidoOut?: OnfidoSDK.SdkHandle};
 
@@ -11,10 +13,10 @@ type OnfidoProps = {
     onUserExit: (userExitCode?: OnfidoSDK.UserExitCode) => void;
 
     /** Called when the user is totally done with Onfido */
-    onSuccess: (data: OnfidoSDK.SdkResponse | OnfidoResult | OnfidoError) => void;
+    onSuccess: (data: OnfidoData) => void;
 
     /** Called when Onfido throws an error */
     onError: (error?: string) => void;
 };
 
-export type {OnfidoProps, OnfidoElement};
+export type {OnfidoProps, OnfidoElement, OnfidoData};
