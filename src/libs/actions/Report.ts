@@ -573,19 +573,6 @@ function openReport(
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                pendingFields: {
-                    createChat: null,
-                },
-                errorFields: {
-                    createChat: null,
-                },
-                isOptimisticReport: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingInitialReportActions: false,
@@ -647,11 +634,26 @@ function openReport(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-        });
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                    errorFields: {
+                        createChat: null,
+                    },
+                    isOptimisticReport: false,
+                },
+            },
+        );
 
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxCollection<PersonalDetails> = {};
@@ -1608,7 +1610,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
 
     const parameters = {
         reportID,
-        reportFields: JSON.stringify({[reportField.fieldID]: reportField}),
+        reportFields: JSON.stringify({[`expensify_${reportField.fieldID}`]: reportField}),
     };
 
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
@@ -1969,6 +1971,12 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
     // If this notification was delayed and the user saw the message already, don't show it
     if (action && report?.lastReadTime && report.lastReadTime >= action.created) {
         Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
+        return false;
+    }
+
+    // If this is a whisper targeted to someone else, don't show it
+    if (action && ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
+        Log.info(`${tag} No notification because the action is whispered to someone else`, false);
         return false;
     }
 
@@ -2367,7 +2375,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
-/** Removes people from a room */
+/** Removes people from a room
+ *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
+ */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
 
@@ -2566,7 +2576,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 };
 
 /** Fetches all the private notes for a given report */
-function getReportPrivateNote(reportID: string) {
+function getReportPrivateNote(reportID: string | undefined) {
     if (Session.isAnonymousUser()) {
         return;
     }
