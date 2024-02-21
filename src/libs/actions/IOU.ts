@@ -3300,9 +3300,10 @@ function getSendMoneyParams(
 }
 
 function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
+    const total = iouReport.total ?? 0;
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        -(iouReport.total ?? 0),
+        ReportUtils.isExpenseReport(iouReport) ? -total : total,
         iouReport.currency ?? '',
         '',
         [recipient],
