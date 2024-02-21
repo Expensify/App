@@ -91,8 +91,10 @@ type ListItemProps = CommonListItemProps<ListItem> & {
     /** Is item hovered */
     isHovered?: boolean;
 
+    /** Whether the default focus should be prevented on row selection */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
+    /** Key used internally by React */
     keyForList?: string;
 };
 
