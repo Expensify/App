@@ -6,7 +6,6 @@ import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute'
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config from './config';
@@ -125,7 +124,7 @@ function getMatchingRootRouteForRHPRoute(
             return createCentralPaneNavigator({name: centralPaneName as CentralPaneName, params: route.params});
         }
     }
-    
+
     // Check for FullScreenNavigator
     for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
         if (RHPNames && RHPNames.includes(route.name)) {
