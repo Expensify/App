@@ -1061,7 +1061,8 @@ function getTagsOptions(tags: Category[]): Option[] {
 function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
     const tagSections = [];
     const sortedTags = sortTags(tags);
-    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled)];
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
     let indexOffset = 0;
 
@@ -1109,7 +1110,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         return tagSections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
             const tagObject = tags.find((tag) => tag.name === recentlyUsedTag);
