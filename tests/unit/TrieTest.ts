@@ -1,4 +1,4 @@
-import Trie from '../../src/libs/Trie';
+import Trie from '@src/libs/Trie';
 
 describe('Trie', () => {
     it('Test if a node can be found in the Trie', () => {
@@ -8,8 +8,8 @@ describe('Trie', () => {
         wordTrie.add('joy', {code: '😂'});
         wordTrie.add('rofl', {code: '🤣'});
         expect(wordTrie.search('eyes')).toBeNull();
-        expect(wordTrie.search('joy').metaData).toEqual({code: '😂'});
-        expect(wordTrie.search('gRiN').metaData).toEqual({code: '😁'});
+        expect(wordTrie.search('joy')?.metaData).toEqual({code: '😂'});
+        expect(wordTrie.search('gRiN')?.metaData).toEqual({code: '😁'});
     });
 
     it('Test finding all leaf nodes starting with a substring', () => {
@@ -65,13 +65,13 @@ describe('Trie', () => {
         const wordTrie = new Trie();
         wordTrie.add('John', {code: '👨🏼'});
         wordTrie.update('John', {code: '👨🏻'});
-        expect(wordTrie.search('John').metaData).toEqual({code: '👨🏻'});
+        expect(wordTrie.search('John')?.metaData).toEqual({code: '👨🏻'});
     });
 
     it('Test throwing an error when try to update a word that does not exist in the Trie.', () => {
         const wordTrie = new Trie();
         expect(() => {
-            wordTrie.update('smile');
+            wordTrie.update('smile', {});
         }).toThrow('Word does not exist in the Trie');
     });
 });
