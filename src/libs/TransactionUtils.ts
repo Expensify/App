@@ -405,7 +405,7 @@ function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string 
 }
 
 function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
-    return _.unescape(getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':'));
+    return getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':');
 }
 
 /**

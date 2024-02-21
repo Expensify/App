@@ -38,7 +38,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
-import {getTagForDisplay} from "@libs/TransactionUtils";
 
 type MoneyRequestViewTransactionOnyxProps = {
     /** The transaction associated with the transactionThread */
