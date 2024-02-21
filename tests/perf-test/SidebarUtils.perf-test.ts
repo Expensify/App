@@ -4,7 +4,7 @@ import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -85,8 +85,8 @@ describe('SidebarUtils', () => {
         const allReportActions = Object.fromEntries(
             Object.keys(reportActions).map((key) => [
                 key,
-                [
-                    {
+                {
+                    [reportActions[key].reportActionID]: {
                         errors: reportActions[key].errors ?? [],
                         message: [
                             {
@@ -96,9 +96,9 @@ describe('SidebarUtils', () => {
                             },
                         ],
                     },
-                ],
+                },
             ]),
-        ) as unknown as OnyxCollection<ReportAction[]>;
+        ) as unknown as OnyxCollection<ReportActions>;
 
         await waitForBatchedUpdates();
         await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations));
