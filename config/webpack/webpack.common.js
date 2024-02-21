@@ -23,6 +23,7 @@ const includeModules = [
     'react-native-qrcode-svg',
     'react-native-view-shot',
     '@react-native/assets',
+    'react-native-pdf',
     'expo-av',
 ].join('|');
 
