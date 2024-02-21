@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
-import * as TransactionUtils from '../TransactionUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 
 const ViolationsUtils = {
     /**
