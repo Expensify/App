@@ -73,7 +73,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const input2FARef = useRef<MagicCodeInputHandle>();
     const timerRef = useRef<NodeJS.Timeout>();
 
-    const hasError = !isEmptyObject(account) && !isEmptyObject(account?.errors) && !needToClearError;
+    const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = isOffline ?? account?.isLoading;
     const isValidateCodeFormSubmitting =
