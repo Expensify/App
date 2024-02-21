@@ -1,10 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
-import type {TextInput} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
@@ -27,7 +27,7 @@ type EditRequestTaxAmountPageProps = {
 
 function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onNavigateToCurrency, onSubmit}: EditRequestTaxAmountPageProps) {
     const {translate} = useLocalize();
-    const textInput = useRef<TextInput>(null);
+    const textInput = useRef<BaseTextInputRef>(null);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -52,7 +52,6 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
         >
             <HeaderWithBackButton title={translate('iou.taxAmount')} />
             <MoneyRequestAmountForm
-                // @ts-expect-error We need to Migrate MoneyRequestAmountForm to TSC for this to work.
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 taxAmount={defaultTaxAmount}
