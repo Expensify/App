@@ -1,4 +1,5 @@
 /* eslint-disable no-param-reassign */
+import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
@@ -10,6 +11,9 @@ import * as MultiGestureCanvasUtils from './utils';
 // We're using a "withDecay" animation to smoothly phase out the pan animation
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
 const PAN_DECAY_DECELARATION = 0.9915;
+const SCREEN_HEIGHT = Dimensions.get('screen').height;
+const SNAP_POINT = SCREEN_HEIGHT / 4;
+const SNAP_POINT_HIDDEN = SCREEN_HEIGHT / 1.2;
 
 type UsePanGestureProps = Pick<
     MultiGestureCanvasVariables,
@@ -134,9 +138,8 @@ const usePanGesture = ({
         } else {
             const finalTranslateY = offsetY.value + panVelocityY.value * 0.2;
 
-            // TODO: calculate these values (250/500) programmatically
-            if (finalTranslateY > 250 && zoomScale.value <= 1) {
-                offsetY.value = withSpring(500, SPRING_CONFIG, () => {
+            if (finalTranslateY > SNAP_POINT && zoomScale.value <= 1) {
+                offsetY.value = withSpring(SNAP_POINT_HIDDEN, SPRING_CONFIG, () => {
                     isSwipingDownToClose.value = false;
                 });
 
