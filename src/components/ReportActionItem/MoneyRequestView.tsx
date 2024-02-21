@@ -38,6 +38,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
+import {getTagForDisplay} from "@libs/TransactionUtils";
 
 type MoneyRequestViewTransactionOnyxProps = {
     /** The transaction associated with the transactionThread */
@@ -379,7 +380,7 @@ function MoneyRequestView({
                         >
                             <MenuItemWithTopDescription
                                 description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTag(transaction, index)}
+                                title={TransactionUtils.getTagForDisplay(transaction, index)}
                                 interactive={canEdit}
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}

@@ -404,6 +404,10 @@ function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string 
     return transaction?.tag ?? '';
 }
 
+function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+    return _.unescape(getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':'));
+}
+
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
@@ -633,8 +637,9 @@ export {
     getCategory,
     getBillable,
     getTag,
-    getTransactionViolations,
     getTagArrayFromName,
+    getTagForDisplay,
+    getTransactionViolations,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
