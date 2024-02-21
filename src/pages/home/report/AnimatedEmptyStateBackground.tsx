@@ -1,9 +1,8 @@
 import React from 'react';
-import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as NumberUtils from '@libs/NumberUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -22,10 +21,11 @@ function AnimatedEmptyStateBackground() {
     const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
     const xOffset = useSharedValue(0);
     const yOffset = useSharedValue(0);
+    const isReducedMotionEnabled = useReducedMotion();
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        if (!isSmallScreenWidth) {
+        if (!isSmallScreenWidth || isReducedMotionEnabled) {
             return {};
         }
         /*
@@ -34,12 +34,12 @@ function AnimatedEmptyStateBackground() {
          */
         const {x, y} = animatedSensor.sensor.value;
         // The x vs y here seems wrong but is the way to make it feel right to the user
-        xOffset.value = NumberUtils.clampWorklet(xOffset.value + y, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
-        yOffset.value = NumberUtils.clampWorklet(yOffset.value - x, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
+        xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
+        yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         return {
             transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
         };
-    }, []);
+    }, [isReducedMotionEnabled]);
 
     return (
         <Animated.Image
