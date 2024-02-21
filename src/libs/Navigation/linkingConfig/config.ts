@@ -80,6 +80,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.PURPOSE]: {
+                    path: ROUTES.ONBOARDING_PURPOSE,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {

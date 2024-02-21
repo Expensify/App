@@ -144,6 +144,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const fullScreenNavigator = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
     const rhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
+    const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+
     if (rhpNavigator) {
         // Routes
         // - matching bottom tab
@@ -176,13 +178,13 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             metainfo,
         };
     }
-    if (lhpNavigator) {
+    if (lhpNavigator ?? onboardingModalNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
-        // - found lhp
+        // - found lhp / onboardingModalNavigator
 
-        // Currently there is only the search and workspace switcher in LHP both can have any central pane under the overlay.
+        // There is no screen in these navigators that would have mandatory central pane, bottom tab or fullscreen navigator.
         metainfo.isCentralPaneAndBottomTabMandatory = false;
         metainfo.isFullScreenNavigatorMandatory = false;
         const routes = [];
@@ -201,7 +203,15 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 }),
             );
         }
-        routes.push(lhpNavigator);
+
+        // Separate ifs are necessary for typescript to see that we are not pushing unedinfed to the array.
+        if (lhpNavigator) {
+            routes.push(lhpNavigator);
+        }
+
+        if (onboardingModalNavigator) {
+            routes.push(onboardingModalNavigator);
+        }
 
         return {
             adaptedState: getRoutesWithIndex(routes),
@@ -265,6 +275,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(state);
         if (matchingCentralPaneRoute) {
             routes.push(createCentralPaneNavigator(matchingCentralPaneRoute));
+        } else {
+            // If there is no matching central pane, we want to add the default one.
+            metainfo.isCentralPaneAndBottomTabMandatory = false;
+            routes.push(createCentralPaneNavigator({name: SCREENS.REPORT}));
         }
 
         return {
@@ -293,7 +307,9 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
-    return getAdaptedState(state, policyID);
+
+    const tmp = getAdaptedState(state, policyID);
+    return tmp;
 };
 
 export default getAdaptedStateFromPath;

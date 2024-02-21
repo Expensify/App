@@ -495,6 +495,8 @@ const ROUTES = {
         getRoute: (contentType: string) => `referral/${contentType}` as const,
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
+    ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
+    ONBOARDING_PURPOSE: 'onboarding/purpose',
 } as const;
 
 /**

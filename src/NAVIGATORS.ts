@@ -7,5 +7,6 @@ export default {
     BOTTOM_TAB_NAVIGATOR: 'BottomTabNavigator',
     LEFT_MODAL_NAVIGATOR: 'LeftModalNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
+    ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
 } as const;
