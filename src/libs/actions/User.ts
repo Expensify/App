@@ -32,7 +32,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {FrequentlyUsedEmoji} from '@src/types/onyx';
+import type {FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -68,6 +68,14 @@ Onyx.connect({
 
         myPersonalDetails = value[currentUserAccountID];
     },
+});
+
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
 });
 
 /**
@@ -855,6 +863,25 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         },
     ];
 
+    Object.values(allPolicies ?? {}).forEach((policy) => {
+        if (policy?.ownerAccountID !== currentUserAccountID) {
+            return;
+        }
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                owner: newDefaultContactMethod,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                owner: policy.owner,
+            },
+        });
+    });
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
     };
