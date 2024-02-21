@@ -65,7 +65,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
-    displayInDefaultIconColor = true,
+    displayInDefaultIconColor = false,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -81,7 +81,6 @@ function Avatar({
     if (!source) {
         return null;
     }
-
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 

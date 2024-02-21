@@ -84,6 +84,7 @@ function SubscriptAvatar({
                         name={mainAvatar?.name}
                         type={mainAvatar?.type}
                         fallbackIcon={mainAvatar?.fallbackIcon}
+                        displayInDefaultIconColor={mainAvatar?.type !== CONST.ICON_TYPE_WORKSPACE}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -110,6 +111,7 @@ function SubscriptAvatar({
                             name={secondaryAvatar.name}
                             type={secondaryAvatar.type}
                             fallbackIcon={secondaryAvatar.fallbackIcon}
+                            displayInDefaultIconColor={secondaryAvatar.type !== CONST.ICON_TYPE_WORKSPACE}
                         />
                     </View>
                 </UserDetailsTooltip>
