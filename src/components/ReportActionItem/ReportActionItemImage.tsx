@@ -86,7 +86,13 @@ function ReportActionItemImage({
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
         };
     } else {
-        propsObj = {isThumbnail, fileExtension, transactionID: transaction?.transactionID, source: thumbnail ?? image ?? ''};
+        propsObj = {
+            isThumbnail,
+            ...(isThumbnail && {iconSize: isSingleImage ? 'medium' : ('small' as IconSize)}),
+            fileExtension,
+            transactionID: transaction?.transactionID,
+            source: thumbnail ?? image ?? '',
+        };
     }
 
     if (enablePreviewModal) {

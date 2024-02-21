@@ -74,11 +74,12 @@ function ReceiptImage({
     const styles = useThemeStyles();
 
     if (isEReceipt || isThumbnail) {
-        const props = isEReceipt ? {iconSize} : {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
+        const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
                     transactionID={transactionID ?? ''}
+                    iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
