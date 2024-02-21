@@ -62,6 +62,7 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import shouldAllowRawHTMLMessages from './shouldAllowRawHTMLMessages';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
@@ -2369,9 +2370,7 @@ function getReportPreviewMessage(
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
-        if (isPreviewMessageForParentChatReport) {
-            translatePhraseKey = 'iou.payerPaidAmount';
-        } else if (
+        if (
             [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
             !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
             report.isWaitingOnBankAccount
@@ -2696,7 +2695,7 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  */
 function getParsedComment(text: string): string {
     const parser = new ExpensiMark();
-    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : lodashEscape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text, {shouldEscapeText: !shouldAllowRawHTMLMessages()}) : lodashEscape(text);
 }
 
 function getReportDescriptionText(report: Report): string {
