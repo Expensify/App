@@ -409,7 +409,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: value,
+            value,
         },
     ];
 

@@ -25,7 +25,6 @@ import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import spacing from './spacing';
 import type {
     AllStyles,
     AvatarSize,

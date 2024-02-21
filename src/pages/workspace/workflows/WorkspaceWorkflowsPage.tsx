@@ -15,14 +15,12 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+// eslint-disable-next-line no-restricted-imports
+import spacing from '@styles/utils/spacing';
+import type { Styles } from '@styles/index';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
-import darkTheme from '@styles/theme/themes/dark';
-import lightTheme from '@styles/theme/themes/light';
-import spacing from '@styles/utils/spacing';
-import { Styles } from '@styles/index';
-import useThemePreference from '@hooks/useThemePreference';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -30,9 +28,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const StyleUtils = useStyleUtils();
-    const themePreference = useThemePreference();
-    const themeToUse = useMemo(() => themePreference === CONST.THEME.DARK ? darkTheme : lightTheme, [themePreference]);    
+    const theme = useTheme();  
     
     // Since these styles are only used in this component we define them here
     const workflowsStyles = {
@@ -48,13 +44,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             marginTop: 14,
         },
         subMenuTitle: {
-            color: themeToUse.textSupporting,
+            color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
             fontWeight: '400',
         },
         subMenuDescription: {
-            color: themeToUse.text,
+            color: theme.text,
             fontSize: 15,
             lineHeight: 20,
         },
@@ -126,8 +122,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             isEndOptionRow: true,
             hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
         },
-    ]), [policy, route.params.policyID, styles, translate, StyleUtils]);
-
+    ]), [policy, route.params.policyID, styles, translate, workflowsStyles.subMenuContainer, workflowsStyles.subMenuDescription, workflowsStyles.subMenuTitle]);
+    
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
         <View style={styles.mt7}>
             <ToggleSettingOptionRow
@@ -136,9 +132,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle={item.subtitle}
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
-                isEndOptionRow={item.isEndOptionRow}
                 hasBeenToggled={item.hasBeenToggled}
-                theme={themeToUse}
             />
         </View>
     );

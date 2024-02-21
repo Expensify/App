@@ -5,9 +5,8 @@ import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { Styles } from '@styles/index';
-import {defaultTheme } from '@styles/theme';
-import { ThemeColors } from '@styles/theme/types';
+import type { Styles } from '@styles/index';
+import useTheme from '@hooks/useTheme';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -16,13 +15,12 @@ type ToggleSettingOptionRowProps = {
     hasBeenToggled: boolean;
     onToggle: (isEnabled: boolean) => void;
     subMenuItems?: React.ReactNode;
-    isEndOptionRow?: boolean;
-    theme?: ThemeColors;
 };
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled, theme}: ToggleSettingOptionRowProps) {
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled}: ToggleSettingOptionRowProps) {
     const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const ICON_SIZE = 48;
     const toggleSwitch = () => {
         setIsEnabled(!isEnabled);
@@ -56,7 +54,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
         }, 
         subtitle: {
             fontSize: 13,
-            color: theme?.textSupporting || defaultTheme.textSupporting,
+            color: theme.textSupporting,
             marginTop: 3,
         },
     } satisfies Styles;
@@ -91,4 +89,3 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
 
 export type {ToggleSettingOptionRowProps};
 export default ToggleSettingOptionRow;
-
