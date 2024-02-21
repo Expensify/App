@@ -138,10 +138,7 @@ function ProfilePage(props) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-            PersonalDetails.openPublicProfilePage(accountID);
-        if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
-        }
-    //}, [accountID, hasMinimumDetails]);
+        PersonalDetails.openPublicProfilePage(accountID);
     }, [accountID]);
 
     return (
