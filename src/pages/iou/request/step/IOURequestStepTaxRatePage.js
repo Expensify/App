@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -26,6 +27,12 @@ const propTypes = {
 
     /** The report attached to the transaction */
     report: reportPropTypes,
+
+    /** The policy of the report */
+    policy: PropTypes.shape({
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
+    }),
 };
 
 const defaultProps = {
