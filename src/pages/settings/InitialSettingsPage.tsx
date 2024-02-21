@@ -371,7 +371,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             title={translate('initialSettingsPage.accountSettings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.justifyContentCenter]}
-            onBackButtonPress={() => Navigation.dismissModal()}
+            onBackButtonPress={() => Navigation.closeFullScreen()}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
             childrenContainerStyles={[styles.m0, styles.p0]}
             testID={InitialSettingsPage.displayName}
