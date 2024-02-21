@@ -18,9 +18,11 @@ import type SCREENS from '@src/SCREENS';
 import useStyleUtils from '@hooks/useStyleUtils';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
-import {defaultTheme } from '@styles/theme';
+import darkTheme from '@styles/theme/themes/dark';
+import lightTheme from '@styles/theme/themes/light';
 import spacing from '@styles/utils/spacing';
 import { Styles } from '@styles/index';
+import useThemePreference from '@hooks/useThemePreference';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -29,7 +31,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
-
+    const themePreference = useThemePreference();
+    const themeToUse = useMemo(() => themePreference === CONST.THEME.DARK ? darkTheme : lightTheme, [themePreference]);    
+    
     // Since these styles are only used in this component we define them here
     const workflowsStyles = {
         subMenuContainer: {
@@ -41,15 +45,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             paddingRight: 9,
             paddingLeft: 16,
             marginRight: 0,
+            marginTop: 14,
         },
         subMenuTitle: {
-            color: defaultTheme.textSupporting,
+            color: themeToUse.textSupporting,
             fontSize: 13,
             lineHeight: 16,
             fontWeight: '400',
         },
         subMenuDescription: {
-            color: defaultTheme.text,
+            color: themeToUse.text,
             fontSize: 15,
             lineHeight: 20,
         },
@@ -133,6 +138,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subMenuItems={item.subMenuItems}
                 isEndOptionRow={item.isEndOptionRow}
                 hasBeenToggled={item.hasBeenToggled}
+                theme={themeToUse}
             />
         </View>
     );

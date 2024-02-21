@@ -5,9 +5,9 @@ import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import { Styles } from '@styles/index';
 import {defaultTheme } from '@styles/theme';
+import { ThemeColors } from '@styles/theme/types';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -17,17 +17,17 @@ type ToggleSettingOptionRowProps = {
     onToggle: (isEnabled: boolean) => void;
     subMenuItems?: React.ReactNode;
     isEndOptionRow?: boolean;
+    theme?: ThemeColors;
 };
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isEndOptionRow, hasBeenToggled}: ToggleSettingOptionRowProps) {
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled, theme}: ToggleSettingOptionRowProps) {
     const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
     const styles = useThemeStyles();
-
+    const ICON_SIZE = 48;
     const toggleSwitch = () => {
         setIsEnabled(!isEnabled);
         onToggle(!isEnabled);
     };
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     // Since these styles are only used in this component we define them here
     const workflowsStyles = {
@@ -56,7 +56,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
         }, 
         subtitle: {
             fontSize: 13,
-            color: defaultTheme.textSupporting,
+            color: theme?.textSupporting || defaultTheme.textSupporting,
             marginTop: 3,
         },
     } satisfies Styles;
@@ -67,8 +67,8 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                 <View style={workflowsStyles.content}>
                     <Icon
                         src={icon}
-                        height={48}
-                        width={48}
+                        height={ICON_SIZE}
+                        width={ICON_SIZE}
                         additionalStyles={workflowsStyles.icon}
                     />
                     <View style={workflowsStyles.wrapperText}>
