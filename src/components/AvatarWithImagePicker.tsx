@@ -109,6 +109,9 @@ type AvatarWithImagePickerProps = {
 
     /** Executed once click on view photo option */
     onViewPhotoPress?: () => void;
+
+    /** Allows to open an image without Attachment Picker. */
+    enablePreview?: boolean,
 };
 
 function AvatarWithImagePicker({
@@ -134,6 +137,7 @@ function AvatarWithImagePicker({
     avatarStyle,
     disabled = false,
     onViewPhotoPress,
+    enablePreview = false,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -292,10 +296,16 @@ function AvatarWithImagePicker({
                         text={translate('avatarWithImagePicker.editImage')}
                     >
                         <PressableWithoutFeedback
-                            onPress={() => setIsMenuVisible((prev) => !prev)}
+                            onPress={() => {
+                                if (disabled && enablePreview && onViewPhotoPress) {
+                                    onViewPhotoPress();
+                                    return;
+                                }
+                                setIsMenuVisible((prev) => !prev);
+                            }}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                            disabled={isAvatarCropModalOpen || disabled}
+                            disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                             disabledStyle={disabledStyle}
                             ref={anchorRef}
                         >

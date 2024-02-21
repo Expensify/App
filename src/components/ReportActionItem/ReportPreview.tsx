@@ -159,8 +159,8 @@ function ReportPreview({
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !(policy?.harvesting?.enabled ?? policy?.isHarvestingEnabled),
-        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled, policy?.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled,
+        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
     const getDisplayAmount = (): string => {
@@ -246,6 +246,7 @@ function ReportPreview({
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
             shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
+            needsOffscreenAlphaCompositing
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
