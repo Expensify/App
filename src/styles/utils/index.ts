@@ -1522,6 +1522,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                     fontSize: 13,
                     color: defaultTheme.textSupporting,
                     marginTop: 3,
+                    marginRight: 10,
                 };
             case 'subMenuContainer':
                 return {
