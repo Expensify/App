@@ -213,8 +213,8 @@ const runTests = async () => {
 
     let progressLog = Logger.progressInfo('Installing apps and reversing port');
 
-    await installApp(config.MAIN_APP_PACKAGE, mainAppPath, 'android');
-    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath, 'android');
+    await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
+    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
     await reversePort();
     progressLog.done();
 
