@@ -24,14 +24,7 @@ function RadioListItem({
         <BaseListItem
             item={item}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, isFocused && styles.sidebarLinkActive]}
-            selectMultipleStyle={[
-                StyleUtils.getCheckboxContainerStyle(20),
-                styles.mr3,
-                item.isSelected && styles.checkedContainer,
-                item.isSelected && styles.borderColorFocus,
-                item.isDisabled && styles.cursorDisabled,
-                item.isDisabled && styles.buttonOpacityDisabled,
-            ]}
+            selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}

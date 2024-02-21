@@ -92,6 +92,8 @@ type ListItemProps = CommonListItemProps<ListItem> & {
     isHovered?: boolean;
 
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    keyForList?: string;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
