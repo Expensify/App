@@ -24,11 +24,12 @@ type CountrySelectorProps = {
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
+
+    /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
-    onPress?: () => void;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange, onBlur, onPress}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -61,7 +62,6 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange, onB
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRouteWithoutParams();
-                    onPress?.();
                     didOpenContrySelector.current = true;
                     Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
                 }}
