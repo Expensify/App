@@ -156,10 +156,9 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const timePeriodOptions = useCallback(
         () =>
-            _.map(statusType, (item, index) => (
+            _.map(statusType, (item) => (
                 <RadioListItem
                     item={item}
-                    keyForList={`${index}+${item.value}`}
                     onSelectRow={() => updateMode(item)}
                     showTooltip={false}
                     isFocused={item.isSelected}
