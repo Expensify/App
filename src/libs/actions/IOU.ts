@@ -223,8 +223,7 @@ Onyx.connect({
  * @param reportID to attach the transaction to
  * @param iouRequestType one of manual/scan/distance
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // Disabling this line since currentDate can be an empty string
@@ -257,6 +256,12 @@ function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCr
 
 function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function startMoneyRequest_temporaryForRefactor(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -4095,11 +4100,11 @@ export {
     payMoneyRequest,
     sendMoneyWithWallet,
     startMoneyRequest,
+    initMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestCategory,
     resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
-    clearMoneyRequest,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory_temporaryForRefactor,
