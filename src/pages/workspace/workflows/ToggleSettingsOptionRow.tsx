@@ -4,9 +4,9 @@ import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type { Styles } from '@styles/index';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {Styles} from '@styles/index';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -51,7 +51,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
         heading: {
             fontSize: 15,
             fontWeight: '700',
-        }, 
+        },
         subtitle: {
             fontSize: 13,
             color: theme.textSupporting,

@@ -1483,4 +1483,3 @@ const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
 export default createStyleUtils;
 export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};
-

@@ -4583,7 +4583,6 @@ const styles = (theme: ThemeColors) =>
             fontWeight: '500',
             fontSize: variables.workspaceProfileName,
         },
-        
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

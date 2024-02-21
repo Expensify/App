@@ -1,26 +1,26 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import type {Styles} from '@styles/index';
+// eslint-disable-next-line no-restricted-imports
+import spacing from '@styles/utils/spacing';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import useTheme from '@hooks/useTheme';
-// eslint-disable-next-line no-restricted-imports
-import spacing from '@styles/utils/spacing';
-import type { Styles } from '@styles/index';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 
@@ -30,12 +30,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const theme = useTheme();  
-    
+    const theme = useTheme();
+
     const [policyOwnerDisplayName, setPolicyOwnerDisplayName] = useState('');
 
     useEffect(() => {
-        if (!policy?.ownerAccountID) { 
+        if (!policy?.ownerAccountID) {
             return;
         }
         const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy.ownerAccountID], CONST.EMPTY_OBJECT), false);
@@ -70,74 +70,77 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         },
     } satisfies Styles;
 
-    const items: ToggleSettingOptionRowProps[] = useMemo(() => ([
-        {
-            icon: Illustrations.ReceiptEnvelope,
-            title: translate('workflowsPage.delaySubmissionTitle'),
-            subtitle: translate('workflowsPage.delaySubmissionDescription'),
-            onToggle: (isEnabled: boolean) => {
-                Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+    const items: ToggleSettingOptionRowProps[] = useMemo(
+        () => [
+            {
+                icon: Illustrations.ReceiptEnvelope,
+                title: translate('workflowsPage.delaySubmissionTitle'),
+                subtitle: translate('workflowsPage.delaySubmissionDescription'),
+                onToggle: (isEnabled: boolean) => {
+                    Policy.setWorkspaceAutoReporting(route.params.policyID, isEnabled);
+                },
+                subMenuItems: (
+                    <MenuItem
+                        title={translate('workflowsPage.submissionFrequency')}
+                        titleStyle={workflowsStyles.subMenuTitle}
+                        descriptionTextStyle={workflowsStyles.subMenuDescription}
+                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
+                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
+                        description={translate('workflowsPage.weeklyFrequency')}
+                        shouldShowRightIcon
+                        wrapperStyle={workflowsStyles.subMenuContainer}
+                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                    />
+                ),
+                hasBeenToggled: policy?.harvesting?.enabled ?? false,
             },
-            subMenuItems: (
-                <MenuItem
-                    title={translate('workflowsPage.submissionFrequency')}
-                    titleStyle={workflowsStyles.subMenuTitle}
-                    descriptionTextStyle={workflowsStyles.subMenuDescription}
-                    // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
-                    // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
-                    description={translate('workflowsPage.weeklyFrequency')}
-                    shouldShowRightIcon
-                    wrapperStyle={workflowsStyles.subMenuContainer}
-                    hoverAndPressStyle={[styles.mr0, styles.br2]}
-                />
-            ),
-            hasBeenToggled: policy?.harvesting?.enabled ?? false,
-        },
-        {
-            icon: Illustrations.Approval,
-            title: translate('workflowsPage.addApprovalsTitle'),
-            subtitle: translate('workflowsPage.addApprovalsDescription'),
-            onToggle: (isEnabled: boolean) => {
-                Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? 'BASIC' : 'OPTIONAL');
+            {
+                icon: Illustrations.Approval,
+                title: translate('workflowsPage.addApprovalsTitle'),
+                subtitle: translate('workflowsPage.addApprovalsDescription'),
+                onToggle: (isEnabled: boolean) => {
+                    Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? 'BASIC' : 'OPTIONAL');
+                },
+                subMenuItems: (
+                    <MenuItem
+                        title={translate('workflowsPage.approver')}
+                        titleStyle={workflowsStyles.subMenuTitle}
+                        descriptionTextStyle={workflowsStyles.subMenuDescription}
+                        description={policyOwnerDisplayName ?? ''}
+                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
+                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
+                        shouldShowRightIcon
+                        wrapperStyle={workflowsStyles.subMenuContainer}
+                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                    />
+                ),
+                hasBeenToggled: policy?.isAutoApprovalEnabled ?? false,
             },
-            subMenuItems: (
-                <MenuItem
-                    title={translate('workflowsPage.approver')}
-                    titleStyle={workflowsStyles.subMenuTitle}
-                    descriptionTextStyle={workflowsStyles.subMenuDescription}
-                    description={policyOwnerDisplayName ?? ''}
-                    // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
-                    // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
-                    shouldShowRightIcon
-                    wrapperStyle={workflowsStyles.subMenuContainer}
-                    hoverAndPressStyle={[styles.mr0, styles.br2]}
-                />
-            ),
-            hasBeenToggled: policy?.isAutoApprovalEnabled ?? false,
-        },
-        {
-            icon: Illustrations.WalletAlt,
-            title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
-            subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-            onToggle: () => {
-                // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
-            },
-            subMenuItems: (
-                <MenuItem
-                    descriptionTextStyle={[workflowsStyles.subMenuDescription, styles.textSupporting]}
-                    description={translate('workflowsPage.connectBankAccount')}
-                    // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
+            {
+                icon: Illustrations.WalletAlt,
+                title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
+                subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
+                onToggle: () => {
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
-                    shouldShowRightIcon
-                    wrapperStyle={workflowsStyles.subMenuContainer}
-                    hoverAndPressStyle={[styles.mr0, styles.br2]}
-                />
-            ),
-            isEndOptionRow: true,
-            hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
-        },
-    ]), [policy, route.params.policyID, styles, translate, workflowsStyles.subMenuContainer, workflowsStyles.subMenuDescription, workflowsStyles.subMenuTitle, policyOwnerDisplayName]);
-    
+                },
+                subMenuItems: (
+                    <MenuItem
+                        descriptionTextStyle={[workflowsStyles.subMenuDescription, styles.textSupporting]}
+                        description={translate('workflowsPage.connectBankAccount')}
+                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
+                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
+                        shouldShowRightIcon
+                        wrapperStyle={workflowsStyles.subMenuContainer}
+                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                    />
+                ),
+                isEndOptionRow: true,
+                hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
+            },
+        ],
+        [policy, route.params.policyID, styles, translate, workflowsStyles.subMenuContainer, workflowsStyles.subMenuDescription, workflowsStyles.subMenuTitle, policyOwnerDisplayName],
+    );
+
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
         <View style={styles.mt7}>
             <ToggleSettingOptionRow
@@ -184,4 +187,3 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
 export default withPolicy(WorkspaceWorkflowsPage);
-
