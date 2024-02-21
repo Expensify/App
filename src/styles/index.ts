@@ -3061,6 +3061,20 @@ const styles = (theme: ThemeColors) =>
             bottom: -8,
         },
 
+        primaryMediumIcon: {
+            alignItems: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+            color: theme.textReversed,
+            height: 40,
+            width: 40,
+            justifyContent: 'center',
+        },
+
+        primaryMediumText: {
+            fontSize: variables.iconSizeNormal,
+        },
+
         workspaceOwnerAvatarWrapper: {
             margin: 6,
         },
