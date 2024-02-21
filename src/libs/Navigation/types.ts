@@ -203,6 +203,9 @@ type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
+    [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
+        reportID: string;
+    };
 };
 
 type ReportDescriptionNavigatorParamList = {
