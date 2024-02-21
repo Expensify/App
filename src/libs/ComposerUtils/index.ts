@@ -50,3 +50,4 @@ function findCommonSuffixLength(str1: string, str2: string, cursorPosition: numb
 }
 
 export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, insertWhiteSpaceAtIndex, findCommonSuffixLength};
+export type {Selection};

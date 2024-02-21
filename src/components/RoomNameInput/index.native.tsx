@@ -17,7 +17,6 @@ function RoomNameInput(
 
     /**
      * Calls the onChangeText callback with a modified room name
-     * @param event
      */
     const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
         const roomName = event.nativeEvent.text;

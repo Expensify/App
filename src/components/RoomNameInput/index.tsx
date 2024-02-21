@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import type {Selection} from '@libs/ComposerUtils';
 import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
@@ -13,7 +14,7 @@ function RoomNameInput(
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const {translate} = useLocalize();
-    const [selection, setSelection] = useState<{start: number; end: number}>({start: 0, end: 0});
+    const [selection, setSelection] = useState<Selection>({start: 0, end: 0});
 
     /**
      * Calls the onChangeText callback with a modified room name
