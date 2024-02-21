@@ -27,6 +27,7 @@ type PolicyTagList<T extends string = string> = Record<
         /** Flag that determines if tags are required */
         required: boolean;
 
+        /** Nested tags */
         tags: PolicyTags;
     }
 >;

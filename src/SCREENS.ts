@@ -29,13 +29,14 @@ const SCREENS = {
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
-        LOUNGE_ACCESS: 'Settings_Lounge_Access',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
+        CONSOLE: 'Settings_Console',
+        SHARE_LOG: 'Share_Log',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -127,6 +128,7 @@ const SCREENS = {
         SCAN_TAB: 'scan',
         DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
+        HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
@@ -148,7 +150,6 @@ const SCREENS = {
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
         CATEGORY: 'Money_Request_Category',
-        MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         DISTANCE: 'Money_Request_Distance',
@@ -207,8 +208,8 @@ const SCREENS = {
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CURRENCY: 'Workspace_Profile_Currency',
+        DESCRIPTION: 'Workspace_Profile_Description',
         NAME: 'Workspace_Profile_Name',
-        DESCRIPTION: 'Workspace_Description',
     },
 
     EDIT_REQUEST: {

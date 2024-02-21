@@ -49,16 +49,20 @@ type TagPickerProps = TagPickerOnyxProps & {
 
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
+
+    /** The index of a tag list */
+    tagIndex: number;
 };
 
-function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tag, policyTags, tagIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyTagList = PolicyUtils.getTagList(policyTags, tag);
-    const policyTagsCount = Object.values(policyTagList).filter((policyTag) => policyTag.enabled).length;
+    const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tag] ?? [], [policyRecentlyUsedTags, tag]);
+    const policyTagList = PolicyUtils.getTagList(policyTags, tagIndex);
+    const policyTagsCount = PolicyUtils.getCountOfEnabledTagsOfList(policyTagList);
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
@@ -79,19 +83,17 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
 
     const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption) {
-            return policyTagList;
+            return policyTagList.tags;
         }
         const selectedNames = selectedOptions.map((s) => s.name);
 
-        return [...selectedOptions, ...Object.values(policyTagList).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
-    const sections = useMemo(() => {
-        const policyRecentlyUsedTagsList = policyRecentlyUsedTags?.tag ?? [];
-
-        return OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false)
-            .tagOptions;
-    }, [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTags?.tag]);
+    const sections = useMemo(
+        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
+    );
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections?.[0]?.data?.length ?? 0) > 0, searchValue);
 
