@@ -13,7 +13,7 @@ import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
 import generateMonthMatrix from './generateMonthMatrix';
-import type CalendarPickerRadioItem from './types';
+import type CalendarPickerListItem from './types';
 import YearPickerModal from './YearPickerModal';
 
 type CalendarPickerProps = {
@@ -59,7 +59,7 @@ function CalendarPicker({
     const minYear = getYear(new Date(minDate));
     const maxYear = getYear(new Date(maxDate));
 
-    const [years, setYears] = useState<CalendarPickerRadioItem[]>(
+    const [years, setYears] = useState<CalendarPickerListItem[]>(
         Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
             text: year.toString(),
             value: year,
