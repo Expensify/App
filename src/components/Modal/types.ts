@@ -59,6 +59,9 @@ type BaseModalProps = Partial<ModalProps> & {
      * See: https://github.com/react-native-modal/react-native-modal/pull/116
      * */
     hideModalContentWhileAnimating?: boolean;
+
+    /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+    shouldUseCustomBackdrop?: boolean;
 };
 
 export default BaseModalProps;

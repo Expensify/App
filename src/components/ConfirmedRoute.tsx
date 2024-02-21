@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,13 +15,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
+import type {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
-
-type WayPoint = {
-    id: string;
-    coordinate: [number, number];
-    markerComponent: () => ReactNode;
-};
 
 type ConfirmedRoutePropsOnyxProps = {
     /** Data about Mapbox token for calling Mapbox API */

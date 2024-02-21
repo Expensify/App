@@ -16,6 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
+import * as KeyDownPressListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -79,20 +80,25 @@ function IOURequestStartPage({
     const previousIOURequestType = usePrevious(transactionRequestType.current);
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
-    // Clear out the temporary money request when this component is unmounted
-    useEffect(
-        () => () => {
-            IOU.clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        },
-        [reportID],
-    );
+    useEffect(() => {
+        const handler = (event) => {
+            if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+        };
+        KeyDownPressListener.addKeyDownPressListener(handler);
+
+        return () => KeyDownPressListener.removeKeyDownPressListener(handler);
+    }, []);
 
     // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, transactionRequestType.current);
+        IOU.initMoneyRequest(reportID, isFromGlobalCreate, transactionRequestType.current);
     }, [transaction, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -111,7 +117,7 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
+            IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
         [previousIOURequestType, reportID, isFromGlobalCreate],

@@ -1,6 +1,5 @@
-const fs = require('fs');
-
-const {OUTPUT_FILE_CURRENT} = require('../config');
+import fs from 'fs';
+import config from '../config';
 
 /**
  * Writes the results of `getStats` to the {@link OUTPUT_FILE_CURRENT} file.
@@ -13,7 +12,7 @@ const {OUTPUT_FILE_CURRENT} = require('../config');
  * @param {number} stats.runs - The number of times the test was run.
  * @param {string} [path] - The path to write to. Defaults to {@link OUTPUT_FILE_CURRENT}.
  */
-module.exports = (stats, path = OUTPUT_FILE_CURRENT) => {
+export default (stats, path = config.OUTPUT_FILE_CURRENT) => {
     if (!stats.name || stats.mean == null || stats.stdev == null || !stats.entries || !stats.runs) {
         throw new Error(`Invalid stats object:\n${JSON.stringify(stats, null, 2)}\n\n`);
     }

@@ -16,8 +16,6 @@ type AnchorRef = {
     ref: RefObject<View | HTMLDivElement>;
     close: (anchorRef?: RefObject<View | HTMLDivElement>) => void;
     anchorRef: RefObject<View | HTMLDivElement>;
-    onOpenCallback?: () => void;
-    onCloseCallback?: () => void;
 };
 
 export type {PopoverContextProps, PopoverContextValue, AnchorRef};
