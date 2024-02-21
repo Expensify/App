@@ -135,7 +135,7 @@ function ReportPreview({
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
-    const numberOfPendingReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
+    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
@@ -152,9 +152,9 @@ function ReportPreview({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         formattedMerchant ||
         translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingReceipts,
+            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
             scanningReceipts: numberOfScanningReceipts,
-            pendingReceipts: numberOfPendingReceipts,
+            pendingReceipts: numberOfPendingRequests,
         });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
