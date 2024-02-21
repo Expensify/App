@@ -447,8 +447,8 @@ function ReportActionCompose({
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
                                         onValueChange={(value) => {
-                                            if (value.length === 0) {
-                                                ReportUtils.setIsComposerFullSize(reportID, false);
+                                            if (value.length === 0 && isComposerFullSize) {
+                                                Report.setIsComposerFullSize(reportID, false);
                                             }
                                             validateCommentMaxLength(value);
                                         }}
