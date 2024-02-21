@@ -3,6 +3,7 @@ import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Broswer from '@libs/Browser';
 
 const propTypes = {
     /** Video file source URL */
@@ -23,13 +24,14 @@ const defaultProps = {
 };
 
 function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, videoDuration}) {
-    const {isSmallScreen} = useWindowDimensions();
+    const {isSmallScreen, isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
 
     return (
         <VideoPlayer
             url={source}
-            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreen}
+            // On mWeb Android, fullscreen video player would automatically change orientation for landscape videos, causing isSmallScreenWidth to be false
+            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !(Broswer.isMobileChrome() ? isSmallScreen : isSmallScreenWidth)}
             isVideoHovered={isHovered}
             videoDuration={videoDuration}
             style={[styles.w100, styles.h100]}
