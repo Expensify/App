@@ -248,6 +248,11 @@ function ReportActionsView(props) {
         }
     }, [hasCachedActions]);
 
+    // When we offline before opening a money request report, 
+    // the total of the report and sometimes the money request aren't displayed because these actions aren't returned until `OpenReport` API is complete.
+    // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
+    // and we also generate a money request action if there is no such action to display at least one money request action to match the total data.
+    // For more details: https://github.com/Expensify/App/issues/26424#issuecomment-1869154198
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(props.report) || !_.size(props.reportActions)) {
             return props.reportActions;
