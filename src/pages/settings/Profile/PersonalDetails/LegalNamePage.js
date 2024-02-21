@@ -86,39 +86,39 @@ function LegalNamePage(props) {
                 title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-                <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                    validate={validate}
-                    onSubmit={updateLegalName}
-                    submitButtonText={props.translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={[styles.mb4]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                            name="lfname"
-                            label={props.translate('privatePersonalDetails.legalFirstName')}
-                            aria-label={props.translate('privatePersonalDetails.legalFirstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalFirstName}
-                            spellCheck={false}
-                        />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                            name="llname"
-                            label={props.translate('privatePersonalDetails.legalLastName')}
-                            aria-label={props.translate('privatePersonalDetails.legalLastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalLastName}
-                            spellCheck={false}
-                        />
-                    </View>
-                </FormProvider>
+            <FormProvider
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
+                validate={validate}
+                onSubmit={updateLegalName}
+                submitButtonText={props.translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={[styles.mb4]}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                        name="lfname"
+                        label={props.translate('privatePersonalDetails.legalFirstName')}
+                        aria-label={props.translate('privatePersonalDetails.legalFirstName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={legalFirstName}
+                        spellCheck={false}
+                    />
+                </View>
+                <View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                        name="llname"
+                        label={props.translate('privatePersonalDetails.legalLastName')}
+                        aria-label={props.translate('privatePersonalDetails.legalLastName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={legalLastName}
+                        spellCheck={false}
+                    />
+                </View>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

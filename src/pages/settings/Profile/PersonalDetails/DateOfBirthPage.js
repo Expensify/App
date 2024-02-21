@@ -66,23 +66,23 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-                <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
-                    validate={validate}
-                    onSubmit={PersonalDetails.updateDateOfBirth}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID={INPUT_IDS.DOB}
-                        label={translate('common.date')}
-                        defaultValue={privatePersonalDetails.dob || ''}
-                        minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                        maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
-                    />
-                </FormProvider>
+            <FormProvider
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
+                validate={validate}
+                onSubmit={PersonalDetails.updateDateOfBirth}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+            >
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID={INPUT_IDS.DOB}
+                    label={translate('common.date')}
+                    defaultValue={privatePersonalDetails.dob || ''}
+                    minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                    maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                />
+            </FormProvider>
         </ScreenWrapper>
     );
 }

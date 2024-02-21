@@ -117,18 +117,18 @@ function AddressPage({privatePersonalDetails, route}) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-                <AddressForm
-                    formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                    onSubmit={updateAddress}
-                    submitButtonText={translate('common.save')}
-                    city={city}
-                    country={currentCountry}
-                    onAddressChanged={handleAddressChange}
-                    state={state}
-                    street1={street1}
-                    street2={street2}
-                    zip={zipcode}
-                />
+            <AddressForm
+                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                onSubmit={updateAddress}
+                submitButtonText={translate('common.save')}
+                city={city}
+                country={currentCountry}
+                onAddressChanged={handleAddressChange}
+                state={state}
+                street1={street1}
+                street2={street2}
+                zip={zipcode}
+            />
         </ScreenWrapper>
     );
 }
