@@ -1,9 +1,6 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import {Image, ScrollView, StyleSheet, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {Image, ScrollView, View} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -16,7 +13,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -25,48 +21,42 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
+import type {Currency, Policy as PolicyType} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import withPolicy from './withPolicy';
+import type {PolicyRoute, WithPolicyOnyxProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-const propTypes = {
+type CurrencyList = Record<string, Currency>;
+
+type WorkspaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
-    currencyList: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Symbol of the currency */
-            symbol: PropTypes.string.isRequired,
-        }),
-    ),
+    currencyList: OnyxEntry<CurrencyList>;
+};
 
+type WorkspaceProfilePageProps = WorkspaceProfilePageOnyxProps & {
     /** The route object passed to this page from the navigator */
-    route: PropTypes.shape({
-        /** Each parameter passed via the URL */
-        params: PropTypes.shape({
-            /** The policyID that is being configured */
-            policyID: PropTypes.string.isRequired,
-        }).isRequired,
-    }).isRequired,
+    route: PolicyRoute;
 
-    ...policyPropTypes,
+    /** The policy that is being configured */
+    policy: OnyxEntry<PolicyType>;
+
+    title: string;
 };
 
-const defaultProps = {
-    currencyList: {},
-    ...policyDefaultProps,
-};
-
-function WorkspaceProfilePage({policy, currencyList, route}) {
+function WorkspaceProfilePage({policy, title, currencyList, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) && !!policy.outputCurrency ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
+    const formattedCurrency =
+        !isEmptyObject(policy) && !isEmptyObject(currencyList) && !!policy.outputCurrency ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id ?? '']);
+    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '')), [policy?.id ?? '']);
+    const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '')), [policy?.id ?? '']);
 
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy.id)), [policy.id]);
-    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy.id)), [policy.id]);
-    const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy.id)), [policy.id]);
-
-    const policyName = lodashGet(policy, 'name', '');
-    const policyDescription = lodashGet(policy, 'description', '');
+    const policyName = policy?.name ?? '';
+    const policyDescription = policy?.description ?? '';
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
 
@@ -84,15 +74,18 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
             {(hasVBA) => (
                 <ScrollView>
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <Section isCentralPane>
+                        <Section
+                            title={title}
+                            isCentralPane
+                        >
                             <Image
-                                style={StyleSheet.flatten([styles.br4, styles.wAuto, styles.h68, imageStyle])}
+                                style={[styles.br4, styles.wAuto, styles.h68, imageStyle]}
                                 source={WorkspaceProfile}
                                 resizeMode="cover"
                             />
                             <AvatarWithImagePicker
-                                onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy.id))}
-                                source={lodashGet(policy, 'avatar')}
+                                onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? ''))}
+                                source={policy?.avatar ?? null}
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 avatarStyle={styles.avatarXLarge}
                                 enablePreview
@@ -100,7 +93,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     <Avatar
                                         containerStyles={styles.avatarXLarge}
                                         imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                                        source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                        source={policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                         size={CONST.AVATAR_SIZE.XLARGE}
                                         name={policyName}
@@ -110,20 +103,21 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                 type={CONST.ICON_TYPE_WORKSPACE}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[styles.mb3, styles.mtn17, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
-                                isUsingDefaultAvatar={!lodashGet(policy, 'avatar', null)}
-                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(policy, 'id', ''), file)}
-                                onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(policy, 'id', ''))}
+                                isUsingDefaultAvatar={!policy?.avatar ?? null}
+                                onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
+                                onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                                 editorMaskImage={Expensicons.ImageCropSquareMask}
-                                pendingAction={lodashGet(policy, 'pendingFields.avatar', null)}
-                                errors={lodashGet(policy, 'errorFields.avatar', null)}
-                                onErrorClose={() => Policy.clearAvatarErrors(policy.id)}
-                                previewSource={UserUtils.getFullSizeAvatar(policy.avatar, '')}
+                                pendingAction={policy?.pendingFields?.avatar ?? null}
+                                errors={policy?.errorFields?.avatar ?? null}
+                                onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
+                                previewSource={UserUtils.getFullSizeAvatar(policy?.avatar, 0)}
                                 headerTitle={translate('workspace.common.workspaceAvatar')}
-                                originalFileName={policy.originalFileName}
+                                originalFileName={policy?.originalFileName}
                                 disabled={readOnly}
                                 disabledStyle={styles.cursorDefault}
+                                errorRowStyles={undefined}
                             />
-                            <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <MenuItemWithTopDescription
                                     title={policyName}
                                     titleStyle={styles.workspaceTitleStyle}
@@ -136,8 +130,8 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     shouldUseDefaultCursorWhenDisabled
                                 />
                             </OfflineWithFeedback>
-                            {(!_.isEmpty(policy.description) || !readOnly) && (
-                                <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.description')}>
+                            {(!isEmptyObject(policy?.description) || !readOnly) && (
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
                                         description={translate('workspace.editor.descriptionInputLabel')}
@@ -151,7 +145,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedCurrency}
@@ -176,13 +170,10 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
     );
 }
 
-WorkspaceProfilePage.propTypes = propTypes;
-WorkspaceProfilePage.defaultProps = defaultProps;
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
-export default compose(
-    withPolicy,
-    withOnyx({
+export default withPolicy(
+    withOnyx<WorkspaceProfilePageProps & WithPolicyOnyxProps, WorkspaceProfilePageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    }),
-)(WorkspaceProfilePage);
+    })(WorkspaceProfilePage),
+);
