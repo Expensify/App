@@ -52,7 +52,7 @@ function parseMessage(messages: Message[] | undefined) {
 }
 
 type BuildNextStepParameters = {
-    isPaidWithWallet?: boolean;
+    isPaidWithExpensify?: boolean;
 };
 
 /**
@@ -60,13 +60,13 @@ type BuildNextStepParameters = {
  *
  * @param report
  * @param predictedNextStatus - a next expected status of the report
- * @param parameters.isPaidWithWallet - Whether a report has been paid with the wallet or outside of Expensify
+ * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
 function buildNextStep(
     report: OnyxEntry<Report> | EmptyObject,
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
-    {isPaidWithWallet}: BuildNextStepParameters = {},
+    {isPaidWithExpensify}: BuildNextStepParameters = {},
 ): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
@@ -321,7 +321,7 @@ function buildNextStep(
             };
 
             // Paid outside of Expensify
-            if (isPaidWithWallet === false) {
+            if (isPaidWithExpensify === false) {
                 optimisticNextStep.message?.push({text: ' outside of Expensify'});
             }
 
