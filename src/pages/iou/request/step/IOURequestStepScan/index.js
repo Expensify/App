@@ -152,7 +152,7 @@ function IOURequestStepScan({
     }
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     const navigateToConfirmationStep = useCallback(() => {
