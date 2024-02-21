@@ -14,7 +14,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     ).toString();
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, shouldLoadPDFThumbnail = true, onPasswordCallback = () => {}}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}}: PDFThumbnailProps) {
     const styles = useThemeStyles();
 
     const thumbnail = useMemo(
@@ -28,18 +28,18 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, sho
                 }}
                 externalLinkTarget="_blank"
                 onPassword={() => {
-                    onPasswordCallback();
+                    onPassword();
                 }}
             >
                 <Thumbnail pageIndex={0} />
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPasswordCallback],
+        [isAuthTokenRequired, previewSourceURL, onPassword],
     );
 
     return (
         <View style={[style, styles.overflowHidden]}>
-            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>{shouldLoadPDFThumbnail && thumbnail}</View>
+            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>{enabled && thumbnail}</View>
         </View>
     );
 }

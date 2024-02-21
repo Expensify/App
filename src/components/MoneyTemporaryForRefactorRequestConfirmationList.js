@@ -4,7 +4,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
@@ -304,9 +304,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const hideRecieptModal = () => {
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction.transactionID, reportID));
-        });
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transaction.transactionID, reportID));
     };
 
     const shouldDisplayFieldError = useMemo(() => {
@@ -864,8 +862,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     previewSourceURL={receiptImage}
                     style={styles.moneyRequestImage}
                     // We don't support scaning password protected PDF receipt
-                    shouldLoadPDFThumbnail={!isAttachmentInvalid}
-                    onPasswordCallback={() => setIsAttachmentInvalid(true)}
+                    enabled={!isAttachmentInvalid}
+                    onPassword={() => setIsAttachmentInvalid(true)}
                 />
             ) : (
                 <Image
