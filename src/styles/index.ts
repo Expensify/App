@@ -1502,18 +1502,18 @@ const styles = (theme: ThemeColors) =>
             } satisfies ViewStyle),
 
         onboardingNavigatorOuterView: {
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
-        ({
-            width: shouldUseNarrowLayout ? 500 : '100%',
-            height: shouldUseNarrowLayout ? 712 : '100%',
-            borderRadius: shouldUseNarrowLayout ? 16 : 0,
-            overflow: 'hidden',
-        } satisfies ViewStyle),
+            ({
+                width: shouldUseNarrowLayout ? 500 : '100%',
+                height: shouldUseNarrowLayout ? 712 : '100%',
+                borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
 
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
@@ -4376,16 +4376,20 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
-        progressBarWrapper: {
+        progressBarContainer: {
             position: 'absolute',
+            width: '100%',
+        },
+
+        progressBar: {
             width: variables.componentSizeMedium,
-            height: 4,
+            height: variables.iconSizeXXXSmall,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.progressBarBackground,
             alignSelf: 'center',
         },
 
-        progressBar: {
+        progressBarFill: {
             borderRadius: variables.componentBorderRadiusRounded,
             height: '100%',
             backgroundColor: theme.progressBarFill,

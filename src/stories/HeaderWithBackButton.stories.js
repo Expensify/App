@@ -35,12 +35,11 @@ Attachment.args = {
 };
 Profile.args = {
     title: 'Profile',
-    shouldShowBackButton: true,
 };
 ProgressBar.args = {
     title: 'ProgressBar',
-    shouldShowBackButton: true,
     progressBarPercentage: 33,
+    shouldShowBackButton: false,
 };
 
 export default story;

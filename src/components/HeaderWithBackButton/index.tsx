@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -74,9 +74,9 @@ function HeaderWithBackButton({
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
             return (
-                <View>
-                    <View style={styles.progressBarWrapper}>
-                        <View style={[{width: `${progressBarPercentage}%`}, styles.progressBar]} />
+                <View style={styles.progressBarContainer}>
+                    <View style={styles.progressBar}>
+                        <View style={[{width: `${progressBarPercentage}%`}, styles.progressBarFill]} />
                     </View>
                 </View>
             );
@@ -99,7 +99,7 @@ function HeaderWithBackButton({
                 textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
             />
         );
-    }, [StyleUtils, policy, progressBarPercentage, report, shouldEnableDetailPageNavigation, shouldShowAvatarWithDisplay, stepCounter, styles.progressBar, styles.progressBarWrapper, subtitle, title, titleColor, translate]);
+    }, [StyleUtils, policy, progressBarPercentage, report, shouldEnableDetailPageNavigation, shouldShowAvatarWithDisplay, stepCounter, styles, subtitle, title, titleColor, translate]);
 
     return (
         <View
@@ -111,6 +111,7 @@ function HeaderWithBackButton({
                 isCentralPaneSettings && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && styles.pl2,
+                progressBarPercentage !== undefined && styles.pl2,
                 shouldOverlay && StyleSheet.absoluteFillObject,
             ]}
         >
