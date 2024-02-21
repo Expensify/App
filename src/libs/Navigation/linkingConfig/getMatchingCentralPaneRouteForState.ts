@@ -4,6 +4,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import TAB_TO_CENTRAL_PANE_MAPPING from './TAB_TO_CENTRAL_PANE_MAPPING';
 
+const WORKSPACES_SCREENS = TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.WORKSPACE.INITIAL].concat(TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.ALL_SETTINGS]);
+
 /**
  * @param state - react-navigation state
  */
@@ -31,18 +33,23 @@ const getTopMostReportIDFromRHP = (state: State): string => {
     return '';
 };
 
-// Function that checks if the given route has a policyID equal to the id provided in the function params
+// Check if the given route has a policyID equal to the id provided in the function params
 function hasRouteMatchingPolicyID(route: NavigationPartialRoute<CentralPaneName>, policyID?: string) {
-    return (
-        route?.params &&
-        'params' in route?.params &&
-        route.params.params &&
-        'policyID' in (route.params.params as Record<string, string | undefined>) &&
-        (route.params.params as Record<string, string | undefined>).policyID === policyID
-    );
+    if (!route.params) {
+        return false;
+    }
+
+    const params = `params` in route?.params ? (route.params.params as Record<string, string | undefined>) : undefined;
+
+    // If params are not defined, then we need to check if the policyID exists
+    if (!params) {
+        return !policyID;
+    }
+
+    return 'policyID' in params && params.policyID === policyID;
 }
 
-// Function that restores already opened screen in the settings tab. Thanks to this function, we are able to open the already selected screen in the workspace settings when we return from another tab.
+// Get already opened settings screen within the policy
 function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): keyof CentralPaneNavigatorParamList | undefined {
     if (!rootState) {
         return undefined;
@@ -51,21 +58,18 @@ function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): k
     // If one of the screen from WORKSPACES_SCREENS is now in the navigation state, we can decide which screen we should display.
     // A screen from the navigation state can be pushed to the navigation state again only if it has a matching policyID with the currently selected workspace.
     // Otherwise, when we switch the workspace, we want to display the initial screen in the settings tab.
-    const WORKSPACES_SCREENS = TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.WORKSPACE.INITIAL].concat(TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.ALL_SETTINGS]);
-
     const alreadyOpenedSettingsTab = rootState.routes
         .filter((item) => item.params && 'screen' in item.params && WORKSPACES_SCREENS.includes(item.params.screen as keyof CentralPaneNavigatorParamList))
         .at(-1);
 
-    if (
-        alreadyOpenedSettingsTab?.params &&
-        'screen' in alreadyOpenedSettingsTab?.params &&
-        hasRouteMatchingPolicyID(alreadyOpenedSettingsTab as NavigationPartialRoute<CentralPaneName>, policyID)
-    ) {
-        return alreadyOpenedSettingsTab?.params?.screen as keyof CentralPaneNavigatorParamList;
+    if (!hasRouteMatchingPolicyID(alreadyOpenedSettingsTab as NavigationPartialRoute<CentralPaneName>, policyID)) {
+        return undefined;
     }
 
-    return undefined;
+    const settingsScreen =
+        alreadyOpenedSettingsTab?.params && 'screen' in alreadyOpenedSettingsTab?.params ? (alreadyOpenedSettingsTab?.params?.screen as keyof CentralPaneNavigatorParamList) : undefined;
+
+    return settingsScreen;
 }
 
 // Get matching central pane route for bottom tab navigator. e.g HOME -> REPORT
