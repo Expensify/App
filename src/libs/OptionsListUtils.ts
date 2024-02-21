@@ -56,7 +56,6 @@ type Tag = {
     accountID: number | null;
 };
 
-
 type Option = Partial<ReportUtils.OptionData>;
 
 /**

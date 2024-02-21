@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SelectionList from './SelectionList';
-import type { ListItem } from './SelectionList/types';
+import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -60,8 +60,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
         );
 
-        const categorySection = categoryOptions?.[0];
-        const categoryData = categorySection?.data ?? [];
+        const categoryData = categoryOptions?.[0]?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
         const policiesCount = OptionsListUtils.getEnabledCategoriesCount(policyCategories ?? {});
         const isCategoriesCountBelowThreshold = policiesCount < CONST.CATEGORY_LIST_THRESHOLD;
