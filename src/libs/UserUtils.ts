@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
-import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
+import {ConciergeAvatar, FallbackAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -87,6 +87,9 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
     }
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
+    }
+    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+        return NotificationsAvatar;
     }
 
     // There are 24 possible default avatars, so we choose which one this user has based
