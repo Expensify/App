@@ -1,6 +1,7 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type RadioListItem from './RadioListItem';
 import type UserListItem from './UserListItem';
@@ -26,6 +27,12 @@ type CommonListItemProps<TItem> = {
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Styles for the wrapper view */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the checkbox wrapper view if select multiple option is on */
+    selectMultipleStyle?: StyleProp<ViewStyle>;
 };
 
 type ListItem = {
@@ -83,16 +90,32 @@ type ListItemProps = CommonListItemProps<ListItem> & {
 
     /** Is item hovered */
     isHovered?: boolean;
+
+    shouldPreventDefaultFocusOnSelectRow?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
-    wrapperStyle?: StyleProp<ViewStyle>;
-    selectMultipleStyle?: StyleProp<ViewStyle>;
+    errors?: Errors | ReceiptErrors | null;
+    pendingAction?: PendingAction | null;
+    FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
 };
+
+type UserListItemProps = ListItemProps & {
+    /** Errors that this user may contain */
+    errors?: Errors | ReceiptErrors | null;
+
+    /** The type of action that's pending  */
+    pendingAction?: PendingAction | null;
+
+    /** The React element that will be shown as a footer */
+    FooterComponent?: ReactElement;
+};
+
+type RadioListItemProps = ListItemProps;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -243,6 +266,8 @@ export type {
     CommonListItemProps,
     Section,
     BaseListItemProps,
+    UserListItemProps,
+    RadioListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,

@@ -4,8 +4,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,13 +21,14 @@ function BaseListItem<TItem extends ListItem>({
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
+    errors,
+    pendingAction,
+    FooterComponent,
     children,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const isUserItem = 'icons' in item && item?.icons?.length && item.icons.length > 0;
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -46,8 +45,8 @@ function BaseListItem<TItem extends ListItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={isUserItem ? item.pendingAction : undefined}
-            errors={isUserItem ? item.errors : undefined}
+            pendingAction={pendingAction}
+            errors={errors}
             errorRowStyles={styles.ph5}
         >
             <PressableWithFeedback
@@ -99,11 +98,7 @@ function BaseListItem<TItem extends ListItem>({
                             )}
                             {rightHandSideComponentRender()}
                         </View>
-                        {isUserItem && item.invitedSecondaryLogin && (
-                            <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                                {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
-                            </Text>
-                        )}
+                        {FooterComponent}
                     </>
                 )}
             </PressableWithFeedback>

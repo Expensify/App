@@ -2,12 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
 import SubscriptAvatar from '@components/SubscriptAvatar';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
-import type {BaseListItemProps, ListItem} from './types';
+import type {UserListItemProps} from './types';
 
 function UserListItem({
     item,
@@ -19,10 +21,11 @@ function UserListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: BaseListItemProps<ListItem>) {
+}: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -48,6 +51,15 @@ function UserListItem({
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
+            errors={item.errors}
+            pendingAction={item.pendingAction}
+            FooterComponent={
+                item.invitedSecondaryLogin ? (
+                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
+                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
+                    </Text>
+                ) : undefined
+            }
             keyForList={item.keyForList}
         >
             {(hovered) => (

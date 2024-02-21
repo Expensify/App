@@ -4,7 +4,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
-import type {BaseListItemProps, ListItem} from './types';
+import type {RadioListItemProps} from './types';
 
 function RadioListItem({
     item,
@@ -16,7 +16,7 @@ function RadioListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: BaseListItemProps<ListItem>) {
+}: RadioListItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
