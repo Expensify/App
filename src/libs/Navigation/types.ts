@@ -104,7 +104,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
-    [SCREENS.SETTINGS.LOUNGE_ACCESS]: undefined;
+    [SCREENS.SETTINGS.CONSOLE]: undefined;
+    [SCREENS.SETTINGS.SHARE_LOG]: {
+        /** URL of the generated file to share logs in a report */
+        source: string;
+    };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
@@ -273,11 +277,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: string;
     };
-    [SCREENS.MONEY_REQUEST.MERCHANT]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
-        field: string;
-        threadReportID: string;
+        backTo: string;
     };
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
@@ -340,6 +345,7 @@ type SplitDetailsNavigatorParamList = {
         reportID: string;
         reportActionID: string;
         currency: string;
+        tagIndex: string;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
@@ -384,6 +390,7 @@ type SignInNavigatorParamList = {
 type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: {
         contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+        backTo: string;
     };
 };
 
