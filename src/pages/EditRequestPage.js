@@ -7,7 +7,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import categoryPropTypes from '@components/categoryPropTypes';
 import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
-import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -67,9 +66,6 @@ const propTypes = {
 
     /** Transaction that stores the request data */
     transaction: transactionPropTypes,
-
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
 };
 
 const defaultProps = {
@@ -79,7 +75,6 @@ const defaultProps = {
     policyTags: {},
     parentReportActions: {},
     transaction: {},
-    policyTaxRates: {},
 };
 
 const getTaxAmount = (transactionAmount, transactionTaxCode, policyTaxRates) => {
@@ -87,7 +82,7 @@ const getTaxAmount = (transactionAmount, transactionTaxCode, policyTaxRates) => 
     return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
 };
 
-function EditRequestPage({report, route, policy, policyTaxRates, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -106,6 +101,8 @@ function EditRequestPage({report, route, policy, policyTaxRates, policyCategorie
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+
+    const policyTaxRates = lodashGet(props.policy, 'taxRates', {});
 
     const taxRateTitle = TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode);
 
@@ -303,9 +300,6 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-        },
-        policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report.policyID}`,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
