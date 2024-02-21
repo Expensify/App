@@ -136,7 +136,6 @@ function ProfilePage(props) {
     const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         PersonalDetails.openPublicProfilePage(accountID);
     }, [accountID]);
