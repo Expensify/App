@@ -47,7 +47,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
-
     /**
      * Render a suggestion menu item component.
      */
