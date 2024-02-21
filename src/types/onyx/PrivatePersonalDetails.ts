@@ -1,9 +1,11 @@
+import type {Country} from '@src/CONST';
+
 type Address = {
     street: string;
     city: string;
     state: string;
     zip: string;
-    country: string;
+    country: Country | '';
 };
 
 type PrivatePersonalDetails = {

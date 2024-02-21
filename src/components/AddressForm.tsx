@@ -1,4 +1,3 @@
-import type {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -10,8 +9,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
@@ -28,7 +27,7 @@ type AddressFormProps = {
     country?: Country | '';
 
     /** Address state field */
-    state?: keyof typeof COMMON_CONST.STATES | '';
+    state?: string;
 
     /** Address street line 1 field */
     street1?: string;
@@ -113,7 +112,7 @@ function AddressForm({
         });
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {};
+        const countryRegexDetails = values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country as keyof typeof CONST.COUNTRY_ZIP_REGEX_DATA] : {};
 
         // The postal code system might not exist for a country, so no regex either for them.
         let countrySpecificZipRegex;
