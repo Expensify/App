@@ -16,9 +16,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
-import withAdminPolicyAccessOrNotFound from '@pages/workspace/withAdminPolicyAccessOrNotFound';
-import type {WithAdminPolicyAccessOrNotFoundProps} from '@pages/workspace/withAdminPolicyAccessOrNotFound';
-import withPaidPolicyAccessOrNotFound from '@pages/workspace/withPaidPolicyAccessOrNotFound';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -36,11 +35,9 @@ type WorkspaceCategoriesOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps &
-    WithAdminPolicyAccessOrNotFoundProps &
-    StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
-function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProps) {
+function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -82,47 +79,47 @@ function WorkspaceCategoriesPage({policyCategories}: WorkspaceCategoriesPageProp
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            style={[styles.defaultModalContainer]}
-            testID={WorkspaceCategoriesPage.displayName}
-            shouldShowOfflineIndicatorInWideScreen
-        >
-            <HeaderWithBackButton
-                icon={Illustrations.FolderOpen}
-                title={translate('workspace.common.categories')}
-                shouldShowBackButton={isSmallScreenWidth}
-            />
-            <View style={[styles.ph5, styles.pb5]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-            </View>
-            {categoryList.length ? (
-                <SelectionList
-                    canSelectMultiple
-                    sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
-                    onSelectRow={toggleCategory}
-                    onSelectAll={toggleAllCategories}
-                    showScrollIndicator
-                />
-            ) : (
-                <WorkspaceEmptyStateSection
-                    title={translate('workspace.categories.emptyCategories.title')}
-                    icon={Illustrations.EmptyStateExpenses}
-                    subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                />
-            )}
-        </ScreenWrapper>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
+                    testID={WorkspaceCategoriesPage.displayName}
+                    shouldShowOfflineIndicatorInWideScreen
+                >
+                    <HeaderWithBackButton
+                        icon={Illustrations.FolderOpen}
+                        title={translate('workspace.common.categories')}
+                        shouldShowBackButton={isSmallScreenWidth}
+                    />
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                    </View>
+                    {categoryList.length ? (
+                        <SelectionList
+                            canSelectMultiple
+                            sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
+                            onSelectRow={toggleCategory}
+                            onSelectAll={toggleAllCategories}
+                            showScrollIndicator
+                        />
+                    ) : (
+                        <WorkspaceEmptyStateSection
+                            title={translate('workspace.categories.emptyCategories.title')}
+                            icon={Illustrations.EmptyStateExpenses}
+                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        />
+                    )}
+                </ScreenWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
-export default withPaidPolicyAccessOrNotFound()(
-    withAdminPolicyAccessOrNotFound()(
-        withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
-            policyCategories: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-            },
-        })(WorkspaceCategoriesPage),
-    ) as React.ComponentType<Omit<WorkspaceCategoriesPageProps, 'policyCategories'>>,
-);
+export default withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
+    policyCategories: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
+    },
+})(WorkspaceCategoriesPage);
