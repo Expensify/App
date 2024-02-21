@@ -1474,6 +1474,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
+
+    getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
+        ...styles.mr3,
+        ...(isSelected && styles.checkedContainer),
+        ...(isSelected && styles.borderColorFocus),
+        ...(isDisabled && styles.cursorDisabled),
+        ...(isDisabled && styles.buttonOpacityDisabled),
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
