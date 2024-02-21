@@ -33,22 +33,7 @@ function VideoPopoverMenuContextProvider({children}) {
     }, [currentVideoPlayerRef]);
 
     const menuItems = useMemo(() => {
-        const items = [
-            {
-                icon: Expensicons.Meter,
-                text: translate('videoPlayer.playbackSpeed'),
-                subMenuItems: [
-                    ..._.map(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, (speed) => ({
-                        icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
-                        text: speed.toString(),
-                        onSelected: () => {
-                            updatePlaybackSpeed(speed);
-                        },
-                        shouldPutLeftPaddingWhenNoIcon: true,
-                    })),
-                ],
-            },
-        ];
+        const items = [];
 
         if (!isOffline) {
             items.push({
@@ -59,6 +44,21 @@ function VideoPopoverMenuContextProvider({children}) {
                 },
             });
         }
+
+        items.push({
+            icon: Expensicons.Meter,
+            text: translate('videoPlayer.playbackSpeed'),
+            subMenuItems: [
+                ..._.map(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, (speed) => ({
+                    icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
+                    text: speed.toString(),
+                    onSelected: () => {
+                        updatePlaybackSpeed(speed);
+                    },
+                    shouldPutLeftPaddingWhenNoIcon: true,
+                })),
+            ],
+        });
 
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline]);
