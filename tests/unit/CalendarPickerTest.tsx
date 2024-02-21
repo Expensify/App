@@ -1,19 +1,22 @@
+import type ReactNavigationNative from '@react-navigation/native';
 import {fireEvent, render, within} from '@testing-library/react-native';
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
-import CalendarPicker from '../../src/components/DatePicker/CalendarPicker';
-import CONST from '../../src/CONST';
-import DateUtils from '../../src/libs/DateUtils';
+import type {ComponentType} from 'react';
+import CalendarPicker from '@components/DatePicker/CalendarPicker';
+import type {WithLocalizeProps} from '@components/withLocalize';
+import DateUtils from '@libs/DateUtils';
+import CONST from '@src/CONST';
 
 const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual('@react-navigation/native'),
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useNavigation: () => ({navigate: jest.fn()}),
     createNavigationContainerRef: jest.fn(),
 }));
 
-jest.mock('../../src/components/withLocalize', () => (Component) => {
-    function WrappedComponent(props) {
+jest.mock('../../src/components/withLocalize', () => (Component: ComponentType<WithLocalizeProps>) => {
+    function WrappedComponent(props: Omit<WithLocalizeProps, 'translate' | 'preferredLocale'>) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
