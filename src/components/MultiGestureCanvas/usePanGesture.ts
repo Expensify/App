@@ -135,7 +135,7 @@ const usePanGesture = ({
             const finalTranslateY = offsetY.value + panVelocityY.value * 0.2;
 
             // TODO: calculate these values (250/500) programmatically
-            if (finalTranslateY > 250) {
+            if (finalTranslateY > 250 && zoomScale.value <= 1) {
                 offsetY.value = withSpring(500, SPRING_CONFIG, () => {
                     isSwipingDownToClose.value = false;
                 });
