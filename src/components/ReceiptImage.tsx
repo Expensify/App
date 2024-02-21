@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
@@ -49,6 +50,12 @@ type ReceiptImageProps = (
 
     /** number of images displayed in the same parent container */
     iconSize?: IconSize;
+
+    /** If the image fails to load – show the provided fallback icon */
+    fallbackIcon?: IconAsset;
+
+    /** The size of the fallback icon */
+    fallbackIconSize?: number;
 };
 
 function ReceiptImage({
@@ -61,6 +68,8 @@ function ReceiptImage({
     style,
     fileExtension,
     iconSize,
+    fallbackIcon,
+    fallbackIconSize,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -84,6 +93,8 @@ function ReceiptImage({
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired
                 shouldDynamicallyResize={false}
+                fallbackIcon={fallbackIcon}
+                fallbackIconSize={fallbackIconSize}
             />
         );
     }
