@@ -381,38 +381,39 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     return announceRoomMembers;
 }
 
-function setWorkspaceAutoReporting(policyID: string, isEnabled: boolean) {
+function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReporting: true,
+                autoReporting: enabled,
             },
         },
     ];
 
-    const params: SetWorkspaceAutoReportingParams = {policyID, enabled: isEnabled};
+    const params: SetWorkspaceAutoReportingParams = {policyID, enabled};
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData});
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: 'BASIC' | 'OPTIONAL') {
     const isAutoApprovalEnabled = approvalMode === 'BASIC';
 
-    const value = JSON.stringify({
+    const value = {
         approver,
         approvalMode,
         isAutoApprovalEnabled,
-    });
+    };
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: JSON.parse(value),
+            value: value,
         },
     ];
 
-    const params: SetWorkspaceApprovalModeParams = {policyID, value};
+    const params: SetWorkspaceApprovalModeParams = {policyID, value: JSON.stringify(value)};
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData});
 }
 
