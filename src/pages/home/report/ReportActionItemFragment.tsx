@@ -132,10 +132,6 @@ function ReportActionItemFragment({
                 );
             }
 
-            if (isHoldReportAction) {
-                return <Text>{isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}</Text>;
-            }
-
             return (
                 <UserDetailsTooltip
                     accountID={accountID}
