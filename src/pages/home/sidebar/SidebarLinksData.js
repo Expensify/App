@@ -1,6 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
-import lodashMap from 'lodash/map';
+import lodashMapValues from 'lodash/mapValues';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -20,6 +20,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -36,20 +37,7 @@ const propTypes = {
     /** All report actions for all reports */
 
     /** Object of report actions for this report */
-    allReportActions: PropTypes.objectOf(
-        PropTypes.arrayOf(
-            PropTypes.shape({
-                error: PropTypes.string,
-                message: PropTypes.arrayOf(
-                    PropTypes.shape({
-                        moderationDecision: PropTypes.shape({
-                            decision: PropTypes.string,
-                        }),
-                    }),
-                ),
-            }),
-        ),
-    ),
+    allReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: PropTypes.bool,
@@ -146,7 +134,7 @@ function SidebarLinksData({
             reportKeys,
             (errorsMap, reportKey) => {
                 const report = chatReports[reportKey];
-                const allReportsActions = _.reduce(allReportActions[reportKey.replace('report_', 'reportActions_')], (acc, reportAction) => ({...acc, [reportAction.reportActionID]: reportAction}), {});
+                const allReportsActions = allReportActions[reportKey.replace('report_', 'reportActions_')];
                 const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions) || {};
                 if (_.size(errors) === 0) {
                     return errorsMap;
@@ -320,7 +308,7 @@ const chatReportSelector = (report) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    lodashMap(reportActions, (reportAction) => {
+    lodashMapValues(reportActions, (reportAction) => {
         const {reportActionID, parentReportActionID, actionName, originalMessage, errors = []} = reportAction;
         const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
