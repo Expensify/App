@@ -1,5 +1,5 @@
-const {exec} = require('child_process');
-const Logger = require('./logger');
+import {exec} from 'child_process';
+import * as Logger from './logger';
 
 /**
  * Executes a command none-blocking by wrapping it in a promise.
@@ -8,7 +8,7 @@ const Logger = require('./logger');
  * @param {object} env environment variables
  * @returns {Promise<void>}
  */
-module.exports = (command, env = {}) => {
+export default (command, env = {}) => {
     let childProcess;
     const promise = new Promise((resolve, reject) => {
         const finalEnv = {

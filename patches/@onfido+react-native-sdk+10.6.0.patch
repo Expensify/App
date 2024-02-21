@@ -1,0 +1,18 @@
+diff --git a/node_modules/@onfido/react-native-sdk/android/build.gradle b/node_modules/@onfido/react-native-sdk/android/build.gradle
+index 33a4229..1720bef 100644
+--- a/node_modules/@onfido/react-native-sdk/android/build.gradle
++++ b/node_modules/@onfido/react-native-sdk/android/build.gradle
+@@ -84,6 +84,13 @@ android {
+         sourceCompatibility JavaVersion.VERSION_1_8
+         targetCompatibility JavaVersion.VERSION_1_8
+     }
++
++    publishing {
++        singleVariant('release') {
++            withSourcesJar()
++            withJavadocJar()
++        }
++    }
+ }
+ 
+ repositories {
