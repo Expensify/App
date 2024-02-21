@@ -1,72 +1,68 @@
+import lodashGet from 'lodash/get';
 import * as OnfidoSDK from 'onfido-sdk-ui';
-import React, {ForwardedRef, forwardRef, useEffect} from 'react';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import React, {forwardRef, useEffect} from 'react';
+import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import Log from '@libs/Log';
-import fontFamily from '@styles/fontFamily';
-import fontWeightBold from '@styles/fontWeight/bold';
-import themeColors from '@styles/themes/default';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import './index.css';
-import type {OnfidoElement, OnfidoProps} from './types';
+import onfidoPropTypes from './onfidoPropTypes';
 
-type LocaleProps = Pick<LocaleContextProps, 'translate' | 'preferredLocale'>;
-
-type OnfidoEvent = Event & {
-    detail?: Record<string, unknown>;
-};
-
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate}: OnfidoProps & LocaleProps) {
+function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}) {
     OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
         useMemoryHistory: true,
         customUI: {
-            fontFamilyTitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
-            fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
-            fontFamilyBody: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+            fontFamilyTitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            fontFamilySubtitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            fontFamilyBody: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
             fontSizeTitle: `${variables.fontSizeLarge}px`,
-            fontWeightTitle: Number(fontWeightBold),
+            fontWeightTitle: FontUtils.fontWeight.bold,
             fontWeightSubtitle: 400,
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
-            colorContentTitle: themeColors.text,
-            colorContentSubtitle: themeColors.text,
-            colorContentBody: themeColors.text,
+            colorContentTitle: theme.text,
+            colorContentSubtitle: theme.text,
+            colorContentBody: theme.text,
             borderRadiusButton: `${variables.buttonBorderRadius}px`,
-            colorBackgroundSurfaceModal: themeColors.appBG,
-            colorBorderDocTypeButton: themeColors.border,
-            colorBorderDocTypeButtonHover: themeColors.transparent,
-            colorBorderButtonPrimaryHover: themeColors.transparent,
-            colorBackgroundButtonPrimary: themeColors.success,
-            colorBackgroundButtonPrimaryHover: themeColors.successHover,
-            colorBackgroundButtonPrimaryActive: themeColors.successHover,
-            colorBorderButtonPrimary: themeColors.success,
-            colorContentButtonSecondaryText: themeColors.text,
-            colorBackgroundButtonSecondary: themeColors.border,
-            colorBackgroundButtonSecondaryHover: themeColors.icon,
-            colorBackgroundButtonSecondaryActive: themeColors.icon,
-            colorBorderButtonSecondary: themeColors.border,
-            colorBackgroundIcon: themeColors.transparent,
-            colorContentLinkTextHover: themeColors.appBG,
-            colorBorderLinkUnderline: themeColors.link,
-            colorBackgroundLinkHover: themeColors.link,
-            colorBackgroundLinkActive: themeColors.link,
-            colorBackgroundInfoPill: themeColors.link,
-            colorBackgroundSelector: themeColors.appBG,
-            colorBackgroundDocTypeButton: themeColors.success,
-            colorBackgroundDocTypeButtonHover: themeColors.successHover,
-            colorBackgroundButtonIconHover: themeColors.transparent,
-            colorBackgroundButtonIconActive: themeColors.transparent,
+            colorBackgroundSurfaceModal: theme.appBG,
+            colorBorderDocTypeButton: theme.border,
+            colorBorderDocTypeButtonHover: theme.transparent,
+            colorBorderButtonPrimaryHover: theme.transparent,
+            colorBackgroundButtonPrimary: theme.success,
+            colorBackgroundButtonPrimaryHover: theme.successHover,
+            colorBackgroundButtonPrimaryActive: theme.successHover,
+            colorBorderButtonPrimary: theme.success,
+            colorContentButtonSecondaryText: theme.text,
+            colorBackgroundButtonSecondary: theme.border,
+            colorBackgroundButtonSecondaryHover: theme.icon,
+            colorBackgroundButtonSecondaryActive: theme.icon,
+            colorBorderButtonSecondary: theme.border,
+            colorBackgroundIcon: theme.transparent,
+            colorContentLinkTextHover: theme.appBG,
+            colorBorderLinkUnderline: theme.link,
+            colorBackgroundLinkHover: theme.link,
+            colorBackgroundLinkActive: theme.link,
+            authAccentColor: theme.link,
+            colorBackgroundInfoPill: theme.link,
+            colorBackgroundSelector: theme.appBG,
+            colorBackgroundDocTypeButton: theme.success,
+            colorBackgroundDocTypeButtonHover: theme.successHover,
+            colorBackgroundButtonIconHover: theme.transparent,
+            colorBackgroundButtonIconActive: theme.transparent,
         },
         steps: [
             {
                 type: CONST.ONFIDO.TYPE.DOCUMENT,
                 options: {
+                    useLiveDocumentCapture: true,
                     forceCrossDevice: true,
                     hideCountrySelection: true,
+                    country: 'USA',
                     documentTypes: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         driving_licence: {
                             country: 'USA',
                         },
@@ -81,15 +77,17 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                 },
             },
         ],
+        smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
+        showCountrySelection: false,
         onComplete: (data) => {
-            if (!Object.keys(data).length) {
+            if (_.isEmpty(data)) {
                 Log.warn('Onfido completed with no data');
             }
             onSuccess(data);
         },
         onError: (error) => {
-            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
-            const errorType = error.type;
+            const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
+            const errorType = lodashGet(error, 'type');
             Log.hmmm('Onfido error', {errorType, errorMessage});
             onError(errorMessage);
         },
@@ -102,35 +100,36 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         },
         language: {
             // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
-            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : (preferredLocale as OnfidoSDK.SupportedLanguages),
+            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : preferredLocale,
 
             // Provide a custom phrase for the back button so that the first letter is capitalized,
             // and translate the phrase while we're at it. See the issue and documentation for more context.
             // https://github.com/Expensify/App/issues/17244
             // https://documentation.onfido.com/sdk/web/#custom-languages
             phrases: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'generic.back': translate('common.back'),
             },
         },
     });
 }
 
-function logOnFidoEvent(event: OnfidoEvent) {
+function logOnFidoEvent(event) {
     Log.hmmm('Receiving Onfido analytic event', event.detail);
 }
 
-function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: ForwardedRef<OnfidoElement>) {
+const Onfido = forwardRef((props, ref) => {
     const {preferredLocale, translate} = useLocalize();
+    const theme = useTheme();
 
     useEffect(() => {
         initializeOnfido({
-            sdkToken,
-            onSuccess,
-            onError,
-            onUserExit,
+            sdkToken: props.sdkToken,
+            onSuccess: props.onSuccess,
+            onError: props.onError,
+            onUserExit: props.onUserExit,
             preferredLocale,
             translate,
+            theme,
         });
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
@@ -145,8 +144,8 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
             ref={ref}
         />
     );
-}
+});
 
 Onfido.displayName = 'Onfido';
-
-export default forwardRef(Onfido);
+Onfido.propTypes = onfidoPropTypes;
+export default Onfido;

@@ -5,9 +5,6 @@ const attachmentViewPropTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
     /** File object can be an instance of File or Object */
     file: AttachmentsPropTypes.attachmentFilePropType,
 
@@ -22,9 +19,6 @@ const attachmentViewPropTypes = {
 
     /** Handles scale changed event */
     onScaleChanged: PropTypes.func,
-
-    /** Whether this AttachmentView is shown as part of an AttachmentModal */
-    isUsedInAttachmentModal: PropTypes.bool,
 };
 
 const attachmentViewDefaultProps = {
@@ -33,10 +27,11 @@ const attachmentViewDefaultProps = {
         name: '',
     },
     isFocused: false,
+    isSingleElement: false,
     isUsedInCarousel: false,
+    isUsedInAttachmentModal: false,
     onPress: undefined,
     onScaleChanged: () => {},
-    isUsedInAttachmentModal: false,
 };
 
 export {attachmentViewPropTypes, attachmentViewDefaultProps};

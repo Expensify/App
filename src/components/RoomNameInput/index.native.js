@@ -7,7 +7,7 @@ import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 
-function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, onSubmitEditing, returnKeyType, shouldDelayFocus}) {
     const {translate} = useLocalize();
 
     /**
@@ -41,7 +41,9 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             errorText={errorText}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
-            onBlur={() => isFocused && onBlur()}
+            onBlur={(event) => isFocused && onBlur(event)}
+            onSubmitEditing={onSubmitEditing}
+            returnKeyType={returnKeyType}
             autoFocus={isFocused && autoFocus}
             autoCapitalize="none"
             shouldDelayFocus={shouldDelayFocus}

@@ -19,7 +19,7 @@ To SmartScan a receipt on your mobile app, tap the green camera button, point an
 ## Manually Upload
 To upload receipts on the web, simply navigate to the Expenses page and click on **New Expense**. Select **Scan Receipt** and choose the file you would like to upload, or drag-and-drop your image directly into the Expenses page, and that will start the SmartScanning process!
 
-# FAQ
+{% include faq-begin.md %}
 ## How do you SmartScan multiple receipts? 
 You can utilize the Rapid Fire Mode to quickly SmartScan multiple receipts at once! 
 
@@ -34,3 +34,5 @@ Once that email address has been added as a Secondary Login, simply forward your
 You can crop and rotate a receipt image on the web app, and you can only edit one expense at a time. 
 
 Navigate to your Expenses page and locate the expense whose receipt image you'd like to edit, then click the expense to open the Edit screen. If there is an image file associated with the receipt, you will see the Rotate and Crop buttons. Alternatively, you can also navigate to your Reports page, click on a report, and locate the individual expense.
+
+{% include faq-end.md %}

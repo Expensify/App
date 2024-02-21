@@ -11,14 +11,14 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,9 +32,6 @@ const propTypes = {
         description: PropTypes.string,
         parentReportID: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(
@@ -57,13 +54,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {},
     personalDetails: {},
     reports: {},
 };
 
 function NewTaskPage(props) {
+    const styles = useThemeStyles();
     const [assignee, setAssignee] = useState({});
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), false);
     const [shareDestination, setShareDestination] = useState({});
@@ -114,20 +111,21 @@ function NewTaskPage(props) {
     // the response
     function onSubmit() {
         if (!props.task.title && !props.task.shareDestination) {
-            setErrorMessage(props.translate('newTaskPage.confirmError'));
+            setErrorMessage('newTaskPage.confirmError');
             return;
         }
 
         if (!props.task.title) {
-            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskName'));
+            setErrorMessage('newTaskPage.pleaseEnterTaskName');
             return;
         }
 
         if (!props.task.shareDestination) {
-            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
+            setErrorMessage('newTaskPage.pleaseEnterTaskDestination');
             return;
         }
 
+        playSound(SOUNDS.DONE);
         Task.createTaskAndNavigate(
             parentReport.reportID,
             props.task.title,
@@ -137,11 +135,6 @@ function NewTaskPage(props) {
             props.task.assigneeChatReport,
             parentReport.policyID,
         );
-    }
-
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
     }
 
     return (
@@ -162,7 +155,14 @@ function NewTaskPage(props) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    // on iOS, navigation animation sometimes cause the scrollbar to appear
+                    // on middle/left side of scrollview. scrollIndicatorInsets with right
+                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
+                    // See: https://github.com/Expensify/App/issues/31441
+                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
+                >
                     <View style={[styles.flex1]}>
                         <View style={styles.mb5}>
                             <MenuItemWithTopDescription
@@ -223,9 +223,6 @@ NewTaskPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

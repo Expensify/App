@@ -52,6 +52,11 @@ describe('DateUtils', () => {
         expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-06T16:00:00-08:00');
     });
 
+    it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, undefined, 'InvalidTimezone');
+        expect(localDate.getTime()).not.toBeNaN();
+    });
+
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
@@ -206,6 +211,37 @@ describe('DateUtils', () => {
 
                 expect(formattedDate).toEqual(expectedResult);
             });
+        });
+    });
+
+    describe('getLastBusinessDayOfMonth', () => {
+        const scenarios = [
+            {
+                // Last business day of May in 2025
+                inputDate: new Date(2025, 4),
+                expectedResult: 30,
+            },
+            {
+                // Last business day  of February in 2024
+                inputDate: new Date(2024, 2),
+                expectedResult: 29,
+            },
+            {
+                // Last business day of January in 2024
+                inputDate: new Date(2024, 0),
+                expectedResult: 31,
+            },
+            {
+                // Last business day of September in 2023
+                inputDate: new Date(2023, 8),
+                expectedResult: 29,
+            },
+        ];
+
+        test.each(scenarios)('returns a last business day based on the input date', ({inputDate, expectedResult}) => {
+            const lastBusinessDay = DateUtils.getLastBusinessDayOfMonth(inputDate);
+
+            expect(lastBusinessDay).toEqual(expectedResult);
         });
     });
 });

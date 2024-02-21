@@ -1,7 +1,6 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
 import CONST from '../../src/CONST';
-
-const ValidationUtils = require('../../src/libs/ValidationUtils');
+import * as ValidationUtils from '../../src/libs/ValidationUtils';
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
@@ -311,6 +310,20 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidAccountRoute(undefined)).toBe(false);
             expect(ValidationUtils.isValidAccountRoute(0)).toBe(false);
             expect(ValidationUtils.isValidAccountRoute('123aaa')).toBe(false);
+        });
+    });
+
+    describe('ValidatePersonName', () => {
+        test('Valid person name', () => {
+            expect(ValidationUtils.isValidPersonName('test name')).toBe(true);
+            expect(ValidationUtils.isValidPersonName(`X Æ A test`)).toBe(true);
+            expect(ValidationUtils.isValidPersonName(`a hyphenated-name`)).toBe(true);
+        });
+
+        test('Invalid person name', () => {
+            expect(ValidationUtils.isValidPersonName('123 test')).toBe(false);
+            expect(ValidationUtils.isValidPersonName('test #$')).toBe(false);
+            expect(ValidationUtils.isValidPersonName('test123$')).toBe(false);
         });
     });
 });

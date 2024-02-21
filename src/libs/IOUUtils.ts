@@ -1,7 +1,26 @@
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import {Report, Transaction} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Report, Transaction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
+import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
+
+function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
+    switch (requestType) {
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
+            break;
+        case CONST.IOU.REQUEST_TYPE.SCAN:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID));
+            break;
+        default:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
+            break;
+    }
+}
 
 /**
  * Calculates the amount per user given a list of participants
@@ -34,30 +53,38 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param isDeleting - whether the user is deleting the request
+ * @param isUpdating - whether the user is updating the request
  */
-function updateIOUOwnerAndTotal(iouReport: Report, actorAccountID: number, amount: number, currency: string, isDeleting = false): Report {
-    if (currency !== iouReport.currency) {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+    iouReport: TReport,
+    actorAccountID: number,
+    amount: number,
+    currency: string,
+    isDeleting = false,
+    isUpdating = false,
+): TReport {
+    // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
+    if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
         return iouReport;
     }
 
     // Make a copy so we don't mutate the original object
-    const iouReportUpdate: Report = {...iouReport};
+    const iouReportUpdate = {...iouReport};
 
-    if (iouReportUpdate.total) {
-        if (actorAccountID === iouReport.ownerAccountID) {
-            iouReportUpdate.total += isDeleting ? -amount : amount;
-        } else {
-            iouReportUpdate.total += isDeleting ? amount : -amount;
-        }
+    // Let us ensure a valid value before updating the total amount.
+    iouReportUpdate.total = iouReportUpdate.total ?? 0;
 
-        if (iouReportUpdate.total < 0) {
-            // The total sign has changed and hence we need to flip the manager and owner of the report.
-            iouReportUpdate.ownerAccountID = iouReport.managerID;
-            iouReportUpdate.managerID = iouReport.ownerAccountID;
-            iouReportUpdate.total = -iouReportUpdate.total;
-        }
+    if (actorAccountID === iouReport.ownerAccountID) {
+        iouReportUpdate.total += isDeleting ? -amount : amount;
+    } else {
+        iouReportUpdate.total += isDeleting ? amount : -amount;
+    }
 
-        iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
+    if (iouReportUpdate.total < 0) {
+        // The total sign has changed and hence we need to flip the manager and owner of the report.
+        iouReportUpdate.ownerAccountID = iouReport.managerID;
+        iouReportUpdate.managerID = iouReport.ownerAccountID;
+        iouReportUpdate.total = -iouReportUpdate.total;
     }
 
     return iouReportUpdate;
@@ -81,4 +108,19 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};
+/**
+ * Inserts a newly selected tag into the already existed report tags like a string
+ *
+ * @param reportTags - currently selected tags for a report
+ * @param tag - a newly selected tag, that should be added to the reportTags
+ * @param tagIndex - the index of a tag list
+ * @returns
+ */
+function insertTagIntoReportTagsString(reportTags: string, tag: string, tagIndex: number): string {
+    const splittedReportTags = reportTags.split(CONST.COLON);
+    splittedReportTags[tagIndex] = tag;
+
+    return splittedReportTags.join(CONST.COLON).replace(/:*$/, '');
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoReportTagsString};

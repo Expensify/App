@@ -1,8 +1,8 @@
-import {ElementRef, RefObject} from 'react';
-import {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, StyleProp, ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
-import {Shortcut} from '@libs/KeyboardShortcut';
-import CONST from '@src/CONST';
+import type {ElementRef, ForwardedRef, RefObject} from 'react';
+import type {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, StyleProp, View, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type {Shortcut} from '@libs/KeyboardShortcut';
+import type CONST from '@src/CONST';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
@@ -40,7 +40,7 @@ type PressableProps = RNPressableProps &
         /**
          * onPress callback
          */
-        onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
+        onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /**
          * Specifies keyboard shortcut to trigger onPressHandler
@@ -138,4 +138,7 @@ type PressableProps = RNPressableProps &
         noDragArea?: boolean;
     };
 
+type PressableRef = ForwardedRef<HTMLDivElement | View>;
+
 export default PressableProps;
+export type {PressableRef};

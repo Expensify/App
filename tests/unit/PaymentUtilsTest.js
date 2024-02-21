@@ -1,6 +1,5 @@
 import CONST from '../../src/CONST';
-
-const paymentUtils = require('../../src/libs/PaymentUtils');
+import * as paymentUtils from '../../src/libs/PaymentUtils';
 
 describe('PaymentUtils', () => {
     it('Test rounding wallet transfer instant fee', () => {

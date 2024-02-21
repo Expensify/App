@@ -5,13 +5,10 @@ import reportPropTypes from '@pages/reportPropTypes';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
-    source: PropTypes.string,
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate: PropTypes.func,
-
-    /** Callback to close carousel when user swipes down (on native) */
-    onClose: PropTypes.func,
 
     /** Function to change the download button Visibility */
     setDownloadButtonVisibility: PropTypes.func,
@@ -39,7 +36,6 @@ const defaultProps = {
     parentReportActions: {},
     transaction: {},
     onNavigate: () => {},
-    onClose: () => {},
     setDownloadButtonVisibility: () => {},
 };
 

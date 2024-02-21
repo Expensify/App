@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -9,21 +10,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import * as Browser from '@libs/Browser';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
-import styles from '@styles/styles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Task title and description data */
     task: PropTypes.shape({
         title: PropTypes.string,
@@ -34,11 +31,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {},
 };
 
+const parser = new ExpensiMark();
+
 function NewTaskDetailsPage(props) {
+    const styles = useThemeStyles();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
 
@@ -46,7 +45,7 @@ function NewTaskDetailsPage(props) {
 
     useEffect(() => {
         setTaskTitle(props.task.title);
-        setTaskDescription(props.task.description || '');
+        setTaskDescription(parser.htmlToMarkdown(parser.replace(props.task.description || '')));
     }, [props.task]);
 
     /**
@@ -59,6 +58,11 @@ function NewTaskDetailsPage(props) {
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
             ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
+        } else if (values.taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', ['common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+        }
+        if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}]);
         }
 
         return errors;
@@ -71,10 +75,6 @@ function NewTaskDetailsPage(props) {
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -99,25 +99,26 @@ function NewTaskDetailsPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        inputID="taskTitle"
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.TASK_TITLE}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
+                        autoCorrect={false}
                     />
                 </View>
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        inputID="taskDescription"
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.TASK_DESCRIPTION}
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
-                        submitOnEnter={!Browser.isMobile()}
+                        shouldSubmitForm
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        inputStyle={[styles.verticalAlignTop]}
+                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
@@ -133,9 +134,6 @@ NewTaskDetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

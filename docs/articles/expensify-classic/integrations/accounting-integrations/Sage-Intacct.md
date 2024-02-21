@@ -550,7 +550,7 @@ When ACH reimbursement is enabled, the "Sync Reimbursed Reports" feature will ad
 Intacct requires that the target account for the Bill Payment be a Cash and Cash Equivalents account type. If you aren't seeing the account you want in that list, please first confirm that the category on the account is Cash and Cash Equivalents.
 
 
-# FAQ
+{% include faq-begin.md %}
 ## What if my report isn't automatically exported to Sage Intacct?
 There are a number of factors that can cause automatic export to fail. If this happens, the preferred exporter will receive an email and an Inbox task outlining the issue and any associated error messages.
 The same information will be populated in the comments section of the report.
@@ -566,3 +566,5 @@ If your workspace has been connected to Intacct with Auto Sync disabled, you can
 If a report has been exported to Intacct and reimbursed via ACH in Expensify, we'll automatically mark it as paid in Intacct during the next sync.
 If a report has been exported to Intacct and marked as paid in Intacct, we'll automatically mark it as reimbursed in Expensify during the next sync.
 If a report has not been exported to Intacct, it will not be exported to Intacct automatically.
+
+{% include faq-end.md %}

@@ -1,8 +1,9 @@
 import Mapbox from '@rnmapbox/maps';
-import styles from '@styles/styles';
-import {DirectionProps} from './MapViewTypes';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {DirectionProps} from './MapViewTypes';
 
 function Direction({coordinates}: DirectionProps) {
+    const styles = useThemeStyles();
     if (coordinates.length < 1) {
         return null;
     }

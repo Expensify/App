@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -13,16 +14,17 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -70,9 +72,6 @@ const propTypes = {
     /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
     setIsUsingRecoveryCode: PropTypes.func.isRequired,
 
-    /** Function to change `isUsingMagicCode` state when the user goes back to the login page */
-    setIsUsingMagicCode: PropTypes.func.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -85,11 +84,16 @@ const defaultProps = {
 };
 
 function BaseValidateCodeForm(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const isFocused = useIsFocused();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [timeRemaining, setTimeRemaining] = useState(30);
     const [recoveryCode, setRecoveryCode] = useState('');
+    const [needToClearError, setNeedToClearError] = useState(props.account.errors);
 
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(props.credentials.validateCode);
@@ -98,7 +102,7 @@ function BaseValidateCodeForm(props) {
     const input2FARef = useRef();
     const timerRef = useRef();
 
-    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors) && !needToClearError;
     const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
     const isValidateCodeFormSubmitting =
@@ -112,11 +116,11 @@ function BaseValidateCodeForm(props) {
     }, [props.account.isLoading, props.session.autoAuthState, hasError]);
 
     useEffect(() => {
-        if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus()) {
+        if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !props.isVisible || !isFocused) {
             return;
         }
         inputValidateCodeRef.current.focus();
-    }, []);
+    }, [props.isVisible, isFocused]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
@@ -208,11 +212,21 @@ function BaseValidateCodeForm(props) {
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
-        // Reset the user's preference for signing in with SAML versus magic codes
-        props.setIsUsingMagicCode(false);
         clearLocalSignInData();
         Session.clearSignInData();
     };
+
+    useEffect(() => {
+        if (!needToClearError) {
+            return;
+        }
+
+        if (props.account.errors) {
+            Session.clearAccountMessages();
+            return;
+        }
+        setNeedToClearError(false);
+    }, [props.account.errors, needToClearError]);
 
     /**
      * Switches between 2fa and recovery code, clears inputs and errors
@@ -312,7 +326,7 @@ function BaseValidateCodeForm(props) {
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.RECOVERY_CODE_LENGTH}
                             label={props.translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError.recoveryCode ? props.translate(formError.recoveryCode) : ''}
+                            errorText={formError.recoveryCode || ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
@@ -328,7 +342,7 @@ function BaseValidateCodeForm(props) {
                             onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
                             onFulfill={validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
+                            errorText={formError.twoFactorAuthCode || ''}
                             hasError={hasError}
                             autoFocus
                             key="twoFactorAuthCode"
@@ -338,11 +352,11 @@ function BaseValidateCodeForm(props) {
                     <PressableWithFeedback
                         style={[styles.mt2]}
                         onPress={switchBetween2faAndRecoveryCode}
-                        underlayColor={themeColors.componentBG}
+                        underlayColor={theme.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}
                     >
                         <Text style={[styles.link]}>{props.isUsingRecoveryCode ? props.translate('recoveryCodeForm.use2fa') : props.translate('recoveryCodeForm.useRecoveryCode')}</Text>
@@ -358,10 +372,11 @@ function BaseValidateCodeForm(props) {
                         value={validateCode}
                         onChangeText={(text) => onTextInput(text, 'validateCode')}
                         onFulfill={validateAndSubmitForm}
-                        errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
+                        errorText={formError.validateCode || ''}
                         hasError={hasError}
                         autoFocus
                         key="validateCode"
+                        testID="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>
@@ -374,11 +389,11 @@ function BaseValidateCodeForm(props) {
                             <PressableWithFeedback
                                 style={[styles.mt2]}
                                 onPress={resendValidateCode}
-                                underlayColor={themeColors.componentBG}
+                                underlayColor={theme.componentBG}
                                 disabled={shouldDisableResendValidateCode}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
@@ -419,4 +434,5 @@ export default compose(
         session: {key: ONYXKEYS.SESSION},
     }),
     withNetwork(),
+    withToggleVisibilityView,
 )(BaseValidateCodeForm);

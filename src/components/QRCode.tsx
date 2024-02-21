@@ -1,12 +1,13 @@
-import React, {Ref} from 'react';
-import {ImageSourcePropType} from 'react-native';
+import React from 'react';
+import type {ImageSourcePropType} from 'react-native';
 import QRCodeLibrary from 'react-native-qrcode-svg';
-import defaultTheme from '@styles/themes/default';
+import type {Svg} from 'react-native-svg';
+import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 
-type LogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
+type QRCodeLogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
 
-type LogoMarginRatio = typeof CONST.QR.DEFAULT_LOGO_MARGIN_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO;
+type QRCodeLogoMarginRatio = typeof CONST.QR.DEFAULT_LOGO_MARGIN_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO;
 
 type QRCodeProps = {
     /** The QR code URL */
@@ -19,10 +20,10 @@ type QRCodeProps = {
     logo?: ImageSourcePropType;
 
     /** The size ratio of logo to QR code */
-    logoRatio?: LogoRatio;
+    logoRatio?: QRCodeLogoRatio;
 
     /** The size ratio of margin around logo to QR code */
-    logoMarginRatio?: LogoMarginRatio;
+    logoMarginRatio?: QRCodeLogoMarginRatio;
 
     /** The QRCode size */
     size?: number;
@@ -37,31 +38,23 @@ type QRCodeProps = {
      * Function to retrieve the internal component ref and be able to call it's
      * methods
      */
-    getRef?: (ref: Ref<SVGElement>) => Ref<SVGElement>;
+    getRef?: (ref: Svg) => Svg;
 };
 
-function QRCode({
-    url,
-    logo,
-    getRef,
-    size = 120,
-    color = defaultTheme.text,
-    backgroundColor = defaultTheme.highlightBG,
-    logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO,
-    logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO,
-}: QRCodeProps) {
+function QRCode({url, logo, getRef, size = 120, color, backgroundColor, logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO, logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}: QRCodeProps) {
+    const theme = useTheme();
     return (
         <QRCodeLibrary
             getRef={getRef}
             value={url}
             size={size}
             logo={logo}
-            logoBackgroundColor={backgroundColor}
+            logoBackgroundColor={backgroundColor ?? theme.highlightBG}
             logoSize={size * logoRatio}
             logoMargin={size * logoMarginRatio}
             logoBorderRadius={size}
-            backgroundColor={backgroundColor}
-            color={color}
+            backgroundColor={backgroundColor ?? theme.highlightBG}
+            color={color ?? theme.text}
         />
     );
 }
@@ -69,3 +62,4 @@ function QRCode({
 QRCode.displayName = 'QRCode';
 
 export default QRCode;
+export type {QRCodeLogoMarginRatio, QRCodeLogoRatio};

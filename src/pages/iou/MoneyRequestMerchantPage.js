@@ -11,12 +11,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
@@ -48,10 +49,12 @@ const defaultProps = {
 };
 
 function MoneyRequestMerchantPage({iou, route}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
+    const isEmptyMerchant = iou.merchant === '' || iou.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
@@ -111,13 +114,13 @@ function MoneyRequestMerchantPage({iou, route}) {
                 <View style={styles.mb4}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
-                        inputID="moneyRequestMerchant"
-                        name="moneyRequestMerchant"
-                        defaultValue={iou.merchant}
+                        inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                        name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                        defaultValue={isEmptyMerchant ? '' : iou.merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                     />
                 </View>

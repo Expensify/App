@@ -1,10 +1,10 @@
-import {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import * as Pusher from './Pusher/pusher';
-import {PushJSON} from './Pusher/pusher';
+import type {PushJSON} from './Pusher/pusher';
 
 type Callback = (data: OnyxUpdate[]) => Promise<void>;
 
@@ -26,7 +26,7 @@ function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promis
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
 function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: PushJSON) => void) {
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}` as const;
 
     function logPusherEvent(pushJSON: PushJSON) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);

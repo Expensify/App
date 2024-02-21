@@ -1,4 +1,4 @@
-import {CommonPathProps as BaseCommonPathProps, SvgProps as BaseSvgProps} from 'react-native-svg';
+import type {CommonPathProps as BaseCommonPathProps, SvgProps as BaseSvgProps} from 'react-native-svg';
 
 declare module 'react-native-svg' {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

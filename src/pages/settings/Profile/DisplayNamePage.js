@@ -12,15 +12,15 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -44,6 +44,7 @@ const updateDisplayName = (values) => {
 };
 
 function DisplayNamePage(props) {
+    const styles = useThemeStyles();
     const currentUserDetails = props.currentUserPersonalDetails || {};
 
     /**
@@ -59,13 +60,16 @@ function DisplayNamePage(props) {
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
         // Then we validate the last name field
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            errors.lastName = 'personalDetails.error.hasInvalidCharacter';
+            ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
+        }
+        if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.containsReservedWord');
         }
         return errors;
     };
@@ -78,7 +82,7 @@ function DisplayNamePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('displayNamePage.headerTitle')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {props.isLoadingApp ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -97,11 +101,11 @@ function DisplayNamePage(props) {
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="firstName"
+                            inputID={INPUT_IDS.FIRST_NAME}
                             name="fname"
                             label={props.translate('common.firstName')}
                             aria-label={props.translate('common.firstName')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
@@ -110,11 +114,11 @@ function DisplayNamePage(props) {
                     <View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="lastName"
+                            inputID={INPUT_IDS.LAST_NAME}
                             name="lname"
                             label={props.translate('common.lastName')}
                             aria-label={props.translate('common.lastName')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}

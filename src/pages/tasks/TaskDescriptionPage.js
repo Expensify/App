@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -10,17 +11,19 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import * as Browser from '@libs/Browser';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import StringUtils from '@libs/StringUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/EditTaskForm';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -34,14 +37,34 @@ const defaultProps = {
     report: {},
 };
 
+const parser = new ExpensiMark();
 function TaskDescriptionPage(props) {
-    const validate = useCallback(() => ({}), []);
+    const styles = useThemeStyles();
+
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        }
+
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call Task.editTaskReport
-            // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.report, {description: values.description});
+            // props.report.description might contain CRLF from the server
+            if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(props.report.description)) {
+                // Set the description of the report in the store and then call EditTask API
+                // to update the description of the report on the server
+                Task.editTask(props.report, {description: values.description});
+            }
+
+            Navigation.dismissModal(props.report.reportID);
         },
         [props],
     );
@@ -93,12 +116,12 @@ function TaskDescriptionPage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            inputID="description"
-                            name="description"
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.DESCRIPTION}
+                            name={INPUT_IDS.DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            defaultValue={(props.report && props.report.description) || ''}
+                            defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
                             ref={(el) => {
                                 if (!el) {
                                     return;
@@ -107,9 +130,8 @@ function TaskDescriptionPage(props) {
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
-                            submitOnEnter={!Browser.isMobile()}
+                            shouldSubmitForm
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputStyle={[styles.verticalAlignTop]}
                         />
                     </View>
                 </FormProvider>

@@ -5,8 +5,6 @@ import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
 import variables from '../../src/styles/variables';
 
-jest.setTimeout(60000);
-
 jest.mock('../../src/components/Icon/Expensicons');
 
 jest.mock('../../src/hooks/useLocalize', () =>
@@ -94,11 +92,11 @@ function SelectionListWrapper(args) {
     );
 }
 
-test('should render 1 section and a thousand items', () => {
+test('[SelectionList] should render 1 section and a thousand items', () => {
     measurePerformance(<SelectionListWrapper />);
 });
 
-test('should press a list item', () => {
+test('[SelectionList] should press a list item', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 5'));
     };
@@ -106,7 +104,7 @@ test('should press a list item', () => {
     measurePerformance(<SelectionListWrapper />, {scenario});
 });
 
-test('should render multiple selection and select 3 items', () => {
+test('[SelectionList] should render multiple selection and select 3 items', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 2'));
@@ -116,7 +114,7 @@ test('should render multiple selection and select 3 items', () => {
     measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
 
-test('should scroll and select a few items', () => {
+test('[SelectionList] should scroll and select a few items', () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {
@@ -137,6 +135,8 @@ test('should scroll and select a few items', () => {
 
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 1'));
+        // see https://github.com/callstack/react-native-testing-library/issues/1540
+        fireEvent(screen.getByTestId('selection-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
         fireEvent.scroll(screen.getByTestId('selection-list'), eventData);
         fireEvent.press(screen.getByText('Item 7'));
         fireEvent.press(screen.getByText('Item 15'));

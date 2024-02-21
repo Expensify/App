@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -13,25 +13,69 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import FormUtils from '@libs/FormUtils';
+import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import styles from '@styles/styles';
-import theme from '@styles/themes/default';
 import * as Card from '@userActions/Card';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import DangerCardSection from './DangerCardSection';
+import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
 const propTypes = {
     /* Onyx Props */
     /** The details about the Expensify cards */
     cardList: PropTypes.objectOf(assignedCardPropTypes),
+    /** Draft values used by the get physical card form */
+    draftValues: PropTypes.shape({
+        addressLine1: PropTypes.string,
+        addressLine2: PropTypes.string,
+        city: PropTypes.string,
+        state: PropTypes.string,
+        country: PropTypes.string,
+        zipPostCode: PropTypes.string,
+        phoneNumber: PropTypes.string,
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+    }),
+    loginList: PropTypes.shape({
+        /** The partner creating the account. It depends on the source: website, mobile, integrations, ... */
+        partnerName: PropTypes.string,
+
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+
+        /** The date when the login was validated, used to show the brickroad status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
+
+        /** Field-specific pending states for offline UI status */
+        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+        phoneNumber: PropTypes.string,
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
+    }),
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
@@ -43,28 +87,60 @@ const propTypes = {
 };
 
 const defaultProps = {
-    cardList: {},
+    cardList: null,
+    draftValues: {
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        country: '',
+        zipPostCode: '',
+        phoneNumber: '',
+        legalFirstName: '',
+        legalLastName: '',
+    },
+    loginList: {},
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
+        phoneNumber: null,
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    },
 };
 
 function ExpensifyCardPage({
     cardList,
+    draftValues,
+    loginList,
+    privatePersonalDetails,
     route: {
         params: {domain},
     },
 }) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
-    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
+    const domainCards = useMemo(() => cardList && CardUtils.getDomainCards(cardList)[domain], [cardList, domain]);
+    const virtualCard = useMemo(() => (domainCards && _.find(domainCards, (card) => card.isVirtual)) || {}, [domainCards]);
+    const physicalCard = useMemo(() => (domainCards && _.find(domainCards, (card) => !card.isVirtual)) || {}, [domainCards]);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isNotFound, setIsNotFound] = useState(false);
     const [details, setDetails] = useState({});
     const [cardDetailsError, setCardDetailsError] = useState('');
 
-    if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
-        return <NotFoundPage />;
-    }
+    useEffect(() => {
+        if (!cardList) {
+            return;
+        }
+        setIsNotFound(_.isEmpty(virtualCard) && _.isEmpty(physicalCard));
+    }, [cardList, physicalCard, virtualCard]);
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
@@ -83,9 +159,19 @@ function ExpensifyCardPage({
             .finally(() => setIsLoading(false));
     };
 
+    const goToGetPhysicalCardFlow = () => {
+        const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(draftValues, privatePersonalDetails, loginList);
+
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues), loginList);
+    };
+
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
     const cardDetailsErrorObject = cardDetailsError ? {error: cardDetailsError} : {};
+
+    if (isNotFound) {
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
+    }
 
     return (
         <ScreenWrapper
@@ -105,27 +191,25 @@ function ExpensifyCardPage({
 
                         {hasDetectedDomainFraud ? (
                             <DotIndicatorMessage
-                                style={[styles.pageWrapper]}
-                                textStyle={[styles.walletLockedMessage]}
-                                messages={{0: translate('cardPage.cardLocked')}}
+                                style={styles.pageWrapper}
+                                textStyles={styles.walletLockedMessage}
+                                messages={{0: 'cardPage.cardLocked'}}
                                 type="error"
                             />
                         ) : null}
 
                         {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
-                                <DangerCardSection
+                                <RedDotCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
                                     description={translate('cardPage.suspiciousBannerDescription')}
                                 />
-                                <MenuItemWithTopDescription
-                                    title={translate('cardPage.reviewTransaction')}
-                                    titleStyle={styles.walletCardMenuItem}
-                                    icon={Expensicons.MagnifyingGlass}
-                                    iconFill={theme.icon}
-                                    shouldShowRightIcon
-                                    brickRoadIndicator="error"
-                                    onPress={() => Link.openOldDotLink('inbox')}
+
+                                <Button
+                                    medium
+                                    style={[styles.mh5, styles.mb5]}
+                                    text={translate('cardPage.reviewTransaction')}
+                                    onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
                                 />
                             </>
                         ) : null}
@@ -143,7 +227,7 @@ function ExpensifyCardPage({
                                         {details.pan ? (
                                             <CardDetails
                                                 pan={details.pan}
-                                                expiration={details.expiration}
+                                                expiration={CardUtils.formatCardExpiration(details.expiration)}
                                                 cvv={details.cvv}
                                                 privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
@@ -152,7 +236,7 @@ function ExpensifyCardPage({
                                             <>
                                                 <MenuItemWithTopDescription
                                                     description={translate('cardPage.virtualCardNumber')}
-                                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                                    title={CardUtils.maskCard('')}
                                                     interactive={false}
                                                     titleStyle={styles.walletCardNumber}
                                                     shouldShowRightComponent
@@ -182,13 +266,13 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 )}
-                                {!_.isEmpty(physicalCard) && (
+                                {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.OPEN && (
                                     <>
                                         <MenuItemWithTopDescription
                                             description={translate('cardPage.physicalCardNumber')}
                                             title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                             interactive={false}
-                                            titleStyle={styles.walletCardMenuItem}
+                                            titleStyle={styles.walletCardNumber}
                                         />
                                         <MenuItem
                                             title={translate('reportCardLostOrDamaged.report')}
@@ -209,6 +293,15 @@ function ExpensifyCardPage({
                             text={translate('activateCardPage.activatePhysicalCard')}
                         />
                     )}
+                    {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && (
+                        <Button
+                            success
+                            text={translate('cardPage.getPhysicalCard')}
+                            pressOnEnter
+                            onPress={goToGetPhysicalCardFlow}
+                            style={[styles.mh5, styles.mb5]}
+                        />
+                    )}
                 </>
             )}
         </ScreenWrapper>
@@ -222,5 +315,14 @@ ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 export default withOnyx({
     cardList: {
         key: ONYXKEYS.CARD_LIST,
+    },
+    loginList: {
+        key: ONYXKEYS.LOGIN_LIST,
+    },
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    draftValues: {
+        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
     },
 })(ExpensifyCardPage);

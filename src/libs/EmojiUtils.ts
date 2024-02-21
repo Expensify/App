@@ -2,35 +2,20 @@ import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
-import {SvgProps} from 'react-native-svg';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
-import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {FrequentlyUsedEmoji} from '@src/types/onyx';
-import emojisTrie from './EmojiTrie';
+import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
+import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {SupportedLanguage} from './EmojiTrie';
 
-type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
+type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
-type ReplacedEmoji = {text: string; emojis: Emoji[]};
-type UserReactions = {
-    id: string;
-    skinTones: Record<number, string>;
-};
-type UserReactionsWithTimestamps = UserReactions & {
-    oldestTimestamp: string;
-};
-type UsersReactionsList = {
-    createdAt: string;
-    users: Record<string, UserReactions>;
-};
-type TimestampedUsersReactions = Record<string, UserReactionsWithTimestamps>;
-type EnrichedUserReactions = {
-    createdAt: string;
-    oldestTimestamp: string;
-    users: TimestampedUsersReactions;
-};
+type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
@@ -64,13 +49,13 @@ const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): 
 /**
  * Given an English emoji name, get its localized version
  */
-const getLocalizedEmojiName = (name: string, lang: 'en' | 'es'): string => {
+const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return name;
     }
 
     const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
-    return Emojis.localeEmojis[lang]?.[emojiCode]?.name ?? '';
+    return (lang && Emojis.localeEmojis[lang]?.[emojiCode]?.name) ?? '';
 };
 
 /**
@@ -321,7 +306,10 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
+    const emojisTrie = require('./EmojiTrie').default;
+
     const trie = emojisTrie[lang];
     if (!trie) {
         return {text, emojis: []};
@@ -333,8 +321,11 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
     if (!emojiData || emojiData.length === 0) {
         return {text: newText, emojis};
     }
-    for (let i = 0; i < emojiData.length; i++) {
-        const name = emojiData[i].slice(1, -1);
+
+    let cursorPosition;
+
+    for (const emoji of emojiData) {
+        const name = emoji.slice(1, -1);
         let checkEmoji = trie.search(name);
         // If the user has selected a language other than English, and the emoji doesn't exist in that language,
         // we will check if the emoji exists in English.
@@ -346,35 +337,46 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
             }
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
-            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
+            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
             emojis.push({
                 name,
                 code: checkEmoji.metaData?.code,
                 types: checkEmoji.metaData.types,
             });
 
-            // If this is the last emoji in the message and it's the end of the message so far,
-            // add a space after it so the user can keep typing easily.
-            if (i === emojiData.length - 1) {
-                emojiReplacement += ' ';
-            }
+            // Set the cursor to the end of the last replaced Emoji. Note that we position after
+            // the extra space, if we added one.
+            cursorPosition = newText.indexOf(emoji) + emojiReplacement.length;
 
-            newText = newText.replace(emojiData[i], emojiReplacement);
+            newText = newText.replace(emoji, emojiReplacement);
         }
     }
 
-    return {text: newText, emojis};
+    // cursorPosition, when not undefined, points to the end of the last emoji that was replaced.
+    // In that case we want to append a space at the cursor position, but only if the next character
+    // is not already a space (to avoid double spaces).
+    if (cursorPosition && cursorPosition > 0) {
+        const space = ' ';
+
+        if (newText.charAt(cursorPosition) !== space) {
+            newText = newText.slice(0, cursorPosition) + space + newText.slice(cursorPosition);
+        }
+        cursorPosition += space.length;
+    }
+
+    return {text: newText, emojis, cursorPosition};
 }
 
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+function replaceAndExtractEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+    const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
         text: convertedText,
         emojis: emojis.concat(extractEmojis(text)),
+        cursorPosition,
     };
 }
 
@@ -382,7 +384,10 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_D
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+function suggestEmojis(text: string, lang: keyof SupportedLanguage, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
+    const emojisTrie = require('./EmojiTrie').default;
+
     const trie = emojisTrie[lang];
     if (!trie) {
         return [];
@@ -422,9 +427,9 @@ function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONS
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
-const getPreferredSkinToneIndex = (val: string | number): number | string => {
-    if (val !== null && Number.isInteger(Number(val))) {
-        return val;
+const getPreferredSkinToneIndex = (value: string | number | null): number => {
+    if (value !== null && Number.isInteger(Number(value))) {
+        return Number(value);
     }
 
     return CONST.EMOJI_DEFAULT_SKIN_TONE;
@@ -434,8 +439,8 @@ const getPreferredSkinToneIndex = (val: string | number): number | string => {
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
  */
-const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string => {
-    if (emoji.types) {
+const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string | number>): string => {
+    if (emoji.types && typeof preferredSkinTone === 'number') {
         const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
 
         // Note: it can happen that preferredSkinTone has a outdated format,
@@ -453,7 +458,7 @@ const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string 
  * array of emoji codes, that represents all used variations of the
  * emoji, sorted by the reaction timestamp.
  */
-const getUniqueEmojiCodes = (emojiAsset: Emoji, users: TimestampedUsersReactions): string[] => {
+const getUniqueEmojiCodes = (emojiAsset: Emoji, users: UsersReactions): string[] => {
     const emojiCodes: Record<string, string> = Object.values(users ?? {}).reduce((result: Record<string, string>, userSkinTones) => {
         Object.keys(userSkinTones?.skinTones ?? {}).forEach((skinTone) => {
             const createdAt = userSkinTones.skinTones[Number(skinTone)];
@@ -472,12 +477,11 @@ const getUniqueEmojiCodes = (emojiAsset: Emoji, users: TimestampedUsersReactions
 /**
  * Given an emoji reaction object and its name, it populates it with the oldest reaction timestamps.
  */
-const enrichEmojiReactionWithTimestamps = (emoji: UsersReactionsList, emojiName: string): EnrichedUserReactions => {
+const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiName: string): ReportActionReaction => {
     let oldestEmojiTimestamp: string | null = null;
 
-    const usersWithTimestamps: Record<string, UserReactionsWithTimestamps> = {};
-    Object.keys(emoji.users ?? {}).forEach((id) => {
-        const user = emoji?.users?.[id];
+    const usersWithTimestamps: UsersReactions = {};
+    Object.entries(emoji.users ?? {}).forEach(([id, user]) => {
         const userTimestamps = Object.values(user?.skinTones ?? {});
         const oldestUserTimestamp = userTimestamps.reduce((min, curr) => (curr < min ? curr : min), userTimestamps[0]);
 
@@ -507,7 +511,7 @@ const enrichEmojiReactionWithTimestamps = (emoji: UsersReactionsList, emojiName:
  * Uses the NEW FORMAT for "emojiReactions"
  * @param usersReactions - all the users reactions
  */
-function hasAccountIDEmojiReacted(accountID: string, usersReactions: TimestampedUsersReactions, skinTone?: number) {
+function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReactions, skinTone?: number) {
     if (skinTone === undefined) {
         return Boolean(usersReactions[accountID]);
     }
@@ -521,7 +525,7 @@ function hasAccountIDEmojiReacted(accountID: string, usersReactions: Timestamped
 /**
  * Given an emoji reaction and current user's account ID, it returns the reusable details of the emoji reaction.
  */
-const getEmojiReactionDetails = (emojiName: string, reaction: UsersReactionsList, currentUserAccountID: string) => {
+const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReaction, currentUserAccountID: number) => {
     const {users, oldestTimestamp} = enrichEmojiReactionWithTimestamps(reaction, emojiName);
 
     const emoji = findEmojiByName(emojiName);
@@ -543,6 +547,23 @@ const getEmojiReactionDetails = (emojiName: string, reaction: UsersReactionsList
         oldestTimestamp,
     };
 };
+
+/**
+ * Given an emoji code, returns an base emoji code without skin tone
+ */
+const getRemovedSkinToneEmoji = (emoji: string) => emoji.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+
+function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
+    const spacersIndexes: number[] = [];
+    allEmojis.forEach((emoji, index) => {
+        if (!(CONST.EMOJI_PICKER_ITEM_TYPES.SPACER in emoji)) {
+            return;
+        }
+
+        spacersIndexes.push(index);
+    });
+    return spacersIndexes;
+}
 
 export {
     findEmojiByName,
@@ -566,4 +587,6 @@ export {
     getAddedEmojis,
     isFirstLetterEmoji,
     hasAccountIDEmojiReacted,
+    getRemovedSkinToneEmoji,
+    getSpacersIndexes,
 };

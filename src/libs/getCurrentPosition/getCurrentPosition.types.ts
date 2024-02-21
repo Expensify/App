@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+
 type GeolocationSuccessCallback = (position: {
     coords: {
         latitude: number;
@@ -11,8 +13,10 @@ type GeolocationSuccessCallback = (position: {
     timestamp: number;
 }) => void;
 
+type GeolocationErrorCodeType = ValueOf<typeof GeolocationErrorCode> | null;
+
 type GeolocationErrorCallback = (error: {
-    code: (typeof GeolocationErrorCode)[keyof typeof GeolocationErrorCode];
+    code: GeolocationErrorCodeType;
     message: string;
     PERMISSION_DENIED: typeof GeolocationErrorCode.PERMISSION_DENIED;
     POSITION_UNAVAILABLE: typeof GeolocationErrorCode.POSITION_UNAVAILABLE;
@@ -51,4 +55,4 @@ type GetCurrentPosition = (success: GeolocationSuccessCallback, error: Geolocati
 
 export {GeolocationErrorCode};
 
-export type {GeolocationSuccessCallback, GeolocationErrorCallback, GeolocationOptions, GetCurrentPosition};
+export type {GeolocationSuccessCallback, GeolocationErrorCallback, GeolocationOptions, GetCurrentPosition, GeolocationErrorCodeType};

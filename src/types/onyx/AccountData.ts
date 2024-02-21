@@ -1,10 +1,11 @@
-import * as OnyxCommon from './OnyxCommon';
+import type {BankName} from './Bank';
+import type * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isP2PDebitCard?: boolean;
     beneficialOwners?: string[];
     currency?: string;
-    bankName?: string;
+    bankName?: BankName;
     fieldsType?: string;
     country?: string;
 };
@@ -50,6 +51,8 @@ type AccountData = {
 
     /** Any error message to show */
     errors?: OnyxCommon.Errors;
+
+    fundID?: number;
 };
 
 export default AccountData;

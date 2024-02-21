@@ -15,7 +15,7 @@ describe('localize', () => {
 
     afterEach(() => Onyx.clear());
 
-    describe('arrayToString', () => {
+    describe('formatList', () => {
         test.each([
             [
                 [],
@@ -52,9 +52,9 @@ describe('localize', () => {
                     [CONST.LOCALES.ES]: 'rory, vit e ionatan',
                 },
             ],
-        ])('arrayToSpokenList(%s)', (input, {[CONST.LOCALES.DEFAULT]: expectedOutput, [CONST.LOCALES.ES]: expectedOutputES}) => {
-            expect(Localize.arrayToString(input)).toBe(expectedOutput);
-            return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(Localize.arrayToString(input)).toBe(expectedOutputES));
+        ])('formatList(%s)', (input, {[CONST.LOCALES.DEFAULT]: expectedOutput, [CONST.LOCALES.ES]: expectedOutputES}) => {
+            expect(Localize.formatList(input)).toBe(expectedOutput);
+            return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(Localize.formatList(input)).toBe(expectedOutputES));
         });
     });
 });

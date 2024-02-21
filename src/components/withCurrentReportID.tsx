@@ -1,6 +1,7 @@
-import {NavigationState} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {ComponentType, createContext, ForwardedRef, forwardRef, RefAttributes, useCallback, useMemo, useState} from 'react';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {createContext, forwardRef, useCallback, useMemo, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -8,6 +9,7 @@ type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
     currentReportID: string;
 };
+
 type CurrentReportIDContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;

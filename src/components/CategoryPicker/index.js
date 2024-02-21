@@ -1,21 +1,18 @@
 import lodashGet from 'lodash/get';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import OptionsSelector from '@components/OptionsSelector';
+import SelectionList from '@components/SelectionList';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './categoryPickerPropTypes';
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
     const {translate} = useLocalize();
-    const [searchValue, setSearchValue] = useState('');
-
-    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(_.values(policyCategories));
-    const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const selectedOptions = useMemo(() => {
         if (!selectedCategory) {
@@ -27,17 +24,18 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
                 name: selectedCategory,
                 enabled: true,
                 accountID: null,
+                isSelected: true,
             },
         ];
     }, [selectedCategory]);
 
-    const sections = useMemo(() => {
+    const [sections, headerMessage, policyCategoriesCount, shouldShowTextInput] = useMemo(() => {
         const validPolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (p) => !_.isEmpty(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
             {},
             {},
             [],
-            searchValue,
+            debouncedSearchValue,
             selectedOptions,
             [],
             false,
@@ -48,40 +46,28 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
         );
 
-        return categoryOptions;
-    }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
+        const header = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(categoryOptions, '[0].data', []).length > 0, debouncedSearchValue);
+        const policiesCount = OptionsListUtils.getEnabledCategoriesCount(_.values(policyCategories));
+        const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
+        const showInput = !isCategoriesCountBelowThreshold;
 
-    const initialFocusedIndex = useMemo(() => {
-        let categoryInitialFocusedIndex = 0;
+        return [categoryOptions, header, policiesCount, showInput];
+    }, [policyCategories, policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions]);
 
-        if (!_.isEmpty(searchValue) || isCategoriesCountBelowThreshold) {
-            const index = _.findIndex(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory);
-
-            categoryInitialFocusedIndex = index === -1 ? 0 : index;
-        }
-
-        return categoryInitialFocusedIndex;
-    }, [selectedCategory, searchValue, isCategoriesCountBelowThreshold, sections]);
-
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
-    const shouldShowTextInput = !isCategoriesCountBelowThreshold;
+    const selectedOptionKey = useMemo(
+        () => lodashGet(_.filter(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory)[0], 'keyForList'),
+        [sections, selectedCategory],
+    );
 
     return (
-        <OptionsSelector
-            optionHoveredStyle={styles.hoveredComponentBG}
-            sectionHeaderStyle={styles.mt5}
+        <SelectionList
             sections={sections}
-            selectedOptions={selectedOptions}
-            value={searchValue}
-            initialFocusedIndex={initialFocusedIndex}
             headerMessage={headerMessage}
-            shouldShowTextInput={shouldShowTextInput}
-            textInputLabel={translate('common.search')}
-            boldStyle
-            highlightSelectedOptions
-            isRowMultilineSupported
+            textInputValue={searchValue}
+            textInputLabel={shouldShowTextInput && translate('common.search')}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            initiallyFocusedOptionKey={selectedOptionKey}
         />
     );
 }

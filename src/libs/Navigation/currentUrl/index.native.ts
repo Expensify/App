@@ -1,4 +1,4 @@
-import GetCurrentUrl from './types';
+import type GetCurrentUrl from './types';
 
 const getCurrentUrl: GetCurrentUrl = () => '';
 

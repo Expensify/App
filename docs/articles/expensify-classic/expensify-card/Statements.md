@@ -6,7 +6,7 @@ description: Learn how the Expensify Card statement and settlements work!
 # Overview
 Expensify offers several settlement types and a statement that provides a detailed view of transactions and settlements. We discuss specifics on both below.
 
-# How to use Expensify Card Statement and Settlements
+# How to use Expensify Visa® Commercial Card Statement and Settlements
 ## Using the statement
 If your domain uses the Expensify Card and you have a validated Business Bank Account, access the Expensify Card statement at Settings > Domains > Company Cards > Reconciliation Tab > Settlements.
 

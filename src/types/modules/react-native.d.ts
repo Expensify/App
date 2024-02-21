@@ -3,9 +3,10 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
-import {BootSplashModule} from '@libs/BootSplash/types';
+import type {BootSplashModule} from '@libs/BootSplash/types';
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
@@ -283,7 +284,11 @@ declare module 'react-native' {
         enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send';
         readOnly?: boolean;
     }
-    interface TextInputProps extends WebTextInputProps {}
+    interface TextInputProps extends WebTextInputProps {
+        // TODO: remove once the app is updated to RN 0.73
+        smartInsertDelete?: boolean;
+        isFullComposerAvailable?: boolean;
+    }
 
     /**
      * Image
@@ -343,11 +348,6 @@ declare module 'react-native' {
     interface TextStyle extends WebStyle {}
     interface ImageStyle extends WebStyle {}
     // <------ REACT NATIVE WEB (0.19.0) ------>
-
-    interface TextInput {
-        // Typescript type declaration is missing in React Native for setting text selection.
-        setSelection: (start: number, end: number) => void;
-    }
 
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;

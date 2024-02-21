@@ -68,8 +68,6 @@ describe('test workflow preDeploy', () => {
             chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
             updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-            isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-            newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
         };
         const testMockJobs = {
             typecheck: {
@@ -112,7 +110,6 @@ describe('test workflow preDeploy', () => {
         assertions.assertTypecheckJobExecuted(result);
         assertions.assertLintJobExecuted(result);
         assertions.assertTestJobExecuted(result);
-        assertions.assertIsExpensifyEmployeeJobExecuted(result);
         assertions.assertChooseDeployActionsJobExecuted(result);
         assertions.assertSkipDeployJobExecuted(result, false);
         assertions.assertCreateNewVersionJobExecuted(result);
@@ -128,8 +125,6 @@ describe('test workflow preDeploy', () => {
             chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
             updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-            isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-            newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
         };
         const testMockJobs = {
             typecheck: {
@@ -180,7 +175,6 @@ describe('test workflow preDeploy', () => {
         assertions.assertTypecheckJobExecuted(result, false);
         assertions.assertLintJobExecuted(result, false);
         assertions.assertTestJobExecuted(result, false);
-        assertions.assertIsExpensifyEmployeeJobExecuted(result, false);
         assertions.assertChooseDeployActionsJobExecuted(result, false);
         assertions.assertSkipDeployJobExecuted(result, false);
         assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -208,7 +202,6 @@ describe('test workflow preDeploy', () => {
         assertions.assertTypecheckJobExecuted(result, false);
         assertions.assertLintJobExecuted(result, false);
         assertions.assertTestJobExecuted(result, false);
-        assertions.assertIsExpensifyEmployeeJobExecuted(result, false);
         assertions.assertChooseDeployActionsJobExecuted(result, false);
         assertions.assertSkipDeployJobExecuted(result, false);
         assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -236,8 +229,6 @@ describe('test workflow preDeploy', () => {
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
                 typecheck: {
@@ -277,7 +268,6 @@ describe('test workflow preDeploy', () => {
             );
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
             expect(result).toEqual(
                 expect.arrayContaining([
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
@@ -312,8 +302,6 @@ describe('test workflow preDeploy', () => {
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
                 typecheck: {
@@ -351,7 +339,6 @@ describe('test workflow preDeploy', () => {
             assertions.assertTypecheckJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining([utils.createStepAssertion('Run lint workflow', false, null, 'LINT', 'Running lint workflow - Lint workflow failed')]));
             assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
             expect(result).toEqual(
                 expect.arrayContaining([
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
@@ -386,8 +373,6 @@ describe('test workflow preDeploy', () => {
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
                 typecheck: {
@@ -425,7 +410,6 @@ describe('test workflow preDeploy', () => {
             assertions.assertTypecheckJobExecuted(result);
             assertions.assertLintJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining([utils.createStepAssertion('Run test workflow', false, null, 'TEST', 'Running test workflow - Test workflow failed')]));
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
             expect(result).toEqual(
                 expect.arrayContaining([
                     utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
@@ -460,8 +444,6 @@ describe('test workflow preDeploy', () => {
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
                 typecheck: {
@@ -499,269 +481,10 @@ describe('test workflow preDeploy', () => {
             assertions.assertTypecheckJobExecuted(result);
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
             assertions.assertChooseDeployActionsJobExecuted(result);
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result);
             assertions.assertUpdateStagingJobExecuted(result);
-        });
-    });
-
-    describe('new contributor welcome message', () => {
-        it('actor is OSBotify - no comment left', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-            const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                'push',
-                {ref: 'refs/heads/main'},
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
-                'dummy_github_token',
-            );
-            const testMockSteps = {
-                confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
-                skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
-            };
-            const testMockJobs = {
-                typecheck: {
-                    steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                lint: {
-                    steps: mocks.LINT_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                test: {
-                    steps: mocks.TEST_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                createNewVersion: {
-                    steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                    outputs: {
-                        // eslint-disable-next-line no-template-curly-in-string
-                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                    },
-                    runsOn: 'ubuntu-latest',
-                },
-                e2ePerformanceTests: {
-                    steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-            };
-            const result = await act.runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'OSBotify',
-                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                mockJobs: testMockJobs,
-            });
-            assertions.assertTypecheckJobExecuted(result);
-            assertions.assertLintJobExecuted(result);
-            assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
-            assertions.assertChooseDeployActionsJobExecuted(result);
-            assertions.assertNewContributorWelcomeMessageJobExecuted(result, false);
-        });
-
-        it('actor is Expensify employee - no comment left', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-            const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                'push',
-                {ref: 'refs/heads/main'},
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
-                'dummy_github_token',
-            );
-            const testMockSteps = {
-                confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
-                skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-            };
-            const testMockJobs = {
-                typecheck: {
-                    steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                lint: {
-                    steps: mocks.LINT_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                test: {
-                    steps: mocks.TEST_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                createNewVersion: {
-                    steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                    outputs: {
-                        // eslint-disable-next-line no-template-curly-in-string
-                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                    },
-                    runsOn: 'ubuntu-latest',
-                },
-                e2ePerformanceTests: {
-                    steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-            };
-            const result = await act.runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                mockJobs: testMockJobs,
-            });
-            assertions.assertTypecheckJobExecuted(result);
-            assertions.assertLintJobExecuted(result);
-            assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
-            assertions.assertChooseDeployActionsJobExecuted(result);
-            assertions.assertNewContributorWelcomeMessageJobExecuted(result, false);
-        });
-
-        it('actor is not Expensify employee, its not their first PR - job triggers, but no comment left', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-            const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                'push',
-                {ref: 'refs/heads/main'},
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
-                'dummy_github_token',
-            );
-            const testMockSteps = {
-                confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
-                skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-            };
-            const testMockJobs = {
-                typecheck: {
-                    steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                lint: {
-                    steps: mocks.LINT_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                test: {
-                    steps: mocks.TEST_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                createNewVersion: {
-                    steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                    outputs: {
-                        // eslint-disable-next-line no-template-curly-in-string
-                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                    },
-                    runsOn: 'ubuntu-latest',
-                },
-                e2ePerformanceTests: {
-                    steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-            };
-            const result = await act.runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                mockJobs: testMockJobs,
-            });
-            assertions.assertTypecheckJobExecuted(result);
-            assertions.assertLintJobExecuted(result);
-            assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
-            assertions.assertChooseDeployActionsJobExecuted(result);
-            assertions.assertNewContributorWelcomeMessageJobExecuted(result, true, false, false);
-        });
-
-        it('actor is not Expensify employee, and its their first PR - job triggers and comment left', async () => {
-            const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-            const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                'push',
-                {ref: 'refs/heads/main'},
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
-                'dummy_github_token',
-            );
-            const testMockSteps = {
-                confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
-                skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR,
-            };
-            const testMockJobs = {
-                typecheck: {
-                    steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                lint: {
-                    steps: mocks.LINT_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                test: {
-                    steps: mocks.TEST_JOB_MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-                createNewVersion: {
-                    steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                    outputs: {
-                        // eslint-disable-next-line no-template-curly-in-string
-                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                    },
-                    runsOn: 'ubuntu-latest',
-                },
-                e2ePerformanceTests: {
-                    steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-latest',
-                },
-            };
-            const result = await act.runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                mockJobs: testMockJobs,
-            });
-            assertions.assertTypecheckJobExecuted(result);
-            assertions.assertLintJobExecuted(result);
-            assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
-            assertions.assertChooseDeployActionsJobExecuted(result);
-            assertions.assertNewContributorWelcomeMessageJobExecuted(result, true, false, true);
         });
     });
 
@@ -777,8 +500,6 @@ describe('test workflow preDeploy', () => {
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                 };
                 const testMockJobs = {
                     typecheck: {
@@ -816,7 +537,6 @@ describe('test workflow preDeploy', () => {
                 assertions.assertTypecheckJobExecuted(result);
                 assertions.assertLintJobExecuted(result);
                 assertions.assertTestJobExecuted(result);
-                assertions.assertIsExpensifyEmployeeJobExecuted(result);
                 assertions.assertChooseDeployActionsJobExecuted(result);
                 assertions.assertSkipDeployJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -834,8 +554,6 @@ describe('test workflow preDeploy', () => {
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
                 };
                 const testMockJobs = {
                     typecheck: {
@@ -873,7 +591,6 @@ describe('test workflow preDeploy', () => {
                 assertions.assertTypecheckJobExecuted(result);
                 assertions.assertLintJobExecuted(result);
                 assertions.assertTestJobExecuted(result);
-                assertions.assertIsExpensifyEmployeeJobExecuted(result);
                 assertions.assertChooseDeployActionsJobExecuted(result);
                 assertions.assertSkipDeployJobExecuted(result, false);
                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -903,8 +620,6 @@ describe('test workflow preDeploy', () => {
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                 };
                 const testMockJobs = {
                     typecheck: {
@@ -942,7 +657,6 @@ describe('test workflow preDeploy', () => {
                 assertions.assertTypecheckJobExecuted(result);
                 assertions.assertLintJobExecuted(result);
                 assertions.assertTestJobExecuted(result);
-                assertions.assertIsExpensifyEmployeeJobExecuted(result);
                 assertions.assertChooseDeployActionsJobExecuted(result);
                 assertions.assertSkipDeployJobExecuted(result, false);
                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -969,8 +683,6 @@ describe('test workflow preDeploy', () => {
                     chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
                 };
                 const testMockJobs = {
                     typecheck: {
@@ -1008,7 +720,6 @@ describe('test workflow preDeploy', () => {
                 assertions.assertTypecheckJobExecuted(result);
                 assertions.assertLintJobExecuted(result);
                 assertions.assertTestJobExecuted(result);
-                assertions.assertIsExpensifyEmployeeJobExecuted(result);
                 assertions.assertChooseDeployActionsJobExecuted(result);
                 assertions.assertSkipDeployJobExecuted(result, false);
                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -1037,8 +748,6 @@ describe('test workflow preDeploy', () => {
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             testMockSteps.updateStaging[3].mockWith = 'exit 1';
             const testMockJobs = {
@@ -1077,7 +786,6 @@ describe('test workflow preDeploy', () => {
             assertions.assertTypecheckJobExecuted(result);
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
-            assertions.assertIsExpensifyEmployeeJobExecuted(result);
             assertions.assertChooseDeployActionsJobExecuted(result);
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result);

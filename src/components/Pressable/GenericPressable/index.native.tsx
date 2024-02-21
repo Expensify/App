@@ -1,9 +1,9 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef} from 'react';
 import GenericPressable from './BaseGenericPressable';
-import PressableProps from './types';
+import type {PressableRef} from './types';
+import type PressableProps from './types';
 
-function NativeGenericPressable(props: PressableProps, ref: ForwardedRef<View>) {
+function NativeGenericPressable(props: PressableProps, ref: PressableRef) {
     return (
         <GenericPressable
             focusable

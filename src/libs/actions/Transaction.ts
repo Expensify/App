@@ -3,12 +3,15 @@ import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {GetRouteForDraftParams, GetRouteParams} from '@libs/API/parameters';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, Transaction} from '@src/types/onyx';
-import {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {RecentWaypoint, Transaction} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -56,16 +59,16 @@ function addStop(transactionID: string) {
     });
 }
 
-function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isEditingWaypoint = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        pendingFields: {
-            comment: isEditingWaypoint ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        },
+function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,
             },
         },
+        // We want to reset the amount only for draft transactions (when creating the request).
+        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
+        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
             route: null,
@@ -74,6 +77,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                // Clear the existing distance to recalculate next time
+                distance: null,
                 geometry: {
                     coordinates: null,
                 },
@@ -101,10 +106,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transactionID: string, currentIndex: string) {
+function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean) {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
-    const transaction = allTransactions?.[transactionID] ?? {};
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
 
@@ -135,6 +139,9 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
+        // We want to reset the amount only for draft transactions (when creating the request).
+        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
+        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
     };
 
     if (!isRemovedWaypointEmpty) {
@@ -147,6 +154,7 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
             // Clear the existing route so that we don't show an old route
             routes: {
                 route0: {
+                    // Clear the existing distance to recalculate next time
                     distance: null,
                     geometry: {
                         coordinates: null,
@@ -155,7 +163,54 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
             },
         };
     }
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
+    if (isDraft) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, newTransaction);
+}
+
+function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {
+    return {
+        optimisticData: [
+            {
+                // Clears any potentially stale error messages from fetching the route
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    comment: {
+                        isLoading: true,
+                    },
+                    errorFields: {
+                        route: null,
+                    },
+                },
+            },
+        ],
+        // The route and failure are sent back via pusher in the BE, we are just clearing the loading state here
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    comment: {
+                        isLoading: false,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    comment: {
+                        isLoading: false,
+                    },
+                },
+            },
+        ],
+    };
 }
 
 /**
@@ -163,53 +218,25 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
  * Used so we can generate a map view of the provided waypoints
  */
 function getRoute(transactionID: string, waypoints: WaypointCollection) {
-    API.read(
-        'GetRoute',
-        {
-            transactionID,
-            waypoints: JSON.stringify(waypoints),
-        },
-        {
-            optimisticData: [
-                {
-                    // Clears any potentially stale error messages from fetching the route
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {
-                        comment: {
-                            isLoading: true,
-                        },
-                        errorFields: {
-                            route: null,
-                        },
-                    },
-                },
-            ],
-            // The route and failure are sent back via pusher in the BE, we are just clearing the loading state here
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {
-                        comment: {
-                            isLoading: false,
-                        },
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {
-                        comment: {
-                            isLoading: false,
-                        },
-                    },
-                },
-            ],
-        },
-    );
+    const parameters: GetRouteParams = {
+        transactionID,
+        waypoints: JSON.stringify(waypoints),
+    };
+
+    API.read(READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID));
+}
+
+/**
+ * Gets the route for a set of waypoints
+ * Used so we can generate a map view of the provided waypoints
+ */
+function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) {
+    const parameters: GetRouteForDraftParams = {
+        transactionID,
+        waypoints: JSON.stringify(waypoints),
+    };
+
+    API.read(READ_COMMANDS.GET_ROUTE_FOR_DRAFT, parameters, getOnyxDataForRouteRequest(transactionID, true));
 }
 
 /**
@@ -219,12 +246,14 @@ function getRoute(transactionID: string, waypoints: WaypointCollection) {
  * @param waypoints - An object containing all the waypoints
  *                             which will replace the existing ones.
  */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection): Promise<void> {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
+    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
         },
-
+        // We want to reset the amount only for draft transactions (when creating the request).
+        // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
+        ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,
@@ -233,6 +262,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection): 
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                // Clear the existing distance to recalculate next time
                 distance: null,
                 geometry: {
                     coordinates: null,
@@ -242,4 +272,8 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection): 
     });
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints};
+function clearError(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, updateWaypoints, clearError};

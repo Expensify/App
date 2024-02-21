@@ -3,8 +3,8 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
-import styles, {stylesGenerator} from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -32,33 +32,33 @@ const defaultProps = {
 };
 
 function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitialReportActions, lastReportActionName, isLoadingNewerReportActions}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    // we use two different loading components for header and footer to reduce the jumping effect when you scrolling to the newer reports
+    // We use two different loading components for the header and footer
+    // to reduce the jumping effect when the user is scrolling to the newer report actions
     if (type === CONST.LIST_COMPONENTS.FOOTER) {
-        if (isLoadingOlderReportActions) {
-            return <ReportActionsSkeletonView />;
-        }
+        /*
+         Ensure that the report chat is not loaded until the beginning.
+         This is to avoid displaying the skeleton view above the "created" action in a newly generated optimistic chat or one with not that many comments.
+         Additionally, if we are offline and the report is not loaded until the beginning, we assume there are more actions to load;
+         Therefore, show the skeleton view even though the actions are not actually loading.
+        */
+        const isReportLoadedUntilBeginning = lastReportActionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+        const mayLoadMoreActions = !isReportLoadedUntilBeginning && (isLoadingInitialReportActions || isOffline);
 
-        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-        // skeleton view above the created action in a newly generated optimistic chat or one with not
-        // that many comments.
-        if (isLoadingInitialReportActions && lastReportActionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return (
-                <ReportActionsSkeletonView
-                    shouldAnimate={!isOffline}
-                    possibleVisibleContentItems={3}
-                />
-            );
+        if (isLoadingOlderReportActions || mayLoadMoreActions) {
+            return <ReportActionsSkeletonView />;
         }
     }
     if (type === CONST.LIST_COMPONENTS.HEADER && isLoadingNewerReportActions) {
         // applied for a header of the list, i.e. when you scroll to the bottom of the list
         // the styles for android and the rest components are different that's why we use two different components
         return (
-            <View style={[stylesGenerator.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
                 <ActivityIndicator
-                    color={themeColors.spinner}
+                    color={theme.spinner}
                     size="small"
                 />
             </View>

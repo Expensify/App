@@ -1,5 +1,6 @@
-import TIMEZONES from '@src/TIMEZONES';
-import * as OnyxCommon from './OnyxCommon';
+import type {AvatarSource} from '@libs/UserUtils';
+import type TIMEZONES from '@src/TIMEZONES';
+import type * as OnyxCommon from './OnyxCommon';
 
 type SelectedTimezone = (typeof TIMEZONES)[number];
 
@@ -9,6 +10,17 @@ type Timezone = {
 
     /** Whether timezone is automatically set */
     automatic?: boolean;
+};
+
+type Status = {
+    /** The emoji code of the status */
+    emojiCode: string;
+
+    /** The text of the draft status */
+    text?: string;
+
+    /** The timestamp of when the status should be cleared */
+    clearAfter: string; // ISO 8601 format;
 };
 
 type PersonalDetails = {
@@ -22,7 +34,7 @@ type PersonalDetails = {
     lastName?: string;
 
     /** Display name of the current user from their personal details */
-    displayName: string;
+    displayName?: string;
 
     /** Is current user validated */
     validated?: boolean;
@@ -31,7 +43,7 @@ type PersonalDetails = {
     phoneNumber?: string;
 
     /** Avatar URL of the current user from their personal details */
-    avatar: string;
+    avatar?: AvatarSource;
 
     /** Avatar thumbnail URL of the current user from their personal details */
     avatarThumbnail?: string;
@@ -53,6 +65,9 @@ type PersonalDetails = {
     /** Timezone of the current user from their personal details */
     timezone?: Timezone;
 
+    /** Flag for checking if data is from optimistic data */
+    isOptimisticPersonalDetail?: boolean;
+
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
@@ -66,12 +81,11 @@ type PersonalDetails = {
     fallbackIcon?: string;
 
     /** Status of the current user from their personal details */
-    status?: string;
-
-    /** PayPalMe address of the current user */
-    payPalMeAddress?: string;
+    status?: Status;
 };
+
+type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList};

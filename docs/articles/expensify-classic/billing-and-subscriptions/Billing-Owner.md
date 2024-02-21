@@ -38,7 +38,7 @@ To take over billing for the entire domain, you must:
 1. Go to **Settings > Domains > _Domain Name_ > Domain Admins** and enable Consolidated Domain Billing.
 
 Currently, Consolidated Domain Billing simply consolidates the amounts due for each Group Workspace Billing Owner (listed on the **Settings > Workspaces > Group** page). If you want to use the Annual Subscription across all Workspaces on the domain, you must also be the Billing Owner of all Group Workspaces.
-# FAQ
+{% include faq-begin.md %}
 ## Why can't I see the option to take over billing?
 There could be two reasons:
 1. You may not have the role of Workspace Admin. If you can't click on the Workspace name (if it's not a blue hyperlink), you're not a Workspace Admin. Another Workspace Admin for that Workspace must change your role before you can proceed.
@@ -47,3 +47,5 @@ There could be two reasons:
 There are two ways to resolve this:
 1. Have your IT dept. gain access to the account so that you can make yourself an admin. Your IT department may need to recreate the ex-employee's email address. Once your IT department has access to the employee's Home page, you can request a magic link to be sent to that email address to gain access to the account.
 1. Have another admin make you a Workspace admin.
+
+{% include faq-end.md %}

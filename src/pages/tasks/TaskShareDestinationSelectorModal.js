@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,7 +18,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,6 +49,7 @@ const defaultProps = {
 };
 
 function TaskShareDestinationSelectorModal(props) {
+    const styles = useThemeStyles();
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -109,8 +110,6 @@ function TaskShareDestinationSelectorModal(props) {
         }
 
         if (option.reportID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
             Task.setShareDestinationValue(option.reportID);
             Navigation.goBack(ROUTES.NEW_TASK);
         }
@@ -118,9 +117,7 @@ function TaskShareDestinationSelectorModal(props) {
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
-        }
+        Report.searchInServer(text);
         setSearchValue(text);
     }, []);
 
@@ -140,7 +137,6 @@ function TaskShareDestinationSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
@@ -149,7 +145,7 @@ function TaskShareDestinationSelectorModal(props) {
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
+                            textInputAlert={isOffline ? [`${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={inputCallbackRef}

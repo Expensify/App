@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -22,6 +22,7 @@ const OFFSET_X = {
 };
 
 function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
+    const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
     useEffect(() => {
@@ -37,7 +38,7 @@ function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
             style={[styles.switchTrack, !isOn && styles.switchInactive]}
             onPress={() => onToggle(!isOn)}
             onLongPress={() => onToggle(!isOn)}
-            role={CONST.ACCESSIBILITY_ROLE.SWITCH}
+            role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
             accessibilityLabel={accessibilityLabel}
             // disable hover dim for switch

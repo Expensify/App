@@ -20,7 +20,7 @@ Every expense has an Attendees field and will list the expense creator’s name 
 
 ![image of an expense with attendee tracking]({{site.url}}/assets/images/attendee-tracking.png){:width="100%"}
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Can I turn off attendee tracking?
 Attendee tracking is a standard field on all expenses and cannot be turned off. 
@@ -49,3 +49,4 @@ There is no limit.
 ## How can I remove attendees from an expense?
 You can add or remove attendees from an expense as long as they are on a Draft report. Expenses on submitted reports cannot be edited, so you cannot remove attendees from these. 
 
+{% include faq-end.md %}

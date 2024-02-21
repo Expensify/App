@@ -8,8 +8,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -27,28 +27,34 @@ const propTypes = {
         /** Additional information about the attachment file */
         file: PropTypes.shape({
             /** File name of the attachment */
-            name: PropTypes.string,
-        }),
+            name: PropTypes.string.isRequired,
+        }).isRequired,
 
         /** Whether the attachment has been flagged */
         hasBeenFlagged: PropTypes.bool,
 
         /** The id of the transaction related to the attachment */
         transactionID: PropTypes.string,
-    }).isRequired,
 
-    /** Whether the attachment is currently being viewed in the carousel */
-    isFocused: PropTypes.bool.isRequired,
+        duration: PropTypes.number,
+    }).isRequired,
 
     /** onPress callback */
     onPress: PropTypes.func,
+
+    isModalHovered: PropTypes.bool,
+
+    /** Whether the attachment is currently being viewed in the carousel */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
     onPress: undefined,
+    isModalHovered: false,
 };
 
-function CarouselItem({item, isFocused, onPress}) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators
@@ -80,7 +86,7 @@ function CarouselItem({item, isFocused, onPress}) {
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
                 {children}
@@ -97,10 +103,11 @@ function CarouselItem({item, isFocused, onPress}) {
                     source={item.source}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
-                    isFocused={isFocused}
                     onPress={onPress}
-                    isUsedInCarousel
                     transactionID={item.transactionID}
+                    isHovered={isModalHovered}
+                    isFocused={isFocused}
+                    optionalVideoDuration={item.duration}
                 />
             </View>
 

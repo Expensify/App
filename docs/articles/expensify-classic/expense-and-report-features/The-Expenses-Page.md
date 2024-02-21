@@ -55,7 +55,7 @@ Select the expenses you want to export by checking the box to the left of each e
 Then, click **Export To** in the upper right corner of the page, and choose our default CSV format or create your own custom CSV template.
 
 
-# FAQ 
+{% include faq-begin.md %} 
 
 ## Can I use the filters and analytics features on the mobile app? 
 The various features on the Expenses Page are only available while logged into your web account. 
@@ -66,8 +66,9 @@ A Workspace admin can see Processing, Approved, and Reimbursed expenses as long 
 If employees submit expense reports on a workspace where you are not an admin, you will not have visibility into those expenses. Additionally, if an expense is left unreported, a workspace admin will not be able to see that expense until it’s been added to a report.
 
 A Workspace admin can edit the tags and categories on an expense, but if they want to edit the amount, date, or merchant name, the expense will need to be in a Processing state or rejected back to the submitter for changes. 
-We have more about company card expense reconciliation in this support article. 
+We have more about company card expense reconciliation in this [support article](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Reconciliation). 
 
 ## Can I edit multiple expenses at once?
 Yes! Select the expenses you want to edit and click **Edit Multiple**. 
 
+{% include faq-end.md %}

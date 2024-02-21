@@ -16,6 +16,7 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [Philosophy](#Philosophy)
+* [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 
@@ -49,7 +50,7 @@ In order to have more consistent builds, we use a strict `node` and `npm` versio
 ## Configuring HTTPS
 The webpack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
 
-If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `new.expesify.com.dev` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
+If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
@@ -58,6 +59,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 ## Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
+* If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
 * Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
@@ -67,6 +69,8 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
+
+If you want to run the app on an actual physical iOS device, please follow the instructions [here](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BUILD_APP_ON_PHYSICAL_IOS_DEVICE.md).
 
 ## Running the Android app 🤖
 * Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
@@ -158,6 +162,9 @@ Often times in order to write a unit test, you may need to mock data, a componen
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
+
+## Performance tests
+We use Reassure for monitoring performance regression. More detailed information can be found [here](tests/perf-test/README.md):
 
 ----
 
@@ -388,6 +395,117 @@ This application is built with the following principles.
     1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+
+----
+
+# Security
+Updated rules for managing members across all types of chats in New Expensify.
+
+- **Nobody can leave or be removed from something they were automatically added to. For example:**
+
+    - DM members can't leave or be removed from their DMs
+    - Members can't leave or be removed from their own workspace chats
+    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from the #announce room
+    - Admins can't leave or be removed from #admins
+    - Domain members can't leave or be removed from their domain chat
+    - Report submitters can't leave or be removed from their reports 
+    - Report managers can't leave or be removed from their reports 
+    - Group owners cannot be removed from their groups - they need to transfer ownership first
+- **Excepting the above, admins can remove anyone. For example:**
+    - Group admins can remove other group admins, as well as group members
+    - Workspace admins can remove other workspace admins, as well as workspace members, and invited guests
+- **Excepting the above, members can remove guests. For example:**
+    - Workspace members can remove non-workspace guests.
+- **Excepting the above, anybody can remove themselves from any object**
+
+1. ### DM
+    |  | Member
+    | :---: | :---: 
+    | **Invite** | ❌ 
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌
+- DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
+
+2. ### Workspace
+    1. #### Workspace
+        |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: | :---: 
+        | **Invite** | ✅ |  ❌ |  ✅ | ❌
+        | **Remove** | ✅ |  ❌ |  ✅ | ❌
+        | **Leave**  | ❌ |  ✅ |  ❌ | ✅
+        | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
+
+        - Creator can't leave or be removed from their own workspace
+        - Admins can't leave from the workspace
+        - Admins can remove other workspace admins, as well as workspace members, and invited guests
+        - Creator can remove other workspace admins, as well as workspace members, and invited guests
+        - Members and Auditors cannot invite or remove anyone from the workspace
+
+    2. #### Workspace #announce room
+        |   |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: 
+        | **Invite** | ❌ |  ❌ |  ❌
+        | **Remove** | ❌ |  ❌ |  ❌
+        | **Leave**  | ❌ |  ❌ |  ❌
+        | **Can be removed**  | ❌ |  ❌ |  ❌ |
+
+       - No one can leave or be removed from the #announce room
+
+    3. #### Workspace #admin room
+        |   |  Admin |
+        | :---: | :---: 
+        | **Invite** | ❌  
+        | **Remove** | ❌   
+        | **Leave**  | ❌ 
+        | **Can be removed**  | ❌
+
+        - Admins can't leave or be removed from #admins
+    
+    4. #### Workspace rooms
+        |   |  Creator | Member | Guest(outside of the workspace)
+        | :---: | :---:  |  :---: | :---:
+        | **Invite** | ✅ | ✅ | ✅
+        | **Remove** | ✅ | ✅ | ❌
+        | **Leave**  | ✅ | ✅ | ✅
+        | **Can be removed**  | ✅ | ✅ | ✅
+
+        - Everyone can be removed/can leave from the room including creator
+        - Guests are not able to remove anyone from the room
+
+    4. #### Workspace chats
+        |   |  Admin | Member(default) | Member(invited)  
+        | :---: | :---:  |  :---:  |  :---:
+        | **Invite** | ✅ |  ✅ | ❌
+        | **Remove** | ✅ |  ✅ | ❌  
+        | **Leave**  | ❌ |  ❌  | ✅
+        | **Can be removed**  | ❌ | ❌ | ✅
+
+        - Admins are not able to leave/be removed from the workspace chat
+        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
+        - Invited members(invited by members) are not able to invite or remove from the workspace chat
+        - Invited members(invited by members) are able to leave the workspace chat
+        - Default members and admins are able to remove invited members
+
+3. ### Domain chat
+    |   |  Member
+    | :---: | :---:  
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌ 
+
+- Domain members can't leave or be removed from their domain chat
+
+4. ### Reports
+    |   |  Submitter | Manager
+    | :---: | :---:  | :---:  
+    | **Remove** | ❌ | ❌
+    | **Leave**  | ❌ | ❌
+    | **Can be removed**  | ❌ | ❌
+
+- Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
+- Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
 
 ----
 

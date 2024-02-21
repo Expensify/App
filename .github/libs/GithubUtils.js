@@ -67,6 +67,20 @@ class GithubUtils {
     }
 
     /**
+     * Get the graphql instance from internal octokit.
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get graphql() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.graphql;
+        }
+        this.initOctokit();
+        return this.internalOctokit.graphql;
+    }
+
+    /**
      * Either give an existing instance of Octokit paginate or create a new one
      *
      * @readonly
@@ -509,6 +523,14 @@ class GithubUtils {
         })
             .then((events) => _.filter(events, (event) => event.event === 'closed'))
             .then((closedEvents) => lodashGet(_.last(closedEvents), 'actor.login', ''));
+    }
+
+    static getArtifactByName(artefactName) {
+        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            per_page: 100,
+        }).then((artifacts) => _.findWhere(artifacts, {name: artefactName}));
     }
 }
 

@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type Card = {
     cardID: number;
@@ -33,5 +33,7 @@ type TCardDetails = {
     };
 };
 
+type CardList = Record<string, Card>;
+
 export default Card;
-export type {TCardDetails};
+export type {TCardDetails, CardList};

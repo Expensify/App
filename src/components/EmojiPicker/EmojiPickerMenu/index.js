@@ -1,139 +1,74 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {scrollTo} from 'react-native-reanimated';
 import _ from 'underscore';
-import emojiAssets from '@assets/emojis';
-import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
-import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useLocalize from '@hooks/useLocalize';
+import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import * as User from '@userActions/User';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
+import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
+import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const propTypes = {
-    /** Function to add the selected emoji to the main compose text input */
-    onEmojiSelected: PropTypes.func.isRequired,
-
     /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
-
-    /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    /** Stores user's frequently used emojis */
-    // eslint-disable-next-line react/forbid-prop-types
-    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
+    ...emojiPickerMenuPropTypes,
 };
 
 const defaultProps = {
     forwardedRef: () => {},
-    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    frequentlyUsedEmojis: [],
 };
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
-function EmojiPickerMenu(props) {
-    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
-
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+    const {singleExecution} = useSingleExecution();
+    const {
+        allEmojis,
+        headerEmojis,
+        headerRowIndices,
+        filteredEmojis,
+        headerIndices,
+        setFilteredEmojis,
+        setHeaderIndices,
+        isListFiltered,
+        suggestEmojis,
+        preferredSkinTone,
+        listStyle,
+        emojiListRef,
+        spacersIndexes,
+    } = useEmojiPickerMenu();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
-
-    // Ref for emoji FlatList
-    const emojiListRef = useRef(null);
 
     // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    const firstNonHeaderIndex = useRef(0);
-
-    /**
-     * Calculate the filtered + header emojis and header row indices
-     * @returns {Object}
-     */
-    function getEmojisAndHeaderRowIndices() {
-        // If we're on Windows, don't display the flag emojis (the last category),
-        // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojiAssets, (emoji) => emoji.header && emoji.code === 'flags');
-        const filteredEmojis =
-            getOperatingSystem() === CONST.OS.WINDOWS
-                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets.slice(0, flagHeaderIndex))
-                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets);
-
-        // Get the header emojis along with the code, index and icon.
-        // index is the actual header index starting at the first emoji and counting each one
-        const headerEmojis = EmojiUtils.getHeaderEmojis(filteredEmojis);
-
-        // This is the indices of each header's Row
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
-
-        return {filteredEmojis, headerEmojis, headerRowIndices};
-    }
-
-    const emojis = useRef([]);
-    if (emojis.current.length === 0) {
-        emojis.current = getEmojisAndHeaderRowIndices().filteredEmojis;
-    }
-    const headerRowIndices = useRef([]);
-    if (headerRowIndices.current.length === 0) {
-        headerRowIndices.current = getEmojisAndHeaderRowIndices().headerRowIndices;
-    }
-    const [headerEmojis, setHeaderEmojis] = useState(() => getEmojisAndHeaderRowIndices().headerEmojis);
-
-    const [filteredEmojis, setFilteredEmojis] = useState(emojis.current);
-    const [headerIndices, setHeaderIndices] = useState(headerRowIndices.current);
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
-    const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
+    const [highlightEmoji, setHighlightEmoji] = useState(false);
     const [highlightFirstEmoji, setHighlightFirstEmoji] = useState(false);
-
-    useEffect(() => {
-        const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
-        emojis.current = emojisAndHeaderRowIndices.filteredEmojis;
-        headerRowIndices.current = emojisAndHeaderRowIndices.headerRowIndices;
-        setHeaderEmojis(emojisAndHeaderRowIndices.headerEmojis);
-        setFilteredEmojis(emojis.current);
-        setHeaderIndices(headerRowIndices.current);
-    }, [frequentlyUsedEmojis]);
-
-    /**
-     * On text input selection change
-     *
-     * @param {Event} event
-     */
-    const onSelectionChange = useCallback((event) => {
-        setSelection(event.nativeEvent.selection);
-    }, []);
-
-    /**
-     * Find and store index of the first emoji item
-     * @param {Array} filteredEmojisArr
-     */
-    function updateFirstNonHeaderIndex(filteredEmojisArr) {
-        firstNonHeaderIndex.current = _.findIndex(filteredEmojisArr, (item) => !item.spacer && !item.header);
-    }
 
     const mouseMoveHandler = useCallback(() => {
         if (!arePointerEventsDisabled) {
@@ -142,153 +77,63 @@ function EmojiPickerMenu(props) {
         setArePointerEventsDisabled(false);
     }, [arePointerEventsDisabled]);
 
-    /**
-     * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
-     * the measurement of dynamic content if we know the size (height or width) of items ahead of time.
-     * Generate and return an object with properties length(height of each individual row),
-     * offset(distance of the current row from the top of the FlatList), index(current row index)
-     *
-     * @param {*} data FlatList item
-     * @param {Number} index row index
-     * @returns {Object}
-     */
-    const getItemLayout = useCallback((data, index) => ({length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index}), []);
-
-    /**
-     * Focuses the search Input and has the text selected
-     */
-    function focusInputWithTextSelect() {
-        if (!searchInputRef.current) {
-            return;
-        }
-        searchInputRef.current.focus();
-    }
-
-    const filterEmojis = _.throttle((searchTerm) => {
-        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-        if (emojiListRef.current) {
-            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
-        }
-        if (normalizedSearchTerm === '') {
-            // There are no headers when searching, so we need to re-make them sticky when there is no search term
-            setFilteredEmojis(emojis.current);
-            setHeaderIndices(headerRowIndices.current);
-            setHighlightedIndex(-1);
-            updateFirstNonHeaderIndex(emojis.current);
-            setHighlightFirstEmoji(false);
-            return;
-        }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, emojis.current.length);
-
-        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        setFilteredEmojis(newFilteredEmojiList);
-        setHeaderIndices([]);
-        setHighlightedIndex(0);
-        updateFirstNonHeaderIndex(newFilteredEmojiList);
-        setHighlightFirstEmoji(true);
-    }, throttleTime);
-
-    /**
-     * Highlights emojis adjacent to the currently highlighted emoji depending on the arrowKey
-     * @param {String} arrowKey
-     */
-    const highlightAdjacentEmoji = useCallback(
-        (arrowKey) => {
+    const onFocusedIndexChange = useCallback(
+        (newIndex) => {
             if (filteredEmojis.length === 0) {
                 return;
             }
 
-            // Arrow Down and Arrow Right enable arrow navigation when search is focused
-            if (searchInputRef.current && searchInputRef.current.isFocused()) {
-                if (arrowKey !== 'ArrowDown' && arrowKey !== 'ArrowRight') {
-                    return;
-                }
-
-                if (arrowKey === 'ArrowRight' && !(searchInputRef.current.value.length === selection.start && selection.start === selection.end)) {
-                    return;
-                }
-
-                // Blur the input, change the highlight type to keyboard, and disable pointer events
-                searchInputRef.current.blur();
-                setArePointerEventsDisabled(true);
-                setIsUsingKeyboardMovement(true);
+            if (highlightFirstEmoji) {
                 setHighlightFirstEmoji(false);
-
-                // We only want to hightlight the Emoji if none was highlighted already
-                // If we already have a highlighted Emoji, lets just skip the first navigation
-                if (highlightedIndex !== -1) {
-                    return;
-                }
             }
 
-            // If nothing is highlighted and an arrow key is pressed
-            // select the first emoji, apply keyboard movement styles, and disable pointer events
-            if (highlightedIndex === -1) {
-                setHighlightedIndex(firstNonHeaderIndex.current);
-                setArePointerEventsDisabled(true);
+            if (!isUsingKeyboardMovement) {
                 setIsUsingKeyboardMovement(true);
-                return;
             }
 
-            let newIndex = highlightedIndex;
-            const move = (steps, boundsCheck, onBoundReached = () => {}) => {
-                if (boundsCheck()) {
-                    onBoundReached();
-                    return;
-                }
-
-                // Move in the prescribed direction until we reach an element that isn't a header
-                const isHeader = (e) => e.header || e.spacer;
-                do {
-                    newIndex += steps;
-                    if (newIndex < 0) {
-                        break;
-                    }
-                } while (isHeader(filteredEmojis[newIndex]));
-            };
-
-            switch (arrowKey) {
-                case 'ArrowDown':
-                    move(CONST.EMOJI_NUM_PER_ROW, () => highlightedIndex + CONST.EMOJI_NUM_PER_ROW > filteredEmojis.length - 1);
-                    break;
-                case 'ArrowLeft':
-                    move(
-                        -1,
-                        () => highlightedIndex - 1 < firstNonHeaderIndex.current,
-                        () => {
-                            // Reaching start of the list, arrow left set the focus to searchInput.
-                            focusInputWithTextSelect();
-                            newIndex = -1;
-                        },
-                    );
-                    break;
-                case 'ArrowRight':
-                    move(1, () => highlightedIndex + 1 > filteredEmojis.length - 1);
-                    break;
-                case 'ArrowUp':
-                    move(
-                        -CONST.EMOJI_NUM_PER_ROW,
-                        () => highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex.current,
-                        () => {
-                            // Reaching start of the list, arrow up set the focus to searchInput.
-                            focusInputWithTextSelect();
-                            newIndex = -1;
-                        },
-                    );
-                    break;
-                default:
-                    break;
-            }
-
-            // Actually highlight the new emoji, apply keyboard movement styles, and disable pointer events
-            if (newIndex !== highlightedIndex) {
-                setHighlightedIndex(newIndex);
-                setArePointerEventsDisabled(true);
-                setIsUsingKeyboardMovement(true);
+            // If the input is not focused and the new index is out of range, focus the input
+            if (newIndex < 0 && !searchInputRef.current.isFocused() && shouldFocusInputOnScreenFocus) {
+                searchInputRef.current.focus();
             }
         },
-        [filteredEmojis, highlightedIndex, selection.end, selection.start],
+        [filteredEmojis.length, highlightFirstEmoji, isUsingKeyboardMovement, shouldFocusInputOnScreenFocus],
     );
+
+    const disabledIndexes = useMemo(() => (isListFiltered ? [] : [...headerIndices, ...spacersIndexes]), [headerIndices, isListFiltered, spacersIndexes]);
+
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        maxIndex: filteredEmojis.length - 1,
+        // Spacers indexes need to be disabled so that the arrow keys don't focus them. All headers are hidden when list is filtered
+        disabledIndexes,
+        itemsPerRow: CONST.EMOJI_NUM_PER_ROW,
+        initialFocusedIndex: -1,
+        disableCyclicTraversal: true,
+        onFocusedIndexChange,
+        disableHorizontalKeys: isFocused,
+        // We pass true without checking visibility of the component because if the popover is not visible this picker won't be mounted
+        isActive: true,
+    });
+
+    const filterEmojis = _.throttle((searchTerm) => {
+        const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
+
+        if (emojiListRef.current) {
+            scrollTo(emojiListRef, 0, 0, false);
+        }
+        if (normalizedSearchTerm === '') {
+            // There are no headers when searching, so we need to re-make them sticky when there is no search term
+            setFilteredEmojis(allEmojis);
+            setHeaderIndices(headerRowIndices);
+            setFocusedIndex(-1);
+            setHighlightEmoji(false);
+            return;
+        }
+        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
+        setFilteredEmojis(newFilteredEmojiList);
+        setHeaderIndices([]);
+        setHighlightFirstEmoji(true);
+        setIsUsingKeyboardMovement(false);
+    }, throttleTime);
 
     const keyDownHandler = useCallback(
         (keyBoardEvent) => {
@@ -297,19 +142,26 @@ function EmojiPickerMenu(props) {
                     keyBoardEvent.preventDefault();
                 }
 
-                // Move the highlight when arrow keys are pressed
-                highlightAdjacentEmoji(keyBoardEvent.key);
                 return;
             }
 
             // Select the currently highlighted emoji if enter is pressed
-            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
-                const item = filteredEmojis[highlightedIndex];
+            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                let indexToSelect = focusedIndex;
+                if (highlightFirstEmoji) {
+                    indexToSelect = 0;
+                }
+
+                const item = filteredEmojis[indexToSelect];
                 if (!item) {
                     return;
                 }
                 const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 onEmojiSelected(emoji, item);
+                // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
+                keyBoardEvent.preventDefault();
+                // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
+                keyBoardEvent.stopPropagation();
                 return;
             }
 
@@ -318,15 +170,14 @@ function EmojiPickerMenu(props) {
             // interfering with the input behaviour.
             if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !searchInputRef.current.isFocused())) {
                 setIsUsingKeyboardMovement(true);
-                return;
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (searchInputRef.current && !searchInputRef.current.isFocused()) {
+            if (searchInputRef.current && !searchInputRef.current.isFocused() && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 searchInputRef.current.focus();
             }
         },
-        [filteredEmojis, highlightAdjacentEmoji, highlightedIndex, isFocused, onEmojiSelected, preferredSkinTone],
+        [filteredEmojis, focusedIndex, highlightFirstEmoji, isFocused, onEmojiSelected, preferredSkinTone],
     );
 
     /**
@@ -373,43 +224,17 @@ function EmojiPickerMenu(props) {
         };
     }, [forwardedRef, shouldFocusInputOnScreenFocus, cleanupEventHandlers, setupEventHandlers]);
 
-    useEffect(() => {
-        // Find and store index of the first emoji item on mount
-        updateFirstNonHeaderIndex(emojis.current);
-    }, []);
-
-    const scrollToHeader = useCallback((headerIndex) => {
-        if (!emojiListRef.current) {
-            return;
-        }
-
-        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        emojiListRef.current.flashScrollIndicators();
-        emojiListRef.current.scrollToOffset({offset: calculatedOffset, animated: true});
-    }, []);
-
-    /**
-     * @param {Number} skinTone
-     */
-    const updatePreferredSkinTone = useCallback(
-        (skinTone) => {
-            if (Number(preferredSkinTone) === Number(skinTone)) {
+    const scrollToHeader = useCallback(
+        (headerIndex) => {
+            if (!emojiListRef.current) {
                 return;
             }
 
-            User.updatePreferredSkinTone(skinTone);
+            const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            scrollTo(emojiListRef, 0, calculatedOffset, true);
         },
-        [preferredSkinTone],
+        [emojiListRef],
     );
-
-    /**
-     * Return a unique key for each emoji item
-     *
-     * @param {Object} item
-     * @param {Number} index
-     * @returns {String}
-     */
-    const keyExtractor = useCallback((item, index) => `emoji_picker_${item.code}_${index}`, []);
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -421,15 +246,15 @@ function EmojiPickerMenu(props) {
      * @returns {*}
      */
     const renderItem = useCallback(
-        ({item, index}) => {
-            const {code, header, types} = item;
+        ({item, index, target}) => {
+            const {code, types} = item;
             if (item.spacer) {
                 return null;
             }
 
-            if (header) {
+            if (item.header) {
                 return (
-                    <View style={styles.emojiHeaderContainer}>
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(isSmallScreenWidth, windowWidth) : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                     </View>
                 );
@@ -437,13 +262,16 @@ function EmojiPickerMenu(props) {
 
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
-            const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
-            const shouldEmojiBeHighlighted = index === highlightedIndex && highlightFirstEmoji;
+            const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
+            const shouldEmojiBeHighlighted =
+                (index === focusedIndex && highlightEmoji) || (Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
+            const shouldFirstEmojiBeHighlighted = index === 0 && highlightFirstEmoji;
 
             return (
                 <EmojiPickerMenuItem
-                    onPress={(emoji) => onEmojiSelected(emoji, item)}
+                    onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                     onHoverIn={() => {
+                        setHighlightEmoji(false);
                         setHighlightFirstEmoji(false);
                         if (!isUsingKeyboardMovement) {
                             return;
@@ -451,24 +279,29 @@ function EmojiPickerMenu(props) {
                         setIsUsingKeyboardMovement(false);
                     }}
                     emoji={emojiCode}
-                    onFocus={() => setHighlightedIndex(index)}
-                    onBlur={() =>
-                        // Only clear the highlighted index if the highlighted index is the same,
-                        // meaning that the focus changed to an element that is not an emoji item.
-                        setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
-                    }
+                    onFocus={() => setFocusedIndex(index)}
                     isFocused={isEmojiFocused}
-                    isHighlighted={shouldEmojiBeHighlighted}
+                    isHighlighted={shouldFirstEmojiBeHighlighted || shouldEmojiBeHighlighted}
                 />
             );
         },
-        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate, highlightFirstEmoji],
+        [
+            preferredSkinTone,
+            focusedIndex,
+            isUsingKeyboardMovement,
+            highlightEmoji,
+            highlightFirstEmoji,
+            singleExecution,
+            styles,
+            isSmallScreenWidth,
+            windowWidth,
+            translate,
+            onEmojiSelected,
+            setFocusedIndex,
+            activeEmoji,
+        ],
     );
 
-    const isFiltered = emojis.current.length !== filteredEmojis.length;
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
-    const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
-    const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
     return (
         <View
             style={[
@@ -482,14 +315,13 @@ function EmojiPickerMenu(props) {
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
-                    onSelectionChange={onSelectionChange}
                     onFocus={() => {
-                        setHighlightedIndex(-1);
+                        setFocusedIndex(-1);
                         setIsFocused(true);
                         setIsUsingKeyboardMovement(false);
                     }}
@@ -498,41 +330,27 @@ function EmojiPickerMenu(props) {
                     blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
-            {!isFiltered && (
-                <CategoryShortcutBar
-                    headerEmojis={headerEmojis}
-                    onPress={scrollToHeader}
-                />
-            )}
-            <FlatList
+            <BaseEmojiPickerMenu
+                isFiltered={isListFiltered}
+                headerEmojis={headerEmojis}
+                scrollToHeader={scrollToHeader}
+                listWrapperStyle={[
+                    listStyle,
+                    // Set scrollPaddingTop to consider sticky headers while scrolling
+                    {scrollPaddingTop: isListFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
+                    styles.flexShrink1,
+                ]}
                 ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                numColumns={CONST.EMOJI_NUM_PER_ROW}
-                style={[
-                    listStyle,
-                    // This prevents elastic scrolling when scroll reaches the start or end
-                    {overscrollBehaviorY: 'contain'},
-                    // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
-                    {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
-                    // Set scrollPaddingTop to consider sticky headers while scrolling
-                    {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
-                ]}
-                extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
+                extraData={[focusedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
-                getItemLayout={getItemLayout}
-                contentContainerStyle={styles.flexGrow1}
-                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
-            />
-            <EmojiSkinToneList
-                updatePreferredSkinTone={updatePreferredSkinTone}
-                preferredSkinTone={preferredSkinTone}
             />
         </View>
     );
 }
 
+EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
 
@@ -546,14 +364,4 @@ const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
 
 EmojiPickerMenuWithRef.displayName = 'EmojiPickerMenuWithRef';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-        },
-    }),
-)(EmojiPickerMenuWithRef);
+export default EmojiPickerMenuWithRef;
