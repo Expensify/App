@@ -23,42 +23,42 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import SidebarLinks from './SidebarLinks';
 
+type PickedReport = Pick<
+    OnyxTypes.Report,
+    | 'reportID'
+    | 'participantAccountIDs'
+    | 'hasDraft'
+    | 'isPinned'
+    | 'isHidden'
+    | 'notificationPreference'
+    | 'errorFields'
+    | 'lastMessageText'
+    | 'lastVisibleActionCreated'
+    | 'iouReportID'
+    | 'total'
+    | 'nonReimbursableTotal'
+    | 'hasOutstandingChildRequest'
+    | 'isWaitingOnBankAccount'
+    | 'statusNum'
+    | 'stateNum'
+    | 'chatType'
+    | 'type'
+    | 'policyID'
+    | 'visibility'
+    | 'lastReadTime'
+    | 'reportName'
+    | 'policyName'
+    | 'oldPolicyName'
+    | 'ownerAccountID'
+    | 'currency'
+    | 'managerID'
+    | 'parentReportActionID'
+    | 'parentReportID'
+    | 'isDeletedParentAction'
+>;
+
 type SidebarLinksDataOnyxProps = {
-    chatReports: OnyxCollection<
-        Pick<
-            OnyxTypes.Report,
-            | 'reportID'
-            | 'participantAccountIDs'
-            | 'hasDraft'
-            | 'isPinned'
-            | 'isHidden'
-            | 'notificationPreference'
-            | 'errorFields'
-            | 'lastMessageText'
-            | 'lastVisibleActionCreated'
-            | 'iouReportID'
-            | 'total'
-            | 'nonReimbursableTotal'
-            | 'hasOutstandingChildRequest'
-            | 'isWaitingOnBankAccount'
-            | 'statusNum'
-            | 'stateNum'
-            | 'chatType'
-            | 'type'
-            | 'policyID'
-            | 'visibility'
-            | 'lastReadTime'
-            | 'reportName'
-            | 'policyName'
-            | 'oldPolicyName'
-            | 'ownerAccountID'
-            | 'currency'
-            | 'managerID'
-            | 'parentReportActionID'
-            | 'parentReportID'
-            | 'isDeletedParentAction'
-        > & {isUnreadWithMention: boolean}
-    >;
+    chatReports: OnyxCollection<PickedReport & {isUnreadWithMention: boolean}>;
     isLoadingApp: OnyxEntry<boolean>;
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -248,7 +248,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
 export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
     chatReports: {
         key: ONYXKEYS.COLLECTION.REPORT,
-        selector: chatReportSelector,
+        selector: chatReportSelector as unknown as (report: OnyxEntry<OnyxTypes.Report>) => OnyxCollection<PickedReport & {isUnreadWithMention: boolean}>,
         initialValue: {},
     },
     isLoadingApp: {
@@ -269,7 +269,7 @@ export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-        selector: policySelector,
+        selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>,
         initialValue: {},
     },
     policyMembers: {

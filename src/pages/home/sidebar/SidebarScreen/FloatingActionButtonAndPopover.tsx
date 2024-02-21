@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -170,7 +170,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
-                    ...(!isLoading && !Policy.hasActiveFreePolicy(allPolicies)
+                    ...(!isLoading && !Policy.hasActiveFreePolicy(allPolicies as Record<string, OnyxTypes.Policy>)
                         ? [
                               {
                                   displayInDefaultIconColor: true,
@@ -211,10 +211,12 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
           }
         : null;
 
-export default withOnyx<FloatingActionButtonAndPopoverProps, FloatingActionButtonAndPopoverOnyxProps>({
+export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, FloatingActionButtonAndPopoverOnyxProps>({
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-        selector: policySelector,
+        selector: policySelector as unknown as (
+            policy: OnyxEntry<OnyxTypes.Policy>,
+        ) => OnyxEntry<Record<string, Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>>>,
     },
     isLoading: {
         key: ONYXKEYS.IS_LOADING_APP,
