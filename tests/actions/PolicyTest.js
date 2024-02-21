@@ -1,11 +1,15 @@
 import _ from 'lodash';
 import Onyx from 'react-native-onyx';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 import * as Policy from '../../src/libs/actions/Policy';
+import * as Report from '../../src/libs/actions/Report';
+import * as Task from '../../src/libs/actions/Task';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
@@ -187,5 +191,56 @@ describe('actions/Policy', () => {
                 expect(reportAction.pendingAction).toBeFalsy();
             });
         });
+    });
+
+    describe('deleteWorkspace', () => {
+        it('cleans up workspace reports', async () => {
+            fetch.pause();
+            const policyID = Policy.generatePolicyID();
+
+            // Given a policy, a policy rooms, and a task report
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            const policyRoom = ReportUtils.buildOptimisticChatReport([ESH_ACCOUNT_ID], '#my-room', CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID);
+            Report.addPolicyReport(policyRoom);
+            Task.createTaskAndNavigate(policyRoom.reportID, 'task title', 'task description', ESH_EMAIL, null, policyID);
+            await waitForBatchedUpdates();
+            await waitForNetworkPromises();
+
+            // Verify that we have 5 policy reports:
+            //  - #admins room
+            //  - #announce room
+            //  - policyExpenseChat for the 1 member
+            //  - the policy room we created
+            //  - the task report we created
+            let adminsRoom;
+            let announceRoom;
+            let policyExpenseChat;
+            let userCreatedRoom;
+            let taskReport;
+            await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connectionID);
+                        const policyReports = _.filter(reports, (report) => report.policyID === policyID);
+                        expect(policyReports).toHaveLength(5);
+                        adminsRoom = _.find(policyReports, (report) => ReportUtils.isAdminRoom(report));
+                        announceRoom = _.find(policyReports, (report) => ReportUtils.isAnnounceRoom(report));
+                        policyExpenseChat = _.find(policyReports, (report) => ReportUtils.isPolicyExpenseChat(report));
+                        userCreatedRoom = _.find(policyReports, (report) => ReportUtils.isUserCreatedPolicyRoom(report));
+                        taskReport = _.find(policyReports, (report) => ReportUtils.isTaskReport(report));
+                        expect(adminsRoom).toBeTruthy();
+                        expect(announceRoom).toBeTruthy();
+                        expect(policyExpenseChat).toBeTruthy();
+                        expect(userCreatedRoom).toBeTruthy();
+                        expect(taskReport).toBeTruthy();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        // it('restores workspace reports if command fails', async () => {});
     });
 });
