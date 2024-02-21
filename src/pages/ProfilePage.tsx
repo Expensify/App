@@ -98,7 +98,7 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
 
     const isCurrentUser = session?.accountID === accountID;
     const hasMinimumDetails = !isEmptyObject(details.avatar);
-    const isLoading = Boolean(details?.isLoading) || false || isEmptyObject(details);
+    const isLoading = Boolean(details?.isLoading) || isEmptyObject(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
