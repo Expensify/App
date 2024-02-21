@@ -1,16 +1,13 @@
 import {subYears} from 'date-fns';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,8 +36,6 @@ const defaultProps = {
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
     const styles = useThemeStyles();
-    usePrivatePersonalDetails();
-    const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
 
     /**
      * @param {Object} values
@@ -71,9 +66,6 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {isLoadingPersonalDetails ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
@@ -91,7 +83,6 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                         maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                     />
                 </FormProvider>
-            )}
         </ScreenWrapper>
     );
 }

@@ -6,12 +6,10 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -47,10 +45,8 @@ const updateLegalName = (values) => {
 
 function LegalNamePage(props) {
     const styles = useThemeStyles();
-    usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
-    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
 
     const validate = useCallback((values) => {
         const errors = {};
@@ -90,9 +86,6 @@ function LegalNamePage(props) {
                 title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {isLoadingPersonalDetails ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
@@ -126,7 +119,6 @@ function LegalNamePage(props) {
                         />
                     </View>
                 </FormProvider>
-            )}
         </ScreenWrapper>
     );
 }

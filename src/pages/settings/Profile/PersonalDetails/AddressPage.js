@@ -3,12 +3,9 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,13 +56,10 @@ function updateAddress(values) {
 }
 
 function AddressPage({privatePersonalDetails, route}) {
-    const styles = useThemeStyles();
-    usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
     const countryFromUrl = lodashGet(route, 'params.country');
     const [currentCountry, setCurrentCountry] = useState(address.country);
-    const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
     const [street1, street2] = (address.street || '').split('\n');
     const [state, setState] = useState(address.state);
     const [city, setCity] = useState(address.city);
@@ -123,9 +117,6 @@ function AddressPage({privatePersonalDetails, route}) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {isLoadingPersonalDetails ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
                 <AddressForm
                     formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
                     onSubmit={updateAddress}
@@ -138,7 +129,6 @@ function AddressPage({privatePersonalDetails, route}) {
                     street2={street2}
                     zip={zipcode}
                 />
-            )}
         </ScreenWrapper>
     );
 }

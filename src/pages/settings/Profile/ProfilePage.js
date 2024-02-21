@@ -4,7 +4,6 @@ import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -13,9 +12,6 @@ import Section from '@components/Section';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -82,9 +78,7 @@ const defaultProps = {
 };
 
 function ProfilePage(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const getPronouns = () => {
         let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -100,10 +94,8 @@ function ProfilePage(props) {
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
     const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
     const {isSmallScreenWidth} = useWindowDimensions();
-    usePrivatePersonalDetails();
     const privateDetails = props.privatePersonalDetails || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
-    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
 
     const publicOptions = [
         {
@@ -198,22 +190,18 @@ function ProfilePage(props) {
                         childrenStyles={styles.pt3}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
-                        {isLoadingPersonalDetails ? (
-                            <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
-                        ) : (
-                            <>
-                                {_.map(privateOptions, (detail, index) => (
-                                    <MenuItemWithTopDescription
-                                        key={`${detail.title}_${index}`}
-                                        shouldShowRightIcon
-                                        title={detail.title}
-                                        description={detail.description}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={() => Navigation.navigate(detail.pageRoute)}
-                                    />
-                                ))}
-                            </>
-                        )}
+                        <>
+                            {_.map(privateOptions, (detail, index) => (
+                                <MenuItemWithTopDescription
+                                    key={`${detail.title}_${index}`}
+                                    shouldShowRightIcon
+                                    title={detail.title}
+                                    description={detail.description}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                />
+                            ))}
+                        </>
                     </Section>
                 </View>
             </ScrollView>
