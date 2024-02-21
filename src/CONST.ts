@@ -653,6 +653,7 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
             },
             THREAD_DISABLED: ['CREATED'],

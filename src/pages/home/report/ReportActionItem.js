@@ -464,7 +464,11 @@ function ReportActionItem(props) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
-        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
+        } else if ([
+                CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                CONST.REPORT.ACTIONS.TYPE.UNAPPROVED
+            ].includes(props.action.actionName)) {
+            // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={props.translate('iou.heldRequest', {comment: lodashGet(props, 'action.message[1].text', '')})} />;
