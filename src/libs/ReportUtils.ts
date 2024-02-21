@@ -2305,7 +2305,6 @@ function getReportPreviewMessage(
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
     isForListPreview = false,
-    shouldHidePayer = false,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
 
@@ -2380,7 +2379,7 @@ function getReportPreviewMessage(
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
 
-        let actualPayerName = report.managerID === currentUserAccountID || shouldHidePayer ? '' : getDisplayNameForParticipant(report.managerID, true);
+        let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.managerID, true);
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
 
@@ -4690,6 +4689,61 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
 }
 
 /**
+ * Return iou report action display message
+ */
+function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>): string {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return '';
+    }
+    const originalMessage = reportAction.originalMessage;
+    const {IOUReportID} = originalMessage;
+    const iouReport = getReport(IOUReportID);
+    let translationKey: TranslationPaths;
+    if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
+        // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
+        // property. If it does, it indicates that this is a 'Send money' action.
+        const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
+        const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency) ?? '';
+
+        switch (originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                translationKey = 'iou.paidElsewhereWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                translationKey = 'iou.paidWithExpensifyWithAmount';
+                break;
+            default:
+                translationKey = 'iou.payerPaidAmount';
+                break;
+        }
+        return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
+    }
+
+    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID ?? '');
+    const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
+    const isRequestSettled = isSettled(originalMessage.IOUReportID);
+    const isApproved = isReportApproved(iouReport);
+    if (isRequestSettled) {
+        return Localize.translateLocal('iou.payerSettled', {
+            amount: formattedAmount,
+        });
+    }
+    if (isApproved) {
+        return Localize.translateLocal('iou.approvedAmount', {
+            amount: formattedAmount,
+        });
+    }
+    translationKey = ReportActionsUtils.isSplitBillAction(reportAction) ? 'iou.didSplitAmount' : 'iou.requestedAmount';
+    return Localize.translateLocal(translationKey, {
+        formattedAmount,
+        comment: transactionDetails?.comment ?? '',
+    });
+}
+
+/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -5126,6 +5180,7 @@ export {
     hasOnlyTransactionsWithPendingRoutes,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
+    getIOUReportActionDisplayMessage,
     isWaitingForAssigneeToCompleteTask,
     isGroupChat,
     isDraftExpenseReport,
