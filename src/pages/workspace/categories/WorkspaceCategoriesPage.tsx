@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
@@ -102,6 +103,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                             onSelectRow={toggleCategory}
                             onSelectAll={toggleAllCategories}
                             showScrollIndicator
+                            ListItem={RadioListItem}
                         />
                     ) : (
                         <WorkspaceEmptyStateSection
