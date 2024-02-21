@@ -66,4 +66,4 @@ type KYCWallProps = {
     children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
 };
 
-export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect};
+export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};

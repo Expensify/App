@@ -22,6 +22,8 @@ const includeModules = [
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    '@react-native/assets',
+    'expo-av',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -241,6 +243,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+            crypto: false,
         },
     },
 

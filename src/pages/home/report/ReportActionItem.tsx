@@ -493,6 +493,10 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message?.[1].text ?? ''})} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+            children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -648,6 +652,28 @@ function ReportActionItem({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
+            if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                return (
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
+                        <AnimatedEmptyStateBackground />
+                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
+                            <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader
+                                    report={report}
+                                >
+                                    <RenderHTML
+                                        html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
+                                    />
+                                </ReportActionItemSingle>
+                                <View style={styles.threadDividerLine} />
+                            </OfflineWithFeedback>
+                        </View>
+                    </View>
+                );
+            }
             return (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
@@ -660,7 +686,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -670,7 +696,6 @@ function ReportActionItem({
                             >
                                 <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
                             </ReportActionItemSingle>
-                            <View style={styles.reportHorizontalRule} />
                         </View>
                     </View>
                 );
@@ -836,17 +861,21 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`;
+            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? ''}`;
         },
+        initialValue: {} as OnyxTypes.Report,
     },
     policyReportFields: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? ''}`,
+        initialValue: {},
     },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? ''}`,
+        initialValue: {} as OnyxTypes.Policy,
     },
     emojiReactions: {
         key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
+        initialValue: {},
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
@@ -856,9 +885,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         canEvict: false,
     },
 })(
-    memo(
-        ReportActionItem,
-        (prevProps, nextProps) =>
+    memo(ReportActionItem, (prevProps, nextProps) => {
+        const prevParentReportAction = prevProps.parentReportActions?.[prevProps.report.parentReportActionID ?? ''];
+        const nextParentReportAction = nextProps.parentReportActions?.[nextProps.report.parentReportActionID ?? ''];
+        return (
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
@@ -885,6 +915,8 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
             lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
-            lodashIsEqual(prevProps.policy, nextProps.policy),
-    ),
+            lodashIsEqual(prevProps.policy, nextProps.policy) &&
+            lodashIsEqual(prevParentReportAction, nextParentReportAction)
+        );
+    }),
 );
