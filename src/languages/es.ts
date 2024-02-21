@@ -2101,8 +2101,8 @@ export default {
         noActivityYet: 'Sin actividad todavía',
         people: {
             error: {
-                genericAdd: '',
-                genericRemove: '',
+                genericAdd: 'Hubo un problema al agregar este miembro de la sala de chat.',
+                genericRemove: 'Hubo un problema al eliminar a ese miembro de la sala de chat.',
             },
         },
     },
