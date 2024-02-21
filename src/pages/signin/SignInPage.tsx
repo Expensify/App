@@ -249,7 +249,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         // The SVG should flow under the Home Indicator on iOS.
         <ScreenWrapper
             shouldEnableMaxHeight={shouldEnableMaxHeight}
-            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({ ...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top }, 1)]}
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageInner.displayName}
         >
             <SignInPageLayout
