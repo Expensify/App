@@ -2,7 +2,7 @@ import {fireEvent} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
-import RadioListItem from "@components/SelectionList/RadioListItem";
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionList from '../../src/components/SelectionList';
 import variables from '../../src/styles/variables';
 
