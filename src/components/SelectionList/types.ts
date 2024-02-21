@@ -2,6 +2,8 @@ import type {JSXElementConstructor, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import RadioListItem from "@components/SelectionList/RadioListItem";
+import UserListItem from "@components/SelectionList/UserListItem";
 
 type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
@@ -114,7 +116,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Default renderer for every item in the list */
-    ListItem: JSXElementConstructor<BaseListItemProps<ListItem>>;
+    ListItem: typeof RadioListItem | typeof UserListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
