@@ -6,6 +6,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -90,6 +91,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
 
                 <SelectionList
                     sections={sections}
+                    ListItem={RadioListItem}
                     textInputLabel={translate('workspace.editor.currencyInputLabel')}
                     textInputValue={searchText}
                     onChangeText={setSearchText}

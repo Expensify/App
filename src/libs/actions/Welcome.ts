@@ -136,13 +136,11 @@ function show(routes: NavigationState<RootStackParamList>['routes'], showEngagem
         const transitionRoute = routes.find(
             (route): route is NavigationState<Pick<RootStackParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>>['routes'][number] => route.name === SCREENS.TRANSITION_BETWEEN_APPS,
         );
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
-        const isOnWorkspaceOverviewPage = activeRoute?.startsWith('/workspace') && activeRoute?.endsWith('/overview');
         const isExitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
 
         // If we already opened the workspace settings or want the admin room to stay open, do not
         // navigate away to the workspace chat report
-        const shouldNavigateToWorkspaceChat = !isExitingToWorkspaceRoute && !isOnWorkspaceOverviewPage;
+        const shouldNavigateToWorkspaceChat = !isExitingToWorkspaceRoute;
 
         const workspaceChatReport = Object.values(allReports ?? {}).find((report) => {
             if (report) {
