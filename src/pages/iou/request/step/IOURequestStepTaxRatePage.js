@@ -35,7 +35,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
-    policyTaxRates: {},
+    policy: {},
     transaction: {},
 };
 
@@ -48,11 +48,13 @@ function IOURequestStepTaxRatePage({
     route: {
         params: {backTo},
     },
-    policyTaxRates,
+    policy,
     transaction,
     report,
 }) {
     const {translate} = useLocalize();
+
+    const policyTaxRates = lodashGet(policy, 'taxRates', {});
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
