@@ -34,7 +34,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
         const yearsList = searchText === '' ? years : years.filter((year) => year.text.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
-            sections: [{data: yearsList, indexOffset: 0}],
+            sections: [{data: yearsList.sort((a, b) => b.value - a.value), indexOffset: 0}],
         };
     }, [years, searchText, translate]);
 
@@ -79,6 +79,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
+                    shouldUseDynamicMaxToRenderPerBatch
                     ListItem={RadioListItem}
                 />
             </ScreenWrapper>
