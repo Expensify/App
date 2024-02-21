@@ -33,8 +33,7 @@ export default (command, env = {}) => {
                         reject(error);
                     }
                 } else {
-                    // Stdout often has line breaks at the end which we want to remove:
-                    Logger.writeToLogFile(stdout.trim());
+                    Logger.writeToLogFile(stdout);
                     resolve(stdout);
                 }
             },

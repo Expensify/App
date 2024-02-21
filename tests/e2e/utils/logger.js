@@ -30,7 +30,9 @@ const writeToLogFile = (...args) => {
                 return arg.replace(/\x1b\[\d+m/g, '');
             }
             return arg;
-        }).join(' ')}\n`,
+        })
+            .join(' ')
+            .trim()}\n`,
     );
 };
 
@@ -41,7 +43,7 @@ const log = (...args) => {
 };
 
 const info = (...args) => {
-    log('💡', ...args);
+    log('▶️', ...args);
 };
 
 const success = (...args) => {
