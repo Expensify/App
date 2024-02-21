@@ -23,7 +23,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import * as ComposerActions from '@userActions/Composer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -31,6 +30,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
+import * as ComposerActions from '@userActions/Composer';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -211,8 +211,8 @@ function ReportActionItemMessageEdit(
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
     }, [action.reportActionID]);
 
-    // show the composer quickly after done editing
-    useEffect(() => ()=>  ComposerActions.setShouldShowComposeInput(true), [])
+    // show the composer after editing is complete for devices that hide the composer during editing.
+    useEffect(() => () => ComposerActions.setShouldShowComposeInput(true), []);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -292,7 +292,7 @@ function ReportActionItemMessageEdit(
             ReportActionComposeFocusManager.clear();
             ReportActionComposeFocusManager.focus();
         }
-        
+
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
