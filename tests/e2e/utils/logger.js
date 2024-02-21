@@ -31,10 +31,10 @@ const writeToLog = (...args) => {
 };
 
 const log = (...args) => {
-    const argsWithTime = [`[${Date()}]   `, ...args];
+    const argsWithTime = [`[${Date()}] `, ...args];
 
     if (isVerbose) {
-        console.debug(argsWithTime);
+        console.debug(...argsWithTime);
     }
 
     writeToLog(...argsWithTime);
