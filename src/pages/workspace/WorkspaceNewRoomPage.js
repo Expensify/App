@@ -112,7 +112,6 @@ function WorkspaceNewRoomPage(props) {
                 _.filter(PolicyUtils.getActivePolicies(props.policies), (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL),
                 (policy) => ({
                     label: policy.name,
-                    key: policy.id,
                     value: policy.id,
                 }),
             ).sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())),
