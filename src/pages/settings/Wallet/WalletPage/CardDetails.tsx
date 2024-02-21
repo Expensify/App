@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,50 +14,38 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-const propTypes = {
-    /** Card number */
-    pan: PropTypes.string,
-
-    /** Card expiration date */
-    expiration: PropTypes.string,
-
-    /** 3 digit code */
-    cvv: PropTypes.string,
-
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
-    }),
-
-    /** Domain name */
-    domain: PropTypes.string.isRequired,
-};
-
-const defaultProps = {
-    pan: '',
-    expiration: '',
-    cvv: '',
-    privatePersonalDetails: {
-        address: {
-            street: '',
-            street2: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
+const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
+    address: {
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: '',
     },
 };
 
-function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
+type CardDetailsOnyxProps = {
+    /** User's private personal details */
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+};
+
+type CardDetailsProps = CardDetailsOnyxProps & {
+    /** Card number */
+    pan?: string;
+
+    /** Card expiration date */
+    expiration?: string;
+
+    /** 3 digit code */
+    cvv?: string;
+
+    /** Domain name */
+    domain: string;
+};
+
+function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetails, domain}: CardDetailsProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
@@ -79,6 +67,8 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
                             tooltipTextChecked={translate('reportActionContextMenu.copied')}
                             icon={Expensicons.Copy}
                             onPress={handleCopyToClipboard}
+                            accessible={false}
+                            text=""
                         />
                     </View>
                 }
@@ -96,7 +86,8 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.address')}
-                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                 interactive={false}
             />
             <TextLink
@@ -110,10 +101,8 @@ function CardDetails({pan, expiration, cvv, privatePersonalDetails, domain}) {
 }
 
 CardDetails.displayName = 'CardDetails';
-CardDetails.propTypes = propTypes;
-CardDetails.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<CardDetailsProps, CardDetailsOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
