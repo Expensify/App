@@ -4573,63 +4573,6 @@ const styles = (theme: ThemeColors) =>
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
         },
-        workspaceWorkflowsIcon: {
-            marginRight: 12,
-            zIndex: 2,
-            paddingBottom: 15,
-        },
-        workspaceWorkflowContent: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            flex: 1,
-        },
-        workspaceWorkflowContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-        },
-        workspaceWorkflowsHeading: {
-            fontSize: 15,
-            fontWeight: '700',
-        },
-        workspaceWorkflowsWrapperText: {
-            flexDirection: 'column',
-            flex: 1,
-        },
-        workspaceWorkflowsSubtitle: {
-            fontSize: 13,
-            color: theme.textSupporting,
-            marginTop: 3,
-        },
-        workspaceWorkflowsSubMenuContainer: {
-            ...spacing.ph8,
-            ...spacing.mhn8,
-            width: 'auto',
-            marginLeft: 44,
-            paddingVertical: 12,
-            paddingRight: 9,
-            paddingLeft: 16,
-            marginRight: 0,
-        },
-        workspaceWorkflowsSubMenuTitle: {
-            color: theme.textSupporting,
-            fontSize: 13,
-            lineHeight: 16,
-            fontWeight: '400',
-        },
-        workspaceWorkflowsSubMenuDescription: {
-            color: theme.text,
-            fontSize: 15,
-            lineHeight: 20,
-        },
-        workspaceWorkflowsTimelineOverride: {
-            backgroundColor: theme.cardBG,
-            zIndex: 1,
-            height: 19,
-            width: 19,
-            position: 'absolute',
-            left: 0,
-        },
         workspaceTitleStyle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: '500',

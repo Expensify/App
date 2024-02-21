@@ -1,15 +1,13 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
-import useStyleUtils from '@hooks/useStyleUtils';
 import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import ImageSVG from '@components/ImageSVG';
-import Dot from '@assets/images/dot.svg';
+import { Styles } from '@styles/index';
+import {defaultTheme } from '@styles/theme';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -24,7 +22,6 @@ type ToggleSettingOptionRowProps = {
 function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isEndOptionRow, hasBeenToggled}: ToggleSettingOptionRowProps) {
     const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const toggleSwitch = () => {
         setIsEnabled(!isEnabled);
@@ -32,39 +29,51 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
     };
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    function VerticalDots({count}: {count: number}) {
-        return (
-            <View style={StyleUtils.getWorkspaceWorkflowsDotStyle(isEnabled, isSmallScreenWidth) as ViewStyle}>
-                {Array.from({length: count}, () => (
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Dot}
-                        height={isSmallScreenWidth ? 4 : 6}
-                        width={isSmallScreenWidth ? 4 : 6}
-                        pointerEvents="none"
-                    />
-                ))}
-            </View>
-        );
-    }
+    // Since these styles are only used in this component we define them here
+    const workflowsStyles = {
+        container: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        content: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flex: 1,
+        },
+        icon: {
+            marginRight: 12,
+            zIndex: 2,
+            paddingBottom: 15,
+        },
+        wrapperText: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        heading: {
+            fontSize: 15,
+            fontWeight: '700',
+        }, 
+        subtitle: {
+            fontSize: 13,
+            color: defaultTheme.textSupporting,
+            marginTop: 3,
+        },
+    } satisfies Styles;
 
     return (
         <View style={styles.pRelative}>
-            <View style={StyleUtils.getWorkflowsStyle('container')}>
-                <View style={StyleUtils.getWorkflowsStyle('content')}>
+            <View style={workflowsStyles.container}>
+                <View style={workflowsStyles.content}>
                     <Icon
                         src={icon}
                         height={48}
                         width={48}
-                        additionalStyles={StyleUtils.getWorkflowsStyle('icon')}
+                        additionalStyles={workflowsStyles.icon}
                     />
-                    <View style={StyleUtils.getWorkflowsStyle('timelineOverride')} />
-                    {!isEndOptionRow && (
-                        <VerticalDots count={7}/>
-                    )}
-                    <View style={StyleUtils.getWorkflowsStyle('wrapperText')}>
-                        <Text style={StyleUtils.getWorkflowsStyle('heading')}>{title}</Text>
-                        <Text style={StyleUtils.getWorkflowsStyle('subtitle')}>{subtitle}</Text>
+                    <View style={workflowsStyles.wrapperText}>
+                        <Text style={workflowsStyles.heading}>{title}</Text>
+                        <Text style={workflowsStyles.subtitle}>{subtitle}</Text>
                     </View>
                 </View>
                 <View>

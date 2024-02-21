@@ -18,6 +18,9 @@ import type SCREENS from '@src/SCREENS';
 import useStyleUtils from '@hooks/useStyleUtils';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import {defaultTheme } from '@styles/theme';
+import spacing from '@styles/utils/spacing';
+import { Styles } from '@styles/index';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -26,6 +29,31 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+
+    // Since these styles are only used in this component we define them here
+    const workflowsStyles = {
+        subMenuContainer: {
+            ...spacing.ph8,
+            ...spacing.mhn8,
+            width: 'auto',
+            marginLeft: 44,
+            paddingVertical: 12,
+            paddingRight: 9,
+            paddingLeft: 16,
+            marginRight: 0,
+        },
+        subMenuTitle: {
+            color: defaultTheme.textSupporting,
+            fontSize: 13,
+            lineHeight: 16,
+            fontWeight: '400',
+        },
+        subMenuDescription: {
+            color: defaultTheme.text,
+            fontSize: 15,
+            lineHeight: 20,
+        },
+    } satisfies Styles;
 
     const items: ToggleSettingOptionRowProps[] = useMemo(() => ([
         {
@@ -38,13 +66,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             subMenuItems: (
                 <MenuItem
                     title={translate('workflowsPage.submissionFrequency')}
-                    titleStyle={StyleUtils.getWorkflowsStyle('subMenuTitle')}
-                    descriptionTextStyle={StyleUtils.getWorkflowsStyle('subMenuDescription')}
+                    titleStyle={workflowsStyles.subMenuTitle}
+                    descriptionTextStyle={workflowsStyles.subMenuDescription}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
                     description={translate('workflowsPage.weeklyFrequency')}
                     shouldShowRightIcon
-                    wrapperStyle={StyleUtils.getWorkflowsStyle('subMenuContainer')}
+                    wrapperStyle={workflowsStyles.subMenuContainer}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
@@ -60,13 +88,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             subMenuItems: (
                 <MenuItem
                     title={translate('workflowsPage.approver')}
-                    titleStyle={StyleUtils.getWorkflowsStyle('subMenuTitle')}
-                    descriptionTextStyle={StyleUtils.getWorkflowsStyle('subMenuDescription')}
+                    titleStyle={workflowsStyles.subMenuTitle}
+                    descriptionTextStyle={workflowsStyles.subMenuDescription}
                     description={policy?.owner ?? ''}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                     shouldShowRightIcon
-                    wrapperStyle={StyleUtils.getWorkflowsStyle('subMenuContainer')}
+                    wrapperStyle={workflowsStyles.subMenuContainer}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
@@ -81,12 +109,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             },
             subMenuItems: (
                 <MenuItem
-                    descriptionTextStyle={[StyleUtils.getWorkflowsStyle('subMenuDescription'), styles.textSupporting]}
+                    descriptionTextStyle={[workflowsStyles.subMenuDescription, styles.textSupporting]}
                     description={translate('workflowsPage.connectBankAccount')}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
                     shouldShowRightIcon
-                    wrapperStyle={StyleUtils.getWorkflowsStyle('subMenuContainer')}
+                    wrapperStyle={workflowsStyles.subMenuContainer}
                     hoverAndPressStyle={[styles.mr0, styles.br2]}
                 />
             ),
