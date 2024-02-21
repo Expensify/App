@@ -22,7 +22,6 @@ phases:
     commands:
       - cd zip
       - npm install underscore ts-node typescript
-      - export LOGGER_PROGRESS_REFRESH_RATE=5000
       - npx ts-node e2e/testRunner.js -- --mainAppPath app-e2eRelease.apk --deltaAppPath app-e2edeltaRelease.apk
 
 artifacts:

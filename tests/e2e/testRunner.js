@@ -78,12 +78,10 @@ try {
 // START OF TEST CODE
 
 const runTests = async () => {
-    let progressLog = Logger.progressInfo('Installing apps and reversing port');
-
+    Logger.info('Installing apps and reversing port');
     await installApp('android', config.MAIN_APP_PACKAGE, mainAppPath);
     await installApp('android', config.DELTA_APP_PACKAGE, deltaAppPath);
     await reversePort();
-    progressLog.done();
 
     // Start the HTTP server
     const server = createServerInstance();
@@ -120,6 +118,8 @@ const runTests = async () => {
 
     // Function to run a single test iteration
     async function runTestIteration(appPackage, iterationText, launchArgs) {
+        Logger.info(iterationText);
+
         // Making sure the app is really killed (e.g. if a prior test run crashed)
         Logger.log('Killing', appPackage);
         await killApp('android', appPackage);
@@ -130,7 +130,7 @@ const runTests = async () => {
         await withFailTimeout(
             new Promise((resolve) => {
                 const cleanup = server.addTestDoneListener(() => {
-                    Logger.success(iterationText, 'done!');
+                    Logger.success(iterationText);
                     cleanup();
                     resolve();
                 });
@@ -161,23 +161,18 @@ const runTests = async () => {
         // Having the cooldown right at the beginning lowers the chances of heat
         // throttling from the previous run (which we have no control over and will be a
         // completely different AWS DF customer/app). It also gives the time to cool down between tests.
-        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
+        Logger.info(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
         await sleep(config.BOOT_COOL_DOWN);
-        coolDownLogs.done();
 
         server.setTestConfig(test);
 
-        const warmupLogs = Logger.progressInfo(`Running warmup '${test.name}'`);
-        let iterationText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]\n`;
-        warmupLogs.updateText(iterationText);
+        const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
 
         // Warmup the main app:
-        await runTestIteration(config.MAIN_APP_PACKAGE, iterationText);
+        await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}`);
 
         // Warmup the delta app:
-        await runTestIteration(config.DELTA_APP_PACKAGE, iterationText);
-
-        warmupLogs.done();
+        await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}`);
 
         // For each test case we allow the test to fail three times before we stop the test run:
         const errorCountRef = {
@@ -187,49 +182,40 @@ const runTests = async () => {
 
         // We run each test multiple time to average out the results
         for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-            iterationText = `Test '${test.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]\n`;
-            const mainIterationText = `[MAIN] ${iterationText}`;
-            const deltaIterationText = `[DELTA] ${iterationText}`;
-            const testLog = Logger.progressInfo(mainIterationText);
-
             const onError = (e) => {
                 errorCountRef.errorCount += 1;
                 if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
-                    testLog.done();
+                    Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
                     // If the error happened on the first test run, the test is broken
                     // and we should not continue running it. Or if we have reached the
                     // maximum number of allowed exceptions, we should stop the test run.
                     throw e;
                 }
-                console.error(e);
+                Logger.warn(`There was an error running the test. Continuing the test run. Error: ${e}`);
             };
 
             const launchArgs = {
                 mockNetwork: true,
             };
 
+            const iterationText = `Test '${test.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]`;
+            const mainIterationText = `[MAIN] ${iterationText}`;
+            const deltaIterationText = `[DELTA] ${iterationText}`;
             try {
                 // Run the test on the main app:
-                await runTestIteration(config.MAIN_APP_PACKAGE, config.ACTIVITY_PATH, mainIterationText, launchArgs);
-
-                testLog.updateText(deltaIterationText);
+                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, launchArgs);
 
                 // Run the test on the delta app:
-                await runTestIteration(config.DELTA_APP_PACKAGE, config.ACTIVITY_PATH, deltaIterationText, launchArgs);
+                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
             } catch (e) {
                 onError(e);
             }
-
-            testLog.done();
         }
     }
 
     // Calculate statistics and write them to our work file
-    progressLog = Logger.progressInfo('Calculating statics and writing results');
-
+    Logger.info('Calculating statics and writing results');
     compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`);
-
-    progressLog.done();
 
     await server.stop();
 };
