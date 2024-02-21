@@ -38,16 +38,6 @@ const getArg = (argName) => {
     return args[argIndex + 1];
 };
 
-let branch = 'main';
-if (args.includes('--branch')) {
-    branch = getArg('--branch');
-}
-
-let label = branch;
-if (args.includes('--label')) {
-    label = getArg('--label');
-}
-
 let config = defaultConfig;
 const setConfigPath = (configPathParam) => {
     let configPath = configPathParam;
@@ -57,12 +47,6 @@ const setConfigPath = (configPathParam) => {
     const customConfig = require(configPath).default;
     config = _.extend(defaultConfig, customConfig);
 };
-
-// When we are in dev mode we want to apply certain default params and configs
-const isDevMode = args.includes('--development');
-if (isDevMode) {
-    setConfigPath('config.local.js');
-}
 
 if (args.includes('--config')) {
     const configPath = getArg('--config');
@@ -80,29 +64,15 @@ if (!fs.existsSync(deltaAppPath)) {
     throw new Error(`Delta app path does not exist: ${deltaAppPath}`);
 }
 
-// Create some variables after the correct config file has been loaded
-const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;
+// On CI it is important to re-create the output dir, it has a different owner
+// therefore this process cannot write to it
+try {
+    fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
 
-if (isDevMode) {
-    Logger.note(`🟠 Running in development mode.`);
-}
-
-if (isDevMode) {
-    // On dev mode only delete any existing output file but keep the folder
-    if (fs.existsSync(OUTPUT_FILE)) {
-        fs.rmSync(OUTPUT_FILE);
-    }
-} else {
-    // On CI it is important to re-create the output dir, it has a different owner
-    // therefore this process cannot write to it
-    try {
-        fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
-
-        fs.mkdirSync(config.OUTPUT_DIR);
-    } catch (error) {
-        // Do nothing
-        console.error(error);
-    }
+    fs.mkdirSync(config.OUTPUT_DIR);
+} catch (error) {
+    // Do nothing
+    console.error(error);
 }
 
 // START OF TEST CODE
