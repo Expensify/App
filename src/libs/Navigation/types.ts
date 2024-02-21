@@ -74,6 +74,11 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SECURITY]: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.ABOUT]: undefined;
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -440,22 +445,19 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
 
-type SettingsCentralPaneNavigatorParamList = {
-    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
-    [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
-    [SCREENS.SETTINGS.ABOUT]: undefined;
-};
+// type SettingsCentralPaneNavigatorParamList = {
+//     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+//     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+//     [SCREENS.SETTINGS.SECURITY]: undefined;
+//     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+//     [SCREENS.SETTINGS.ABOUT]: undefined;
+// };
 
-type FullScreenNavigatorParamList = {
-    [SCREENS.SETTINGS.ROOT]: undefined;
-    [SCREENS.SETTINGS_CENTRAL_PANE]: NavigatorScreenParams<SettingsCentralPaneNavigatorParamList>;
-};
+type FullScreenNavigatorParamList = {};
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
-    [SCREENS.ALL_SETTINGS]: undefined;
+    [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.WORKSPACE.INITIAL]: undefined;
 };
 

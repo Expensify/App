@@ -124,11 +124,11 @@ function getMatchingRootRouteForRHPRoute(
     }
 
     // Check for FullScreenNavigator
-    for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
-        if (RHPNames && RHPNames.includes(route.name)) {
-            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
-        }
-    }
+    // for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
+    //     if (RHPNames && RHPNames.includes(route.name)) {
+    //         return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
+    //     }
+    // }
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {

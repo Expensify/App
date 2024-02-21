@@ -29,10 +29,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             initialRouteName: SCREENS.HOME,
             screens: {
                 [SCREENS.HOME]: ROUTES.HOME,
-                [SCREENS.ALL_SETTINGS]: ROUTES.ALL_SETTINGS,
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                     exact: true,
+                },
+                [SCREENS.SETTINGS.ROOT]: {
+                    path: ROUTES.SETTINGS,
                 },
             },
         },
@@ -61,6 +63,50 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.MEMBERS]: {
                     path: ROUTES.WORKSPACE_MEMBERS.route,
                 },
+                [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                    path: ROUTES.SETTINGS_PROFILE,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                    path: ROUTES.SETTINGS_PREFERENCES,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SECURITY]: {
+                    path: ROUTES.SETTINGS_SECURITY,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.WALLET.ROOT]: {
+                    path: ROUTES.SETTINGS_WALLET,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.ABOUT]: {
+                    path: ROUTES.SETTINGS_ABOUT,
+                    exact: true,
+                },
+                // [SCREENS.SETTINGS_CENTRAL_PANE]: {
+                //     screens: {
+                //         [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                //             path: ROUTES.SETTINGS_PROFILE,
+                //             exact: true,
+                //         },
+                //         [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                //             path: ROUTES.SETTINGS_PREFERENCES,
+                //             exact: true,
+                //         },
+                //         [SCREENS.SETTINGS.SECURITY]: {
+                //             path: ROUTES.SETTINGS_SECURITY,
+                //             exact: true,
+                //         },
+                //         [SCREENS.SETTINGS.WALLET.ROOT]: {
+                //             path: ROUTES.SETTINGS_WALLET,
+                //             exact: true,
+                //         },
+                //         [SCREENS.SETTINGS.ABOUT]: {
+                //             path: ROUTES.SETTINGS_ABOUT,
+                //             exact: true,
+                //         },
+                //     },
+                // },
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -492,35 +538,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         },
 
         [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-            screens: {
-                [SCREENS.SETTINGS.ROOT]: {
-                    path: ROUTES.SETTINGS,
-                },
-                [SCREENS.SETTINGS_CENTRAL_PANE]: {
-                    screens: {
-                        [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                            path: ROUTES.SETTINGS_PROFILE,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-                            path: ROUTES.SETTINGS_PREFERENCES,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.SECURITY]: {
-                            path: ROUTES.SETTINGS_SECURITY,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.ROOT]: {
-                            path: ROUTES.SETTINGS_WALLET,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ABOUT]: {
-                            path: ROUTES.SETTINGS_ABOUT,
-                            exact: true,
-                        },
-                    },
-                },
-            },
+            screens: {},
         },
     },
 };

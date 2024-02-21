@@ -1,8 +1,7 @@
-import {useNavigationState} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {NativeModules, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -10,17 +9,18 @@ import bankAccountPropTypes from '@components/bankAccountPropTypes';
 import cardPropTypes from '@components/cardPropTypes';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
-import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
@@ -29,7 +29,6 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {translatableTextPropTypes} from '@libs/Localize';
-import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import * as UserUtils from '@libs/UserUtils';
@@ -45,7 +44,6 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /* Onyx Props */
@@ -112,7 +110,7 @@ function InitialSettingsPage(props) {
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const activeRoute = useNavigationState(getTopmostSettingsCentralPaneName);
+    const activeRoute = useActiveRoute();
     const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
@@ -257,11 +255,7 @@ function InitialSettingsPage(props) {
                 {
                     translationKey: 'common.workspaces',
                     icon: Expensicons.Building,
-                    action: () => {
-                        waitForNavigate(() => {
-                            Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-                        })();
-                    },
+                    routeName: ROUTES.SETTINGS_WORKSPACES,
                     brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(props.policies, props.policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 },
                 ...(shouldShowSubscriptionsMenu
@@ -290,7 +284,7 @@ function InitialSettingsPage(props) {
                 },
             ],
         }),
-        [props.policies, props.policyMembers, styles.pt4, waitForNavigate],
+        [props.policies, props.policyMembers, styles.pt4],
     );
 
     /**
@@ -383,7 +377,7 @@ function InitialSettingsPage(props) {
     const accountID = lodashGet(currentUserDetails, 'accountID', '');
 
     const headerContent = (
-        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5]}>
+        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
@@ -466,16 +460,14 @@ function InitialSettingsPage(props) {
     );
 
     return (
-        <HeaderPageLayout
-            title={translate('initialSettingsPage.accountSettings')}
-            headerContent={headerContent}
-            headerContainerStyles={[styles.justifyContentCenter]}
-            onBackButtonPress={() => Navigation.closeFullScreen()}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
+        <ScreenWrapper
+            style={[styles.w100, styles.pt4]}
+            includeSafeAreaPaddingBottom={false}
             childrenContainerStyles={[styles.m0, styles.p0]}
             testID={InitialSettingsPage.displayName}
         >
-            <View style={styles.w100}>
+            <ScrollView>
+                {headerContent}
                 {accountMenuItems}
                 {generalMenuItems}
                 {workspaceMenuItems}
@@ -489,8 +481,8 @@ function InitialSettingsPage(props) {
                     onConfirm={() => signOut(true)}
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
-            </View>
-        </HeaderPageLayout>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 

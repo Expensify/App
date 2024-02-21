@@ -4,12 +4,12 @@ import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import type {BottomTabNavigatorParamList} from '@libs/Navigation/types';
-import AllSettingsScreen from '@pages/home/sidebar/AllSettingsScreen';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SCREENS from '@src/SCREENS';
 import ActiveRouteContext from './ActiveRouteContext';
 
 const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
+const loadInitialSettingsPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;
 
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
@@ -23,13 +23,14 @@ function BottomTabNavigator() {
     return (
         <ActiveRouteContext.Provider value={activeRoute?.name ?? ''}>
             <Tab.Navigator screenOptions={screenOptions}>
+            <Tab.Screen
+                    name={SCREENS.SETTINGS.ROOT}
+                    // options={screenOptions.homeScreen}
+                    getComponent={loadInitialSettingsPage}
+                />
                 <Tab.Screen
                     name={SCREENS.HOME}
                     component={SidebarScreen}
-                />
-                <Tab.Screen
-                    name={SCREENS.ALL_SETTINGS}
-                    component={AllSettingsScreen}
                 />
                 <Tab.Screen
                     name={SCREENS.WORKSPACE.INITIAL}

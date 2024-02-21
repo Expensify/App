@@ -5,12 +5,10 @@ import {StackView} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import BottomTabBar from './BottomTabBar';
-import TopBar from './TopBar';
 
 type CustomNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & {
     initialRouteName: string;
@@ -46,7 +44,6 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
 
     const styles = useThemeStyles();
     const stateToRender = getStateToRender(state);
-    const {activeWorkspaceID} = useActiveWorkspace();
 
     return (
         <ScreenWrapper
@@ -54,7 +51,6 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
             shouldShowOfflineIndicator={false}
         >
             <View style={styles.flex1}>
-                <TopBar activeWorkspaceID={activeWorkspaceID} />
                 <NavigationContent>
                     <StackView
                         // eslint-disable-next-line react/jsx-props-no-spreading

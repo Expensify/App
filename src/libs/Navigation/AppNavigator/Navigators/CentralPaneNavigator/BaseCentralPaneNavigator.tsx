@@ -24,6 +24,14 @@ const workspaceSettingsScreens = {
     [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
 } satisfies Screens;
 
+const settingsScreens = {
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SECURITY]: () => require('../../../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.ABOUT]: () => require('../../../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
+};
+
 function BaseCentralPaneNavigator() {
     const styles = useThemeStyles();
     const options = {
@@ -41,7 +49,18 @@ function BaseCentralPaneNavigator() {
                 initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
                 component={ReportScreenWrapper}
             />
-
+            {/* <Stack.Screen
+                name={SCREENS.SETTINGS_CENTRAL_PANE}
+                // options={screenOptions.centralPaneNavigator}
+                component={ModalStackNavigators.AccountSettingsModalStackNavigator}
+            /> */}
+            {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (
+                <Stack.Screen
+                    key={screenName}
+                    name={screenName as keyof Screens}
+                    getComponent={componentGetter}
+                />
+            ))}
             {Object.entries(workspaceSettingsScreens).map(([screenName, componentGetter]) => (
                 <Stack.Screen
                     key={screenName}

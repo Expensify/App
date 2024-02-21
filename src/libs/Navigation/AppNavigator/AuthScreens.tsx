@@ -340,11 +340,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                <RootStack.Screen
+                {/* <RootStack.Screen
                     name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={screenOptions.fullScreen}
                     component={FullScreenNavigator}
-                />
+                /> */}
                 <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
                     options={screenOptions.leftModalNavigator}
@@ -356,6 +356,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
                 />
+                {/* <RootStack.Screen
+                    name={SCREENS.SETTINGS_CENTRAL_PANE}
+                    options={screenOptions.centralPaneNavigator}
+                    component={ModalStackNavigators.AccountSettingsModalStackNavigator}
+                /> */}
             </RootStack.Navigator>
         </View>
     );
