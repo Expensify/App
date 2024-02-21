@@ -6,9 +6,9 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {UserListItemProps} from './types';
+import type {ListItemProps} from './types';
 
-function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style, isFocused, isHovered}: UserListItemProps) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style, isFocused, isHovered}: ListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
