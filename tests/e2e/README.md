@@ -39,7 +39,20 @@ cp ./tests/e2e/.env.e2e .env
 npm run android
 ```
 
-3. Run the tests using the dev command:
+3. We need to modify the app entry to point to the one for the tests. Therefore rename `./index.js` to `./appIndex.js` temporarily.
+
+4. Create a new `./index.js` with the following content:
+```js
+require('./src/libs/E2E/reactNativeLaunchingTest');
+```
+
+5. In `./src/libs/E2E/reactNativeLaunchingTest.ts` change the main app import to the new `./appIndex.js` file:
+```diff
+- import '../../../index';
++ import '../../../appIndex';
+```
+
+6. You can now run the tests. This command will invoke the test runner:
 
 ```sh
 npm run test:e2e:dev
