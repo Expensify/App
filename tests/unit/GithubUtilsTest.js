@@ -1,8 +1,8 @@
 /**
  * @jest-environment node
  */
-const core = require('@actions/core');
-const GithubUtils = require('../../.github/libs/GithubUtils');
+import * as core from '@actions/core';
+import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();

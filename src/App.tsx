@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
+import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ActiveWorkspaceContextProvider from './components/ActiveWorkspace/ActiveWorkspaceProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
@@ -20,6 +21,9 @@ import SafeArea from './components/SafeArea';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
+import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
@@ -78,7 +82,11 @@ function App({url}: AppProps) {
                         PickerStateProvider,
                         EnvironmentProvider,
                         CustomStatusBarAndBackgroundContextProvider,
+                        ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
+                        PlaybackContextProvider,
+                        VolumeContextProvider,
+                        VideoPopoverMenuContextProvider,
                     ]}
                 >
                     <CustomStatusBarAndBackground />
