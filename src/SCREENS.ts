@@ -29,12 +29,14 @@ const SCREENS = {
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
-        LOUNGE_ACCESS: 'Settings_Lounge_Access',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
+        TROUBLESHOOT: 'Settings_Troubleshoot',
+        CONSOLE: 'Settings_Console',
+        SHARE_LOG: 'Share_Log',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -49,14 +51,10 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-
-            PERSONAL_DETAILS: {
-                INITIAL: 'Settings_PersonalDetails_Initial',
-                LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
-                DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
-                ADDRESS: 'Settings_PersonalDetails_Address',
-                ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
-            },
+            LEGAL_NAME: 'Settings_LegalName',
+            DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            ADDRESS: 'Settings_Address',
+            ADDRESS_COUNTRY: 'Settings_Address_Country',
         },
 
         PREFERENCES: {
@@ -130,6 +128,7 @@ const SCREENS = {
         SCAN_TAB: 'scan',
         DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
+        HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
@@ -150,9 +149,7 @@ const SCREENS = {
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
-        DATE: 'Money_Request_Date',
         CATEGORY: 'Money_Request_Category',
-        MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         DISTANCE: 'Money_Request_Distance',
@@ -198,18 +195,21 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        OVERVIEW: 'Workspace_Overview',
+        PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
+        RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
+        RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Overview_Currency',
-        NAME: 'Workspace_Overview_Name',
+        CURRENCY: 'Workspace_Profile_Currency',
+        DESCRIPTION: 'Workspace_Profile_Description',
+        NAME: 'Workspace_Profile_Name',
     },
 
     EDIT_REQUEST: {

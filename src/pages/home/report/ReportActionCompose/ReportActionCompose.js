@@ -23,6 +23,7 @@ import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
@@ -254,6 +255,7 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
+            playSound(SOUNDS.DONE);
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
@@ -286,6 +288,7 @@ function ReportActionCompose({
                 return;
             }
 
+            playSound(SOUNDS.DONE);
             onSubmit(newComment);
         },
         [onSubmit],

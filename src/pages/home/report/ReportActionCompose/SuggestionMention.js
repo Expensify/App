@@ -149,6 +149,10 @@ function SuggestionMention({
                 if (!detail.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
+                // We don't want to mention system emails like notifications@expensify.com
+                if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
+                    return false;
+                }
                 const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
@@ -199,7 +203,8 @@ function SuggestionMention({
                 suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
             }
 
-            const leftString = value.substring(0, suggestionEndIndex);
+            const newLineIndex = value.lastIndexOf('\n', selectionEnd - 1);
+            const leftString = value.substring(newLineIndex + 1, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
             const secondToLastWord = words[words.length - 3];
