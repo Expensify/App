@@ -1,17 +1,21 @@
-import CONFIG from '../../src/CONFIG';
-import CONST from '../../src/CONST';
-import * as Pusher from '../../src/libs/Pusher/pusher';
-import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {Writable} from 'type-fest';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import * as Pusher from '@src/libs/Pusher/pusher';
+import PusherConnectionManager from '@src/libs/PusherConnectionManager';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
+
+const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
 
 function setup() {
     // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
     // channel already in a subscribed state. These methods are normally used to prevent
     // duplicated subscriptions, but we don't need them for this test so forcing them to
     // return false will make the testing less complex.
-    Pusher.isSubscribed = jest.fn().mockReturnValue(false);
-    Pusher.isAlreadySubscribing = jest.fn().mockReturnValue(false);
+    asMutable(Pusher).isSubscribed = jest.fn().mockReturnValue(false);
+    asMutable(Pusher).isAlreadySubscribing = jest.fn().mockReturnValue(false);
 
     // Connect to Pusher
     PusherConnectionManager.init();
@@ -22,17 +26,16 @@ function setup() {
     });
 }
 
-/**
- * @param {Array} args
- */
-function emitOnyxUpdate(args) {
+function emitOnyxUpdate(args: OnyxUpdate[]) {
     const channel = Pusher.getChannel(CHANNEL_NAME);
-    channel.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
-        {
-            eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-            data: args,
-        },
-    ]);
+    if (channel) {
+        channel.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
+            {
+                eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+                data: args,
+            },
+        ]);
+    }
 }
 
 function teardown() {
