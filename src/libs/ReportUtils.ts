@@ -2370,7 +2370,6 @@ function getReportPreviewMessage(
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
-
         if (isPreviewMessageForParentChatReport) {
             translatePhraseKey = 'iou.payerPaidAmount';
         } else if (
