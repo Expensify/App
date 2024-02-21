@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -79,9 +79,6 @@ const propTypes = {
 
     /** IOU category */
     iouCategory: PropTypes.string,
-
-    /** IOU tag */
-    iouTag: PropTypes.string,
 
     /** IOU isBillable */
     iouIsBillable: PropTypes.bool,
@@ -177,7 +174,6 @@ const defaultProps = {
     onSelectParticipant: () => {},
     iouType: CONST.IOU.TYPE.REQUEST,
     iouCategory: '',
-    iouTag: '',
     iouIsBillable: false,
     onToggleBillable: () => {},
     payeePersonalDetails: null,
@@ -216,7 +212,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     iouCurrencyCode,
     iouIsBillable,
     iouMerchant,
-    iouTag,
     iouType,
     isDistanceRequest,
     isEditingSplitBill,
@@ -269,13 +264,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
 
-    // Fetches the first tag list of the policy
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
     const shouldShowTax = isPolicyExpenseChat && policy && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
@@ -717,6 +709,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                     brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     error={merchantError ? translate('common.error.fieldRequired') : ''}
+                    rightLabel={isMerchantRequired ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -764,17 +757,17 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        {
+        ..._.map(policyTagLists, ({name}, index) => ({
             item: (
                 <MenuItemWithTopDescription
-                    key={translate('common.tag')}
+                    key={name}
                     shouldShowRightIcon={!isReadOnly}
-                    title={PolicyUtils.getCleanedTagName(iouTag)}
-                    description={policyTagListName}
+                    title={TransactionUtils.getTag(transaction, index)}
+                    description={name}
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}
@@ -785,7 +778,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             ),
             shouldShow: shouldShowTags,
             isSupplementary: !isTagRequired,
-        },
+        })),
         {
             item: (
                 <MenuItemWithTopDescription
