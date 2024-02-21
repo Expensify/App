@@ -65,8 +65,8 @@ const incrementPatch = (major, minor, patch) => {
 /**
  * Increments a build version
  *
- * @param {Number} version
- * @param {Number} level
+ * @param {String} version
+ * @param {String} level
  * @returns {String}
  */
 const incrementVersion = (version, level) => {
@@ -127,7 +127,7 @@ function getPreviousVersion(currentVersion, level) {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 
-module.exports = {
+export {
     getVersionNumberFromString,
     getVersionStringFromNumber,
     incrementVersion,

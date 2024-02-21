@@ -38,7 +38,7 @@ type EditSplitBillOnyxProps = {
 type EditSplitBillProps = EditSplitBillOnyxProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
 
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
-    const {field: fieldToEdit, reportID, reportActionID, currency} = route.params;
+    const {field: fieldToEdit, reportID, reportActionID, currency, tagIndex} = route.params;
 
     const {
         amount: transactionAmount,
@@ -97,6 +97,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
             <EditRequestTagPage
                 defaultTag={transactionTag ?? ''}
                 policyID={report?.policyID ?? ''}
+                tagIndex={Number(tagIndex)}
                 onSubmit={(transactionChanges) => {
                     setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
                 }}
