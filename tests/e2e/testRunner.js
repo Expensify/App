@@ -14,19 +14,19 @@
  */
 
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
-const fs = require('fs');
-const _ = require('underscore');
-const defaultConfig = require('./config');
-const Logger = require('./utils/logger');
-const execAsync = require('./utils/execAsync');
-const killApp = require('./utils/killApp');
-const launchApp = require('./utils/launchApp');
-const createServerInstance = require('./server');
-const installApp = require('./utils/installApp');
-const withFailTimeout = require('./utils/withFailTimeout');
-const reversePort = require('./utils/androidReversePort');
-const sleep = require('./utils/sleep');
-const compare = require('./compare/compare');
+import {execSync} from 'child_process';
+import fs from 'fs';
+import _ from 'underscore';
+import compare from './compare/compare';
+import defaultConfig from './config';
+import createServerInstance from './server';
+import reversePort from './utils/androidReversePort';
+import installApp from './utils/installApp';
+import killApp from './utils/killApp';
+import launchApp from './utils/launchApp';
+import * as Logger from './utils/logger';
+import sleep from './utils/sleep';
+import withFailTimeout from './utils/withFailTimeout';
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -54,7 +54,7 @@ const setConfigPath = (configPathParam) => {
     if (!configPath.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require(configPath);
+    const customConfig = require(configPath).default;
     config = _.extend(defaultConfig, customConfig);
 };
 
@@ -275,13 +275,13 @@ const run = async () => {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
-        require('child_process').execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
-        require('child_process').execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
-        require('child_process').execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
+        execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
+        execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
+        execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
 
-        require('child_process').execSync(`cat ${config.LOG_FILE}`);
+        execSync(`cat ${config.LOG_FILE}`);
         try {
-            require('child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+            execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
         } catch (ignoredError) {
             // the error is ignored, as the file might not exist if the test
             // run wasn't started with an emulator

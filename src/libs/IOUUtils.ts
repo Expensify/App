@@ -53,9 +53,18 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param isDeleting - whether the user is deleting the request
+ * @param isUpdating - whether the user is updating the request
  */
-function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(iouReport: TReport, actorAccountID: number, amount: number, currency: string, isDeleting = false): TReport {
-    if (currency !== iouReport?.currency) {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+    iouReport: TReport,
+    actorAccountID: number,
+    amount: number,
+    currency: string,
+    isDeleting = false,
+    isUpdating = false,
+): TReport {
+    // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
+    if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
         return iouReport;
     }
 

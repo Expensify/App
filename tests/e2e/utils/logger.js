@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const {LOG_FILE} = require('../config');
+import fs from 'fs';
+import path from 'path';
+import CONFIG from '../config';
 
 let isVerbose = true;
 const setLogLevelVerbose = (value) => {
@@ -18,16 +18,16 @@ const COLOR_BLUE = '\x1b[34m';
 const COLOR_GREEN = '\x1b[32m';
 
 const writeToLog = (...args) => {
-    if (!fs.existsSync(LOG_FILE)) {
+    if (!fs.existsSync(CONFIG.LOG_FILE)) {
         // Check that the directory exists
-        const logDir = path.dirname(LOG_FILE);
+        const logDir = path.dirname(CONFIG.LOG_FILE);
         if (!fs.existsSync(logDir)) {
             fs.mkdirSync(logDir);
         }
 
-        fs.writeFileSync(LOG_FILE, '');
+        fs.writeFileSync(CONFIG.LOG_FILE, '');
     }
-    fs.appendFileSync(LOG_FILE, `${args.join(' ')}\n`);
+    fs.appendFileSync(CONFIG.LOG_FILE, `${args.join(' ')}\n`);
 };
 
 const log = (...args) => {

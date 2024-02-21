@@ -4,7 +4,7 @@ const INPUT_IDS = {
     BANK_INFO_STEP: {
         ROUTING_NUMBER: 'routingNumber',
         ACCOUNT_NUMBER: 'accountNumber',
-        PLAID_MASK: 'plaidMask',
+        PLAID_MASK: 'mask',
         IS_SAVINGS: 'isSavings',
         BANK_NAME: 'bankName',
         PLAID_ACCOUNT_ID: 'plaidAccountID',
