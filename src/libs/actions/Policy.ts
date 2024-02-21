@@ -262,7 +262,9 @@ function deleteWorkspace(policyID: string, policyName: string) {
             : []),
     ];
 
-    const reportsToArchive = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+    const reportsToArchive = Object.values(allReports ?? {}).filter(
+        (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
+    );
     reportsToArchive.forEach((report) => {
         const {reportID, ownerAccountID} = report ?? {};
         optimisticData.push({
@@ -1672,7 +1674,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
-    const employeeEmail = iouReport.ownerEmail;
+    const employeeEmail = iouReport.ownerEmail ?? '';
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
     const oldPersonalPolicyID = iouReport.policyID;
     const iouReportID = iouReport.reportID;
@@ -1692,7 +1694,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    if (!employeeAccountID || !employeeEmail) {
+    if (!employeeAccountID) {
         return;
     }
 
