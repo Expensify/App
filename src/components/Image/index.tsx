@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
@@ -12,19 +11,13 @@ function Image(props: ImageProps) {
      * to the source.
      */
     const source = useMemo(() => {
-        if (typeof propsSource === 'object' && 'uri' in propsSource && typeof propsSource.uri === 'number') {
-            return propsSource.uri;
+        const authToken = session?.encryptedAuthToken ?? null;
+        if (isAuthTokenRequired && typeof propsSource === 'object' && 'uri' in propsSource && authToken) {
+            // There is currently a `react-native-web` bug preventing the authToken being passed
+            // in the headers of the image request so the authToken is added as a query param.
+            // On native the authToken IS passed in the image request headers
+            return {uri: `${propsSource?.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
-        if (typeof propsSource !== 'number' && isAuthTokenRequired) {
-            const authToken = session?.encryptedAuthToken;
-            return {
-                ...propsSource,
-                headers: {
-                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken ?? '',
-                },
-            };
-        }
-
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // eslint-disable-next-line react-hooks/exhaustive-deps
