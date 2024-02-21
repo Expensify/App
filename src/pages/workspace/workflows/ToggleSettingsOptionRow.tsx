@@ -56,6 +56,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
             fontSize: 13,
             color: theme.textSupporting,
             marginTop: 3,
+            marginRight: 20,
         },
     } satisfies Styles;
 
