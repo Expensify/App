@@ -71,7 +71,7 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
 
-    /** Whether we should display the animated above the component */
+    /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
 };
 

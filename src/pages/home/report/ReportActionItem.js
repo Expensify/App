@@ -62,6 +62,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
@@ -77,7 +78,6 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -637,7 +637,7 @@ function ReportActionItem(props) {
                     <MoneyRequestView
                         report={props.report}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                        shouldShowAnimatedBackground={true}
+                        shouldShowAnimatedBackground
                     />
                 </ShowContextMenuContext.Provider>
             );
