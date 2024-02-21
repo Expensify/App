@@ -81,17 +81,17 @@ type PayeePersonalDetails = {
     keyForList: string;
 };
 
-type CategoryBase = {
+type CategorySectionBase = {
     title: string | undefined;
     shouldShow: boolean;
     indexOffset: number;
 };
 
-type CategorySection = CategoryBase & {
+type CategorySection = CategorySectionBase & {
     data: Option[];
 };
 
-type CategoryTreeSection = CategoryBase & {
+type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
 };
 
