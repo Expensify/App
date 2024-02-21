@@ -1,2 +1,2 @@
 // mobile platform plays a sound when notification is delivered (in native code)
-export default function playSoundOnWebOnly() {}
+export default function playSoundExcludingMobile() {}
