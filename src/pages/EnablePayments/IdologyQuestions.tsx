@@ -126,9 +126,10 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                     prompt={currentQuestion.prompt}
                     possibleAnswers={possibleAnswers}
                     currentQuestionIndex={currentQuestionIndex}
-                    onInputChange={chooseAnswer}
-                    // NOTEME: check the PR where this was added
-                    // onValueChange={chooseAnswer}
+                    onValueChange={(value) => {
+                        chooseAnswer(String(value));
+                    }}
+                    onInputChange={() => {}}
                 />
             </FormProvider>
         </View>
