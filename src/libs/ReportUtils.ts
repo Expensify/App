@@ -1633,6 +1633,11 @@ function getIcons(
         };
         const isPayer = currentUserAccountID === report?.managerID;
 
+        // For one transaction IOUs, display a simplified report icon
+        if (isOneTransactionReport(report)) {
+            return [ownerIcon];
+        }
+
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
 
@@ -4414,6 +4419,10 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
     }
 
     if (isExpenseRequest(report)) {
+        return true;
+    }
+
+    if (isExpenseReport(report) && isOneTransactionReport(report)) {
         return true;
     }
 
