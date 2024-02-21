@@ -97,10 +97,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
-    const isFreePolicy = PolicyUtils.isFreePolicy(policy);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+    const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
 
-    const protectedMenuItems: WorkspaceMenuItem[] = [
+    const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
@@ -148,12 +148,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
-    const moreFeaturesMenuItems: WorkspaceMenuItem[] = [
+
+    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.WORKFLOWS,
+        },
+        {
+            translationKey: 'workspace.common.members',
+            icon: Expensicons.Users,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
+            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            routeName: SCREENS.WORKSPACE.MEMBERS,
         },
     ];
 
@@ -165,8 +173,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
         },
-        ...(isPaidGroupPolicy && shouldShowProtectedItems ? moreFeaturesMenuItems : []),
-        ...(isFreePolicy && shouldShowProtectedItems ? protectedMenuItems : []),
+        ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
+        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
