@@ -146,7 +146,6 @@ import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
-import LoungeAccess from './svgs/LoungeAccessIcon';
 
 export {
     ActiveRoomAvatar,
@@ -235,7 +234,6 @@ export {
     LinkCopy,
     Location,
     Lock,
-    LoungeAccess,
     Luggage,
     MagnifyingGlass,
     Mail,

@@ -1,14 +1,22 @@
-const {formatDurationDiffChange} = require('./format');
+import * as format from './format';
 
-const printRegularLine = (entry) => {
-    console.debug(` - ${entry.name}: ${formatDurationDiffChange(entry)}`);
+type Entry = {
+    name: string;
+};
+
+type Data = {
+    significance: Entry[];
+    meaningless: Entry[];
+};
+
+const printRegularLine = (entry: Entry) => {
+    console.debug(` - ${entry.name}: ${format.formatDurationDiffChange(entry)}`);
 };
 
 /**
  * Prints the result simply to console.
- * @param {Object} data
  */
-module.exports = (data) => {
+export default (data: Data) => {
     // No need to log errors or warnings as these were be logged on the fly
     console.debug('');
     console.debug('❇️  Performance comparison results:');
