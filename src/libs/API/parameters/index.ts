@@ -9,8 +9,7 @@ export type {default as BeginAppleSignInParams} from './BeginAppleSignInParams';
 export type {default as BeginGoogleSignInParams} from './BeginGoogleSignInParams';
 export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
-export type {default as ConnectBankAccountManuallyParams} from './ConnectBankAccountManuallyParams';
-export type {default as ConnectBankAccountWithPlaidParams} from './ConnectBankAccountWithPlaidParams';
+export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
@@ -109,6 +108,7 @@ export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvat
 export type {default as AddMembersToWorkspaceParams} from './AddMembersToWorkspaceParams';
 export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersFromWorkspaceParams';
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
+export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams';
 export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceReimburseViewParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
