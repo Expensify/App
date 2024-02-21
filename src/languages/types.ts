@@ -106,7 +106,7 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type RequestAmountParams = {amount: number};
+type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
