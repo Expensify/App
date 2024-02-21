@@ -89,7 +89,4 @@ const computeProbability = (z) => {
     return 0.2;
 };
 
-module.exports = {
-    computeZ,
-    computeProbability,
-};
+export {computeZ, computeProbability};

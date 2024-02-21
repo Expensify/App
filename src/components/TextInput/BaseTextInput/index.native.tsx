@@ -9,7 +9,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RNTextInput from '@components/RNTextInput';
-import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
@@ -35,6 +34,7 @@ function BaseTextInput(
         defaultValue = undefined,
         placeholder = '',
         errorText = '',
+        iconLeft = null,
         icon = null,
         textInputContainerStyles,
         touchableInputWrapperStyle,
@@ -50,9 +50,7 @@ function BaseTextInput(
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
-        submitOnEnter = false,
         multiline = false,
-        shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
@@ -248,6 +246,8 @@ function BaseTextInput(
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles)?.maxHeight;
@@ -262,12 +262,9 @@ function BaseTextInput(
 
     return (
         <>
-            <View
-                style={[styles.pointerEventsNone, containerStyles]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
-            >
+            <View style={[containerStyles]}>
                 <PressableWithoutFeedback
+                    role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
@@ -303,6 +300,16 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                            {iconLeft && (
+                                <View style={styles.textInputLeftIconContainer}>
+                                    <Icon
+                                        src={iconLeft}
+                                        fill={theme.icon}
+                                        height={20}
+                                        width={20}
+                                    />
+                                </View>
+                            )}
                             {!!prefixCharacter && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
@@ -363,9 +370,6 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
-                                // FormSubmit Enter key handler does not have access to direct props.
-                                // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                dataSet={{submitOnEnter: isMultiline && submitOnEnter}}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator
