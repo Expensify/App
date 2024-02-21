@@ -1,8 +1,11 @@
-import * as Request from '../../src/libs/Request';
+import * as Request from '@src/libs/Request';
+import type {Middleware} from '@src/libs/Request';
+import type * as OnyxTypes from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 beforeAll(() => {
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
 });
 
@@ -13,7 +16,7 @@ beforeEach(() => {
 test('Request.use() can register a middleware and it will run', () => {
     const testMiddleware = jest.fn();
     Request.use(testMiddleware);
-    const request = {
+    const request: OnyxTypes.Request = {
         command: 'MockCommand',
         data: {authToken: 'testToken'},
     };
@@ -35,11 +38,11 @@ test('Request.use() can register two middlewares. They can pass a response to th
     });
 
     // And another middleware that will throw when it sees this jsonCode
-    const errorThrowingMiddleware = (promise) =>
+    const errorThrowingMiddleware: Middleware = (promise: Promise<void | OnyxTypes.Response>) =>
         promise.then(
-            (response) =>
+            (response: void | OnyxTypes.Response) =>
                 new Promise((resolve, reject) => {
-                    if (response.jsonCode !== 404) {
+                    if (typeof response === 'object' && response.jsonCode !== 404) {
                         return;
                     }
 
