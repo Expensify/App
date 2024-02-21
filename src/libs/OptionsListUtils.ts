@@ -60,7 +60,7 @@ type Tag = {
 type Option = Partial<ReportUtils.OptionData>;
 
 /**
- * Narrowed version of `Option` used when we have guarantee that given values exist.
+ * A narrowed version of `Option` is used when we have a guarantee that given values exist.
  */
 type OptionTree = {
     text: string;
