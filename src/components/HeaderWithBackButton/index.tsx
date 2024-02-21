@@ -74,11 +74,17 @@ function HeaderWithBackButton({
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
             return (
-                <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBar}>
-                        <View style={[{width: `${progressBarPercentage}%`}, styles.progressBarFill]} />
+                <>
+                    {/* Reserves as much space for the middleContent as possible */}
+                    <View style={styles.flexGrow1} />
+                    {/* Uses absolute positioning so that it's always centered instead of being affected by the
+                    presence or absence of back/close buttons to the left/right of it */}
+                    <View style={styles.progressBarContainer}>
+                        <View style={styles.progressBar}>
+                            <View style={[{width: `${progressBarPercentage}%`}, styles.progressBarFill]} />
+                        </View>
                     </View>
-                </View>
+                </>
             );
         }
 

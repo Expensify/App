@@ -410,6 +410,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
+        textHeroSmall: {
+            ...headlineFont,
+            fontSize: variables.fontSizeSignInHeroSmall,
+            lineHeight: variables.fontSizeSignInHeroSmallLineHeight,
+        },
+
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
