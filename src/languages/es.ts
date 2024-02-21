@@ -1266,7 +1266,7 @@ export default {
     },
     focusModeUpdateModal: {
         title: '¡Bienvenido al modo #concentración!',
-        prompt: 'Permanece al tanto solo viendo los chats no leídos o los chats que requieren tu atención. No te preocupes, puedes cambiar esto en cualquier momento en la ',
+        prompt: 'Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar esto en cualquier momento en la ',
         settings: 'configuración',
     },
     notFound: {
