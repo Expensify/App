@@ -29,16 +29,12 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
-
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    policy: {},
     transaction: {},
-    policyTaxRates: {},
 };
 
 const getTaxAmount = (transaction, defaultTaxValue) => {
@@ -53,7 +49,7 @@ function IOURequestStepTaxAmountPage({
     transaction,
     transaction: {currency},
     report,
-    policyTaxRates,
+    policy,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -63,6 +59,7 @@ function IOURequestStepTaxAmountPage({
 
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
+    const policyTaxRates = lodashGet(policy, 'taxRates', {});
 
     useEffect(() => {
         if (transaction.originalCurrency) {
@@ -158,8 +155,8 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepTaxAmountPage);
