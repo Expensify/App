@@ -60,7 +60,7 @@ type CustomLHNOptionsListProps = {
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
 
-    reportsWithErrorsIds: Record<string, OnyxCommon.Errors>;
+    reportIDsWithErrors: Record<string, OnyxCommon.Errors>;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue & LHNOptionsListOnyxProps;

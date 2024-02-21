@@ -128,18 +128,18 @@ function SidebarLinksData({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
-    const reportsWithErrorsIds = useMemo(() => {
+    const reportIDsWithErrors = useMemo(() => {
         const reportKeys = _.keys(chatReports);
         return _.reduce(
             reportKeys,
             (errorsMap, reportKey) => {
                 const report = chatReports[reportKey];
-                const allReportsActions = allReportActions[reportKey.replace('report_', 'reportActions_')];
+                const allReportsActions = allReportActions[reportKey.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)];
                 const errors = OptionsListUtils.getAllReportErrors(report, allReportsActions) || {};
                 if (_.size(errors) === 0) {
                     return errorsMap;
                 }
-                return {...errorsMap, [reportKey.replace('report_', '')]: errors};
+                return {...errorsMap, [reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '')]: errors};
             },
             {},
         );
@@ -158,7 +158,7 @@ function SidebarLinksData({
             transactionViolations,
             activeWorkspaceID,
             policyMemberAccountIDs,
-            reportsWithErrorsIds,
+            reportIDsWithErrors,
         );
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
@@ -181,7 +181,7 @@ function SidebarLinksData({
         transactionViolations,
         activeWorkspaceID,
         policyMemberAccountIDs,
-        reportsWithErrorsIds,
+        reportIDsWithErrors,
         isLoading,
         network.isOffline,
         prevPriorityMode,
@@ -204,7 +204,7 @@ function SidebarLinksData({
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
-                reportsWithErrorsIds,
+                reportIDsWithErrors,
             );
         }
         return optionListItems;
@@ -219,7 +219,7 @@ function SidebarLinksData({
         transactionViolations,
         activeWorkspaceID,
         policyMemberAccountIDs,
-        reportsWithErrorsIds,
+        reportIDsWithErrors,
     ]);
 
     const currentReportIDRef = useRef(currentReportID);
@@ -242,7 +242,7 @@ function SidebarLinksData({
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
                 activeWorkspaceID={activeWorkspaceID}
-                reportsWithErrorsIds={reportsWithErrorsIds}
+                reportIDsWithErrors={reportIDsWithErrors}
             />
         </View>
     );

@@ -70,6 +70,7 @@ function OptionRowLHNData({
         transactionViolations,
         canUseViolations,
         receiptTransactions,
+        reportErrors,
     ]);
 
     useEffect(() => {

@@ -80,13 +80,13 @@ function getOrderedReportIDs(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
-    reportsWithErrorsIds: Record<string, OnyxCommon.Errors> = {},
+    reportIDsWithErrors: Record<string, OnyxCommon.Errors> = {},
 ): string[] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
 
-    const reportIDsWithViolations: Record<string, boolean> = {};
+    const reportIDsWithViolations = new Set<string>();
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
@@ -95,7 +95,7 @@ function getOrderedReportIDs(
         const doesReportHaveViolations =
             betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         if (doesReportHaveViolations) {
-            reportIDsWithViolations[report.reportID] = true;
+            reportIDsWithViolations.add(report.reportID);
         }
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -141,7 +141,7 @@ function getOrderedReportIDs(
         // eslint-disable-next-line no-param-reassign
         report.displayName = filterDisplayName(ReportUtils.getReportName(report));
 
-        const hasRBR = report.reportID in reportsWithErrorsIds || report.reportID in reportIDsWithViolations;
+        const hasRBR = report.reportID in reportIDsWithErrors || reportIDsWithViolations.has(report.reportID);
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
