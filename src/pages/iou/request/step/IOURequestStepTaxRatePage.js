@@ -2,7 +2,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import TaxPicker from '@components/TaxPicker';
-import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -21,10 +20,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
-
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
