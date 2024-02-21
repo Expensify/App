@@ -223,8 +223,7 @@ Onyx.connect({
  * @param reportID to attach the transaction to
  * @param iouRequestType one of manual/scan/distance
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // Disabling this line since currentDate can be an empty string
@@ -257,6 +256,12 @@ function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCr
 
 function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function startMoneyRequest_temporaryForRefactor(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -789,6 +794,8 @@ function getMoneyRequestInformation(
         receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
         currency,
@@ -804,6 +811,7 @@ function getMoneyRequestInformation(
         category,
         tag,
         billable,
+        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
 
     const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
@@ -814,8 +822,7 @@ function getMoneyRequestInformation(
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
-    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
-    if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+    if (isDistanceRequest) {
         optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
@@ -3293,9 +3300,10 @@ function getSendMoneyParams(
 }
 
 function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
+    const total = iouReport.total ?? 0;
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        -(iouReport.total ?? 0),
+        ReportUtils.isExpenseReport(iouReport) ? -total : total,
         iouReport.currency ?? '',
         '',
         [recipient],
@@ -4095,11 +4103,11 @@ export {
     payMoneyRequest,
     sendMoneyWithWallet,
     startMoneyRequest,
+    initMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestCategory,
     resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
-    clearMoneyRequest,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory_temporaryForRefactor,
