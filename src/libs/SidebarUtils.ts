@@ -292,8 +292,16 @@ function getOptionData({
     const isThreadMessage =
         ReportUtils.isThread(report) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
+    // Currently the back-end is not returning the `lastActionName` so I use this to mock,
+    // ideally it should be returned from the back-end in the `report`, like the `lastMessageText` and `lastMessageHtml`
+    if (report.lastMessageHtml && report.lastMessageHtml.includes('invited <mention-user')) {
+        report.lastActionName = CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM;
+    }
+
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
+
+        const lastActionName = lastAction?.actionName ?? report.lastActionName;
 
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
@@ -301,18 +309,18 @@ function getOptionData({
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = TaskUtils.getTaskReportActionMessage(lastAction.actionName);
         } else if (
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
         ) {
-            const targetAccountIDs = lastAction?.originalMessage?.targetAccountIDs ?? [];
+            const targetAccountIDsLength = lastAction?.originalMessage?.targetAccountIDs?.length ?? report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? [];
             const verb =
-                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
                     ? Localize.translate(preferredLocale, 'workspace.invite.invited')
                     : Localize.translate(preferredLocale, 'workspace.invite.removed');
-            const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDs.length} ${users}`.trim();
+            const users = Localize.translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
+            result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`.trim();
 
             const roomName = lastAction?.originalMessage?.roomName ?? '';
             if (roomName) {
