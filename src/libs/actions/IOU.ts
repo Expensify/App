@@ -400,6 +400,7 @@ function buildOnyxDataForMoneyRequest(
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
+    const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
 
     if (chatReport) {
@@ -536,7 +537,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: null,
-                pendingFields: null,
+                pendingFields: clearedPendingFields,
             },
         },
 
@@ -611,7 +612,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 pendingAction: null,
-                pendingFields: null,
+                pendingFields: clearedPendingFields,
             },
         },
 
