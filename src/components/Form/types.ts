@@ -11,6 +11,7 @@ import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
+import type ValuePicker from '@components/ValuePicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
@@ -21,7 +22,7 @@ import type {BaseForm} from '@src/types/form/Form';
  * when adding new inputs or removing old ones.
  *
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * EmojiPickerButtonDropdown | ValuePicker
+ * EmojiPickerButtonDropdown
  */
 type ValidInputs =
     | typeof TextInput
@@ -34,7 +35,8 @@ type ValidInputs =
     | typeof AmountForm
     | typeof BusinessTypePicker
     | typeof StatePicker
-    | typeof RoomNameInput;
+    | typeof RoomNameInput
+    | typeof ValuePicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {
