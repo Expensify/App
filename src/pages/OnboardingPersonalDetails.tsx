@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -32,7 +33,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
     }, []);
 
     return (
-        <View style={[styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
+        <View style={[styles.h100, styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton={false}
                 shouldShowCloseButton
@@ -40,18 +41,25 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                 iconFill={theme.iconColorfulBackground}
                 progressBarPercentage={33.3}
             />
-            <View style={[styles.mv5, styles.mh8]}>
-                <Text style={[styles.textHeroSmall, styles.mb5]}>{translate('onboarding.welcome')}</Text>
+            <KeyboardAvoidingView
+                style={[styles.flex1, styles.dFlex]}
+                behavior="padding"
+            >
                 <FormProvider
-                    style={styles.flexGrow1}
+                    style={[styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     // validate={validate}
                     // onSubmit={updateDisplayName}
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
+                    submitFlexEnabled
                     shouldValidateOnBlur
                     shouldValidateOnChange
                 >
+                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                        <Text style={[styles.textHeroSmall]}>{translate('onboarding.welcome')} </Text>
+                        <Text style={[styles.textHeroSmall]}>{translate('onboarding.whatsYourName')}</Text>
+                    </View>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -79,7 +87,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                         />
                     </View>
                 </FormProvider>
-            </View>
+            </KeyboardAvoidingView>
         </View>
     );
 }

@@ -1186,7 +1186,8 @@ export default {
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
     onboarding: {
-        welcome: "Welcome! What's your name?",
+        welcome: 'Welcome!',
+        whatsYourName: "What's your name?",
     },
     personalDetails: {
         error: {
