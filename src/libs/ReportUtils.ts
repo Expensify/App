@@ -2305,9 +2305,9 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    const linkedTransaction = !isEmptyObject(reportAction) ? TransactionUtils.getLinkedTransaction(reportAction) : {};
     if (!isEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
         // This covers group chats where the last action is a split bill action
+        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -2341,14 +2341,12 @@ function getReportPreviewMessage(
         });
     }
 
-    if (
-        !isEmptyObject(linkedTransaction) &&
-        !isEmptyObject(reportAction) &&
-        shouldConsiderScanningReceiptOrPendingRoute &&
-        TransactionUtils.hasReceipt(linkedTransaction) &&
-        TransactionUtils.isReceiptBeingScanned(linkedTransaction) &&
-        ReportActionsUtils.isMoneyRequestAction(reportAction)
-    ) {
+    let linkedTransaction;
+    if (!isEmptyObject(reportAction) && shouldConsiderScanningReceiptOrPendingRoute && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+    }
+
+    if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
@@ -2385,7 +2383,6 @@ function getReportPreviewMessage(
     }
 
     const lastActorID = reportAction?.actorAccountID;
-    const comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
     let amount = originalMessage?.amount;
     let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
 
@@ -2393,6 +2390,11 @@ function getReportPreviewMessage(
         amount = TransactionUtils.getAmount(linkedTransaction, isExpenseReport(report));
         currency = TransactionUtils.getCurrency(linkedTransaction);
     }
+
+    if (isEmptyObject(linkedTransaction) && !isEmptyObject(reportAction)) {
+        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+    }
+    const comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
