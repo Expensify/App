@@ -279,6 +279,8 @@ function getOptionData({
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
+    // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
+    // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
     result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;
