@@ -131,6 +131,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 scrollContextEnabled
                 submitButtonText={translate('common.confirm')}
                 style={[styles.mh5, styles.flexGrow1]}
+                enabledWhenOffline={false}
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
