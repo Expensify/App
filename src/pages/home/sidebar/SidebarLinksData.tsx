@@ -24,7 +24,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import SidebarLinks from './SidebarLinks';
 
 type SidebarLinksDataOnyxProps = {
-    chatReports: OnyxEntry<
+    chatReports: OnyxCollection<
         Pick<
             OnyxTypes.Report,
             | 'reportID'
@@ -63,7 +63,7 @@ type SidebarLinksDataOnyxProps = {
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     allReportActions: OnyxEntry<Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message'>>>;
-    policies: OnyxEntry<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>;
+    policies: OnyxCollection<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>;
     policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
@@ -83,7 +83,6 @@ function SidebarLinksData({
     policies,
     priorityMode = CONST.PRIORITY_MODE.DEFAULT,
     policyMembers,
-    // session: {accountID},
     transactionViolations,
 }: SidebarLinksDataProps) {
     const {currentReportID} = useCurrentReportID() ?? {};

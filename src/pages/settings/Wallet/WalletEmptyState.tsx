@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -12,12 +12,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-const propTypes = {
+type WalletEmptyStateProps = {
     /** The function that is called when a menu item is pressed */
-    onAddPaymentMethod: PropTypes.func.isRequired,
+    onAddPaymentMethod: () => void;
 };
 
-const WALLET_FEATURES = [
+const WALLET_FEATURES: FeatureListItem[] = [
     {
         icon: Illustrations.MoneyIntoWallet,
         translationKey: 'walletPage.getPaidBackFaster',
@@ -32,7 +32,7 @@ const WALLET_FEATURES = [
     },
 ];
 
-function WalletEmptyState({onAddPaymentMethod}) {
+function WalletEmptyState({onAddPaymentMethod}: WalletEmptyStateProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -63,6 +63,5 @@ function WalletEmptyState({onAddPaymentMethod}) {
 }
 
 WalletEmptyState.displayName = 'WalletEmptyState';
-WalletEmptyState.propTypes = propTypes;
 
 export default WalletEmptyState;
