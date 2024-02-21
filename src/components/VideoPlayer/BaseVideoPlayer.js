@@ -164,7 +164,9 @@ function BaseVideoPlayer({
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
-        <>
+        // We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
+        // events will bubble up the tree, and it will cause unexpected press behavior.
+        <PressableWithoutFeedback accessibilityRole="button">
             <View style={style}>
                 <Hoverable>
                     {(isHovered) => (
@@ -243,7 +245,7 @@ function BaseVideoPlayer({
                 hidePopover={hidePopoverMenu}
                 anchorPosition={popoverAnchorPosition}
             />
-        </>
+        </PressableWithoutFeedback>
     );
 }
 
