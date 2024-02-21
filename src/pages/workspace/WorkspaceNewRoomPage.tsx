@@ -75,7 +75,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
                 .map((policy) => ({
                     label: policy.name,
-                    key: policy.id,
                     value: policy.id,
                 }))
                 .sort((a, b) => a.label.toLowerCase().localeCompare(b.label.toLowerCase())) ?? [],
@@ -288,7 +287,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 <InputWrapper
                                     InputComponent={ValuePicker}
                                     inputID={INPUT_IDS.POLICY_ID}
-                                    // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
                                     value={policyID}
@@ -300,7 +298,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     <InputWrapper
                                         InputComponent={ValuePicker}
                                         inputID={INPUT_IDS.WRITE_CAPABILITY}
-                                        // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
                                         value={writeCapability}
@@ -312,7 +309,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 <InputWrapper
                                     InputComponent={ValuePicker}
                                     inputID={INPUT_IDS.VISIBILITY}
-                                    // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
                                     onValueChange={(value) => setVisibility(value as typeof visibility)}

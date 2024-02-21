@@ -6,6 +6,7 @@ import * as Device from '@userActions/Device';
 import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import initializeLastVisitedPath from './initializeLastVisitedPath';
 import platformSetup from './platformSetup';
 
 export default function () {
@@ -40,6 +41,8 @@ export default function () {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
+            // Always open the home route on app startup for native platforms by clearing the lastVisitedPath
+            [ONYXKEYS.LAST_VISITED_PATH]: initializeLastVisitedPath(),
         },
     });
 
