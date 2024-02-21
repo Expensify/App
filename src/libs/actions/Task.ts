@@ -13,6 +13,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -309,6 +310,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
         completedTaskReportActionID: completedTaskReportAction.reportActionID,
     };
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
 }
 
@@ -729,7 +731,6 @@ function deleteTask(taskReportID: string, taskTitle: string, originalStateNum: n
         ],
         errors: undefined,
         linkMetadata: [],
-        reportActionID: '',
     };
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: optimisticReportAction,
@@ -751,8 +752,7 @@ function deleteTask(taskReportID: string, taskTitle: string, originalStateNum: n
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
             value: {
                 lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID ?? '', optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ?? '',
-                lastVisibleActionCreated:
-                    ReportActionsUtils.getLastVisibleAction(parentReport?.reportID ?? '', optimisticReportActions as OnyxTypes.ReportActions)?.childLastVisibleActionCreated ?? 'created',
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID ?? '', optimisticReportActions as OnyxTypes.ReportActions)?.created,
             },
         },
         {
@@ -876,8 +876,13 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, policyRole: PolicyValue | undefined): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
+        return false;
+    }
+
+    const parentReport = ReportUtils.getParentReport(taskReport);
+    if (ReportUtils.isArchivedRoom(parentReport)) {
         return false;
     }
 
@@ -885,16 +890,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    const parentReport = ReportUtils.getParentReport(taskReport);
-
-    if (policyRole && !isEmptyObject(parentReport) && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
-        return false;
-    }
-
-    // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
-    // - If the parent report is an #admins only room
-    // - If you are a policy admin
-    return !isEmptyObject(parentReport) && ReportUtils.isAllowedToComment(parentReport);
+    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
 }
 
 function clearTaskErrors(reportID: string) {

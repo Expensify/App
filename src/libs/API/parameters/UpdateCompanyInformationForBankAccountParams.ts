@@ -1,8 +1,5 @@
-import type {BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {CompanyStepProps} from '@src/types/form/ReimbursementAccountForm';
 
-type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
-
-type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & {policyID: string};
+type UpdateCompanyInformationForBankAccountParams = CompanyStepProps & {bankAccountID: number; policyID: string; canUseNewVbbaFlow?: boolean};
 
 export default UpdateCompanyInformationForBankAccountParams;
-export type {BankAccountCompanyInformation};

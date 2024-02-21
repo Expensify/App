@@ -14,10 +14,12 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import Navigation from '@libs/Navigation/Navigation';
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
@@ -36,6 +38,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
+    const {backTo} = route.params;
 
     if (!Object.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES).includes(contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
@@ -59,6 +62,14 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
+            testID={ReferralDetailsPage.displayName}
+            onBackButtonPress={() => {
+                if (backTo) {
+                    Navigation.goBack(backTo as Route);
+                    return;
+                }
+                Navigation.goBack();
+            }}
         >
             <Text style={[styles.textHeadline, styles.mb2, styles.ph5]}>{contentHeader}</Text>
             <Text style={[styles.webViewStyles.baseFontStyle, styles.ml0, styles.mb5, styles.ph5]}>{contentBody}</Text>
