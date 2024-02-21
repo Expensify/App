@@ -1,7 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {FlatList, View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -30,6 +32,18 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const theme = useTheme();  
     
+    const [policyOwnerDisplayName, setPolicyOwnerDisplayName] = useState('');
+
+    useEffect(() => {
+        if (!policy?.ownerAccountID) { 
+            return;
+        }
+        const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy.ownerAccountID], CONST.EMPTY_OBJECT), false);
+        if (ownerPersonalDetails.length > 0 && ownerPersonalDetails[0].displayName) {
+            setPolicyOwnerDisplayName(ownerPersonalDetails[0].displayName);
+        }
+    }, [policy]);
+
     // Since these styles are only used in this component we define them here
     const workflowsStyles = {
         subMenuContainer: {
@@ -91,7 +105,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     title={translate('workflowsPage.approver')}
                     titleStyle={workflowsStyles.subMenuTitle}
                     descriptionTextStyle={workflowsStyles.subMenuDescription}
-                    description={policy?.owner ?? ''}
+                    description={policyOwnerDisplayName ?? ''}
                     // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                     // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                     shouldShowRightIcon
@@ -122,7 +136,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             isEndOptionRow: true,
             hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
         },
-    ]), [policy, route.params.policyID, styles, translate, workflowsStyles.subMenuContainer, workflowsStyles.subMenuDescription, workflowsStyles.subMenuTitle]);
+    ]), [policy, route.params.policyID, styles, translate, workflowsStyles.subMenuContainer, workflowsStyles.subMenuDescription, workflowsStyles.subMenuTitle, policyOwnerDisplayName]);
     
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
         <View style={styles.mt7}>
@@ -170,3 +184,4 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
 export default withPolicy(WorkspaceWorkflowsPage);
+
