@@ -98,8 +98,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
 
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
+    const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+    const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
 
-    const protectedMenuItems: WorkspaceMenuItem[] = [
+    const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
@@ -148,14 +150,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         },
     ];
 
-    if (PolicyUtils.isPaidGroupPolicy(policy)) {
-        protectedMenuItems.push({
-            translationKey: 'workspace.common.categories',
-            icon: Expensicons.Folder,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.CATEGORIES,
-        });
-    }
+    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.common.members',
+            icon: Expensicons.Users,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
+            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            routeName: SCREENS.WORKSPACE.MEMBERS,
+        },
+    ];
 
     const menuItems: WorkspaceMenuItem[] = [
         {
@@ -165,7 +168,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
         },
-        ...(shouldShowProtectedItems ? protectedMenuItems : []),
+        ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
+        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
