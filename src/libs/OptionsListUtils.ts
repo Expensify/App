@@ -111,8 +111,8 @@ type GetOptionsConfig = {
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
-    includePolicyTaxRates?: boolean;
-    policyTaxRates?: PolicyTaxRates;
+    includeTaxRates?: boolean;
+    taxRates?: PolicyTaxRates;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
@@ -141,7 +141,7 @@ type GetOptions = {
     currentUserOption: ReportUtils.OptionData | null | undefined;
     categoryOptions: CategorySection[];
     tagOptions: CategorySection[];
-    policyTaxRatesOptions: CategorySection[];
+    taxRatesOptions: CategorySection[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
@@ -1175,13 +1175,13 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
- * @param  policyTaxRates - The original tax rates object.
+ * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policyTaxRates: PolicyTaxRates | undefined): Record<string, TaxRate> {
-    const defaultTaxKey = policyTaxRates?.defaultExternalID;
+function transformedTaxRates(taxRates: PolicyTaxRates | undefined): Record<string, TaxRate> {
+    const defaultTaxKey = taxRates?.defaultExternalID;
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(Object.entries(policyTaxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
 
@@ -1210,10 +1210,10 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(policyTaxRates: PolicyTaxRates | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: PolicyTaxRates | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(policyTaxRates);
+    const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
@@ -1352,8 +1352,8 @@ function getOptions(
         canInviteUser = true,
         includeSelectedOptions = false,
         transactionViolations = {},
-        includePolicyTaxRates,
-        policyTaxRates,
+        includeTaxRates,
+        taxRates,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1366,7 +1366,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1380,12 +1380,12 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
-    if (includePolicyTaxRates) {
-        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions as Category[], searchInputValue);
+    if (includeTaxRates) {
+        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Category[], searchInputValue);
 
         return {
             recentReports: [],
@@ -1394,7 +1394,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions,
+            taxRatesOptions,
         };
     }
 
@@ -1406,7 +1406,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1695,7 +1695,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
-        policyTaxRatesOptions: [],
+        taxRatesOptions: [],
     };
 }
 
@@ -1792,8 +1792,8 @@ function getFilteredOptions(
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
-    includePolicyTaxRates = false,
-    policyTaxRates: PolicyTaxRates = {} as PolicyTaxRates,
+    includeTaxRates = false,
+    taxRates: PolicyTaxRates = {} as PolicyTaxRates,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1813,8 +1813,8 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
-        includePolicyTaxRates,
-        policyTaxRates,
+        includeTaxRates,
+        taxRates,
     });
 }
 
