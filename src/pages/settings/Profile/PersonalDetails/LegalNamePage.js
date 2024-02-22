@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -20,14 +21,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/LegalNameForm';
 
+
 const propTypes = {
     /* Onyx Props */
-
-    /** User's private personal details */
     privatePersonalDetails: PropTypes.shape({
         legalFirstName: PropTypes.string,
         legalLastName: PropTypes.string,
     }),
+
+    isLoadingApp: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -37,6 +39,7 @@ const defaultProps = {
         legalFirstName: '',
         legalLastName: '',
     },
+    isLoadingApp: true,
 };
 
 const updateLegalName = (values) => {
@@ -86,39 +89,43 @@ function LegalNamePage(props) {
                 title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                validate={validate}
-                onSubmit={updateLegalName}
-                submitButtonText={props.translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={[styles.mb4]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                        name="lfname"
-                        label={props.translate('privatePersonalDetails.legalFirstName')}
-                        aria-label={props.translate('privatePersonalDetails.legalFirstName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={legalFirstName}
-                        spellCheck={false}
-                    />
-                </View>
-                <View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                        name="llname"
-                        label={props.translate('privatePersonalDetails.legalLastName')}
-                        aria-label={props.translate('privatePersonalDetails.legalLastName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={legalLastName}
-                        spellCheck={false}
-                    />
-                </View>
-            </FormProvider>
+            {props.isLoadingApp ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
+                    validate={validate}
+                    onSubmit={updateLegalName}
+                    submitButtonText={props.translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={[styles.mb4]}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                            name="lfname"
+                            label={props.translate('privatePersonalDetails.legalFirstName')}
+                            aria-label={props.translate('privatePersonalDetails.legalFirstName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalFirstName}
+                            spellCheck={false}
+                        />
+                    </View>
+                    <View>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                            name="llname"
+                            label={props.translate('privatePersonalDetails.legalLastName')}
+                            aria-label={props.translate('privatePersonalDetails.legalLastName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={legalLastName}
+                            spellCheck={false}
+                        />
+                    </View>
+                </FormProvider>
+            )}
         </ScreenWrapper>
     );
 }
@@ -132,6 +139,9 @@ export default compose(
     withOnyx({
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
     }),
 )(LegalNamePage);
