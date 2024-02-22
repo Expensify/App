@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -40,7 +41,6 @@ import ROUTES from '@src/ROUTES';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import Badge from "@components/Badge";
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -337,11 +337,7 @@ function WorkspaceMembersPage(props) {
                     <Badge
                         text={isOwner ? props.translate('common.owner') : props.translate('common.admin')}
                         textStyles={styles.textStrong}
-                        badgeStyles={[
-                            styles.justifyContentCenter,
-                            StyleUtils.getMinimumWidth(60),
-                            styles.mr3,
-                        ]}
+                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
                     />
                 );
             }
@@ -406,7 +402,7 @@ function WorkspaceMembersPage(props) {
             <View>
                 <Text style={styles.searchInputStyle}>{props.translate('common.member')}</Text>
             </View>
-            <View style={[StyleUtils.getMinimumWidth(60), styles.mr3]}>
+            <View style={[StyleUtils.getMinimumWidth(60)]}>
                 <Text style={styles.searchInputStyle}>{props.translate('common.role')}</Text>
             </View>
         </View>
