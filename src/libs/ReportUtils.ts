@@ -723,7 +723,7 @@ function hasParticipantInArray(report: Report, policyMemberAccountIDs: number[])
  * Whether the Money Request report is settled
  */
 function isSettled(reportID: string | undefined): boolean {
-    if (!allReports) {
+    if (!allReports || !reportID) {
         return false;
     }
     const report: Report | EmptyObject = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
