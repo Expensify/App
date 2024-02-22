@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
 import type {TableListItemProps} from './types';
 
-function UserListItem({
+function TableListItem({
     item,
     isFocused,
     showTooltip,
@@ -85,6 +85,6 @@ function UserListItem({
     );
 }
 
-UserListItem.displayName = 'UserListItem';
+TableListItem.displayName = 'TableListItem';
 
-export default UserListItem;
+export default TableListItem;
