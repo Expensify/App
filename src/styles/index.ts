@@ -3115,21 +3115,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pb2,
         },
 
-        peopleBadge: {
-            backgroundColor: theme.buttonDefaultBG,
-            paddingHorizontal: 6,
-            ...flex.justifyContentCenter,
-            ...borders.br1,
-            ...spacing.mh0,
-        },
-
-        peopleBadgeText: {
-            color: theme.text,
-            fontSize: variables.fontSizeSmall,
-            fontWeight: FontUtils.fontWeight.bold,
-            ...whiteSpace.noWrap,
-        },
-
         offlineFeedback: {
             deleted: {
                 textDecorationLine: 'line-through',
