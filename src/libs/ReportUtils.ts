@@ -2147,6 +2147,47 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
 }
 
+function canEditBillable(reportAction: OnyxEntry<ReportAction>): boolean {
+    const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+
+    if (isDeleted) {
+        return false;
+    }
+
+    // If the report action is not IOU type, return true early
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return true;
+    }
+
+    if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+        return false;
+    }
+
+    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+
+    if (!moneyRequestReportID) {
+        return false;
+    }
+
+    const moneyRequestReport = getReport(String(moneyRequestReportID));
+    const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+
+    if (isIOUReport(moneyRequestReport)) {
+        return isProcessingReport(moneyRequestReport) && isRequestor;
+    }
+
+    const policy = getPolicy(moneyRequestReport?.policyID ?? '');
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = currentUserAccountID === moneyRequestReport?.managerID;
+
+    // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
+    if ((isAdmin || isManager) && !isDraftExpenseReport(moneyRequestReport)) {
+        return true;
+    }
+
+    return isRequestor;
+}
+
 /**
  * Checks if the current user can edit the provided property of a money request
  *
@@ -5217,6 +5258,7 @@ export {
     getAllAncestorReportActionIDs,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    canEditBillable,
 };
 
 export type {

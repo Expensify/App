@@ -125,6 +125,7 @@ function MoneyRequestView({
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const canEditBillable = ReportUtils.canEditBillable(parentReportAction);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
@@ -427,6 +428,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={!!transactionBillable}
                             onToggle={saveBillable}
+                            disabled={!canEditBillable}
                         />
                     </View>
                 )}
