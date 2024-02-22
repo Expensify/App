@@ -3,9 +3,11 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +26,8 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
+
+    isLoadingApp: PropTypes.bool,
 
     /** Route from navigation */
     route: PropTypes.shape({
@@ -45,6 +49,7 @@ const defaultProps = {
             country: '',
         },
     },
+    isLoadingApp: true,
 };
 
 /**
@@ -55,7 +60,8 @@ function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
-function AddressPage({privatePersonalDetails, route}) {
+function AddressPage({privatePersonalDetails, route, isLoadingApp}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const address = useMemo(() => lodashGet(privatePersonalDetails, 'address') || {}, [privatePersonalDetails]);
     const countryFromUrl = lodashGet(route, 'params.country');
@@ -117,18 +123,22 @@ function AddressPage({privatePersonalDetails, route}) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <AddressForm
-                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                onSubmit={updateAddress}
-                submitButtonText={translate('common.save')}
-                city={city}
-                country={currentCountry}
-                onAddressChanged={handleAddressChange}
-                state={state}
-                street1={street1}
-                street2={street2}
-                zip={zipcode}
-            />
+            {isLoadingApp ? (
+                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            ) : (
+                <AddressForm
+                    formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                    onSubmit={updateAddress}
+                    submitButtonText={translate('common.save')}
+                    city={city}
+                    country={currentCountry}
+                    onAddressChanged={handleAddressChange}
+                    state={state}
+                    street1={street1}
+                    street2={street2}
+                    zip={zipcode}
+                />
+            )}
         </ScreenWrapper>
     );
 }
@@ -140,5 +150,8 @@ AddressPage.displayName = 'AddressPage';
 export default withOnyx({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
     },
 })(AddressPage);
