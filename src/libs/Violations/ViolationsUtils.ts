@@ -138,11 +138,11 @@ const ViolationsUtils = {
             isTransactionOlderThan7Days = false,
             member,
             category,
-            rejectedBy,
-            rejectReason,
+            rejectedBy = '',
+            rejectReason = '',
             formattedLimit,
-            surcharge,
-            invoiceMarkup,
+            surcharge = 0,
+            invoiceMarkup = 0,
             maxAge = 0,
             tagName,
             taxName,
@@ -152,12 +152,10 @@ const ViolationsUtils = {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
             case 'autoReportedRejectedExpense':
-                return rejectReason && rejectedBy
-                    ? translate('violations.autoReportedRejectedExpense', {
-                          rejectedBy,
-                          rejectReason,
-                      })
-                    : '';
+                return translate('violations.autoReportedRejectedExpense', {
+                    rejectedBy,
+                    rejectReason,
+                });
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':

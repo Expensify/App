@@ -4,6 +4,8 @@ type Modal = {
 
     /** Indicates if there is a modal currently visible or not */
     isVisible?: boolean;
+
+    isPopover?: boolean;
 };
 
 export default Modal;

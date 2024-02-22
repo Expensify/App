@@ -99,6 +99,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CONFIRMATION]: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.HOLD]: () => require('../../../pages/iou/HoldReasonPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
@@ -132,6 +133,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../pages/settings/Report/RoomNamePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../pages/settings/Report/NotificationPreferencePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../pages/settings/Report/WriteCapabilityPage').default as React.ComponentType,
+    [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require('../../../pages/settings/Report/VisibilityPage').default as React.ComponentType,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
@@ -190,7 +192,6 @@ const AccountSettingsModalStackNavigator = createModalStackNavigator(
         [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
         [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
         [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-        [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
         [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
         [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     },
@@ -202,6 +203,7 @@ const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<Workspace
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
+    [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
@@ -218,7 +220,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
-    [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
     [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../pages/settings/AboutPage/TroubleshootPage').default as React.ComponentType,
     [SCREENS.SETTINGS.CONSOLE]: () => require('../../../pages/settings/AboutPage/ConsolePage').default as React.ComponentType,
     [SCREENS.SETTINGS.SHARE_LOG]: () => require('../../../pages/settings/AboutPage/ShareLogPage').default as React.ComponentType,
