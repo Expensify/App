@@ -84,7 +84,7 @@ function IOURequestStepTaxRatePage({
                     />
                     <TaxPicker
                         selectedTaxRate={selectedTaxRate}
-                        policyTaxRates={taxRates}
+                        taxRates={taxRates}
                         insets={insets}
                         onSubmit={updateTaxRates}
                     />
