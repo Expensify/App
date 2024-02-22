@@ -111,7 +111,7 @@ type GetOptionsConfig = {
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
-    includePolicyTaxRates?: boolean;
+    includeTaxRates?: boolean;
     taxRates?: PolicyTaxRateWithDefault;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
@@ -1183,13 +1183,13 @@ type PolicyTaxRateWithDefault = {
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
- * @param  policyTaxRates - The original tax rates object.
+ * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policyTaxRates: PolicyTaxRateWithDefault | undefined): Record<string, PolicyTaxRate> {
-    const defaultTaxKey = policyTaxRates?.defaultExternalID;
+function transformedTaxRates(taxRates: PolicyTaxRateWithDefault | undefined): Record<string, PolicyTaxRate> {
+    const defaultTaxKey = taxRates?.defaultExternalID;
     const getModifiedName = (data: PolicyTaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(Object.entries(policyTaxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
 
@@ -1218,10 +1218,10 @@ function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: PolicyTaxRateWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(policyTaxRates);
+    const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
@@ -1360,7 +1360,7 @@ function getOptions(
         canInviteUser = true,
         includeSelectedOptions = false,
         transactionViolations = {},
-        includePolicyTaxRates,
+        includeTaxRates,
         taxRates,
     }: GetOptionsConfig,
 ): GetOptions {
@@ -1392,7 +1392,7 @@ function getOptions(
         };
     }
 
-    if (includePolicyTaxRates) {
+    if (includeTaxRates) {
         const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Category[], searchInputValue);
 
         return {
@@ -1796,7 +1796,7 @@ function getFilteredOptions(
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
-    includePolicyTaxRates = false,
+    includeTaxRates = false,
     taxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
 ) {
     return getOptions(reports, personalDetails, {
@@ -1817,7 +1817,7 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
-        includePolicyTaxRates,
+        includeTaxRates,
         taxRates,
     });
 }
