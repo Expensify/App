@@ -208,6 +208,7 @@ function BaseReportActionContextMenu({
             undefined,
             undefined,
             filteredContextMenuActions,
+            true,
         );
     };
 

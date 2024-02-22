@@ -65,7 +65,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
 
     const contentRef = useRef<View>(null);
-    const anchorRef = useRef<View | HTMLDivElement>(null);
+    const anchorRef = useRef<View | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
     const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
@@ -163,12 +163,16 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         isPinnedChat = false,
         isUnreadChat = false,
         disabledOptions = [],
+        shouldCloseOnTarget = false,
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
-
-        contextMenuAnchorRef.current = contextMenuAnchor && 'measureInWindow' in contextMenuAnchor ? contextMenuAnchor : null;
+        contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
-
+        if (shouldCloseOnTarget) {
+            anchorRef.current = event.target as HTMLDivElement;
+        } else {
+            anchorRef.current = null;
+        }
         setInstanceID(Math.random().toString(36).substr(2, 5));
 
         onPopoverShow.current = onShow;
