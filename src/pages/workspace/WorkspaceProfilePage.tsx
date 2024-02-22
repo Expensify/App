@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -50,6 +51,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '')), [policy?.id]);
+    const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? '';
@@ -158,6 +160,17 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     </Text>
                                 </View>
                             </OfflineWithFeedback>
+                            {!readOnly && (
+                                <View style={[styles.flexRow, styles.mnw120]}>
+                                    <Button
+                                        accessibilityLabel={translate('common.share')}
+                                        style={styles.mt6}
+                                        text={translate('common.share')}
+                                        onPress={onPressShare}
+                                        medium
+                                    />
+                                </View>
+                            )}
                         </Section>
                     </View>
                 </ScrollView>
