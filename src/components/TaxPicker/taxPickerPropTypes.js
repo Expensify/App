@@ -18,12 +18,12 @@ const propTypes = {
      * Safe area insets required for reflecting the portion of the view,
      * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
      */
-    insets: safeAreaInsetPropTypes.isRequired,
+    insets?: safeAreaInsetPropTypes.isRequired,
 };
 
 const defaultProps = {
     selectedTaxRate: '',
-    policyTaxRates: {},
+    policy: {},
 };
 
 export {propTypes, defaultProps};
