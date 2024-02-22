@@ -67,7 +67,7 @@ function IOURequestStepTaxAmountPage({
 
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
-    const policyTaxRates = lodashGet(policy, 'taxRates', {});
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
     useEffect(() => {
         if (transaction.originalCurrency) {
@@ -146,7 +146,7 @@ function IOURequestStepTaxAmountPage({
                 isEditing={isEditing}
                 currency={currency}
                 amount={transaction.taxAmount}
-                taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
+                taxAmount={getTaxAmount(transaction, taxRates.defaultValue)}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
