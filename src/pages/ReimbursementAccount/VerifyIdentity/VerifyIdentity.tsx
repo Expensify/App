@@ -38,12 +38,13 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const handleOnfidoSuccess = useCallback(
         (onfidoData: Record<string, unknown>) => {
-            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID});
+            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
-        [reimbursementAccount, onfidoApplicantID],
+        [reimbursementAccount, onfidoApplicantID, policyID],
     );
 
     const handleOnfidoError = () => {
