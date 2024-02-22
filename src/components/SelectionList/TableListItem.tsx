@@ -2,13 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
-import {TableListItemProps} from "@components/SelectionList/types";
-
+import type {TableListItemProps} from './types';
 
 function UserListItem({
     item,
@@ -31,16 +29,8 @@ function UserListItem({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[
-                styles.flex1,
-                styles.justifyContentBetween,
-                styles.userSelectNone,
-                styles.peopleRow,
-                styles.sidebarLinkInner,
-                styles.flexRow,
-                styles.ph5,
-                isFocused && styles.sidebarLinkActive,
-            ]}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, isFocused && styles.activeComponentBG]]}
+            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter, isFocused && styles.sidebarLinkActive]}
             selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
             isFocused={isFocused}
             isDisabled={isDisabled}
@@ -67,7 +57,7 @@ function UserListItem({
                             ]}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.text}
@@ -77,7 +67,7 @@ function UserListItem({
                                 styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
-                                styles.justifyContentCenter
+                                styles.justifyContentCenter,
                             ]}
                         />
                         {!!item.alternateText && (

@@ -1,11 +1,11 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import TableListItem from '@components/SelectionList/TableListItem';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type RadioListItem from './RadioListItem';
 import type UserListItem from './UserListItem';
-import TableListItem from "@components/SelectionList/TableListItem";
 
 type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
@@ -28,6 +28,9 @@ type CommonListItemProps<TItem> = {
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Styles for the pressable component */
+    pressableStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
