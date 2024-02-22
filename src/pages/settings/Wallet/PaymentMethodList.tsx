@@ -1,5 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
-import _ from 'lodash';
+import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -195,7 +195,7 @@ function PaymentMethodList({
 
             const numberPhysicalExpensifyCards = assignedCards.filter((card) => CardUtils.isExpensifyCard(card.cardID)).length;
 
-            const assignedCardsSorted = _.sortBy(assignedCards, (card) => !CardUtils.isExpensifyCard(card.cardID));
+            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !CardUtils.isExpensifyCard(card.cardID));
 
             return assignedCardsSorted.map((card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
