@@ -75,6 +75,7 @@ function IOURequestStepCategory({
     const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill ? splitDraftTransaction : transaction);
 
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !isPolicyExpenseChat || (!transactionCategory && !OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
 
     const navigateBack = () => {
