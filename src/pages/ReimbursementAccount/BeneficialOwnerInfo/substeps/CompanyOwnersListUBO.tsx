@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +15,9 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 const reimbursementAccountDefault = {
     achData: {
@@ -54,7 +55,7 @@ type CompanyOwnersListUBOProps = CompanyOwnersListUBOIOnyxProps & {
     isAnyoneElseUBO: boolean;
 };
 
-const REQUESTOR_PERSONAL_INFO_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const REQUESTOR_PERSONAL_INFO_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 
 function CompanyOwnersListUBO({
     reimbursementAccount = reimbursementAccountDefault,
@@ -69,7 +70,7 @@ function CompanyOwnersListUBO({
     const styles = useThemeStyles();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
-    const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, {}, reimbursementAccount);
+    const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, null, reimbursementAccount);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     const extraBeneficialOwners =
@@ -99,55 +100,54 @@ function CompanyOwnersListUBO({
         });
 
     return (
-        <ScreenWrapper
-            testID={CompanyOwnersListUBO.displayName}
-            style={[styles.pt0]}
+        <ScrollView
+            style={styles.pt0}
+            contentContainerStyle={[styles.flexGrow1, styles.ph0]}
         >
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph0]}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
-                <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
-                <View>
-                    <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
-                    {isUserUBO && (
-                        <MenuItem
-                            title={`${requestorData.firstName} ${requestorData.lastName}`}
-                            description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
-                            wrapperStyle={[styles.ph5]}
-                            icon={Expensicons.FallbackAvatar}
-                            iconWidth={40}
-                            iconHeight={40}
-                            interactive={false}
-                            shouldShowRightIcon={false}
-                            displayInDefaultIconColor
-                        />
-                    )}
-                    {extraBeneficialOwners}
-                </View>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
+            <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+            <View>
+                <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
+                {isUserUBO && (
+                    <MenuItem
+                        title={`${requestorData.firstName} ${requestorData.lastName}`}
+                        description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
+                        wrapperStyle={[styles.ph5]}
+                        icon={Expensicons.FallbackAvatar}
+                        iconWidth={40}
+                        iconHeight={40}
+                        interactive={false}
+                        shouldShowRightIcon={false}
+                        displayInDefaultIconColor
+                    />
+                )}
+                {extraBeneficialOwners}
+            </View>
 
-                <View style={[styles.ph5, styles.mtAuto]}>
-                    {error && error.length > 0 && (
-                        <DotIndicatorMessage
-                            textStyles={[styles.formError]}
-                            type="error"
-                            messages={{error}}
-                        />
-                    )}
-                </View>
-                <Button
-                    success
-                    isLoading={isLoading}
-                    style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
-                    onPress={handleUBOsConfirmation}
-                    text={translate('common.confirm')}
-                />
-            </ScrollView>
-        </ScreenWrapper>
+            <View style={[styles.ph5, styles.mtAuto]}>
+                {error && error.length > 0 && (
+                    <DotIndicatorMessage
+                        textStyles={[styles.formError]}
+                        type="error"
+                        messages={{error}}
+                    />
+                )}
+            </View>
+            <Button
+                success
+                isLoading={isLoading}
+                style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
+                onPress={handleUBOsConfirmation}
+                text={translate('common.confirm')}
+            />
+        </ScrollView>
     );
 }
 
 CompanyOwnersListUBO.displayName = 'CompanyOwnersListUBO';
 
 export default withOnyx<CompanyOwnersListUBOProps, CompanyOwnersListUBOIOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

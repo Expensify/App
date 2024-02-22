@@ -71,9 +71,9 @@ function ReportActionItemParentAction({report, index = 0, shouldHideThreadDivide
 
     return (
         <>
-            <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout), styles.justifyContentEnd]}>
+            <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout)]}>
                 <AnimatedEmptyStateBackground />
-                <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout)]} />
+                <View style={[StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout)]} />
                 {allAncestors.map((ancestor) => (
                     <OfflineWithFeedback
                         key={ancestor.reportAction.reportActionID}

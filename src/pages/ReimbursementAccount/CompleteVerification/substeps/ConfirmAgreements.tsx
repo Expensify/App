@@ -4,17 +4,16 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type ConfirmAgreementsOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -23,14 +22,14 @@ type ConfirmAgreementsOnyxProps = {
 
 type ConfirmAgreementsProps = SubStepProps & ConfirmAgreementsOnyxProps;
 
-const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
 const STEP_FIELDS = [
-    CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
-    CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.ACCEPT_TERMS_AND_CONDITIONS,
-    CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.CERTIFY_TRUE_INFORMATION,
+    INPUT_IDS.COMPLETE_VERIFICATION.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
+    INPUT_IDS.COMPLETE_VERIFICATION.ACCEPT_TERMS_AND_CONDITIONS,
+    INPUT_IDS.COMPLETE_VERIFICATION.CERTIFY_TRUE_INFORMATION,
 ];
 
-const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
@@ -104,6 +103,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
 ConfirmAgreements.displayName = 'ConfirmAgreements';
 
 export default withOnyx<ConfirmAgreementsProps, ConfirmAgreementsOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

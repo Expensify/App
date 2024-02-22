@@ -15,7 +15,9 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccountUtils from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import Confirmation from './substeps/Confirmation';
 import Manual from './substeps/Manual';
 import Plaid from './substeps/Plaid';
@@ -29,6 +31,8 @@ type BankInfoOnyxProps = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
+
+    policyID: string;
 };
 
 type BankInfoProps = BankInfoOnyxProps & {
@@ -36,17 +40,17 @@ type BankInfoProps = BankInfoOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual, Confirmation];
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
-function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken, onBackButtonPress}: BankInfoProps) {
+function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken, onBackButtonPress, policyID}: BankInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
-    const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
 
     let setupType = reimbursementAccount?.achData?.subStep ?? '';
 
@@ -55,15 +59,20 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
     const submit = useCallback(() => {
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             BankAccounts.connectBankAccountManually(
                 bankAccountID,
-                values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER],
-                values[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
-                values[BANK_INFO_STEP_KEYS.PLAID_MASK],
+                {
+                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: values[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.BANK_NAME]: values[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: values[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: values[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: values[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: values[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
+                },
                 policyID,
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
@@ -75,6 +84,8 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [BANK_INFO_STEP_KEYS.BANK_NAME]: values[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: values[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: values[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: values[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: values[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
                 },
                 policyID,
             );
@@ -150,6 +161,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
 BankInfo.displayName = 'BankInfo';
 
 export default withOnyx<BankInfoProps, BankInfoOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
