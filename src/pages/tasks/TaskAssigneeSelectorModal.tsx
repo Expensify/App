@@ -13,6 +13,7 @@ import SelectionList from '@components/SelectionList';
 import type {RadioItem, User} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -198,6 +199,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <SelectionList
                             sections={didScreenTransitionEnd && !isLoading ? sections : CONST.EMPTY_ARRAY}
+                            ListItem={UserListItem}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             textInputValue={searchValue}
