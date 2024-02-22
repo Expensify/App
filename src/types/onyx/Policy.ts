@@ -11,6 +11,7 @@ type Rate = {
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    enabled?: boolean;
 };
 
 type Attributes = {
@@ -28,6 +29,8 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
+    defaultCategory?: string;
+    enabled?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
