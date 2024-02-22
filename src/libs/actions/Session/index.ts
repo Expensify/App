@@ -890,7 +890,7 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
-    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
 
     if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
         return true;
