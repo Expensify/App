@@ -1,13 +1,11 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {Writable} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as Pusher from '@src/libs/Pusher/pusher';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
+import asMutable from '@src/utils/asMutable';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
-
-const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
 
 function setup() {
     // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
@@ -28,14 +26,12 @@ function setup() {
 
 function emitOnyxUpdate(args: OnyxUpdate[]) {
     const channel = Pusher.getChannel(CHANNEL_NAME);
-    if (channel) {
-        channel.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
-            {
-                eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-                data: args,
-            },
-        ]);
-    }
+    channel?.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
+        {
+            eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+            data: args,
+        },
+    ]);
 }
 
 function teardown() {
