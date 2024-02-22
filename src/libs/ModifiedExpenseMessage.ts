@@ -115,6 +115,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
+
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
@@ -212,6 +213,19 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
                 );
             }
         });
+    }
+
+    const hasModifiedTaxRate = reportActionOriginalMessage && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+    if (hasModifiedTaxRate) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage?.taxRate ?? '',
+            reportActionOriginalMessage?.oldTaxRate ?? '',
+            Localize.translateLocal('iou.taxRate'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
