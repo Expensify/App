@@ -1,9 +1,9 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import TableListItem from '@components/SelectionList/TableListItem';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type TableListItem from './TableListItem';
 import type RadioListItem from './RadioListItem';
 import type UserListItem from './UserListItem';
 
