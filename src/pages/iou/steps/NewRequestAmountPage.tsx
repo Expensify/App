@@ -2,13 +2,13 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {TextInput as RNTextInput} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -44,7 +44,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou?.id);
-    const textInput = useRef<RNTextInput | null>(null);
+    const textInput = useRef<BaseTextInputRef | null>(null);
 
     const iouType = route.params.iouType ?? '';
     const reportID = route.params.reportID ?? '';
@@ -130,7 +130,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
 
     const content = (
         <MoneyRequestAmountForm
-            // @ts-expect-error TODO: Remove this once MoneyRequestAmountForm (https://github.com/Expensify/App/issues/32004) is migrated to TypeScript.
             isEditing={isEditing}
             currency={currency}
             amount={iou?.amount}
