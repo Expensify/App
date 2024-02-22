@@ -15,7 +15,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -23,7 +22,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,7 +58,6 @@ const defaultProps = {
 function WorkspaceProfilePage({policy, currencyList, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) && !!policy.outputCurrency ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
