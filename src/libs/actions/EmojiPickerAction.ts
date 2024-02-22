@@ -9,11 +9,12 @@ import type CONST from '@src/CONST';
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
+    shiftVertical?: number
 };
 
 type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | null>;
 
-type OnWillShowPicker = (callback: CloseContextMenuCallback) => void;
+type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
 
 type OnModalHideValue = () => void;
 
@@ -112,4 +113,4 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin, EmojiPickerRef};
+export type {AnchorOrigin, EmojiPickerRef, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker};
