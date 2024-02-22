@@ -42,15 +42,20 @@ function VolumeButton({style, small}) {
         setSliderHeight(e.nativeEvent.layout.height);
     };
 
+    const gestureEventHandler = (event) => {
+        const val = Math.floor((1 - event.y / sliderHeight) * 100) / 100;
+        volume.value = Math.min(Math.max(val, 0), 1);
+    };
+
     const pan = Gesture.Pan()
-        .onBegin(() => {
+        .onBegin((event) => {
             runOnJS(setIsSliderBeingUsed)(true);
+            gestureEventHandler(event);
         })
         .onChange((event) => {
-            const val = Math.floor((1 - event.y / sliderHeight) * 100) / 100;
-            volume.value = Math.min(Math.max(val, 0), 1);
+            gestureEventHandler(event);
         })
-        .onEnd(() => {
+        .onFinished(() => {
             runOnJS(setIsSliderBeingUsed)(false);
         });
 
