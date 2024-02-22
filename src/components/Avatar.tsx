@@ -19,7 +19,7 @@ type AvatarProps = {
     source?: AvatarSource;
 
     /** Extra styles to pass to Image */
-    imageStyles?: StyleProp<ViewStyle>;
+    imageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Additional styles to pass to Icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
@@ -81,7 +81,7 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 
-    const imageStyle = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
+    const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
@@ -96,7 +96,7 @@ function Avatar({
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
                     <Image
                         source={{uri: avatarSource}}
-                        style={imageStyle as StyleProp<ImageStyle>}
+                        style={imageStyle}
                         onError={() => setImageError(true)}
                     />
                 </View>
