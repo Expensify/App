@@ -75,7 +75,7 @@ function IOURequestStepCategory({
     const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill ? splitDraftTransaction : transaction);
 
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
-    const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+    const shouldShowNotFoundPage = !isPolicyExpenseChat || (!transactionCategory && !OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -111,7 +111,7 @@ function IOURequestStepCategory({
             headerTitle={translate('common.category')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            shouldShowNotFoundPage={!shouldShowCategories}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID={IOURequestStepCategory.displayName}
         >
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
