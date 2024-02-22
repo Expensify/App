@@ -16,6 +16,7 @@ import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -470,6 +471,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        ListItem={UserListItem}
                         textInputLabel={translate('optionsSelector.findMember')}
                         textInputValue={searchValue}
                         onChangeText={(value) => {
