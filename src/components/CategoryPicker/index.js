@@ -9,6 +9,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './categoryPickerPropTypes';
+import RadioListItem from "@components/SelectionList/RadioListItem";
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
     const {translate} = useLocalize();
@@ -67,6 +68,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             textInputLabel={shouldShowTextInput && translate('common.search')}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey}
         />
     );
