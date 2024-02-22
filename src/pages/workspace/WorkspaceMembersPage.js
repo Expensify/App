@@ -403,7 +403,7 @@ function WorkspaceMembersPage(props) {
                 <Text style={styles.searchInputStyle}>{props.translate('common.member')}</Text>
             </View>
             <View style={[StyleUtils.getMinimumWidth(60)]}>
-                <Text style={styles.searchInputStyle}>{props.translate('common.role')}</Text>
+                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{props.translate('common.role')}</Text>
             </View>
         </View>
     );
