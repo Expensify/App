@@ -39,27 +39,8 @@ function TaxPicker({selectedTaxRate, policy, insets, onSubmit}) {
     }, [selectedTaxRate]);
 
     const sections = useMemo(() => {
-        const {policyTaxRatesOptions} = OptionsListUtils.getFilteredOptions(
-            {},
-            {},
-            [],
-            searchValue,
-            selectedOptions,
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            false,
-            false,
-            true,
-            taxRates,
-        );
-        return policyTaxRatesOptions;
+        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], false, {}, [], false, false, true, taxRates);
+        return taxRatesOptions;
     }, [taxRates, searchValue, selectedOptions]);
 
     const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (taxRate) => taxRate.searchText === selectedTaxRate)[0], 'keyForList');
