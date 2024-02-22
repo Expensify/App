@@ -1474,6 +1474,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
+
+    getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle|TextStyle[]): StyleProp<TextStyle> => ({
+        ...StyleSheet.flatten(descriptionTextStyle),
+        opacity: styles.opacitySemiTransparent.opacity,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
@@ -1483,3 +1488,4 @@ const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
 export default createStyleUtils;
 export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};
+

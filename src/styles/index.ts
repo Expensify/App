@@ -492,6 +492,10 @@ const styles = (theme: ThemeColors) =>
             opacity: 0,
         },
 
+        opacitySemiTransparent: {
+            opacity: 0.5,
+        },
+
         opacity1: {
             opacity: 1,
         },

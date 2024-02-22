@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useNetwork from '@hooks/useNetwork';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -17,9 +18,16 @@ type ToggleSettingOptionRowProps = {
 
 function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled}: ToggleSettingOptionRowProps) {
     const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
+    const [shouldShowOfflineStyle, setShouldShowOfflineStyle] = useState(false);
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const ICON_SIZE = 48;
     const toggleSwitch = () => {
+        if (isEnabled && isOffline) {
+            setShouldShowOfflineStyle(true);
+        } else {
+            setShouldShowOfflineStyle(false);
+        }
         setIsEnabled(!isEnabled);
         onToggle(!isEnabled);
     };
@@ -63,6 +71,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                         accessibilityLabel={subtitle}
                         onToggle={toggleSwitch}
                         isOn={isEnabled}
+                        additionalStyle={shouldShowOfflineStyle ? styles.buttonOpacityDisabled : styles.opacity1}
                     />
                 </View>
             </View>
