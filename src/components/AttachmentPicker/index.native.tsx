@@ -128,7 +128,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
      */
     const showImagePicker = useCallback(
-        (imagePickerFunc: (options: CameraOptions, callback: Callback) => {}): Promise<ImagePickerResponse | Asset[] | void> =>
+        (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
             new Promise((resolve, reject) => {
                 imagePickerFunc(getImagePickerOptions(type), (response: ImagePickerResponse) => {
                     if (response.didCancel) {
