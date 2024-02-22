@@ -71,7 +71,7 @@ const getImagePickerOptions = (type: string): CameraOptions => {
 const documentPickerOptions = {
     type: [RNDocumentPicker.types.allFiles],
     copyTo: 'cachesDirectory',
-};
+} satisfies DocumentPickerOptions<SupportedPlatforms>;
 
 /**
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
