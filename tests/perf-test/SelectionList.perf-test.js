@@ -64,7 +64,6 @@ function SelectionListWrapper(args) {
                 keyForList: `item-${i}`,
                 isSelected: _.contains(selectedIds, `item-${i}`),
             })),
-            indexOffset: 0,
             isDisabled: false,
         },
     ];

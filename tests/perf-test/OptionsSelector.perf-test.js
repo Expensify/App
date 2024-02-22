@@ -36,21 +36,17 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
 });
 
 const generateSections = (sectionConfigs) =>
-    _.map(sectionConfigs, ({numItems, indexOffset, shouldShow = true}) => ({
+    _.map(sectionConfigs, ({numItems, shouldShow = true}, index) => ({
         data: Array.from({length: numItems}, (_v, i) => ({
-            text: `Item ${i + indexOffset}`,
-            keyForList: `item-${i + indexOffset}`,
+            text: `Item ${i + index}`,
+            keyForList: `item-${i + index}`,
         })),
-        indexOffset,
         shouldShow,
     }));
 
-const singleSectionSConfig = [{numItems: 1000, indexOffset: 0}];
+const singleSectionSConfig = [{numItems: 1000}];
 
-const mutlipleSectionsConfig = [
-    {numItems: 1000, indexOffset: 0},
-    {numItems: 100, indexOffset: 70},
-];
+const mutlipleSectionsConfig = [{numItems: 1000}, {numItems: 100}];
 
 function OptionsSelectorWrapper(args) {
     const sections = generateSections(singleSectionSConfig);
