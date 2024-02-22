@@ -252,6 +252,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Fired when the list is displayed with the items */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Custom header to show right above list */
+    customListHeader?: ReactNode;
+
+    /** Styles for the list header wrapper */
+    listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type ItemLayout = {

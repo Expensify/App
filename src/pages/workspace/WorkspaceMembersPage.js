@@ -21,6 +21,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -79,6 +80,7 @@ const defaultProps = {
 
 function WorkspaceMembersPage(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
@@ -392,6 +394,17 @@ function WorkspaceMembersPage(props) {
         </>
     );
 
+    const getCustomListHeader = () => (
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, StyleUtils.getPaddingLeft(64)]}>
+            <View>
+                <Text style={styles.searchInputStyle}>{props.translate('common.member')}</Text>
+            </View>
+            <View style={[styles.mnw6, styles.mr3]}>
+                <Text style={styles.searchInputStyle}>{props.translate('common.role')}</Text>
+            </View>
+        </View>
+    );
+
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
             <Button
@@ -472,6 +485,8 @@ function WorkspaceMembersPage(props) {
                         showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         inputRef={textInputRef}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
                 </View>
             </FullPageNotFoundView>
