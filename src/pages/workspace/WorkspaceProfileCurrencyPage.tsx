@@ -75,7 +75,7 @@ function WorkspaceProfileCurrencyPage({currencyList, policy, isLoadingReportData
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceSettingsCurrencyPage.displayName}
+            testID={WorkspaceProfileCurrencyPage.displayName}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
