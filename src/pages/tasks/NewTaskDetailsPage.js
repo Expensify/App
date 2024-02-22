@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -39,7 +38,6 @@ const parser = new ExpensiMark();
 
 function NewTaskDetailsPage(props) {
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
 
@@ -47,12 +45,9 @@ function NewTaskDetailsPage(props) {
     const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown(parser.replace(taskDescription)), [taskDescription]);
 
     useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
         setTaskTitle(props.task.title);
         setTaskDescription(parser.htmlToMarkdown(parser.replace(props.task.description || '')));
-    }, [isFocused, props.task.title, props.task.description]);
+    }, [props.task.title, props.task.description]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
