@@ -9,10 +9,13 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +29,7 @@ import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettin
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersonalDetails from '@userActions/PersonalDetails';
@@ -38,7 +42,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -76,7 +80,7 @@ type MenuData = {
     fallbackIcon?: IconAsset;
     shouldStackHorizontally?: boolean;
     avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
-    floatRightAvatars?: Icon[];
+    floatRightAvatars?: TIcon[];
     title?: string;
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;
@@ -93,6 +97,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const popoverAnchor = useRef(null);
     const {translate, formatPhoneNumber} = useLocalize();
     const activeRoute = useNavigationState(getTopmostSettingsCentralPaneName);
+    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -143,11 +148,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                         PaymentMethods.hasPaymentMethodError(bankAccountList, paymentCardList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors)
                             ? 'error'
                             : undefined,
-                },
-                {
-                    translationKey: 'common.shareCode',
-                    icon: Expensicons.QrCode,
-                    routeName: ROUTES.SETTINGS_SHARE_CODE,
                 },
                 {
                     translationKey: 'common.preferences',
@@ -324,6 +324,46 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <>
+                    <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb5]}>
+                        <Tooltip text={translate('common.shareCode')}>
+                            <PressableWithFeedback
+                                accessibilityLabel={translate('common.shareCode')}
+                                accessibilityRole="button"
+                                accessible
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
+                            >
+                                <View style={styles.primaryMediumIcon}>
+                                    <Icon
+                                        src={Expensicons.QrCode}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
+                                        fill={theme.icon}
+                                    />
+                                </View>
+                            </PressableWithFeedback>
+                        </Tooltip>
+                        <Tooltip text={translate('statusPage.status')}>
+                            <PressableWithFeedback
+                                accessibilityLabel={translate('statusPage.status')}
+                                accessibilityRole="button"
+                                accessible
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
+                            >
+                                <View style={styles.primaryMediumIcon}>
+                                    {emojiCode ? (
+                                        <Text style={styles.primaryMediumText}>{emojiCode}</Text>
+                                    ) : (
+                                        <Icon
+                                            src={Expensicons.Emoji}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                            fill={theme.icon}
+                                        />
+                                    )}
+                                </View>
+                            </PressableWithFeedback>
+                        </Tooltip>
+                    </View>
                     <OfflineWithFeedback
                         pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                         style={[styles.mb3, styles.w100]}
@@ -351,14 +391,14 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                         style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                         numberOfLines={1}
                     >
-                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email)}
+                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
                     </Text>
                     {Boolean(currentUserPersonalDetails.displayName) && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
                         >
-                            {formatPhoneNumber(session?.email)}
+                            {formatPhoneNumber(session?.email ?? '')}
                         </Text>
                     )}
                 </>

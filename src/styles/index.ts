@@ -826,6 +826,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusSmall,
             borderColor: theme.border,
+            paddingHorizontal: 12,
+            minHeight: 28,
         },
 
         badgeText: {
@@ -833,6 +835,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        activeItemBadge: {
+            borderColor: theme.buttonHoveredBG,
         },
 
         border: {
@@ -3059,6 +3065,20 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -8,
             bottom: -8,
+        },
+
+        primaryMediumIcon: {
+            alignItems: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+            color: theme.textReversed,
+            height: 40,
+            width: 40,
+            justifyContent: 'center',
+        },
+
+        primaryMediumText: {
+            fontSize: variables.iconSizeNormal,
         },
 
         workspaceOwnerAvatarWrapper: {
