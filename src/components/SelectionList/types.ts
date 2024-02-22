@@ -5,6 +5,7 @@ import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type RadioListItem from './RadioListItem';
 import type UserListItem from './UserListItem';
+import TableListItem from "@components/SelectionList/TableListItem";
 
 type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
@@ -121,6 +122,8 @@ type UserListItemProps = ListItemProps & {
 
 type RadioListItemProps = ListItemProps;
 
+type TableListItemProps = ListItemProps;
+
 type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
@@ -143,7 +146,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Default renderer for every item in the list */
-    ListItem: typeof RadioListItem | typeof UserListItem;
+    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -272,6 +275,7 @@ export type {
     BaseListItemProps,
     UserListItemProps,
     RadioListItemProps,
+    TableListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,
