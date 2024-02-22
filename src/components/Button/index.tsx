@@ -39,9 +39,6 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     /** The fill color to pass into the icon. */
     iconFill?: string;
 
-    /** Indicates whether the icon should be small. */
-    isIconSmall?: boolean;
-
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
@@ -167,7 +164,6 @@ function Button(
         iconFill,
         iconStyles = [],
         iconRightStyles = [],
-        isIconSmall = false,
 
         small = false,
         large = false,
@@ -245,7 +241,7 @@ function Button(
                                 <Icon
                                     src={icon}
                                     fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
-                                    small={isIconSmall}
+                                    small={small}
                                 />
                             </View>
                         )}
