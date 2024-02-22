@@ -2,13 +2,13 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import type {Writable} from 'type-fest';
+import asMutable from '@src/types/utils/AsMutable';
 import run from '../../.github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
-type Comment = {body: string};
-type Comments = {
-    data?: Comment[];
+type CommentData = {body: string};
+type Comment = {
+    data?: CommentData[];
 };
 
 type PullRequest = {url: string; isQASuccess: boolean};
@@ -27,8 +27,6 @@ const mockGetInput = jest.fn().mockImplementation((arg: string): string | number
 const mockSetOutput = jest.fn();
 const mockGetIssue = jest.fn();
 const mockListComments = jest.fn();
-
-const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
 
 beforeAll(() => {
     // Mock core module
@@ -49,7 +47,7 @@ beforeAll(() => {
     GithubUtils.internalOctokit = moctokit;
 });
 
-let baseComments: Comments = {};
+let baseComments: Comment = {};
 beforeEach(() => {
     baseComments = {
         data: [
