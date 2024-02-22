@@ -45,7 +45,6 @@ function SuggestionMention({
     composerHeight,
     forwardedRef,
     isAutoSuggestionPickerLarge,
-    measureParentContainer,
     isComposerFocused,
     measureParentContainerAndReportCursor,
 }) {
@@ -314,7 +313,6 @@ function SuggestionMention({
             onSelect={insertSelectedMention}
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
-            measureParentContainer={measureParentContainer}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
         />
     );
