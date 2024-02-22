@@ -11,11 +11,14 @@ import cardPropTypes from '@components/cardPropTypes';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
+import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
@@ -25,11 +28,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersonalDetails from '@userActions/PersonalDetails';
@@ -71,7 +76,7 @@ const propTypes = {
             validatedDate: PropTypes.string,
 
             /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
 
@@ -99,6 +104,7 @@ function InitialSettingsPage(props) {
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const activeRoute = useNavigationState(getTopmostSettingsCentralPaneName);
+    const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -151,11 +157,6 @@ function InitialSettingsPage(props) {
                             : null,
                 },
                 {
-                    translationKey: 'common.shareCode',
-                    icon: Expensicons.QrCode,
-                    routeName: ROUTES.SETTINGS_SHARE_CODE,
-                },
-                {
                     translationKey: 'common.preferences',
                     icon: Expensicons.Gear,
                     routeName: ROUTES.SETTINGS_PREFERENCES,
@@ -167,11 +168,13 @@ function InitialSettingsPage(props) {
                 },
                 {
                     translationKey: 'initialSettingsPage.goToExpensifyClassic',
-                    icon: Expensicons.NewExpensify,
+                    icon: Expensicons.ExpensifyLogoNew,
                     action: () => {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
                     link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',
@@ -221,6 +224,8 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openExternalLink(CONST.NEWHELP_URL);
                     },
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
                 },
                 {
@@ -291,6 +296,8 @@ function InitialSettingsPage(props) {
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
                                 isPaneMenu
+                                iconRight={item.iconRight}
+                                shouldShowRightIcon={item.shouldShowRightIcon}
                             />
                         );
                     })}
@@ -325,9 +332,45 @@ function InitialSettingsPage(props) {
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <>
+                    <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb5]}>
+                        <Tooltip text={translate('common.shareCode')}>
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
+                            >
+                                <View style={styles.primaryMediumIcon}>
+                                    <Icon
+                                        src={Expensicons.QrCode}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
+                                        fill={theme.icon}
+                                    />
+                                </View>
+                            </PressableWithFeedback>
+                        </Tooltip>
+                        <Tooltip text={translate('statusPage.status')}>
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
+                            >
+                                <View style={styles.primaryMediumIcon}>
+                                    {emojiCode ? (
+                                        <Text style={styles.primaryMediumText}>{emojiCode}</Text>
+                                    ) : (
+                                        <Icon
+                                            src={Expensicons.Emoji}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                            fill={theme.icon}
+                                        />
+                                    )}
+                                </View>
+                            </PressableWithFeedback>
+                        </Tooltip>
+                    </View>
                     <OfflineWithFeedback
                         pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                        style={styles.mb3}
+                        style={[styles.mb3, styles.w100]}
                     >
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
@@ -344,7 +387,6 @@ function InitialSettingsPage(props) {
                             previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                             originalFileName={currentUserDetails.originalFileName}
                             headerTitle={props.translate('profilePage.profileAvatar')}
-                            style={[styles.mh5]}
                             fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                         />
                     </OfflineWithFeedback>
