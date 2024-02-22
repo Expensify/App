@@ -193,6 +193,10 @@ function IOURequestStepWaypoint({
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             testID={IOURequestStepWaypoint.displayName}
             style={[styles.overflowHidden]}
+            // This keeps the submit button at the bottom of the screen on iOS
+            shouldEnableKeyboardAvoidingView={false}
+            // This keeps the submit button at the bottom of the screen on android
+            shouldEnableMinHeight
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
