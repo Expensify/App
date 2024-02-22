@@ -24,7 +24,7 @@ function TableListItem({
     const StyleUtils = useStyleUtils();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
+    const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     return (
         <BaseListItem
