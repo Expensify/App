@@ -87,6 +87,8 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
+    taxRate?: string;
+    oldTaxRate?: string;
 };
 
 type SpendBreakdown = {
