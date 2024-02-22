@@ -3303,6 +3303,10 @@ const CONST = {
             ADDRESS: 3,
         },
     },
+
+    SESSION_STORAGE_KEYS: {
+        INITIAL_URL: 'INITIAL_URL',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
