@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import taxPropTypes from '@components/taxPropTypes';
+import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
 
 const propTypes = {
     /** The selected tax rate of an expense */
