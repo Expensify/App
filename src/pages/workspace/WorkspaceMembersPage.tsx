@@ -325,7 +325,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                     !isEmptyObject(policyMember.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details.login ?? ''),
+                alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 icons: [
                     {
