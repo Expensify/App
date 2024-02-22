@@ -267,7 +267,6 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
                 />
                 {shouldShowValidateCodeForm && (
                     <ValidateCodeForm
-                        // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
                         isVisible={!shouldShowAnotherLoginPageOpenedMessage}
                         isUsingRecoveryCode={isUsingRecoveryCode}
                         setIsUsingRecoveryCode={setIsUsingRecoveryCode}
