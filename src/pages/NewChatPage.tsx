@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import {useBetas, usePersonalDetails} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -28,11 +29,6 @@ type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
     reports: OnyxCollection<OnyxTypes.Report>;
 
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
     /** An object that holds data about which referral banners have been dismissed */
     dismissedReferralBanners: DismissedReferralBanners;
 
@@ -46,7 +42,7 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
+function NewChatPage({isGroupChat, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
@@ -57,6 +53,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const betas = useBetas();
+    const personalDetails = usePersonalDetails();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -292,12 +290,6 @@ export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
     isSearchingForReports: {
         key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
