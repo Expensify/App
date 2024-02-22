@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import alert from '@components/Alert';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -77,9 +76,6 @@ function FloatingActionButtonAndPopover(props) {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef(null);
 
-    useEffect(() => {
-        alert('title test', 'description, test');
-    }, []);
     const prevIsFocused = usePrevious(props.isFocused);
 
     /**
