@@ -8,14 +8,21 @@ const propTypes = {
     /** Callback to fire when a tax is pressed */
     onSubmit: PropTypes.func.isRequired,
 
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
+    policy: PropTypes.shape({
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
+    }),
+
+    /**
+     * Safe area insets required for reflecting the portion of the view,
+     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
+     */
+    insets: safeAreaInsetPropTypes.isRequired,
 };
 
 const defaultProps = {
     selectedTaxRate: '',
-    policyTaxRates: {},
+    policy: {},
 };
 
 export {propTypes, defaultProps};
