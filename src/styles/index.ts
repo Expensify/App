@@ -179,10 +179,9 @@ const webViewStyles = (theme: ThemeColors) =>
 
             pre: {
                 ...baseCodeTagStyles(theme),
-                paddingTop: 12,
-                paddingBottom: 12,
-                paddingRight: 8,
-                paddingLeft: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                fontSize: 13,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
@@ -201,6 +200,15 @@ const webViewStyles = (theme: ThemeColors) =>
                 borderColor: theme.border,
                 borderRadius: variables.componentBorderRadiusNormal,
                 borderWidth: 1,
+                ...touchCalloutNone,
+            },
+
+            video: {
+                minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
+                minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
+                borderRadius: variables.componentBorderRadiusNormal,
+                overflow: 'hidden',
+                backgroundColor: theme.highlightBG,
                 ...touchCalloutNone,
             },
 
@@ -818,6 +826,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusSmall,
             borderColor: theme.border,
+            paddingHorizontal: 12,
+            minHeight: 28,
         },
 
         badgeText: {
@@ -825,6 +835,10 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
+        },
+
+        activeItemBadge: {
+            borderColor: theme.buttonHoveredBG,
         },
 
         border: {
@@ -3053,6 +3067,20 @@ const styles = (theme: ThemeColors) =>
             bottom: -8,
         },
 
+        primaryMediumIcon: {
+            alignItems: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+            color: theme.textReversed,
+            height: 40,
+            width: 40,
+            justifyContent: 'center',
+        },
+
+        primaryMediumText: {
+            fontSize: variables.iconSizeNormal,
+        },
+
         workspaceOwnerAvatarWrapper: {
             margin: 6,
         },
@@ -4430,6 +4458,126 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXLarge,
         },
 
+        videoPlayerControlsContainer: {
+            position: 'absolute',
+            bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            left: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            right: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            backgroundColor: theme.videoPlayerBG,
+            borderRadius: 8,
+            flexDirection: 'column',
+            overflow: 'visible',
+            zIndex: 9000,
+        },
+
+        videoPlayerControlsButtonContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+
+        progressBarOutline: {
+            width: '100%',
+            height: 4,
+            borderRadius: 8,
+            backgroundColor: theme.transparentWhite,
+        },
+
+        progressBarFill: {
+            height: '100%',
+            backgroundColor: colors.white,
+            borderRadius: 8,
+        },
+
+        videoPlayerControlsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        videoPlayerText: {
+            textAlign: 'center',
+            fontSize: variables.fontSizeLabel,
+            fontWeight: '700',
+            lineHeight: 16,
+            color: theme.white,
+        },
+
+        volumeSliderContainer: {
+            position: 'absolute',
+            left: 0,
+            bottom: 0,
+            width: '100%',
+            height: 100,
+            alignItems: 'center',
+            borderRadius: 4,
+            backgroundColor: colors.green700,
+        },
+
+        volumeSliderOverlay: {
+            width: 4,
+            height: 60,
+            backgroundColor: theme.transparentWhite,
+            borderRadius: 8,
+            marginTop: 8,
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+        },
+
+        volumeSliderThumb: {
+            width: 8,
+            height: 8,
+            borderRadius: 8,
+            backgroundColor: colors.white,
+            marginBottom: -2,
+        },
+
+        volumeSliderFill: {
+            width: 4,
+            height: 20,
+            backgroundColor: colors.white,
+            borderRadius: 8,
+        },
+
+        videoIconButton: {
+            padding: 4,
+            borderRadius: 4,
+        },
+
+        videoIconButtonHovered: {
+            backgroundColor: colors.green700,
+        },
+
+        videoThumbnailContainer: {
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+
+        videoThumbnailPlayButton: {
+            backgroundColor: theme.videoPlayerBG,
+            borderRadius: 100,
+            width: 72,
+            height: 72,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        videoExpandButton: {
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            backgroundColor: theme.videoPlayerBG,
+            borderRadius: 8,
+            padding: 8,
+        },
+
+        videoPlayerTimeComponentWidth: {
+            width: 40,
+        },
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
         updateAnimation: {
