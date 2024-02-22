@@ -47,6 +47,7 @@ import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -173,25 +174,28 @@ const allReports: OnyxCollection<Report> = {};
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.INITIAL_URL,
-    callback: (value) => {
-        Linking.getInitialURL().then((url) => {
-            const currentParams = new URLSearchParams(url ?? '');
-            const currentExitToRoute = currentParams.get('exitTo') ?? '';
-            const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
+Linking.getInitialURL().then((url) => {
+    const isWebOrDesktop = ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
 
-            const prevParams = new URLSearchParams(value ?? '');
-            const prevExitToRoute = prevParams.get('exitTo') ?? '';
-            const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
+    if (!isWebOrDesktop) {
+        return;
+    }
 
-            reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
+    const currentParams = new URLSearchParams(url ?? '');
+    const currentExitToRoute = currentParams.get('exitTo') ?? '';
+    const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
 
-            if (currentReportID) {
-                Onyx.set(ONYXKEYS.INITIAL_URL, url);
-            }
-        });
-    },
+    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
+
+    const prevParams = new URLSearchParams(prevUrl ?? '');
+    const prevExitToRoute = prevParams.get('exitTo') ?? '';
+    const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
+
+    reportIDDeeplinkedFromOldDot = currentReportID || prevReportID;
+
+    if (currentReportID && url) {
+        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL, url);
+    }
 });
 
 let lastVisitedPath: string | undefined;
@@ -517,7 +521,7 @@ function addActions(reportID: string, text = '', file?: File) {
         });
         DateUtils.setTimezoneUpdated();
     }
-
+    return;
     API.write(commandName, parameters, {
         optimisticData,
         successData,
