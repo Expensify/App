@@ -16,6 +16,7 @@ import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -488,6 +489,7 @@ function WorkspaceMembersPage(props) {
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        ListItem={UserListItem}
                         textInputLabel={props.translate('optionsSelector.findMember')}
                         textInputValue={searchValue}
                         onChangeText={(value) => {
