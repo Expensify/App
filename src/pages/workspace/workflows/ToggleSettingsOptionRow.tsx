@@ -4,8 +4,8 @@ import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;

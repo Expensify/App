@@ -6,6 +6,8 @@ import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -19,8 +21,6 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
-import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -101,8 +101,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 },
                 subMenuItems: (
                     <MenuItem
-                    descriptionTextStyle={isOffline ? StyleUtils.getWorkspaceWorkflowsOfflineDescriptionStyle([styles.textNormal, styles.textSupporting]) : [styles.textNormal, styles.textSupporting]}
-                    description={translate('workflowsPage.connectBankAccount')}
+                        descriptionTextStyle={
+                            isOffline ? StyleUtils.getWorkspaceWorkflowsOfflineDescriptionStyle([styles.textNormal, styles.textSupporting]) : [styles.textNormal, styles.textSupporting]
+                        }
+                        description={translate('workflowsPage.connectBankAccount')}
                         // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
                         shouldShowRightIcon
@@ -114,7 +116,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 hasBeenToggled: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ],
-        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle, isOffline],
+        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle, isOffline, StyleUtils],
     );
 
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
