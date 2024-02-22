@@ -178,7 +178,7 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
                     .then((blob) => {
                         // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
                         // In this case, let us fallback on fileType provided by the caller of this function.
-                        const file = new File([blob], cleanFileName(fileName), {type: blob.type ? blob.type : fileType});
+                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
                         file.source = path;
                         // For some reason, the File object on iOS does not have a uri property
                         // so images aren't uploaded correctly to the backend
