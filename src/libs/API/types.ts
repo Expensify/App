@@ -87,6 +87,7 @@ const WRITE_COMMANDS = {
     DELETE_COMMENT: 'DeleteComment',
     UPDATE_COMMENT: 'UpdateComment',
     UPDATE_REPORT_NOTIFICATION_PREFERENCE: 'UpdateReportNotificationPreference',
+    UPDATE_ROOM_VISIBILITY: 'UpdateRoomVisibility',
     UPDATE_ROOM_DESCRIPTION: 'UpdateRoomDescription',
     UPDATE_REPORT_WRITE_CAPABILITY: 'UpdateReportWriteCapability',
     ADD_WORKSPACE_ROOM: 'AddWorkspaceRoom',
@@ -228,6 +229,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_COMMENT]: Parameters.DeleteCommentParams;
     [WRITE_COMMANDS.UPDATE_COMMENT]: Parameters.UpdateCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE]: Parameters.UpdateReportNotificationPreferenceParams;
+    [WRITE_COMMANDS.UPDATE_ROOM_VISIBILITY]: Parameters.UpdateRoomVisibilityParams;
     [WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION]: Parameters.UpdateRoomDescriptionParams;
     [WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY]: Parameters.UpdateReportWriteCapabilityParams;
     [WRITE_COMMANDS.ADD_WORKSPACE_ROOM]: Parameters.AddWorkspaceRoomParams;
