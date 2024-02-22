@@ -521,7 +521,7 @@ function addActions(reportID: string, text = '', file?: File) {
         });
         DateUtils.setTimezoneUpdated();
     }
-    return;
+
     API.write(commandName, parameters, {
         optimisticData,
         successData,
