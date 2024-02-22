@@ -1740,10 +1740,10 @@ export default {
             collect: 'Recolectar',
         },
         categories: {
-            subtitle: 'Obtenga una mejor visión general de dónde se gasta el dinero. Utilice nuestras categorías predeterminadas o agregue las suyas propias.',
+            subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
-                subtitle: 'Agregue una categoría para organizar su gasto.',
+                subtitle: 'Añade una categoría para organizar tu gasto.',
             },
         },
         emptyWorkspace: {
