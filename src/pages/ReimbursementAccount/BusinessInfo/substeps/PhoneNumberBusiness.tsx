@@ -29,8 +29,7 @@ const STEP_FIELDS = [COMPANY_PHONE_NUMBER_KEY];
 const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if ((values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true))) {
+    if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
         errors.companyPhone = 'bankAccount.error.phoneNumber';
     }
 
