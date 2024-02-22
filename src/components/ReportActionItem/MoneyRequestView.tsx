@@ -122,7 +122,7 @@ function MoneyRequestView({
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
 
-    const policyTaxRatesDescription = taxRates?.name;
+    const taxRatesDescription = taxRates?.name;
     const taxRateTitle = (transactionTaxCode && taxRates && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode)) ?? '';
 
     // Flags for allowing or disallowing editing a money request
@@ -433,7 +433,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
                             title={taxRateTitle}
-                            description={policyTaxRatesDescription}
+                            description={taxRatesDescription}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
