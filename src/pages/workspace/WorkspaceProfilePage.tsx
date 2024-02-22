@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type { ImageStyle, StyleProp} from 'react-native';
+import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, ScrollView, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
