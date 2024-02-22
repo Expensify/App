@@ -32,7 +32,6 @@ const defaultProps = {
  * @returns {React.Component}
  */
 function Suggestions({
-    isComposerFullSize,
     value,
     setValue,
     selection,

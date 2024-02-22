@@ -1,6 +1,6 @@
-import {getScrollPositionType, TextInputScrollProps} from './types';
+import type {GetScrollPositionType, TextInputScrollProps} from './types';
 
-function getScrollPosition({mobileInputScrollPosition}: TextInputScrollProps): getScrollPositionType {
+function getScrollPosition({mobileInputScrollPosition}: TextInputScrollProps): GetScrollPositionType {
     if (!mobileInputScrollPosition.current) {
         return {
             scrollValue: 0,

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import EmojiSuggestions from '@components/EmojiSuggestions';

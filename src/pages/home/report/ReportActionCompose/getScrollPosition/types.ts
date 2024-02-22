@@ -3,6 +3,6 @@ type TextInputScrollProps = {
     textInputRef: React.RefObject<HTMLDivElement>;
 };
 
-type getScrollPositionType = {scrollValue: number};
+type GetScrollPositionType = {scrollValue: number};
 
-export type {TextInputScrollProps, getScrollPositionType};
+export type {TextInputScrollProps, GetScrollPositionType};
