@@ -81,7 +81,7 @@ function AddressSearch(
     const resultRef = useRef();
     const [focusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: maxIndexRef.current - 1,
+        maxIndex: maxIndexRef.current > 0 ? maxIndexRef.current - 1 : 0,
         isActive: true,
     });
     const query = useMemo(
