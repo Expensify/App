@@ -65,9 +65,9 @@ function PopoverContextProvider(props: PopoverContextProps) {
             }
             closePopover();
         };
-        document.addEventListener('keydown', listener, true);
+        document.addEventListener('keyup', listener, true);
         return () => {
-            document.removeEventListener('keydown', listener, true);
+            document.removeEventListener('keyup', listener, true);
         };
     }, [closePopover]);
 
