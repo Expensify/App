@@ -1,14 +1,22 @@
 import * as format from './format';
 
-const printRegularLine = (entry) => {
+type Entry = {
+    name: string;
+};
+
+type Data = {
+    significance: Entry[];
+    meaningless: Entry[];
+};
+
+const printRegularLine = (entry: Entry) => {
     console.debug(` - ${entry.name}: ${format.formatDurationDiffChange(entry)}`);
 };
 
 /**
  * Prints the result simply to console.
- * @param {Object} data
  */
-export default (data) => {
+export default (data: Data) => {
     // No need to log errors or warnings as these were be logged on the fly
     console.debug('');
     console.debug('❇️  Performance comparison results:');

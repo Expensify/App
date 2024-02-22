@@ -7,13 +7,8 @@
  *
  * Based on :: https://github.com/v8/v8/blob/master/test/benchmarks/csuite/compare-baseline.py
  *
- * @param {Number} baselineMean
- * @param {Number} baselineStdev
- * @param {Number} currentMean
- * @param {Number} runs
- * @returns {Number}
  */
-const computeZ = (baselineMean, baselineStdev, currentMean, runs) => {
+const computeZ = (baselineMean: number, baselineStdev: number, currentMean: number, runs: number): number => {
     if (baselineStdev === 0) {
         return 1000;
     }
@@ -26,10 +21,8 @@ const computeZ = (baselineMean, baselineStdev, currentMean, runs) => {
  *
  * Based on :: https://github.com/v8/v8/blob/master/test/benchmarks/csuite/compare-baseline.py
  *
- * @param {Number} z
- * @returns {Number}
  */
-const computeProbability = (z) => {
+const computeProbability = (z: number): number => {
     // p 0.005: two sided < 0.01
     if (z > 2.575829) {
         return 0;
