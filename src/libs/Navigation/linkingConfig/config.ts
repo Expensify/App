@@ -261,6 +261,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
+                        [SCREENS.SETTINGS.SHARE_CODE]: {
+                            path: ROUTES.SETTINGS_SHARE_CODE,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -288,6 +291,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
                             path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.route,
+                        },
+                        [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
+                            path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
                         },
                     },
                 },
@@ -495,10 +501,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.SETTINGS_CENTRAL_PANE]: {
                     screens: {
-                        [SCREENS.SETTINGS.SHARE_CODE]: {
-                            path: ROUTES.SETTINGS_SHARE_CODE,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.PROFILE.ROOT]: {
                             path: ROUTES.SETTINGS_PROFILE,
                             exact: true,
