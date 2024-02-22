@@ -24,7 +24,7 @@ const propTypes = {
     /** Whether or not the wrapper should be shown (sometimes screens can be embedded inside another screen that already is using a wrapper) */
     shouldShowWrapper: PropTypes.bool.isRequired,
 
-    /** Whether or not display not found page */
+    /** Whether or not to display not found page */
     shouldShowNotFoundPage: PropTypes.bool,
 
     /** An ID used for unit testing */
