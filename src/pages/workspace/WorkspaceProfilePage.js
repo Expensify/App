@@ -174,13 +174,16 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                 </View>
                             </OfflineWithFeedback>
                             {!readOnly && (
-                                <Button
-                                    style={styles.mt6}
-                                    innerStyles={StyleUtils.getWidthStyle(variables.workspaceShareButtonWidth)}
-                                    text={translate('common.share')}
-                                    onPress={onPressShare}
-                                    medium
-                                />
+                                <View style={[styles.flexRow, styles.mnw120]}>
+                                    <Button
+                                        accessibilityLabel={translate('common.share')}
+                                        icon={Expensicons.QrCode}
+                                        style={styles.mt6}
+                                        text={translate('common.share')}
+                                        onPress={onPressShare}
+                                        medium
+                                    />
+                                </View>
                             )}
                         </Section>
                     </View>

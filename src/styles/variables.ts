@@ -217,5 +217,4 @@ export default {
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
     workspaceProfileName: 20,
-    workspaceShareButtonWidth: 68,
 } as const;
