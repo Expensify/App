@@ -5,8 +5,7 @@ import useNetwork from '@hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
-function Image(props: ImageProps) {
-    const {source: propsSource, isAuthTokenRequired = false, onLoad, session, ...forwardedProps} = props;
+function Image({source: propsSource, isAuthTokenRequired = false, onLoad, session, ...forwardedProps}: ImageProps) {
     const {isOffline} = useNetwork();
 
     /**

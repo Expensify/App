@@ -7,16 +7,13 @@ import type {ImageOnyxProps, ImageProps} from './types';
 
 const dimensionsCache = new Map();
 
-function Image(props: ImageProps) {
-    // eslint-disable-next-line react/destructuring-assignment
-    const {source, isAuthTokenRequired = false, session, ...rest} = props;
-
+function Image({source, isAuthTokenRequired = false, session, onLoad, ...rest}: ImageProps) {
     let imageSource = source;
     if (typeof source === 'object' && 'uri' in source && typeof source.uri === 'number') {
         imageSource = source.uri;
     }
     if (typeof imageSource === 'object' && typeof source === 'object' && isAuthTokenRequired) {
-        const authToken = props.session?.encryptedAuthToken ?? null;
+        const authToken = session?.encryptedAuthToken ?? null;
         imageSource = {
             ...source,
             headers: authToken
@@ -35,8 +32,8 @@ function Image(props: ImageProps) {
             onLoad={(evt) => {
                 const {width, height, url} = evt.source;
                 dimensionsCache.set(url, {width, height});
-                if (props.onLoad) {
-                    props.onLoad({nativeEvent: {width, height}});
+                if (onLoad) {
+                    onLoad({nativeEvent: {width, height}});
                 }
             }}
         />
