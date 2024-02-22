@@ -268,5 +268,5 @@ export default withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxP
                 },
             })),
     },
-    // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
+    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 })(IOURequestStepWaypointWithFullTransactionOrNotFound);
