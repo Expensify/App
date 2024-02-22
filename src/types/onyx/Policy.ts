@@ -10,6 +10,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
+    enabled?: boolean;
 }>;
 
 type Attributes = {
@@ -21,6 +22,8 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
+    defaultCategory?: string;
+    enabled?: boolean;
     errors?: OnyxCommon.Errors;
 }>;
 

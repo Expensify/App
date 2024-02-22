@@ -12,6 +12,7 @@ import DeletedRoomAvatar from '@assets/images/avatars/deleted-room.svg';
 import DomainRoomAvatar from '@assets/images/avatars/domain-room.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
+import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
@@ -247,6 +248,7 @@ export {
     ExpensifyLogoNew,
     NewWindow,
     NewWorkspace,
+    NotificationsAvatar,
     Offline,
     OfflineCloud,
     OldDotWireframe,
