@@ -67,8 +67,10 @@ function PlaybackContextProvider({children}) {
 
     const checkVideoPlaying = useCallback(
         (statusCallback) => {
-            // eslint-disable-next-line es/no-optional-chaining
-            currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+            if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.getStatusAsync)) {
+                return;
+            }
+            currentVideoPlayerRef.current.getStatusAsync().then((status) => {
                 statusCallback(status.isPlaying);
             });
         },
