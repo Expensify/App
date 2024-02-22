@@ -111,6 +111,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const completeAttachmentSelection = useRef<(data: FileResult) => void>(() => {});
     const onModalHide = useRef<() => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
+    const popoverRef = useRef(null);
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -308,7 +309,8 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                     onCanceled.current();
                 }}
                 isVisible={isVisible}
-                anchorPosition={styles.createMenuPosition}
+                anchorRef={popoverRef}
+                // anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}
             >
                 <View style={!isSmallScreenWidth && styles.createMenuContainer}>
