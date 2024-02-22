@@ -5,7 +5,6 @@ import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
