@@ -8,6 +8,8 @@ type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENC
 
 type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
 
+type RoomVisibility = ValueOf<typeof CONST.REPORT.VISIBILITY>;
+
 type Note = {
     note: string;
     errors?: OnyxCommon.Errors;
@@ -115,7 +117,7 @@ type Report = {
     openOnAdminRoom?: boolean;
 
     /** The report visibility */
-    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
+    visibility?: RoomVisibility;
 
     /** Report cached total */
     cachedTotal?: string;
@@ -186,4 +188,4 @@ type Report = {
 
 export default Report;
 
-export type {NotificationPreference, WriteCapability, Note, PendingChatMember};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, PendingChatMember};
