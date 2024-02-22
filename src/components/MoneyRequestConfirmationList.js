@@ -763,11 +763,15 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
                             onPress={() => {
-                                if (props.isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.CATEGORY));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        props.iouType,
+                                        props.transaction.transactionID,
+                                        props.reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

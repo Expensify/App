@@ -1,65 +1,62 @@
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {policyDefaultProps, policyPropTypes} from './withPolicy';
+import type {CurrencyList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-const propTypes = {
+type WorkspaceProfileCurrentPageOnyxProps = {
     /** Constant, list of available currencies */
-    currencyList: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Symbol of the currency */
-            symbol: PropTypes.string.isRequired,
-        }),
-    ),
-    isLoadingReportData: PropTypes.bool,
-    ...policyPropTypes,
+    currencyList: OnyxEntry<CurrencyList>;
 };
 
-const defaultProps = {
-    currencyList: {},
-    isLoadingReportData: true,
-    ...policyDefaultProps,
+type WorkspaceProfileCurrentPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceProfileCurrentPageOnyxProps;
+
+type WorkspaceProfileCurrencyPageSectionItem = {
+    text: string;
+    keyForList: string;
+    isSelected: boolean;
 };
 
-const getDisplayText = (currencyCode, currencySymbol) => `${currencyCode} - ${currencySymbol}`;
+const getDisplayText = (currencyCode: string, currencySymbol: string) => `${currencyCode} - ${currencySymbol}`;
 
-function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportData}) {
+function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingReportData = true}: WorkspaceProfileCurrentPageProps) {
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
-    const currencyListKeys = _.keys(currencyList);
+    const currencyListKeys = Object.keys(currencyList ?? {});
 
-    const filteredItems = _.filter(currencyListKeys, (currencyCode) => {
-        const currency = currencyList[currencyCode];
-        return getDisplayText(currencyCode, currency.symbol).toLowerCase().includes(trimmedText);
+    const filteredItems = currencyListKeys.filter((currencyCode: string) => {
+        const currency = currencyList?.[currencyCode];
+        return getDisplayText(currencyCode, currency?.symbol ?? '')
+            .toLowerCase()
+            .includes(trimmedText);
     });
 
     let initiallyFocusedOptionKey;
 
-    const currencyItems = _.map(filteredItems, (currencyCode) => {
-        const currency = currencyList[currencyCode];
-        const isSelected = policy.outputCurrency === currencyCode;
+    const currencyItems: WorkspaceProfileCurrencyPageSectionItem[] = filteredItems.map((currencyCode: string) => {
+        const currency = currencyList?.[currencyCode];
+        const isSelected = policy?.outputCurrency === currencyCode;
 
         if (isSelected) {
             initiallyFocusedOptionKey = currencyCode;
         }
 
         return {
-            text: getDisplayText(currencyCode, currency.symbol),
+            text: getDisplayText(currencyCode, currency?.symbol ?? ''),
             keyForList: currencyCode,
             isSelected,
         };
@@ -69,20 +66,20 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
 
     const headerMessage = searchText.trim() && !currencyItems.length ? translate('common.noResultsFound') : '';
 
-    const onSelectCurrency = (item) => {
-        Policy.updateGeneralSettings(policy.id, policy.name, item.keyForList);
+    const onSelectCurrency = (item: WorkspaceProfileCurrencyPageSectionItem) => {
+        Policy.updateGeneralSettings(policy?.id ?? '', policy?.name ?? '', item.keyForList);
         Navigation.goBack();
     };
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceSettingsCurrencyPage.displayName}
+            testID={WorkspaceProfileCurrencyPage.displayName}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={(_.isEmpty(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
@@ -105,13 +102,10 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
     );
 }
 
-WorkspaceSettingsCurrencyPage.displayName = 'WorkspaceSettingsCurrencyPage';
-WorkspaceSettingsCurrencyPage.propTypes = propTypes;
-WorkspaceSettingsCurrencyPage.defaultProps = defaultProps;
+WorkspaceProfileCurrencyPage.displayName = 'WorkspaceProfileCurrencyPage';
 
-export default compose(
-    withPolicyAndFullscreenLoading,
-    withOnyx({
+export default withPolicyAndFullscreenLoading(
+    withOnyx<WorkspaceProfileCurrentPageProps, WorkspaceProfileCurrentPageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    }),
-)(WorkspaceSettingsCurrencyPage);
+    })(WorkspaceProfileCurrencyPage),
+);
