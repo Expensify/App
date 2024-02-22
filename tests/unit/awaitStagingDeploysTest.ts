@@ -1,29 +1,46 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import _ from 'underscore';
+import asMutable from '@src/types/utils/AsMutable';
 import run from '../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
+type Workflow = {
+    workflow_id: string;
+    branch: string;
+};
+
+type WorkflowStatus = {status: string};
+
 // Lower poll rate to speed up tests
 const TEST_POLL_RATE = 1;
-const COMPLETED_WORKFLOW = {status: 'completed'};
-const INCOMPLETE_WORKFLOW = {status: 'in_progress'};
+const COMPLETED_WORKFLOW: WorkflowStatus = {status: 'completed'};
+const INCOMPLETE_WORKFLOW: WorkflowStatus = {status: 'in_progress'};
+
+type MockListResponse = {
+    data: {
+        workflow_runs: WorkflowStatus[];
+    };
+};
+
+type MockedFunctionListResponse = jest.MockedFunction<() => Promise<MockListResponse>>;
 
 const consoleSpy = jest.spyOn(console, 'log');
 const mockGetInput = jest.fn();
-const mockListPlatformDeploysForTag = jest.fn();
-const mockListPlatformDeploys = jest.fn();
-const mockListPreDeploys = jest.fn();
-const mockListWorkflowRuns = jest.fn().mockImplementation((args) => {
+const mockListPlatformDeploysForTag: MockedFunctionListResponse = jest.fn();
+const mockListPlatformDeploys: MockedFunctionListResponse = jest.fn();
+const mockListPreDeploys: MockedFunctionListResponse = jest.fn();
+const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     const defaultReturn = Promise.resolve({data: {workflow_runs: []}});
 
-    if (!_.has(args, 'workflow_id')) {
+    if (!args.workflow_id) {
         return defaultReturn;
     }
 
-    if (!_.isUndefined(args.branch)) {
+    if (args.branch !== undefined) {
         return mockListPlatformDeploysForTag();
     }
 
@@ -40,7 +57,7 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args) => {
 
 beforeAll(() => {
     // Mock core module
-    core.getInput = mockGetInput;
+    asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
     const moctokit = {
@@ -50,6 +67,8 @@ beforeAll(() => {
             },
         },
     };
+
+    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
     GithubUtils.POLL_RATE = TEST_POLL_RATE;
 });
