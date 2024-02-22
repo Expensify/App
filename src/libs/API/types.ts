@@ -10,6 +10,7 @@ type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 const WRITE_COMMANDS = {
     DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
+    OPEN_APP: 'OpenApp',
     RECONNECT_APP: 'ReconnectApp',
     OPEN_PROFILE: 'OpenProfile',
     HANDLE_RESTRICTED_EVENT: 'HandleRestrictedEvent',
@@ -154,6 +155,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISMISS_REFERRAL_BANNER]: Parameters.DismissReferralBannerParams;
     [WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE]: Parameters.UpdatePreferredLocaleParams;
     [WRITE_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
+    [WRITE_COMMANDS.OPEN_APP]: Parameters.OpenAppParams;
     [WRITE_COMMANDS.OPEN_PROFILE]: Parameters.OpenProfileParams;
     [WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT]: Parameters.HandleRestrictedEventParams;
     [WRITE_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
@@ -293,7 +295,6 @@ type WriteCommandParameters = {
 };
 
 const READ_COMMANDS = {
-    OPEN_APP: 'OpenApp',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
@@ -327,7 +328,6 @@ const READ_COMMANDS = {
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
 
 type ReadCommandParameters = {
-    [READ_COMMANDS.OPEN_APP]: Parameters.OpenAppParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: EmptyObject;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: EmptyObject;
