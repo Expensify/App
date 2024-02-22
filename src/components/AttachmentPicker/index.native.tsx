@@ -16,22 +16,15 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker'
+import type {SupportedPlatforms} from 'react-native-document-picker/lib/typescript/fileTypes';
+import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import launchCamera from './launchCamera/launchCamera';
-import type {Asset, Callback, CameraOptions, ImagePickerResponse} from './launchCamera/types';
 import type BaseAttachmentPickerProps from './types';
 
 type AttachmentPickerProps = BaseAttachmentPickerProps & {
     /** If this value is true, then we exclude Camera option. */
     shouldHideCameraOption?: boolean;
-};
-
-type DocumentPickerResponse = {
-    uri: string;
-    name: string | null;
-    copyError?: string;
-    fileCopyUri: string | null;
-    type: string | null;
-    size: number | null;
 };
 
 type Item = {
