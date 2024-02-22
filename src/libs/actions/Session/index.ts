@@ -97,10 +97,6 @@ function signOut() {
     };
 
     API.write(WRITE_COMMANDS.LOG_OUT, params);
-    clearCache().then(() => {
-        Log.info('Cleared all cache data', true, {}, true);
-    });
-    Timing.clearData();
 }
 
 /**
@@ -591,6 +587,10 @@ function cleanupSession() {
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetHomeRouteParams();
+    clearCache().then(() => {
+        Log.info('Cleared all cache data', true, {}, true);
+    });
+    Timing.clearData();
 }
 
 function clearAccountMessages() {
