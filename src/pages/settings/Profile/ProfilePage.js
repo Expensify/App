@@ -4,6 +4,7 @@ import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,6 +15,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import compose from '@libs/compose';
 import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -78,7 +81,9 @@ const defaultProps = {
 };
 
 function ProfilePage(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const getPronouns = () => {
         let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -190,18 +195,22 @@ function ProfilePage(props) {
                         childrenStyles={styles.pt3}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
-                        <>
-                            {_.map(privateOptions, (detail, index) => (
-                                <MenuItemWithTopDescription
-                                    key={`${detail.title}_${index}`}
-                                    shouldShowRightIcon
-                                    title={detail.title}
-                                    description={detail.description}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(detail.pageRoute)}
-                                />
-                            ))}
-                        </>
+                        {props.isLoadingApp ? (
+                            <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                        ) : (
+                            <>
+                                {_.map(privateOptions, (detail, index) => (
+                                    <MenuItemWithTopDescription
+                                        key={`${detail.title}_${index}`}
+                                        shouldShowRightIcon
+                                        title={detail.title}
+                                        description={detail.description}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    />
+                                ))}
+                            </>
+                        )}
                     </Section>
                 </View>
             </ScrollView>
@@ -226,6 +235,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
     }),
 )(ProfilePage);
