@@ -7,7 +7,7 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 
 type WithToggleVisibilityViewProps = {
     /** Whether the content is visible. */
-    isVisible?: boolean;
+    isVisible: boolean;
 };
 
 export default function withToggleVisibilityView<TProps extends WithToggleVisibilityViewProps, TRef>(
