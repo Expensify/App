@@ -9,10 +9,8 @@ const propTypes = {
     /** Callback to fire when a tax is pressed */
     onSubmit: PropTypes.func.isRequired,
 
-    policy: PropTypes.shape({
-        /** Collection of tax rates attached to a policy */
-        taxRates: taxPropTypes,
-    }),
+    /** Collection of tax rates attached to a policy */
+    taxRates: taxPropTypes,
 
     /**
      * Safe area insets required for reflecting the portion of the view,
@@ -23,7 +21,7 @@ const propTypes = {
 
 const defaultProps = {
     selectedTaxRate: '',
-    policy: {},
+    taxRates: {},
 };
 
 export {propTypes, defaultProps};
