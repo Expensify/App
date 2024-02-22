@@ -92,9 +92,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: undefined;
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: undefined;
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
+        backTo: Routes;
+    };
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
+        contactMethod: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -146,6 +152,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
+    [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
         policyID: string;
     };
