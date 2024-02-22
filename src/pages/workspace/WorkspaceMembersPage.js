@@ -40,6 +40,7 @@ import ROUTES from '@src/ROUTES';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import Badge from "@components/Badge";
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -333,11 +334,15 @@ function WorkspaceMembersPage(props) {
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = (
-                    <View style={[StyleUtils.getMinimumWidth(60), styles.mr4]}>
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={styles.peopleBadgeText}>{isOwner ? props.translate('common.owner') : props.translate('common.admin')}</Text>
-                        </View>
-                    </View>
+                    <Badge
+                        text={isOwner ? props.translate('common.owner') : props.translate('common.admin')}
+                        textStyles={styles.textStrong}
+                        badgeStyles={[
+                            styles.justifyContentCenter,
+                            StyleUtils.getMinimumWidth(60),
+                            styles.mr3,
+                        ]}
+                    />
                 );
             }
 
