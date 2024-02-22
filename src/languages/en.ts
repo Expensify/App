@@ -2076,8 +2076,8 @@ export default {
         noActivityYet: 'No activity yet',
         people: {
             error: {
-                genericAdd: 'There was a problem adding this room member.',
-                genericRemove: 'There was a problem removing that room member.',
+                genericAdd: 'There was a problem adding this member to the room.',
+                genericRemove: 'There was a problem removing this member from the room.',
             },
         },
     },
