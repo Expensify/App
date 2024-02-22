@@ -29,7 +29,6 @@ const SCREENS = {
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
-        LOUNGE_ACCESS: 'Settings_Lounge_Access',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         CLOSE: 'Settings_Close',
@@ -168,6 +167,7 @@ const SCREENS = {
         ROOM_NAME: 'Report_Settings_Room_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
+        VISIBILITY: 'Report_Settings_Visibility',
     },
 
     NEW_TASK: {

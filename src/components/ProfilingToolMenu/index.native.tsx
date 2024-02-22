@@ -143,7 +143,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
     return (
         <>
             <Text
-                style={[styles.textLabelSupporting, styles.mb4]}
+                style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
                 numberOfLines={1}
             >
                 Release options
