@@ -428,7 +428,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={!!transactionBillable}
                             onToggle={saveBillable}
-                            disabled={!canEditBillable}
+                            interactive={canEditBillable}
                         />
                     </View>
                 )}
