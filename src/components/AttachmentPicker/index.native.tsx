@@ -104,7 +104,7 @@ const getDataForUpload = (fileData: Asset & DocumentPickerResponse): Promise<Fil
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
  */
-function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false}: AttachmentPickerProps): React.JSX.Element {
+function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false}: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -172,7 +172,6 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
         [showGeneralAlert],
     );
 
-    // convert this into type and use it solve others
     const menuItemData: Item[] = useMemo(() => {
         const data = lodashCompact([
             !shouldHideCameraOption && {
