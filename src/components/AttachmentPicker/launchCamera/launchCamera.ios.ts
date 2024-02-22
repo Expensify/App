@@ -1,6 +1,6 @@
 import {launchCamera} from 'react-native-image-picker';
 import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
-import type {Callback, CameraOptions, ErrorCode} from './types';
+import type {Callback, CameraOptions} from './types';
 
 /**
  * Launching the camera for iOS involves checking for permissions
