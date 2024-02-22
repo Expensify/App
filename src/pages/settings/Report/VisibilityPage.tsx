@@ -62,6 +62,7 @@ function VisibilityPage({report}: VisibilityProps) {
                     onBackButtonPress={() => ReportUtils.goBackToDetailsPage(report)}
                 />
                 <SelectionList
+                    ListItem={RadioListItem}
                     shouldPreventDefaultFocusOnSelectRow
                     sections={[{data: visibilityOptions}]}
                     onSelectRow={(option) => {
