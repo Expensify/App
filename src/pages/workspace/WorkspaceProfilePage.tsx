@@ -164,7 +164,6 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 <View style={[styles.flexRow, styles.mnw120]}>
                                     <Button
                                         accessibilityLabel={translate('common.share')}
-                                        icon={Expensicons.QrCode}
                                         style={styles.mt6}
                                         text={translate('common.share')}
                                         onPress={onPressShare}
