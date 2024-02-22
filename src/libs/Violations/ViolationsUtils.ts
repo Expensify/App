@@ -51,6 +51,8 @@ const ViolationsUtils = {
 
         if (policyRequiresTags) {
             const policyTagKeys = Object.keys(policyTagList);
+
+            // At the moment, we only return violations for tags for workspaces with single-level tags
             if (policyTagKeys.length === 1) {
                 const policyTagListName = Object.keys(policyTagList)[0];
                 const policyTags = policyTagList[policyTagListName]?.tags;
