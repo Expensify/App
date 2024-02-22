@@ -1,57 +1,40 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {translatableTextPropTypes} from '@libs/Localize';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
+import type {LoginList} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
-    /* Onyx Props */
-
+type NewContactMethodPageOnyxProps = {
     /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** The partner creating the account. It depends on the source: website, mobile, integrations, ... */
-        partnerName: PropTypes.string,
-
-        /** Phone/Email associated with user */
-        partnerUserID: PropTypes.string,
-
-        /** The date when the login was validated, used to show the brickroad status */
-        validatedDate: PropTypes.string,
-
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
-
-        /** Field-specific pending states for offline UI status */
-        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
-
-    ...withLocalizePropTypes,
-};
-const defaultProps = {
-    loginList: {},
+    loginList: OnyxEntry<LoginList>;
 };
 
-const addNewContactMethod = (values) => {
+type NewContactMethodPageProps = NewContactMethodPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
+
+const addNewContactMethod = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
     const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
     const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
     const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
@@ -59,35 +42,36 @@ const addNewContactMethod = (values) => {
     User.addNewContactMethodAndNavigate(submitDetail);
 };
 
-function NewContactMethodPage(props) {
+function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
     const styles = useThemeStyles();
-    const loginInputRef = useRef(null);
+    const {translate} = useLocalize();
+    const loginInputRef = useRef<AnimatedTextInputRef>(null);
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
+    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
     const validate = React.useCallback(
-        (values) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
             const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
             const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
 
             const errors = {};
 
-            if (_.isEmpty(values.phoneOrEmail)) {
+            if (!values.phoneOrEmail) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
             }
 
-            if (!_.isEmpty(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
-            if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
+            if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
             }
 
             return errors;
         },
-        // We don't need `props.loginList` because when submitting this form
-        // the props.loginList gets updated, causing this function to run again.
+        // We don't need `loginList` because when submitting this form
+        // the loginList gets updated, causing this function to run again.
         // https://github.com/Expensify/App/issues/20610
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
@@ -103,38 +87,32 @@ function NewContactMethodPage(props) {
 
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => {
-                if (!loginInputRef.current) {
-                    return;
-                }
-
-                loginInputRef.current.focus();
-            }}
+            onEntryTransitionEnd={() => loginInputRef.current?.focus()}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={NewContactMethodPage.displayName}
         >
             <HeaderWithBackButton
-                title={props.translate('contacts.newContactMethod')}
+                title={translate('contacts.newContactMethod')}
                 onBackButtonPress={onBackButtonPress}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
                 validate={validate}
                 onSubmit={addNewContactMethod}
-                submitButtonText={props.translate('common.add')}
+                submitButtonText={translate('common.add')}
                 style={[styles.flexGrow1, styles.mh5]}
                 enabledWhenOffline
             >
-                <Text style={[styles.mb5]}>{props.translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
-                <View style={[styles.mb6]}>
+                <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
+                <View style={styles.mb6}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        aria-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                        aria-label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
-                        ref={(el) => (loginInputRef.current = el)}
+                        ref={loginInputRef}
                         inputID={INPUT_IDS.PHONE_OR_EMAIL}
                         autoCapitalize="none"
                         enterKeyHint="done"
@@ -146,13 +124,8 @@ function NewContactMethodPage(props) {
     );
 }
 
-NewContactMethodPage.propTypes = propTypes;
-NewContactMethodPage.defaultProps = defaultProps;
 NewContactMethodPage.displayName = 'NewContactMethodPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        loginList: {key: ONYXKEYS.LOGIN_LIST},
-    }),
-)(NewContactMethodPage);
+export default withOnyx<NewContactMethodPageProps, NewContactMethodPageOnyxProps>({
+    loginList: {key: ONYXKEYS.LOGIN_LIST},
+})(NewContactMethodPage);

@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FormActions from '@libs/actions/FormActions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
@@ -87,37 +88,16 @@ const propTypes = {
 
 const defaultProps = {
     cardList: null,
-    draftValues: {
-        addressLine1: '',
-        addressLine2: '',
-        city: '',
-        state: '',
-        country: '',
-        zipPostCode: '',
-        phoneNumber: '',
-        legalFirstName: '',
-        legalLastName: '',
-    },
-    loginList: {},
-    privatePersonalDetails: {
-        legalFirstName: '',
-        legalLastName: '',
-        phoneNumber: null,
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
-    },
+    draftValues: null,
+    loginList: null,
+    privatePersonalDetails: null,
 };
 
 function ExpensifyCardPage({
     cardList,
     draftValues,
-    loginList,
     privatePersonalDetails,
+    loginList,
     route: {
         params: {domain},
     },
@@ -159,9 +139,16 @@ function ExpensifyCardPage({
     };
 
     const goToGetPhysicalCardFlow = () => {
-        const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(draftValues, privatePersonalDetails, loginList);
+        let updatedDraftValues = draftValues;
 
-        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues), loginList);
+        if (!draftValues) {
+            updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(null, privatePersonalDetails, loginList);
+            // Form draft data needs to be initialized with the private personal details
+            // If no draft data exists
+            FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
+        }
+
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues));
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
