@@ -49,7 +49,7 @@ type MultiGestureCanvasVariables = {
     reset: (animated: boolean, callback: () => void) => void;
     onTap: OnTapCallback | undefined;
     onScaleChanged: OnScaleChangedCallback | undefined;
-    onSwipeDown: OnSwipeDownCallback;
+    onSwipeDown: OnSwipeDownCallback | undefined;
 };
 
 export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, OnTapCallback, MultiGestureCanvasVariables, OnSwipeDownCallback};

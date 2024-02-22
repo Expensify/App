@@ -143,7 +143,9 @@ const usePanGesture = ({
                     isSwipingDownToClose.value = false;
                 });
 
-                runOnJS(onSwipeDown)();
+                if (onSwipeDown) {
+                    runOnJS(onSwipeDown)();
+                }
             } else {
                 // Animated back to the boundary
                 offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG, () => {
