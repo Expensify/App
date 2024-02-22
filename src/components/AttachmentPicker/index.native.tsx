@@ -30,7 +30,7 @@ type AttachmentPickerProps = BaseAttachmentPickerProps & {
 type Item = {
     icon: IconAsset;
     textTranslationKey: string;
-    pickAttachment: () => void;
+    pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
 };
 
 type FileResult = {
@@ -228,7 +228,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Array<DocumentPickerResponse & ImagePickerResponse> = []): Promise<void> => {
+        (attachments: Array<Asset & DocumentPickerResponse> = []): Promise<Asset[] | void | DocumentPickerResponse[]> => {
             if (attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve();
