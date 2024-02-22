@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import {when} from 'jest-when';
-import asMutable from '@src/utils/asMutable';
+import asMutable from '@src/types/utils/AsMutable';
 import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
