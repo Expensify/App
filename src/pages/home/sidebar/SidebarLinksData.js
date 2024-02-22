@@ -101,7 +101,6 @@ const propTypes = {
 
 const defaultProps = {
     chatReports: {},
-    allReportActions: {},
     isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
@@ -111,6 +110,7 @@ const defaultProps = {
         accountID: '',
     },
     transactionViolations: {},
+    allReportActions: {},
 };
 
 function SidebarLinksData({
@@ -208,6 +208,7 @@ function SidebarLinksData({
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 optionListItems={optionListItemsWithCurrentReport}
+                activeWorkspaceID={activeWorkspaceID}
             />
         </View>
     );

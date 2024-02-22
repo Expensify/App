@@ -19,6 +19,9 @@ type HeaderPageLayoutProps = ChildrenProps &
         /** The background color to apply in the upper half of the screen. */
         backgroundColor?: string;
 
+        /** TestID to apply to the whole section container */
+        testID: string;
+
         /** A fixed footer to display at the bottom of the page. */
         footer?: ReactNode;
 
@@ -50,6 +53,7 @@ function HeaderPageLayout({
     style,
     headerContent,
     shouldShowOfflineIndicatorInWideScreen = false,
+    testID,
     ...rest
 }: HeaderPageLayoutProps) {
     const theme = useTheme();
@@ -72,7 +76,7 @@ function HeaderPageLayout({
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
-            testID={HeaderPageLayout.displayName}
+            testID={testID}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
         >
             {({safeAreaPaddingBottomStyle}) => (
