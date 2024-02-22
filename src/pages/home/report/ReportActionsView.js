@@ -248,10 +248,11 @@ function ReportActionsView(props) {
         }
     }, [hasCachedActions]);
 
-    // When we offline before opening a money request report,
+    // When we are offline before opening a money request report,
     // the total of the report and sometimes the money request aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate a money request action if there is no such action to display at least one money request action to match the total data.
+    // and we also generate a money request action if If the number of money requests in reportActions is less than the total number of money requests
+    // to display at least one money request action to match the total data.
     // For more details: https://github.com/Expensify/App/issues/26424#issuecomment-1869154198
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(props.report) || !_.size(props.reportActions)) {
@@ -268,12 +269,14 @@ function ReportActionsView(props) {
             actions.push(optimisticCreatedAction);
         }
 
+        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(props.report.chatReportID, props.report.reportID);
+
         if (
             props.report.total &&
             _.filter(
                 props.reportActions,
                 (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            ).length === 0
+            ).length < reportPreviewAction.childMoneyRequestCount
         ) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
