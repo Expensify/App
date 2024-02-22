@@ -22,12 +22,14 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
@@ -112,7 +114,7 @@ type GetOptionsConfig = {
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
     includeTaxRates?: boolean;
-    taxRates?: PolicyTaxRateWithDefault;
+    taxRates?: TaxRatesWithDefault;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
@@ -1172,23 +1174,15 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
     return hasEnabledOptions(policyTagValueList);
 }
 
-type PolicyTaxRateWithDefault = {
-    name: string;
-    defaultExternalID: string;
-    defaultValue: string;
-    foreignTaxDefault: string;
-    taxes: PolicyTaxRates;
-};
-
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
  * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(taxRates: PolicyTaxRateWithDefault | undefined): Record<string, PolicyTaxRate> {
+function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const getModifiedName = (data: PolicyTaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
@@ -1196,7 +1190,7 @@ function transformedTaxRates(taxRates: PolicyTaxRateWithDefault | undefined): Re
 /**
  * Sorts tax rates alphabetically by name.
  */
-function sortTaxRates(taxRates: PolicyTaxRates): PolicyTaxRate[] {
+function sortTaxRates(taxRates: TaxRates): TaxRate[] {
     const sortedtaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
     return sortedtaxRates;
 }
@@ -1204,7 +1198,7 @@ function sortTaxRates(taxRates: PolicyTaxRates): PolicyTaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.code,
@@ -1218,7 +1212,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: PolicyTaxRateWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(taxRates);
@@ -1797,7 +1791,7 @@ function getFilteredOptions(
     canInviteUser = true,
     includeSelectedOptions = false,
     includeTaxRates = false,
-    taxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
+    taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
