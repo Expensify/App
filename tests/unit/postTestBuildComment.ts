@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import {when} from 'jest-when';
-import type {Writable} from 'type-fest';
+import asMutable from '@src/utils/asMutable';
 import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
@@ -53,8 +53,6 @@ const message = `:test_tube::test_tube: Use the links below to test this adhoc b
 
 :eyes: [View the workflow run that generated this build](https://github.com/Expensify/App/actions/runs/1234) :eyes:
 `;
-
-const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
 
 describe('Post test build comments action tests', () => {
     beforeAll(() => {
