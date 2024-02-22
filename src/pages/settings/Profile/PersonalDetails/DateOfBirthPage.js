@@ -18,6 +18,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -83,7 +84,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
-                        inputID="dob"
+                        inputID={INPUT_IDS.DOB}
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}

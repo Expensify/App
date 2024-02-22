@@ -1,6 +1,6 @@
-const core = require('@actions/core');
-const run = require('../../.github/actions/javascript/isStagingDeployLocked/isStagingDeployLocked');
-const GithubUtils = require('../../.github/libs/GithubUtils');
+import * as core from '@actions/core';
+import run from '../../.github/actions/javascript/isStagingDeployLocked/isStagingDeployLocked';
+import GithubUtils from '../../.github/libs/GithubUtils';
 
 // Mock the entire GithubUtils module
 jest.mock('../../.github/libs/GithubUtils');
