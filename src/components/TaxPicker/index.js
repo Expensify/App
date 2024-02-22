@@ -18,8 +18,8 @@ function TaxPicker({selectedTaxRate, policy, insets, onSubmit}) {
 
     const taxRates = lodashGet(policy, 'taxRates', {});
 
-    const policyTaxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
-    const isTaxRatesCountBelowThreshold = policyTaxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
+    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
+    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
@@ -38,7 +38,7 @@ function TaxPicker({selectedTaxRate, policy, insets, onSubmit}) {
     }, [selectedTaxRate]);
 
     const sections = useMemo(() => {
-        const {policyTaxRatesOptions} = OptionsListUtils.getFilteredOptions(
+        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions(
             {},
             {},
             [],
@@ -58,7 +58,7 @@ function TaxPicker({selectedTaxRate, policy, insets, onSubmit}) {
             true,
             taxRates,
         );
-        return policyTaxRatesOptions;
+        return taxRatesOptions;
     }, [taxRates, searchValue, selectedOptions]);
 
     const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (taxRate) => taxRate.searchText === selectedTaxRate)[0], 'keyForList');
