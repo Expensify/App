@@ -77,8 +77,8 @@ const defaultProps = {
     transaction: {},
 };
 
-const getTaxAmount = (transactionAmount, transactionTaxCode, policyTaxRates) => {
-    const percentage = (transactionTaxCode ? policyTaxRates.taxes[transactionTaxCode].value : policyTaxRates.defaultValue) || '';
+const getTaxAmount = (transactionAmount, transactionTaxCode, taxRates) => {
+    const percentage = (transactionTaxCode ? taxRates.taxes[transactionTaxCode].value : taxRates.defaultValue) || '';
     return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
 };
 
@@ -102,9 +102,9 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const policyTaxRates = lodashGet(policy, 'taxRates', {});
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
-    const taxRateTitle = TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode);
+    const taxRateTitle = TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -230,7 +230,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         return (
             <EditRequestTaxAmountPage
                 defaultAmount={transactionTaxAmount}
-                defaultTaxAmount={getTaxAmount(transactionAmount, transactionTaxCode, policyTaxRates)}
+                defaultTaxAmount={getTaxAmount(transactionAmount, transactionTaxCode, taxRates)}
                 defaultCurrency={defaultCurrency}
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
