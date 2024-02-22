@@ -42,11 +42,11 @@ type Item = {
 
 type FileResult = {
     name: string;
-    type: string | null;
-    width: number;
-    height: number;
+    type: string;
+    width: number | undefined;
+    height: number | undefined;
     uri: string;
-    size: number;
+    size: number | null;
 };
 
 /**
