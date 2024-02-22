@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +48,7 @@ function ThemePage({preferredTheme}: ThemePageProps) {
 
             <SelectionList
                 sections={[{data: localesToThemes}]}
+                ListItem={RadioListItem}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
                 initiallyFocusedOptionKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
             />

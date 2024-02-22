@@ -2,6 +2,7 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
@@ -28,6 +29,7 @@ function LanguagePage() {
             />
             <SelectionList
                 sections={[{data: localesToLanguages}]}
+                ListItem={RadioListItem}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
                 initiallyFocusedOptionKey={localesToLanguages.find((locale) => locale.isSelected)?.keyForList}
             />
