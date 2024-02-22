@@ -16,6 +16,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
+import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
