@@ -42,7 +42,7 @@ function Switch({isOn, onToggle, accessibilityLabel, interactive = true}: Switch
         }
 
         onToggle(!isOn);
-    }
+    };
 
     return (
         <PressableWithFeedback
