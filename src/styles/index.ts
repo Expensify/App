@@ -4237,7 +4237,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             flexDirection: 'row',
             paddingHorizontal: 16,
-            paddingVertical: 12,
+            paddingVertical: 16,
             marginHorizontal: 20,
             marginBottom: 12,
             backgroundColor: theme.highlightBG,
