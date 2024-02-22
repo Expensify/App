@@ -81,10 +81,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: Choos
                     }}
                 />
                 {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
-                <ChangeExpensifyLoginLink
-                    // @ts-expect-error TODO: Remove this once https://github.com/Expensify/App/pull/35404 is merged
-                    onPress={() => Session.clearSignInData()}
-                />
+                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
