@@ -21,10 +21,11 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Currency, Policy as PolicyType} from '@src/types/onyx';
+import type {Currency} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
-import type {PolicyRoute, WithPolicyOnyxProps} from './withPolicy';
+import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type CurrencyList = Record<string, Currency>;
@@ -34,17 +35,9 @@ type WorkspaceProfilePageOnyxProps = {
     currencyList: OnyxEntry<CurrencyList>;
 };
 
-type WorkspaceProfilePageProps = WorkspaceProfilePageOnyxProps & {
-    /** The route object passed to this page from the navigator */
-    route: PolicyRoute;
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps;
 
-    /** The policy that is being configured */
-    policy: OnyxEntry<PolicyType>;
-
-    title: string;
-};
-
-function WorkspaceProfilePage({policy, title, currencyList, route}: WorkspaceProfilePageProps) {
+function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -75,7 +68,7 @@ function WorkspaceProfilePage({policy, title, currencyList, route}: WorkspacePro
                 <ScrollView>
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
-                            title={title}
+                            title=""
                             isCentralPane
                         >
                             <Image
@@ -117,7 +110,7 @@ function WorkspaceProfilePage({policy, title, currencyList, route}: WorkspacePro
                                 disabledStyle={styles.cursorDefault}
                                 errorRowStyles={undefined}
                             />
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
                                 <MenuItemWithTopDescription
                                     title={policyName}
                                     titleStyle={styles.workspaceTitleStyle}
@@ -131,7 +124,7 @@ function WorkspaceProfilePage({policy, title, currencyList, route}: WorkspacePro
                                 />
                             </OfflineWithFeedback>
                             {(!isEmptyObject(policy?.description) || !readOnly) && (
-                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description as OnyxCommon.PendingAction}>
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
                                         description={translate('workspace.editor.descriptionInputLabel')}
@@ -145,7 +138,7 @@ function WorkspaceProfilePage({policy, title, currencyList, route}: WorkspacePro
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedCurrency}
@@ -173,7 +166,7 @@ function WorkspaceProfilePage({policy, title, currencyList, route}: WorkspacePro
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default withPolicy(
-    withOnyx<WorkspaceProfilePageProps & WithPolicyOnyxProps, WorkspaceProfilePageOnyxProps>({
+    withOnyx<WorkspaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceProfilePage),
 );
