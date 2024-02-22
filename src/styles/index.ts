@@ -3116,15 +3116,17 @@ const styles = (theme: ThemeColors) =>
         },
 
         peopleBadge: {
-            backgroundColor: theme.icon,
-            ...spacing.ph3,
-            ...spacing.ml3,
+            backgroundColor: theme.buttonDefaultBG,
+            paddingHorizontal: 6,
+            ...flex.justifyContentCenter,
+            ...borders.br1,
+            ...spacing.mh0,
         },
 
         peopleBadgeText: {
-            color: theme.textReversed,
+            color: theme.text,
             fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
+            fontWeight: FontUtils.fontWeight.bold,
             ...whiteSpace.noWrap,
         },
 

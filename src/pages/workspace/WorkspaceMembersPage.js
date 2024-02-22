@@ -333,8 +333,10 @@ function WorkspaceMembersPage(props) {
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = (
-                    <View style={[styles.badge, styles.peopleBadge, styles.mr4, StyleUtils.getMinimumWidth(60)]}>
-                        <Text style={styles.peopleBadgeText}>{isOwner ? props.translate('common.owner') : props.translate('common.admin')}</Text>
+                    <View style={[StyleUtils.getMinimumWidth(60), styles.mr4]}>
+                        <View style={[styles.badge, styles.peopleBadge]}>
+                            <Text style={styles.peopleBadgeText}>{isOwner ? props.translate('common.owner') : props.translate('common.admin')}</Text>
+                        </View>
                     </View>
                 );
             }
