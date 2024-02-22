@@ -58,16 +58,16 @@ function IOURequestStepTaxRatePage({
 }) {
     const {translate} = useLocalize();
 
-    const policyTaxRates = lodashGet(policy, 'taxRates', {});
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    const selectedTaxRate = TransactionUtils.getDefaultTaxName(policyTaxRates, transaction);
+    const selectedTaxRate = TransactionUtils.getDefaultTaxName(taxRates, transaction);
 
     const updateTaxRates = (taxes) => {
-        const taxAmount = getTaxAmount(policyTaxRates, taxes.text, transaction.amount);
+        const taxAmount = getTaxAmount(taxRates, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
