@@ -54,7 +54,7 @@ index 5cb6bf1..af1b199 100644
 +  | {
 +      start: number;
 +      end?: number | undefined;
-+      cursorPosition:
++      cursorPosition?:
 +        | {
 +            start:
 +              | {
@@ -83,7 +83,7 @@ index dc52051..fde1100 100644
  type Selection = $ReadOnly<{|
    start: number,
    end: number,
-+  cursorPosition: $ReadOnly<{|
++  cursorPosition?: $ReadOnly<{|
 +    start: $ReadOnly<{|
 +      x: number,
 +      y: number,
@@ -100,7 +100,7 @@ index dc52051..fde1100 100644
    selection?: ?$ReadOnly<{|
      start: number,
      end?: ?number,
-+    cursorPosition: $ReadOnly<{|
++    cursorPosition?: $ReadOnly<{|
 +      start: $ReadOnly<{|
 +        x: number,
 +        y: number,
@@ -125,7 +125,7 @@ index 3ce7422..b9f3cd7 100644
 +  +setSelection: (
 +    start: number,
 +    end: number,
-+    cursorPosition: {
++    cursorPosition?: {
 +      start: {x: number, y: number},
 +      end: {x: number, y: number},
 +    },
@@ -137,7 +137,7 @@ index 3ce7422..b9f3cd7 100644
      range: $ReadOnly<{|
        start: number,
        end: number,
-+      cursorPosition: $ReadOnly<{|
++      cursorPosition?: $ReadOnly<{|
 +        start: $ReadOnly<{|
 +          x: number,
 +          y: number,
@@ -154,7 +154,7 @@ index 3ce7422..b9f3cd7 100644
  type Selection = $ReadOnly<{|
    start: number,
    end: number,
-+  cursorPosition: $ReadOnly<{|
++  cursorPosition?: $ReadOnly<{|
 +    start: $ReadOnly<{|
 +      x: number,
 +      y: number,
@@ -185,7 +185,7 @@ index 3ce7422..b9f3cd7 100644
    selection?: ?$ReadOnly<{|
      start: number,
      end?: ?number,
-+    cursorPosition: $ReadOnly<{|
++    cursorPosition?: $ReadOnly<{|
 +      start: $ReadOnly<{|
 +        x: number,
 +        y: number,
