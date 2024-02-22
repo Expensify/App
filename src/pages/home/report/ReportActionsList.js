@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -147,7 +147,7 @@ function ReportActionsList({
     const lastMessageTime = useRef(null);
 
     const [isVisible, setIsVisible] = useState(false);
-    // const isFocused = useIsFocused();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -429,7 +429,7 @@ function ReportActionsList({
             return;
         }
 
-        if (!isVisible) {
+        if (!isVisible || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lodashGet(sortedVisibleReportActions, '[0].created', '');
             }
@@ -467,7 +467,7 @@ function ReportActionsList({
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible]);
+    }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
