@@ -179,6 +179,7 @@ function WorkspaceProfilePage({policy, currencyList, route}) {
                                         text={translate('common.share')}
                                         onPress={onPressShare}
                                         medium
+                                        isIconSmall
                                     />
                                 </View>
                             )}
