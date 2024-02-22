@@ -16,14 +16,14 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspaceSettingsCurrentPageOnyxProps = {
+type WorkspaceProfileCurrentPageOnyxProps = {
     /** Constant, list of available currencies */
     currencyList: OnyxEntry<CurrencyList>;
 };
 
-type WorkspaceSettingsCurrentPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceSettingsCurrentPageOnyxProps;
+type WorkspaceProfileCurrentPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceProfileCurrentPageOnyxProps;
 
-type WorkspaceSettingsCurrencyPageSectionItem = {
+type WorkspaceProfileCurrencyPageSectionItem = {
     text: string;
     keyForList: string;
     isSelected: boolean;
@@ -31,7 +31,7 @@ type WorkspaceSettingsCurrencyPageSectionItem = {
 
 const getDisplayText = (currencyCode: string, currencySymbol: string) => `${currencyCode} - ${currencySymbol}`;
 
-function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingReportData = true}: WorkspaceSettingsCurrentPageProps) {
+function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingReportData = true}: WorkspaceProfileCurrentPageProps) {
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
@@ -46,7 +46,7 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
 
     let initiallyFocusedOptionKey;
 
-    const currencyItems: WorkspaceSettingsCurrencyPageSectionItem[] = filteredItems.map((currencyCode: string) => {
+    const currencyItems: WorkspaceProfileCurrencyPageSectionItem[] = filteredItems.map((currencyCode: string) => {
         const currency = currencyList?.[currencyCode];
         const isSelected = policy?.outputCurrency === currencyCode;
 
@@ -65,7 +65,7 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
 
     const headerMessage = searchText.trim() && !currencyItems.length ? translate('common.noResultsFound') : '';
 
-    const onSelectCurrency = (item: WorkspaceSettingsCurrencyPageSectionItem) => {
+    const onSelectCurrency = (item: WorkspaceProfileCurrencyPageSectionItem) => {
         Policy.updateGeneralSettings(policy?.id ?? '', policy?.name ?? '', item.keyForList);
         Navigation.goBack();
     };
@@ -73,7 +73,7 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceSettingsCurrencyPage.displayName}
+            testID={WorkspaceProfileCurrencyPage.displayName}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
@@ -100,10 +100,10 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
     );
 }
 
-WorkspaceSettingsCurrencyPage.displayName = 'WorkspaceSettingsCurrencyPage';
+WorkspaceProfileCurrencyPage.displayName = 'WorkspaceProfileCurrencyPage';
 
 export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceSettingsCurrentPageProps, WorkspaceSettingsCurrentPageOnyxProps>({
+    withOnyx<WorkspaceProfileCurrentPageProps, WorkspaceProfileCurrentPageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    })(WorkspaceSettingsCurrencyPage),
+    })(WorkspaceProfileCurrencyPage),
 );

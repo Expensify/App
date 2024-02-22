@@ -36,7 +36,9 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${policy?.outputCurrency ?? ''} - ${currencyList?.[policy?.outputCurrency ?? '']?.symbol ?? ''}` : '';
+    const outputCurrency = policy?.outputCurrency ?? '';
+    const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
+    const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '')), [policy?.id]);
