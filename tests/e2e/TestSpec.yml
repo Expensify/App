@@ -21,8 +21,8 @@ phases:
   test:
     commands:
       - cd zip
-      - npm install underscore
-      - node e2e/testRunner.js -- --skipInstallDeps --buildMode "skip" --skipCheckout --mainAppPath app-e2eRelease.apk --deltaAppPath app-e2edeltaRelease.apk
+      - npm install underscore ts-node typescript
+      - npx ts-node e2e/testRunner.js -- --mainAppPath app-e2eRelease.apk --deltaAppPath app-e2edeltaRelease.apk
 
 artifacts:
   - $WORKING_DIRECTORY
