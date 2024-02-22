@@ -18,7 +18,7 @@ export default (command: string, env: NodeJS.ProcessEnv = {}): PromiseWithAbort 
             ...env,
         };
 
-        Logger.important(command);
+        Logger.note(command);
 
         childProcess = exec(
             command,
@@ -35,7 +35,7 @@ export default (command: string, env: NodeJS.ProcessEnv = {}): PromiseWithAbort 
                         reject(error);
                     }
                 } else {
-                    Logger.note(stdout);
+                    Logger.writeToLogFile(stdout);
                     resolve(stdout);
                 }
             },
