@@ -4,8 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {PolicyTaxRates, TaxRate, TaxRates} from '@src/types/onyx/PolicyTaxRates';
+import type {RecentWaypoint, Report, ReportAction, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -622,7 +621,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
 /**
  * Gets the default tax name
  */
-function getDefaultTaxName(policyTaxRates: PolicyTaxRates, transaction: Transaction) {
+function getDefaultTaxName(policyTaxRates: TaxRatesWithDefault, transaction: Transaction) {
     const defaultTaxKey = policyTaxRates.defaultExternalID;
     const defaultTaxName =
         (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${Localize.translateLocal('common.default')}`) || '';
