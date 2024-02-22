@@ -175,9 +175,9 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
-    const isWebOrDesktop = ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
+    const isWeb = ([CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
 
-    if (!isWebOrDesktop) {
+    if (!isWeb) {
         return;
     }
 
