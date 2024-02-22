@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -16,7 +15,7 @@ import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import TableListItem from "@components/SelectionList/TableListItem";
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -83,7 +82,6 @@ function WorkspaceMembersPage(props) {
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
-    const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
     const accountIDs = useMemo(() => _.map(_.keys(props.policyMembers), (accountID) => Number(accountID)), [props.policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
@@ -91,12 +89,6 @@ function WorkspaceMembersPage(props) {
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
     const {isSmallScreenWidth} = useWindowDimensions();
-
-    const isFocusedScreen = useIsFocused();
-
-    useEffect(() => {
-        setSearchValue(SearchInputManager.searchInput);
-    }, [isFocusedScreen]);
 
     useEffect(() => () => (SearchInputManager.searchInput = ''), []);
 
@@ -183,7 +175,6 @@ function WorkspaceMembersPage(props) {
      * Open the modal to invite a user
      */
     const inviteUser = () => {
-        setSearchValue('');
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
     };
 
@@ -325,30 +316,6 @@ function WorkspaceMembersPage(props) {
                 return;
             }
 
-            // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${details.displayName.toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                    return;
-                }
-            }
-
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
@@ -358,7 +325,17 @@ function WorkspaceMembersPage(props) {
                 }
             }
 
+            const isOwner = props.policy.owner === details.login;
             const isAdmin = props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+
+            let roleBadge = null;
+            if (isOwner || isAdmin) {
+                roleBadge = (
+                    <View style={[styles.badge, styles.peopleBadge, styles.mr4, styles.mnw6]}>
+                        <Text style={styles.peopleBadgeText}>{isOwner ? props.translate('common.owner') : props.translate('common.admin')}</Text>
+                    </View>
+                );
+            }
 
             result.push({
                 keyForList: accountIDKey,
@@ -371,11 +348,7 @@ function WorkspaceMembersPage(props) {
                     !_.isEmpty(policyMember.errors),
                 text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
-                rightElement: isAdmin ? (
-                    <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
-                    </View>
-                ) : null,
+                rightElement: roleBadge,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
@@ -402,22 +375,22 @@ function WorkspaceMembersPage(props) {
         if (isOfflineAndNoMemberDataAvailable) {
             return props.translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+        return !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
-    const getHeaderContent = () => {
-        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
-            return null;
-        }
-        return (
-            <MessagesRow
-                type="success"
-                messages={{0: 'workspace.people.addedWithPrimary'}}
-                containerStyles={[styles.pb5, styles.ph5]}
-                onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
-            />
-        );
-    };
+    const getHeaderContent = () => (
+        <>
+            <Text style={[styles.pl5, styles.mb5, styles.mt3]}>{props.translate('workspace.people.membersListTitle')}</Text>
+            {!_.isEmpty(invitedPrimaryToSecondaryLogins) && (
+                <MessagesRow
+                    type="success"
+                    messages={{0: 'workspace.people.addedWithPrimary'}}
+                    containerStyles={[styles.pb5, styles.ph5]}
+                    onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
+                />
+            )}
+        </>
+    );
 
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
@@ -458,7 +431,6 @@ function WorkspaceMembersPage(props) {
                     title={props.translate('workspace.common.members')}
                     icon={Illustrations.ReceiptWrangler}
                     onBackButtonPress={() => {
-                        setSearchValue('');
                         Navigation.goBack();
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
@@ -489,13 +461,7 @@ function WorkspaceMembersPage(props) {
                     <SelectionList
                         canSelectMultiple
                         sections={[{data, indexOffset: 0, isDisabled: false}]}
-                        ListItem={UserListItem}
-                        textInputLabel={props.translate('optionsSelector.findMember')}
-                        textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            SearchInputManager.searchInput = value;
-                            setSearchValue(value);
-                        }}
+                        ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
