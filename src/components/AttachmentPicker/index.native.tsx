@@ -77,8 +77,8 @@ const documentPickerOptions = {
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
  * send to the xhr will be handled properly.
  */
-const getDataForUpload = (fileData: ImagePickerResponse & DocumentPickerResponse): Promise<FileResult> => {
-    const fileName = fileData.fileName || fileData.name || 'chat_attachment';
+const getDataForUpload = (fileData: Asset & DocumentPickerResponse): Promise<FileResult> => {
+    const fileName = fileData.fileName ?? fileData.name ?? 'chat_attachment';
     const fileResult: FileResult = {
         name: FileUtils.cleanFileName(fileName),
         type: fileData.type,
