@@ -10,13 +10,11 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
-function TaxPicker({selectedTaxRate, policy, insets, onSubmit}) {
+function TaxPicker({selectedTaxRate, taxRates, insets, onSubmit}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
-
-    const taxRates = lodashGet(policy, 'taxRates', {});
 
     const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
