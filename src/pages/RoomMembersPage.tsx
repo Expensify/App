@@ -189,7 +189,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details.login),
+                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
