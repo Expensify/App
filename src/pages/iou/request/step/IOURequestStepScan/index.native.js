@@ -236,7 +236,7 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current
+        return camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
                 flash: flash ? 'on' : 'off',
