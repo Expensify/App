@@ -108,7 +108,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
-    const completeAttachmentSelection = useRef<(data: ImagePickerResponse & DocumentPickerResponse) => void>(() => {});
+    const completeAttachmentSelection = useRef<(data: FileResult) => void>(() => {});
     const onModalHide = useRef<() => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
 
