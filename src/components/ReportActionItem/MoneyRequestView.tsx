@@ -199,7 +199,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], shouldShowViolations: Boolean = true) => {
             // Checks applied when creating a new money request
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -226,7 +226,7 @@ function MoneyRequestView({
 
             // Return violations if there are any
             // At the moment, we only return violations for tags for workspaces with single-level tags
-            if (canUseViolations && (data?.tagListCount ?? 1) === 1 && hasViolations(field, data)) {
+            if (canUseViolations && shouldShowViolations && hasViolations(field)) {
                 const violations = getViolationsForField(field);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
@@ -394,8 +394,8 @@ function MoneyRequestView({
                                         ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={getErrorForField('tag', {tagListCount: policyTagLists.length}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                error={getErrorForField('tag', {tagListCount: policyTagLists.length})}
+                                brickRoadIndicator={getErrorForField('tag', {}, policyTagLists.length === 1) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                error={getErrorForField('tag', {}, policyTagLists.length === 1)}
                             />
                         </OfflineWithFeedback>
                     ))}

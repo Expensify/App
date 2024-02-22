@@ -62,21 +62,21 @@ const ViolationsUtils = {
 
                 // Add 'tagOutOfPolicy' violation if tag is not in policy
                 if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-                    newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
+                    newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: 'violation'});
                 }
 
                 // Remove 'tagOutOfPolicy' violation if tag is in policy
                 if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: 'tagOutOfPolicy'});
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
                 }
 
                 // Remove 'missingTag' violation if tag is valid according to policy
                 if (hasMissingTagViolation && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: 'missingTag'});
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
                 }
                 // Add 'missingTag violation' if tag is required and not set
                 if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-                    newTransactionViolations.push({name: 'missingTag', type: 'violation', userMessage: ''});
+                    newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
                 }
             }
         }
@@ -181,7 +181,7 @@ const ViolationsUtils = {
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');
             case 'someTagLevelsRequired':
-                return translate('violations.someTagLevelsRequired', {tagName});
+                return translate('violations.someTagLevelsRequired');
             case 'tagOutOfPolicy':
                 return translate('violations.tagOutOfPolicy', {tagName});
             case 'taxAmountChanged':

@@ -86,7 +86,7 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, transactionViolations);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
