@@ -182,7 +182,7 @@ function BaseOptionsList(
                 option={item}
                 showTitleTooltip={showTitleTooltip}
                 hoverStyle={optionHoveredStyle}
-                optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
+                optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + (section.indexOffset ?? 0)}
                 onSelectRow={onSelectRow}
                 isSelected={isSelected}
                 showSelectedState={canSelectMultipleOptions}
