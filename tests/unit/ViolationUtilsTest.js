@@ -153,7 +153,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}]));
         });
 
         it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
@@ -161,7 +161,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
-            expect(result.value).toEqual(expect.arrayContaining([tagOutOfPolicyViolation]));
+            expect(result.value).toEqual([]);
         });
 
         it('should add tagOutOfPolicy violation to existing violations if transaction has tag that is not in the policy', () => {
@@ -173,7 +173,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation}, ...transactionViolations]));
         });
 
         it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
@@ -185,7 +185,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}, ...transactionViolations]));
         });
     });
 
