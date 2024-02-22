@@ -112,7 +112,7 @@ type GetOptionsConfig = {
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
     includePolicyTaxRates?: boolean;
-    policyTaxRates?: PolicyTaxRateWithDefault;
+    taxRates?: PolicyTaxRateWithDefault;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
@@ -141,7 +141,7 @@ type GetOptions = {
     currentUserOption: ReportUtils.OptionData | null | undefined;
     categoryOptions: CategorySection[];
     tagOptions: CategorySection[];
-    policyTaxRatesOptions: CategorySection[];
+    taxRatesOptions: CategorySection[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
@@ -1361,7 +1361,7 @@ function getOptions(
         includeSelectedOptions = false,
         transactionViolations = {},
         includePolicyTaxRates,
-        policyTaxRates,
+        taxRates,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1374,7 +1374,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1388,12 +1388,12 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
     if (includePolicyTaxRates) {
-        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions as Category[], searchInputValue);
+        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Category[], searchInputValue);
 
         return {
             recentReports: [],
@@ -1402,7 +1402,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions,
+            taxRatesOptions,
         };
     }
 
@@ -1414,7 +1414,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1699,7 +1699,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
-        policyTaxRatesOptions: [],
+        taxRatesOptions: [],
     };
 }
 
@@ -1797,7 +1797,7 @@ function getFilteredOptions(
     canInviteUser = true,
     includeSelectedOptions = false,
     includePolicyTaxRates = false,
-    policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
+    taxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1818,7 +1818,7 @@ function getFilteredOptions(
         canInviteUser,
         includeSelectedOptions,
         includePolicyTaxRates,
-        policyTaxRates,
+        taxRates,
     });
 }
 
