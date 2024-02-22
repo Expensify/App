@@ -26,6 +26,7 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -666,8 +667,10 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
-        holdRequest: 'Hold Request',
-        unholdRequest: 'Unhold Request',
+        holdRequest: 'Hold request',
+        unholdRequest: 'Unhold request',
+        heldRequest: ({comment}: HeldRequestParams) => `held this request with the comment: ${comment}`,
+        unheldRequest: 'unheld this request',
         explainHold: "Explain why you're holding this request.",
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
@@ -745,11 +748,6 @@ export default {
     shareCodePage: {
         title: 'Your code',
         subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
-    },
-    loungeAccessPage: {
-        loungeAccess: 'Lounge access',
-        headline: 'The Expensify Lounge is closed.',
-        description: "The Expensify Lounge in San Francisco is closed for the time being, but we'll update this page when it reopens!",
     },
     pronounsPage: {
         pronouns: 'Pronouns',
