@@ -121,39 +121,31 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        let indexOffset = 0;
 
         if (currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
                 data: [currentUserOption],
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += 1;
         }
 
         sectionsList.push({
             title: translate('common.recents'),
             data: recentReports,
             shouldShow: recentReports?.length > 0,
-            indexOffset,
         });
-        indexOffset += recentReports?.length;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: personalDetails,
             shouldShow: personalDetails?.length > 0,
-            indexOffset,
         });
-        indexOffset += personalDetails?.length;
 
         if (userToInvite) {
             sectionsList.push({
                 data: [userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 

@@ -488,7 +488,7 @@ function WorkspaceMembersPage(props) {
                 <View style={[styles.w100, styles.flex1]}>
                     <SelectionList
                         canSelectMultiple
-                        sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        sections={[{data, isDisabled: false}]}
                         ListItem={UserListItem}
                         textInputLabel={props.translate('optionsSelector.findMember')}
                         textInputValue={searchValue}

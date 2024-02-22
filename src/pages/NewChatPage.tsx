@@ -73,12 +73,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
 
     const sections = useMemo((): OptionsListUtils.CategorySection[] => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
-        let indexOffset = 0;
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, maxParticipantsReached, indexOffset);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, maxParticipantsReached);
         sectionsList.push(formatResults.section);
-
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return sectionsList;
@@ -88,24 +85,19 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             title: translate('common.recents'),
             data: filteredRecentReports,
             shouldShow: filteredRecentReports.length > 0,
-            indexOffset,
         });
-        indexOffset += filteredRecentReports.length;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: filteredPersonalDetails,
             shouldShow: filteredPersonalDetails.length > 0,
-            indexOffset,
         });
-        indexOffset += filteredPersonalDetails.length;
 
         if (filteredUserToInvite) {
             sectionsList.push({
                 title: undefined,
                 data: [filteredUserToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 

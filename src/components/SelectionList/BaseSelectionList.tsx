@@ -375,6 +375,11 @@ function BaseSelectionList<TItem extends ListItem>(
         isActive: !disableKeyboardShortcuts && isFocused,
     });
 
+    const sectionsWithIndexOffset = sections.map((section, index) => {
+        const indexOffset = [...sections].splice(0, index).reduce((acc, curr) => acc + curr.data.length, 0);
+        return {...section, indexOffset};
+    });
+
     return (
         <ArrowKeyFocusManager
             disabledIndexes={flattenedSections.disabledOptionsIndexes}
@@ -450,7 +455,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 )}
                                 <SectionList
                                     ref={listRef}
-                                    sections={sections}
+                                    sections={sectionsWithIndexOffset}
                                     stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}

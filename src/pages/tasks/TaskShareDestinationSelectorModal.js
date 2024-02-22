@@ -90,15 +90,12 @@ function TaskShareDestinationSelectorModal(props) {
 
     const getSections = () => {
         const sections = [];
-        let indexOffset = 0;
 
         if (filteredRecentReports?.length > 0) {
             sections.push({
                 data: filteredRecentReports,
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += filteredRecentReports?.length;
         }
 
         return sections;

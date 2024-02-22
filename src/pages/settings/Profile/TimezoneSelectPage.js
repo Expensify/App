@@ -94,7 +94,7 @@ function TimezoneSelectPage(props) {
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
-                sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.automatic}]}
+                sections={[{data: timezoneOptions, isDisabled: timezone.automatic}]}
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
                 showScrollIndicator
                 shouldShowTooltips={false}

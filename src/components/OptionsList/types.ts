@@ -9,9 +9,6 @@ type Section = {
     /** Title of the section */
     title: string;
 
-    /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset: number;
-
     /** Array of options */
     data: OptionData[];
 

@@ -89,31 +89,25 @@ function SearchPage({betas, reports, isSearchingForReports}) {
 
     const sections = useMemo(() => {
         const newSections = [];
-        let indexOffset = 0;
 
         if (recentReports.length > 0) {
             newSections.push({
                 data: recentReports,
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += recentReports.length;
         }
 
         if (localPersonalDetails.length > 0) {
             newSections.push({
                 data: localPersonalDetails,
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += recentReports.length;
         }
 
         if (userToInvite) {
             newSections.push({
                 data: [userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 

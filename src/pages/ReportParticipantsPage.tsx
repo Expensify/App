@@ -107,7 +107,6 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
                                         title: '',
                                         data: participants,
                                         shouldShow: true,
-                                        indexOffset: 0,
                                     },
                                 ]}
                                 onSelectRow={(option: OptionData) => {

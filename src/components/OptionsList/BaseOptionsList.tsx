@@ -223,6 +223,11 @@ function BaseOptionsList(
         return <View />;
     };
 
+    const sectionsWithIndexOffset = sections.map((section, index) => {
+        const indexOffset = [...sections].splice(0, index).reduce((acc, curr) => acc + curr.data.length, 0);
+        return {...section, indexOffset};
+    });
+
     return (
         <View style={listContainerStyles}>
             {isLoading ? (
@@ -248,7 +253,7 @@ function BaseOptionsList(
                         onScroll={onScroll}
                         contentContainerStyle={contentContainerStyles}
                         showsVerticalScrollIndicator={showScrollIndicator}
-                        sections={sections}
+                        sections={sectionsWithIndexOffset}
                         keyExtractor={extractKey}
                         stickySectionHeadersEnabled={false}
                         renderItem={renderItem}

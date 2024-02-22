@@ -71,7 +71,6 @@ type PayeePersonalDetails = {
 type CategorySection = {
     title: string | undefined;
     shouldShow: boolean;
-    indexOffset: number;
     data: Option[];
 };
 
@@ -131,7 +130,6 @@ type MemberForList = {
 
 type SectionForSearchTerm = {
     section: CategorySection;
-    newIndexOffset: number;
 };
 
 type GetOptions = {
@@ -946,14 +944,11 @@ function getCategoryListSections(
     const categorySections: CategorySection[] = [];
     const numberOfCategories = enabledCategories.length;
 
-    let indexOffset = 0;
-
     if (numberOfCategories === 0 && selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
 
@@ -967,7 +962,6 @@ function getCategoryListSections(
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
         });
 
@@ -983,7 +977,6 @@ function getCategoryListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getCategoryOptionTree(enabledAndSelectedCategories),
         });
 
@@ -995,11 +988,8 @@ function getCategoryListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
@@ -1016,11 +1006,8 @@ function getCategoryListSections(
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            indexOffset,
             data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
-
-        indexOffset += filteredRecentlyUsedCategories.length;
     }
 
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
@@ -1029,7 +1016,6 @@ function getCategoryListSections(
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        indexOffset,
         data: getCategoryOptionTree(filteredCategories),
     });
 
@@ -1063,7 +1049,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     const sortedTags = sortTags(tags);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
     const numberOfTags = enabledTags.length;
-    let indexOffset = 0;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {
@@ -1076,7 +1061,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
 
@@ -1090,7 +1074,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(searchTags),
         });
 
@@ -1102,7 +1085,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTagsOptions(enabledTags),
         });
 
@@ -1131,11 +1113,8 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Selected" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     if (filteredRecentlyUsedTags.length > 0) {
@@ -1145,18 +1124,14 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(cutRecentlyUsedTags),
         });
-
-        indexOffset += filteredRecentlyUsedTags.length;
     }
 
     tagSections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        indexOffset,
         data: getTagsOptions(filteredTags),
     });
 
@@ -1227,8 +1202,6 @@ function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
     const numberOfTaxRates = enabledTaxRates.length;
 
-    let indexOffset = 0;
-
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
         const selectedTaxRateOptions = selectedOptions.map((option) => ({
@@ -1240,7 +1213,6 @@ function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined
             // "Selected" sectiong
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTaxRatesOptions(selectedTaxRateOptions),
         });
 
@@ -1254,7 +1226,6 @@ function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTaxRatesOptions(searchTaxRates),
         });
 
@@ -1266,7 +1237,6 @@ function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTaxRatesOptions(enabledTaxRates),
         });
 
@@ -1290,18 +1260,14 @@ function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined
             // "Selected" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTaxRatesOptions(selectedTaxRatesOptions),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     policyRatesSections.push({
         // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
-        indexOffset,
         data: getTaxRatesOptions(filteredTaxRates),
     });
 
@@ -1965,7 +1931,6 @@ function formatSectionsFromSearchTerm(
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: ReportUtils.OptionData[],
     maxOptionsSelected: boolean,
-    indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
@@ -1983,9 +1948,7 @@ function formatSectionsFromSearchTerm(
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
-                indexOffset,
             },
-            newIndexOffset: indexOffset + selectedOptions.length,
         };
     }
 
@@ -2009,9 +1972,7 @@ function formatSectionsFromSearchTerm(
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
-            indexOffset,
         },
-        newIndexOffset: indexOffset + selectedParticipantsWithoutDetails.length,
     };
 }
 

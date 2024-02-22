@@ -145,7 +145,6 @@ function IOUCurrencySelection(props) {
                 : [
                       {
                           data: filteredCurrencies,
-                          indexOffset: 0,
                       },
                   ],
             headerMessage: isEmpty ? translate('common.noResultsFound') : '',
