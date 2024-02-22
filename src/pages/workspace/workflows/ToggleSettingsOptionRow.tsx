@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import type { SvgProps } from 'react-native-svg';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type { PendingAction } from '@src/types/onyx/OnyxCommon';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -19,7 +19,7 @@ type ToggleSettingOptionRowProps = {
 };
 const ICON_SIZE = 48;
 
-function ToggleSettingOptionRow({ icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled, pendingAction }: ToggleSettingOptionRowProps) {
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled, pendingAction}: ToggleSettingOptionRowProps) {
     const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
     const styles = useThemeStyles();
     const toggleSwitch = () => {
@@ -74,5 +74,5 @@ function ToggleSettingOptionRow({ icon, title, subtitle, onToggle, subMenuItems,
     );
 }
 
-export type { ToggleSettingOptionRowProps };
+export type {ToggleSettingOptionRowProps};
 export default ToggleSettingOptionRow;

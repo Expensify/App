@@ -42,7 +42,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         headerText: string;
 
         /** Main content of the page */
-        children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
+        children: ((hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode) | ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
@@ -118,7 +118,7 @@ function WorkspacePageWithSections({
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
-    const content = children(hasVBA, policyID, isUsingECard);
+    const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
 

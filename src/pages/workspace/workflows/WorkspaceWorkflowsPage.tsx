@@ -128,7 +128,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const shouldPageVisible = useMemo(() => isPaidGroupPolicy && !!policy?.ownerAccountID, [isPaidGroupPolicy, policy?.ownerAccountID]);
 
     return (
         <WorkspacePageWithSections
@@ -137,26 +136,24 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowNotFoundPage={shouldPageVisible}
+            shouldShowNotFoundPage={!isPaidGroupPolicy}
         >
-            {() => (
-                <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('workflowsPage.workflowTitle')}
-                        titleStyles={styles.textStrong}
-                        containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
-                    >
-                        <View>
-                            <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                            <FlatList
-                                data={items}
-                                renderItem={renderItem}
-                                keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
-                            />
-                        </View>
-                    </Section>
-                </View>
-            )}
+            <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Section
+                    title={translate('workflowsPage.workflowTitle')}
+                    titleStyles={styles.textStrong}
+                    containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
+                >
+                    <View>
+                        <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
+                        <FlatList
+                            data={items}
+                            renderItem={renderItem}
+                            keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
+                        />
+                    </View>
+                </Section>
+            </View>
         </WorkspacePageWithSections>
     );
 }
