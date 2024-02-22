@@ -116,7 +116,7 @@ function MoneyRequestAmountForm(
         }
     };
 
-    const initializeAmount = useCallback((newAmount) => {
+    const initializeAmount = useCallback((newAmount: number) => {
         const frontendAmount = CurrencyUtils.convertToFrontendAmountAsString(newAmount);
         setCurrentAmount(frontendAmount);
         setSelection({
@@ -132,7 +132,7 @@ function MoneyRequestAmountForm(
         initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab or amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab, amount]);
+    }, [selectedTab]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
