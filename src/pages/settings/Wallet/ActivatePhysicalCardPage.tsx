@@ -40,7 +40,7 @@ const LAST_FOUR_DIGITS_LENGTH = 4;
 const MAGIC_INPUT_MIN_HEIGHT = 86;
 
 function ActivatePhysicalCardPage({
-    cardList = {},
+    cardList,
     route: {
         params: {domain = ''},
     },
@@ -55,7 +55,7 @@ function ActivatePhysicalCardPage({
     const [lastFourDigits, setLastFourDigits] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
-    const domainCards = CardUtils.getDomainCards(cardList ?? {})[domain];
+    const domainCards = CardUtils.getDomainCards(cardList)[domain] ?? [];
     const physicalCard = domainCards.find((card) => !card.isVirtual);
     const cardID = physicalCard?.cardID ?? 0;
     const cardError = ErrorUtils.getLatestErrorMessage(physicalCard ?? {});
