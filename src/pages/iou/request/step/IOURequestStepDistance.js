@@ -144,22 +144,20 @@ function IOURequestStepDistance({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     }, [report, iouType, reportID, transactionID, backTo]);
 
-    const getError = useMemo(() => {
+    const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
         
-        if (atLeastTwoDifferentWaypointsError) {
-            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
-        }
-
         if (duplicateWaypointsError) {
             return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
         }
 
-        return false;
-    }, [waypoints]);
+        if (atLeastTwoDifferentWaypointsError) {
+            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
+        }
+    }
 
     const updateWaypoints = useCallback(
         ({data}) => {
@@ -224,10 +222,10 @@ function IOURequestStepDistance({
                 </View>
                 <View style={[styles.w100, styles.pt2]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                    {getError && (
+                    {(duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) && (
                         <DotIndicatorMessage
                             style={[styles.mh4, styles.mv3]}
-                            messages={getError}
+                            messages={getError()}
                             type="error"
                         />
                     )}
