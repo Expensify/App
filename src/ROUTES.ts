@@ -281,10 +281,6 @@ const ROUTES = {
         route: ':iouType/new/currency/:reportID?',
         getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
     },
-    MONEY_REQUEST_CATEGORY: {
-        route: ':iouType/new/category/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
-    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':iouType/edit/reason/:transactionID?',
         getRoute: (iouType: string, transactionID: string, reportID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
@@ -325,9 +321,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
-        route: 'create/:iouType/category/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/category/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/category/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?',
@@ -449,6 +445,10 @@ const ROUTES = {
     WORKSPACE_PROFILE_DESCRIPTION: {
         route: 'workspace/:policyID/profile/description',
         getRoute: (policyID: string) => `workspace/${policyID}/profile/description` as const,
+    },
+    WORKSPACE_PROFILE_SHARE: {
+        route: 'workspace/:policyID/profile/share',
+        getRoute: (policyID: string) => `workspace/${policyID}/profile/share` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspace/:policyID/avatar',

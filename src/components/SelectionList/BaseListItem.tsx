@@ -12,6 +12,7 @@ import type {BaseListItemProps, ListItem} from './types';
 
 function BaseListItem<TItem extends ListItem>({
     item,
+    pressableStyle,
     wrapperStyle,
     selectMultipleStyle,
     isDisabled = false,
@@ -59,6 +60,7 @@ function BaseListItem<TItem extends ListItem>({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList}
+                style={pressableStyle}
             >
                 {({hovered}) => (
                     <>
