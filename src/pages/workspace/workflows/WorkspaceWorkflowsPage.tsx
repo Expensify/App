@@ -64,7 +64,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         description={translate('workflowsPage.weeklyFrequency')}
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
-                        // wrapperStyle={workflowsStyles.subMenuContainer}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
