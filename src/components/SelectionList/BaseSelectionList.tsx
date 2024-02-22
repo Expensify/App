@@ -22,12 +22,12 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import BaseListItem from './BaseListItem';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType} from './types';
 
-function BaseSelectionList<TItem extends User | RadioItem>(
+function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
+        ListItem,
         canSelectMultiple = false,
         onSelectRow,
         onSelectAll,
@@ -280,7 +280,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
-            <BaseListItem
+            <ListItem
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
