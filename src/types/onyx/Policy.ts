@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
-import type {PolicyTaxRates} from './PolicyTaxRates';
 
 type Unit = 'mi' | 'km';
 
@@ -212,7 +211,7 @@ type Policy = {
     };
 
     /** Collection of tax rates attached to a policy */
-    taxRates?: PolicyTaxRates;
+    taxRates?: TaxRatesWithDefault;
 
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
