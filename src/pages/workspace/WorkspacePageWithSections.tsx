@@ -68,6 +68,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether to show this page to non admin policy members */
         shouldShowNonAdmin?: boolean;
 
+        /** Whether to show the not found page */
+        shouldShowNotFoundPage?: boolean;
+
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
@@ -105,6 +108,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    shouldShowNotFoundPage = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '';
@@ -136,7 +140,7 @@ function WorkspacePageWithSections({
 
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
-        if ((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) {
+        if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
             return true;
         }
 

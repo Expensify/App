@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {FlatList, View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -19,6 +20,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 
@@ -31,17 +33,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
-    const [policyOwnerDisplayName, setPolicyOwnerDisplayName] = useState('');
-
-    useEffect(() => {
-        if (!policy?.ownerAccountID) {
-            return;
-        }
-        const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy.ownerAccountID], CONST.EMPTY_OBJECT), false);
-        if (ownerPersonalDetails.length > 0 && ownerPersonalDetails[0].displayName) {
-            setPolicyOwnerDisplayName(ownerPersonalDetails[0].displayName);
-        }
-    }, [policy]);
+    const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
+    const policyOwnerDisplayName = ownerPersonalDetails[0].displayName;
 
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
 
@@ -58,7 +51,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     <MenuItem
                         title={translate('workflowsPage.submissionFrequency')}
                         titleStyle={styles.textLabelSupportingNormal}
-                        descriptionTextStyle={isOffline ? StyleUtils.getWorkspaceWorkflowsOfflineDescriptionStyle(styles.textNormalThemeText) : styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textNormalThemeText}
                         // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
                         description={translate('workflowsPage.weeklyFrequency')}
@@ -68,6 +61,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     />
                 ),
                 hasBeenToggled: policy?.harvesting?.enabled ?? false,
+                pendingAction: policy?.pendingFields?.isAutoApprovalEnabled as PendingAction,
             },
             {
                 icon: Illustrations.Approval,
@@ -80,7 +74,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     <MenuItem
                         title={translate('workflowsPage.approver')}
                         titleStyle={styles.textLabelSupportingNormal}
-                        descriptionTextStyle={isOffline ? StyleUtils.getWorkspaceWorkflowsOfflineDescriptionStyle(styles.textNormalThemeText) : styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textNormalThemeText}
                         description={policyOwnerDisplayName ?? ''}
                         // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
@@ -90,6 +84,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     />
                 ),
                 hasBeenToggled: policy?.isAutoApprovalEnabled ?? false,
+                pendingAction: policy?.pendingFields?.approvalMode as PendingAction,
             },
             {
                 icon: Illustrations.WalletAlt,
@@ -127,9 +122,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
                 hasBeenToggled={item.hasBeenToggled}
+                pendingAction={item.pendingAction}
             />
         </View>
     );
+
+    const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+    const shouldPageVisible = useMemo(() => isPaidGroupPolicy && !!policy?.ownerAccountID, [isPaidGroupPolicy, policy?.ownerAccountID]);
 
     return (
         <WorkspacePageWithSections
@@ -138,6 +137,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
             shouldShowOfflineIndicatorInWideScreen
+            shouldShowNotFoundPage={shouldPageVisible}
         >
             {() => (
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>

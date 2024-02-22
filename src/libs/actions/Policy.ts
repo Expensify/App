@@ -390,12 +390,34 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: enabled,
+                pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: !enabled,
+                pendingFields: {isAutoApprovalEnabled: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {isAutoApprovalEnabled: null},
             },
         },
     ];
 
     const params: SetWorkspaceAutoReportingParams = {policyID, enabled};
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData});
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: 'BASIC' | 'OPTIONAL') {
@@ -411,12 +433,35 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value,
+            value: {
+                ...value,
+                pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {approvalMode: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {approvalMode: null},
+            },
         },
     ];
 
     const params: SetWorkspaceApprovalModeParams = {policyID, value: JSON.stringify(value)};
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData});
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
 /**

@@ -173,7 +173,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
         },
-        ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
+        ...(!isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
         ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
