@@ -5,6 +5,11 @@ inputs:
   ARTIFACT_NAME:
     description: The name of the workflow artifact where the APK should be uploaded
     required: true
+  ARTIFACT_RETENTION_DAYS:
+    description: The number of days to retain the artifact
+    required: false
+    # Thats github default:
+    default: "90"
   PACKAGE_SCRIPT_NAME:
     description: The name of the npm script to run to build the APK
     required: true
@@ -13,6 +18,24 @@ inputs:
     required: true
   MAPBOX_SDK_DOWNLOAD_TOKEN:
     description: The token to use to download the MapBox SDK
+    required: true
+  PATH_ENV_FILE:
+    description: The path to the .env file to use for the build
+    required: true
+  EXPENSIFY_PARTNER_NAME:
+    description: The name of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_PASSWORD:
+    description: The password of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_USER_ID:
+    description: The user ID of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_USER_SECRET:
+    description: The user secret of the Expensify partner to use for the build
+    required: true
+  EXPENSIFY_PARTNER_PASSWORD_EMAIL:
+    description: The email address of the Expensify partner to use for the build
     required: true
 
 runs:
@@ -37,12 +60,22 @@ runs:
 
     - uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
 
+    - name: Append environment variables to env file
+      shell: bash
+      run: |
+        echo "EXPENSIFY_PARTNER_NAME=${{ inputs.EXPENSIFY_PARTNER_NAME }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_PASSWORD=${{ inputs.EXPENSIFY_PARTNER_PASSWORD }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_USER_ID=${{ inputs.EXPENSIFY_PARTNER_USER_ID }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_USER_SECRET=${{ inputs.EXPENSIFY_PARTNER_USER_SECRET }}" >> ${{ inputs.PATH_ENV_FILE }}
+        echo "EXPENSIFY_PARTNER_PASSWORD_EMAIL=${{ inputs.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}" >> ${{ inputs.PATH_ENV_FILE }}
+
     - name: Build APK
       run: npm run ${{ inputs.PACKAGE_SCRIPT_NAME }}
       shell: bash
 
     - name: Upload APK
-      uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
       with:
         name: ${{ inputs.ARTIFACT_NAME }}
         path: ${{ inputs.APP_OUTPUT_PATH }}
+        retention-days: ${{ inputs.ARTIFACT_RETENTION_DAYS }}

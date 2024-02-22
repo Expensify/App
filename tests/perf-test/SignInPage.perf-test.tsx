@@ -18,17 +18,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.mock('../../src/libs/Navigation/Navigation', () => {
-    const actualNav = jest.requireActual('../../src/libs/Navigation/Navigation');
-    return {
-        ...actualNav,
-        navigationRef: {
-            addListener: () => jest.fn(),
-            removeListener: () => jest.fn(),
-        },
-    } as typeof Navigation;
-});
-
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
@@ -43,7 +32,13 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
-        createNavigationContainerRef: jest.fn(),
+        createNavigationContainerRef: () => ({
+            addListener: () => jest.fn(),
+            removeListener: () => jest.fn(),
+            isReady: () => jest.fn(),
+            getCurrentRoute: () => jest.fn(),
+            getState: () => jest.fn(),
+        }),
     } as typeof NativeNavigation;
 });
 
@@ -55,6 +50,7 @@ function SignInPageWrapper(args: Props) {
             <SignInPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
+                // @ts-expect-error Navigation prop is only used within this test
                 navigation={args.navigation}
             />
         </ComposeProviders>

@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnHideCallback = () => void;
 
@@ -15,11 +16,13 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
+type ContextMenuAnchor = View | RNText | null | undefined;
+
 type ShowContextMenu = (
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: View | RNText | null,
+    contextMenuAnchor: ContextMenuAnchor,
     reportID?: string,
     reportActionID?: string,
     originalReportID?: string,
@@ -30,6 +33,8 @@ type ShowContextMenu = (
     isChronosReport?: boolean,
     isPinnedChat?: boolean,
     isUnreadChat?: boolean,
+    disabledOptions?: ContextMenuAction[],
+    shouldCloseOnTarget?: boolean,
 ) => void;
 
 type ReportActionContextMenu = {
@@ -97,7 +102,7 @@ function showContextMenu(
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: View | RNText | null,
+    contextMenuAnchor: ContextMenuAnchor,
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',
@@ -108,6 +113,8 @@ function showContextMenu(
     isChronosReport = false,
     isPinnedChat = false,
     isUnreadChat = false,
+    disabledActions: ContextMenuAction[] = [],
+    shouldCloseOnTarget = false,
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -134,6 +141,8 @@ function showContextMenu(
         isChronosReport,
         isPinnedChat,
         isUnreadChat,
+        disabledActions,
+        shouldCloseOnTarget,
     );
 }
 
@@ -176,4 +185,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
-export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu};
+export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu, ContextMenuAnchor};
