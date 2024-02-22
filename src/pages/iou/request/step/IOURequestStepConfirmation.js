@@ -129,6 +129,14 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    useEffect(() => {
+        if (!transaction.category) {
+            return;
+        }
+        if (policyCategories && policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
+            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        }
+    }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
         _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
         'defaultCategory',
@@ -278,6 +286,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     report.reportID,
@@ -296,6 +305,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
@@ -408,9 +418,8 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {isLoading ? (
-                        <FullScreenLoadingIndicator />
-                    ) : (
+                    {isLoading && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, isLoading && styles.opacity0]}>
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
@@ -421,7 +430,6 @@ function IOURequestStepConfirmation({
                             iouIsBillable={transaction.billable}
                             onToggleBillable={setBillable}
                             iouCategory={transaction.category}
-                            iouTag={transaction.tag}
                             onConfirm={createTransaction}
                             onSendMoney={sendMoney}
                             onSelectParticipant={addNewParticipant}
@@ -443,7 +451,7 @@ function IOURequestStepConfirmation({
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
-                    )}
+                    </View>
                 </View>
             )}
         </ScreenWrapper>

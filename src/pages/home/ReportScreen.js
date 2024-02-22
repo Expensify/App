@@ -282,7 +282,8 @@ function ReportScreen({
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     useEffect(() => {
-        if (!report || !report.reportID || shouldHideReport) {
+        if (!report.reportID || shouldHideReport) {
+            wasReportAccessibleRef.current = false;
             return;
         }
         wasReportAccessibleRef.current = true;
@@ -671,6 +672,7 @@ export default compose(
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
             prevProps.currentReportID === nextProps.currentReportID &&
             prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
+            _.isEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
             _.isEqual(prevProps.report, nextProps.report),
     ),
 );
