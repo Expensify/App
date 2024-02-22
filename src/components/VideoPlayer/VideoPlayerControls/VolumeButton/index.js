@@ -55,7 +55,7 @@ function VolumeButton({style, small}) {
         .onChange((event) => {
             gestureEventHandler(event);
         })
-        .onFinished(() => {
+        .onFinalize(() => {
             runOnJS(setIsSliderBeingUsed)(false);
         });
 
