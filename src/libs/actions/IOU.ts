@@ -1010,7 +1010,7 @@ function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTran
         // Subtract the diff from the total if we change the currency from the currency of IOU report to a different currency
         return -updatedAmount;
     }
-    if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
+    if (updatedCurrency === iouReport?.currency && updatedAmount !== currentAmount) {
         // Calculate the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
         return updatedAmount - currentAmount;
     }
@@ -1134,32 +1134,32 @@ function getUpdateMoneyRequestParams(
                 },
             },
         });
-
-        // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-        let updatedMoneyRequestReport = {...iouReport};
-        const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
-
-        if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-            // For expense report, the amount is negative so we should subtract total from diff
-            updatedMoneyRequestReport.total -= diff;
-        } else {
-            updatedMoneyRequestReport = iouReport
-                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
-                : {};
-        }
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedMoneyRequestReport,
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: {pendingAction: null},
-        });
     }
+
+    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+    let updatedMoneyRequestReport = {...iouReport};
+    const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+
+    if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
+        // For expense report, the amount is negative so we should subtract total from diff
+        updatedMoneyRequestReport.total -= diff;
+    } else {
+        updatedMoneyRequestReport = iouReport
+            ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
+            : {};
+    }
+    updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+        value: updatedMoneyRequestReport,
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+        value: {pendingAction: null},
+    });
 
     // Optimistically modify the transaction and the transaction thread
     optimisticData.push({
