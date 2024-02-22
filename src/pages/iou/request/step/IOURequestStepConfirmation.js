@@ -133,7 +133,7 @@ function IOURequestStepConfirmation({
             return;
         }
         if (policyCategories && policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
-            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+            IOU.setMoneyRequestCategory(transactionID, '');
         }
     }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
@@ -145,7 +145,7 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
             return;
         }
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+        IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);

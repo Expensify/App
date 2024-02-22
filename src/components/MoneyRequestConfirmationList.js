@@ -778,7 +778,7 @@ function MoneyRequestConfirmationList(props) {
                                     );
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(props.iouType, props.reportID));
                             }}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
