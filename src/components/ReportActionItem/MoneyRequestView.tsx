@@ -196,7 +196,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
             // Checks applied when creating a new money request
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -222,9 +222,20 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (canUseViolations && hasViolations(field)) {
+            if (canUseViolations && hasViolations(field, data)) {
                 const violations = getViolationsForField(field);
-                return ViolationsUtils.getViolationTranslation(violations[0], translate);
+                for (let i = 0; i < violations.length; i++) {
+                    let violation = violations[i];
+                    if (violation.name === 'someTagLevelsRequired' && violation.data?.errorIndexes?.includes(data.index)) {
+                        violation['data']['tagName'] = data.tagName;
+                        return ViolationsUtils.getViolationTranslation(violation, translate);
+                    } else if (violation.name === 'tagOutOfPolicy' && violation.data?.tagName === data.tagName) {
+                        violation['data']['tagName'] = data.tagName;
+                        return ViolationsUtils.getViolationTranslation(violation, translate);
+                    } else {
+                        return ViolationsUtils.getViolationTranslation(violation, translate);
+                    }
+                }
             }
 
             return '';
@@ -385,8 +396,8 @@ function MoneyRequestView({
                                         ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={getErrorForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                error={getErrorForField('tag')}
+                                brickRoadIndicator={getErrorForField('tag', {tagName: name, index}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                error={getErrorForField('tag', {tagName: name, index})}
                             />
                         </OfflineWithFeedback>
                     ))}
