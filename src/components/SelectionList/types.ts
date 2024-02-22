@@ -161,7 +161,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     onSelectAll?: () => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: () => void;
+    onDismissError?: (item: TItem) => void;
 
     /** Label for the text input */
     textInputLabel?: string;

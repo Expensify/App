@@ -289,7 +289,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item)}
-                onDismissError={onDismissError}
+                onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
