@@ -400,6 +400,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        textNormalThemeText : {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textLarge: {
             fontSize: variables.fontSizeLarge,
         },
@@ -1233,6 +1238,13 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
+        },
+
+        textLabelSupportingNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         textLabelError: {
@@ -4578,6 +4590,11 @@ const styles = (theme: ThemeColors) =>
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
         },
+
+        widthAuto: {
+            width: 'auto',
+        },
+
         workspaceTitleStyle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: '500',

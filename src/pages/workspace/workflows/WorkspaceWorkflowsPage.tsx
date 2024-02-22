@@ -6,7 +6,6 @@ import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -15,9 +14,6 @@ import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import type {Styles} from '@styles/index';
-// eslint-disable-next-line no-restricted-imports
-import spacing from '@styles/utils/spacing';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -30,7 +26,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const theme = useTheme();
 
     const [policyOwnerDisplayName, setPolicyOwnerDisplayName] = useState('');
 
@@ -44,31 +39,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
     }, [policy]);
 
-    // Since these styles are only used in this component we define them here
-    const workflowsStyles = {
-        subMenuContainer: {
-            ...spacing.ph8,
-            ...spacing.mhn8,
-            width: 'auto',
-            marginLeft: 44,
-            paddingVertical: 12,
-            paddingRight: 9,
-            paddingLeft: 16,
-            marginRight: 0,
-            marginTop: 14,
-        },
-        subMenuTitle: {
-            color: theme.textSupporting,
-            fontSize: 13,
-            lineHeight: 16,
-            fontWeight: '400',
-        },
-        subMenuDescription: {
-            color: theme.text,
-            fontSize: 15,
-            lineHeight: 20,
-        },
-    } satisfies Styles;
+    const containerStyle = [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4];
 
     const items: ToggleSettingOptionRowProps[] = useMemo(
         () => [
@@ -82,13 +53,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subMenuItems: (
                     <MenuItem
                         title={translate('workflowsPage.submissionFrequency')}
-                        titleStyle={workflowsStyles.subMenuTitle}
-                        descriptionTextStyle={workflowsStyles.subMenuDescription}
+                        titleStyle={styles.textLabelSupportingNormal}
+                        descriptionTextStyle={styles.textNormalThemeText}
                         // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
                         description={translate('workflowsPage.weeklyFrequency')}
                         shouldShowRightIcon
-                        wrapperStyle={workflowsStyles.subMenuContainer}
+                        wrapperStyle={containerStyle}
+                        // wrapperStyle={workflowsStyles.subMenuContainer}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
@@ -104,13 +76,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subMenuItems: (
                     <MenuItem
                         title={translate('workflowsPage.approver')}
-                        titleStyle={workflowsStyles.subMenuTitle}
-                        descriptionTextStyle={workflowsStyles.subMenuDescription}
+                        titleStyle={styles.textLabelSupportingNormal}
+                        descriptionTextStyle={styles.textNormalThemeText}
                         description={policyOwnerDisplayName ?? ''}
                         // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVER.getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368334
                         shouldShowRightIcon
-                        wrapperStyle={workflowsStyles.subMenuContainer}
+                        wrapperStyle={containerStyle}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
@@ -125,20 +97,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 },
                 subMenuItems: (
                     <MenuItem
-                        descriptionTextStyle={[workflowsStyles.subMenuDescription, styles.textSupporting]}
+                        descriptionTextStyle={[styles.textNormal, styles.textSupporting]}
                         description={translate('workflowsPage.connectBankAccount')}
                         // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_BANK_ACCOUNT.getRoute(route.params.policyID))}
                         // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
                         shouldShowRightIcon
-                        wrapperStyle={workflowsStyles.subMenuContainer}
+                        wrapperStyle={containerStyle}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
                 isEndOptionRow: true,
-                hasBeenToggled: false, // TODO make it dynamic when VBBA action is implemented
+                hasBeenToggled: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ],
-        [policy, route.params.policyID, styles, translate, workflowsStyles.subMenuContainer, workflowsStyles.subMenuDescription, workflowsStyles.subMenuTitle, policyOwnerDisplayName],
+        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName],
     );
 
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
@@ -187,3 +159,4 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
 export default withPolicy(WorkspaceWorkflowsPage);
+

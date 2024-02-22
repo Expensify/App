@@ -4,9 +4,7 @@ import type {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {Styles} from '@styles/index';
 
 type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
@@ -20,59 +18,36 @@ type ToggleSettingOptionRowProps = {
 function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled}: ToggleSettingOptionRowProps) {
     const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const ICON_SIZE = 48;
     const toggleSwitch = () => {
         setIsEnabled(!isEnabled);
         onToggle(!isEnabled);
     };
 
-    // Since these styles are only used in this component we define them here
-    const workflowsStyles = {
-        container: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-        },
-        content: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            flex: 1,
-        },
-        icon: {
-            marginRight: 12,
-            zIndex: 2,
-            paddingBottom: 15,
-        },
-        wrapperText: {
-            flexDirection: 'column',
-            flex: 1,
-        },
-        heading: {
-            fontSize: 15,
-            fontWeight: '700',
-        },
-        subtitle: {
-            fontSize: 13,
-            color: theme.textSupporting,
-            marginTop: 3,
-            marginRight: 20,
-        },
-    } satisfies Styles;
-
     return (
         <View style={styles.pRelative}>
-            <View style={workflowsStyles.container}>
-                <View style={workflowsStyles.content}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     <Icon
                         src={icon}
                         height={ICON_SIZE}
                         width={ICON_SIZE}
-                        additionalStyles={workflowsStyles.icon}
+                        additionalStyles={{
+                            ...styles.mr3,
+                            ...styles.pb4,
+                        }}
                     />
-                    <View style={workflowsStyles.wrapperText}>
-                        <Text style={workflowsStyles.heading}>{title}</Text>
-                        <Text style={workflowsStyles.subtitle}>{subtitle}</Text>
+                    <View style={[styles.flexColumn, styles.flex1]}>
+                        <Text style={{
+                            ...styles.textMicroBold,
+                            ...styles.textNormal,
+                        }}>{title}</Text>
+                        <Text style={{
+                            ...styles.textLabel,
+                            ...styles.mt1,
+                            ...styles.mr5,
+                            ...styles.textSupporting,
+                        }}>{subtitle}</Text>
                     </View>
                 </View>
                 <View>
