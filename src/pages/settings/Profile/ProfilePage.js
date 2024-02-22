@@ -57,6 +57,8 @@ const propTypes = {
         }),
     }),
 
+    isLoadingApp: PropTypes.bool,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -78,6 +80,7 @@ const defaultProps = {
             country: '',
         },
     },
+    isLoadingApp: true,
 };
 
 function ProfilePage(props) {
