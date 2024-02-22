@@ -110,7 +110,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 hasBeenToggled: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ],
-        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName],
+        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle],
     );
 
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
@@ -159,4 +159,3 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
 
 export default withPolicy(WorkspaceWorkflowsPage);
-

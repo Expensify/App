@@ -38,16 +38,24 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                         }}
                     />
                     <View style={[styles.flexColumn, styles.flex1]}>
-                        <Text style={{
-                            ...styles.textMicroBold,
-                            ...styles.textNormal,
-                        }}>{title}</Text>
-                        <Text style={{
-                            ...styles.textLabel,
-                            ...styles.mt1,
-                            ...styles.mr5,
-                            ...styles.textSupporting,
-                        }}>{subtitle}</Text>
+                        <Text
+                            style={{
+                                ...styles.textMicroBold,
+                                ...styles.textNormal,
+                            }}
+                        >
+                            {title}
+                        </Text>
+                        <Text
+                            style={{
+                                ...styles.textLabel,
+                                ...styles.mt1,
+                                ...styles.mr5,
+                                ...styles.textSupporting,
+                            }}
+                        >
+                            {subtitle}
+                        </Text>
                     </View>
                 </View>
                 <View>

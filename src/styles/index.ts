@@ -400,7 +400,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
-        textNormalThemeText : {
+        textNormalThemeText: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
         },
