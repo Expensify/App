@@ -14,7 +14,8 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountForm} from '@src/types/onyx';
+import type {ReimbursementAccountForm} from '@src/types/form';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import BeneficialOwnerCheckUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
@@ -46,6 +47,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const defaultValues = {
         ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
         hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
@@ -75,11 +77,15 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
             ),
         );
 
-        BankAccounts.updateBeneficialOwnersForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {
-            ownsMoreThan25Percent: isUserUBO,
-            beneficialOwners: JSON.stringify(beneficialOwners),
-            beneficialOwnerKeys,
-        });
+        BankAccounts.updateBeneficialOwnersForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID ?? '0'),
+            {
+                ownsMoreThan25Percent: isUserUBO,
+                beneficialOwners: JSON.stringify(beneficialOwners),
+                beneficialOwnerKeys,
+            },
+            policyID,
+        );
     };
 
     const addBeneficialOwner = (beneficialOwnerID: string) => {
@@ -280,6 +286,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
 BeneficialOwnersStep.displayName = 'BeneficialOwnersStep';
 
 export default withOnyx<BeneficialOwnersStepProps, BeneficialOwnerInfoOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

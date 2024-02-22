@@ -7,17 +7,14 @@ import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type {QRShareHandle, QRShareProps} from './types';
 
 function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [qrCodeSize, setQrCodeSize] = useState(1);
     const svgRef = useRef<Svg>();
@@ -32,11 +29,7 @@ function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRSha
 
     const onLayout = (event: LayoutChangeEvent) => {
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
-        if (shouldUseNarrowLayout) {
-            setQrCodeSize(Math.max(1, containerWidth));
-            return;
-        }
-        setQrCodeSize(Math.max(1, Math.min(containerWidth, CONST.CENTRAL_PANE_ANIMATION_HEIGHT)));
+        setQrCodeSize(Math.max(1, containerWidth));
     };
 
     return (

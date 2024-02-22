@@ -20,9 +20,11 @@ import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} 
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import {usePersonalDetails} from './OnyxProvider';
+import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
 type MoneyRequestHeaderOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -37,6 +39,9 @@ type MoneyRequestHeaderOnyxProps = {
     /** All report actions */
     // eslint-disable-next-line react/no-unused-prop-types
     parentReportActions: OnyxEntry<ReportActions>;
+
+    /** Whether we should show the Hold Interstitial explaining the feature */
+    shownHoldUseExplanation: OnyxEntry<boolean>;
 };
 
 type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
@@ -50,19 +55,23 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     parentReportAction: ReportAction & OriginalMessageIOU;
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isOnHold = TransactionUtils.isOnHold(transaction);
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
+    const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
@@ -71,6 +80,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
+
+    const isRequestModifiable = !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
     let canDeleteRequest = canModifyRequest;
 
@@ -79,6 +90,15 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         canDeleteRequest = canDeleteRequest && (ReportUtils.isDraftExpenseReport(moneyRequestReport) || PolicyUtils.isPolicyAdmin(policy));
     }
 
+    const changeMoneyRequestStatus = () => {
+        if (isOnHold) {
+            IOU.unholdRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID);
+        } else {
+            const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type, parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID, activeRoute));
+        }
+    };
+
     useEffect(() => {
         if (canDeleteRequest) {
             return;
@@ -86,7 +106,50 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
         setIsDeleteModalVisible(false);
     }, [canDeleteRequest]);
+
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
+    if (isRequestModifiable) {
+        const isRequestIOU = parentReport?.type === 'iou';
+        const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
+        const canModifyStatus = isPolicyAdmin || isActionOwner || isApprover;
+        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Stopwatch,
+                text: translate('iou.unholdRequest'),
+                onSelected: () => changeMoneyRequestStatus(),
+            });
+        }
+        if (!isOnHold && (isRequestIOU || canModifyStatus)) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Stopwatch,
+                text: translate('iou.holdRequest'),
+                onSelected: () => changeMoneyRequestStatus(),
+            });
+        }
+    }
+
+    useEffect(() => {
+        setShouldShowHoldMenu(isOnHold && !shownHoldUseExplanation);
+    }, [isOnHold, shownHoldUseExplanation]);
+
+    useEffect(() => {
+        if (!shouldShowHoldMenu) {
+            return;
+        }
+
+        if (shouldUseNarrowLayout) {
+            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
+                Navigation.goBack();
+            }
+        } else {
+            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
+        }
+    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
+
+    const handleHoldRequestClose = () => {
+        IOU.setShownHoldUseExplanation();
+    };
+
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
@@ -117,7 +180,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!isScanning && !isPending}
+                    shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
@@ -146,6 +209,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         shouldShowBorderBottom
                     />
                 )}
+                {isOnHold && <HoldBanner />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
@@ -157,22 +221,33 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 cancelText={translate('common.cancel')}
                 danger
             />
+            {shouldUseNarrowLayout && shouldShowHoldMenu && (
+                <ProcessMoneyRequestHoldMenu
+                    onClose={handleHoldRequestClose}
+                    onConfirm={handleHoldRequestClose}
+                    isVisible={shouldShowHoldMenu}
+                />
+            )}
         </>
     );
 }
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 
-const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction'>>({
+const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
     transaction: {
         key: ({report, parentReportActions}) => {
             const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction.originalMessage.IOUTransactionID ?? 0}`;
         },
     },
+    shownHoldUseExplanation: {
+        key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
+        initWithStoredValues: true,
+    },
 })(MoneyRequestHeader);
 
-export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction'>, Omit<MoneyRequestHeaderOnyxProps, 'transaction'>>({
+export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction' | 'shownHoldUseExplanation'>, Omit<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
     session: {
         key: ONYXKEYS.SESSION,
     },

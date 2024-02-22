@@ -28,6 +28,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import BankInfo from './BankInfo/BankInfo';
 import StepPropTypes from './StepPropTypes';
 
@@ -65,7 +66,7 @@ const defaultProps = {
     policyID: '',
 };
 
-const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
 
 function BankAccountStep(props) {
     const theme = useTheme();
@@ -96,7 +97,12 @@ function BankAccountStep(props) {
     };
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankInfo onBackButtonPress={props.onBackButtonPress} />;
+        return (
+            <BankInfo
+                onBackButtonPress={props.onBackButtonPress}
+                policyID={props.policyID}
+            />
+        );
     }
 
     return (
