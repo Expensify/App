@@ -166,7 +166,10 @@ function BaseVideoPlayer({
     return (
         // We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
         // events will bubble up the tree, and it will cause unexpected press behavior.
-        <PressableWithoutFeedback accessibilityRole="button">
+        <PressableWithoutFeedback
+            accessibilityRole="button"
+            style={styles.flex1}
+        >
             <View style={style}>
                 <Hoverable>
                     {(isHovered) => (
