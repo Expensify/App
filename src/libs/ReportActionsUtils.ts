@@ -701,7 +701,7 @@ function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolea
     const message = reportAction?.message?.[0];
 
     if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
-        return reportAction.isAttachment ?? !!reportAction.attachmentInfo ?? false;
+        return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
     }
 
     if (message) {
