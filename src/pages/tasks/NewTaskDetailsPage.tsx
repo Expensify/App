@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -5,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -14,25 +15,29 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
 
-type NewTaskDetailsPageProps = {
+type NewTaskDetailsPageOnyxProps = {
     /** Grab the Share title of the Task */
     task: OnyxEntry<Task>;
 };
+
+type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
 const parser = new ExpensiMark();
 
 function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [taskTitle, setTaskTitle] = useState<string>(task?.title ?? '');
-    const [taskDescription, setTaskDescription] = useState<string>(task?.description ?? '');
+    const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
+    const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -41,7 +46,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
         setTaskDescription(parser.htmlToMarkdown(parser.replace(task?.description ?? '')));
     }, [task]);
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
         if (!values.taskTitle) {
@@ -121,7 +126,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
 
 NewTaskDetailsPage.displayName = 'NewTaskDetailsPage';
 
-export default withOnyx<NewTaskDetailsPageProps, NewTaskDetailsPageProps>({
+export default withOnyx<NewTaskDetailsPageProps, NewTaskDetailsPageOnyxProps>({
     task: {
         key: ONYXKEYS.TASK,
     },

@@ -1,10 +1,11 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -13,17 +14,20 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
 
-type NewTaskTitlePageProps = {
+type NewTaskTitlePageOnyxProps = {
     /** Grab the Share title of the Task */
     task: OnyxEntry<Task>;
 };
+type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
 
 function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
     const styles = useThemeStyles();
@@ -31,7 +35,7 @@ function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
 
     const {translate} = useLocalize();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
         if (!values.taskTitle) {
@@ -89,7 +93,7 @@ function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
 
 NewTaskTitlePage.displayName = 'NewTaskTitlePage';
 
-export default withOnyx<NewTaskTitlePageProps, NewTaskTitlePageProps>({
+export default withOnyx<NewTaskTitlePageProps, NewTaskTitlePageOnyxProps>({
     task: {
         key: ONYXKEYS.TASK,
     },

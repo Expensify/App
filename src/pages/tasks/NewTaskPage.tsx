@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -12,16 +13,18 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TaskActions from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Report, Task} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type NewTaskPageProps = {
+type NewTaskPageOnyxProps = {
     /** Task Creation Data */
     task: OnyxEntry<Task>;
 
@@ -32,11 +35,16 @@ type NewTaskPageProps = {
     reports: OnyxCollection<Report>;
 };
 
+type NewTaskPageProps = NewTaskPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
+
 function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [assignee, setAssignee] = useState<TaskActions.Assignee>();
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([task?.assigneeAccountID ?? 0], personalDetails), false);
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
+        false,
+    );
     const [shareDestination, setShareDestination] = useState<TaskActions.ShareDestination>();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -51,7 +59,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
         // If we have an assignee, we want to set the assignee data
         // If there's an issue with the assignee chosen, we want to notify the user
         if (task?.assignee) {
-            const displayDetails = TaskActions.getAssignee(task?.assigneeAccountID ?? 0, personalDetails);
+            const displayDetails = TaskActions.getAssignee(task?.assigneeAccountID ?? -1, personalDetails);
             setAssignee(displayDetails);
         }
 
@@ -83,7 +91,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
 
     // On submit, we want to call the createTask function and wait to validate
     // the response
-    function onSubmit() {
+    const onSubmit = () => {
         if (!task?.title && !task?.shareDestination) {
             setErrorMessage('newTaskPage.confirmError');
             return;
@@ -109,7 +117,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
             task.assigneeChatReport,
             parentReport?.policyID,
         );
-    }
+    };
 
     return (
         <ScreenWrapper
@@ -175,11 +183,11 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                             />
                         </View>
                     </View>
-                    <View style={[styles.flexShrink0]}>
+                    <View style={styles.flexShrink0}>
                         <FormAlertWithSubmitButton
                             isAlertVisible={!isEmptyObject(errorMessage)}
                             message={errorMessage}
-                            onSubmit={() => onSubmit()}
+                            onSubmit={onSubmit}
                             enabledWhenOffline
                             buttonText={translate('newTaskPage.confirmTask')}
                             containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5]}
@@ -193,7 +201,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
 
 NewTaskPage.displayName = 'NewTaskPage';
 
-export default withOnyx<NewTaskPageProps, NewTaskPageProps>({
+export default withOnyx<NewTaskPageProps, NewTaskPageOnyxProps>({
     task: {
         key: ONYXKEYS.TASK,
     },
