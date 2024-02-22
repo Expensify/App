@@ -1,8 +1,9 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useAnimatedRef} from 'react-native-reanimated';
-import _ from 'underscore';
 import emojis from '@assets/emojis';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
+import type {PickerEmojis} from '@assets/emojis/types';
+import type {SupportedLanguage} from '@libs/EmojiTrie';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,8 +15,8 @@ const useEmojiPickerMenu = () => {
     const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
-    const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
-    const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => headerEmoji.index), [headerEmojis]);
+    const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis as PickerEmojis), [allEmojis]);
+    const headerRowIndices = useMemo(() => headerEmojis.map((headerEmoji) => headerEmoji.index), [headerEmojis]);
     const spacersIndexes = useMemo(() => EmojiUtils.getSpacersIndexes(allEmojis), [allEmojis]);
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
@@ -45,9 +46,9 @@ const useEmojiPickerMenu = () => {
      * @returns {[String, Array]}
      */
     const suggestEmojis = useCallback(
-        (searchTerm) => {
+        (searchTerm: string) => {
             const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-            const emojisSuggestions = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
+            const emojisSuggestions = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale as keyof SupportedLanguage, allEmojis.length);
 
             return [normalizedSearchTerm, emojisSuggestions];
         },
