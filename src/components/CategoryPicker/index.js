@@ -3,13 +3,13 @@ import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './categoryPickerPropTypes';
-import RadioListItem from "@components/SelectionList/RadioListItem";
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
     const {translate} = useLocalize();
