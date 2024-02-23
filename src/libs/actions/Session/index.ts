@@ -87,8 +87,7 @@ function isSupportalToken(): boolean {
 }
 
 /**
- * Sets the SupportToken. This method will only be used on SignOut when an user
- * is using a token of type support or on dev.
+ * Sets the SupportToken. This method will only be used on dev.
  */
 function setSupportAuthToken(supportAuthToken: string, email?: string, accountID?: number) {
     if (supportAuthToken) {
@@ -100,12 +99,15 @@ function setSupportAuthToken(supportAuthToken: string, email?: string, accountID
         }).then(() => {
             Log.info('[Supportal] Authtoken set');
         });
-    } else {
-        Onyx.set(ONYXKEYS.SESSION, {}).then(() => {
-            Log.info('[Supportal] Authtoken removed');
-        });
     }
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
+}
+
+function clearSupportAuthToken() {
+    Onyx.set(ONYXKEYS.SESSION, null).then(() => {
+        Log.info('[Supportal] Authtoken removed');
+    });
+    Onyx.set(ONYXKEYS.LAST_VISITED_PATH, null);
 }
 
 function getShortLivedLoginParams() {
@@ -168,7 +170,7 @@ function signOut() {
     // In case this is a supportal token, we won't have infinite sessions setup since the token will be
     // short lived. So we can just remove the token and we can just skip calling logout.
     if (isSupportalToken()) {
-        setSupportAuthToken('');
+        clearSupportAuthToken();
     } else {
         const params: LogOutParams = {
             // Send current authToken because we will immediately clear it once triggering this command
