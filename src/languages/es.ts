@@ -25,6 +25,7 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -194,6 +195,7 @@ export default {
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
         admin: 'Administrador',
+        owner: 'Poseedor',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
@@ -297,6 +299,8 @@ export default {
         of: 'de',
         default: 'Predeterminado',
         update: 'Actualizar',
+        member: 'Miembro',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -660,8 +664,10 @@ export default {
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',
-        holdRequest: 'Bloquear solicitud de dinero',
-        unholdRequest: 'Desbloquear solicitud de dinero',
+        holdRequest: 'Bloquear solicitud',
+        unholdRequest: 'Desbloquear solicitud',
+        heldRequest: ({comment}: HeldRequestParams) => `bloqueó esta solicitud con el comentario: ${comment}`,
+        unheldRequest: 'desbloqueó esta solicitud',
         explainHold: 'Explica la razón para bloquear esta solicitud.',
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
@@ -740,11 +746,6 @@ export default {
     shareCodePage: {
         title: 'Tu código',
         subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
-    },
-    loungeAccessPage: {
-        loungeAccess: 'Acceso a la sala vip',
-        headline: 'La sala vip de Expensify está cerrada.',
-        description: 'La sala vip de Expensify está actualmente cerrada, pero actualizaremos esta página cuando vuelva a abrir.',
     },
     pronounsPage: {
         pronouns: 'Pronombres',
@@ -1771,6 +1772,7 @@ export default {
             },
             addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
+            membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

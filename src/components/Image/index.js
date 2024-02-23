@@ -3,6 +3,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import useNetwork from '@hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
@@ -10,6 +11,8 @@ import RESIZE_MODES from './resizeModes';
 function Image(props) {
     const {source: propsSource, isAuthTokenRequired, onLoad, session, objectPositionTop, style} = props;
     const [aspectRatio, setAspectRatio] = useState(null);
+    const {isOffline} = useNetwork();
+
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
@@ -48,7 +51,7 @@ function Image(props) {
                 }
             }
         });
-    }, [onLoad, source, objectPositionTop]);
+    }, [onLoad, source, objectPositionTop, isOffline]);
 
     // Omit the props which the underlying RNImage won't use
     const forwardedProps = _.omit(props, ['source', 'onLoad', 'session', 'isAuthTokenRequired', 'style']);
