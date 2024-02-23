@@ -12,7 +12,7 @@ type LoadingPageProps = {
     title: string;
 };
 
-function LoadingPage({onBackButtonPress = undefined, title}: LoadingPageProps) {
+function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
     const styles = useThemeStyles();
     return (
         <ScreenWrapper testID={LoadingPage.displayName}>
