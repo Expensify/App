@@ -82,12 +82,4 @@ const formatDurationDiffChange = (entry) => {
     return output;
 };
 
-module.exports = {
-    formatPercent,
-    formatPercentChange,
-    formatDuration,
-    formatDurationChange,
-    formatChange,
-    getDurationSymbols,
-    formatDurationDiffChange,
-};
+export {formatPercent, formatPercentChange, formatDuration, formatDurationChange, formatChange, getDurationSymbols, formatDurationDiffChange};
