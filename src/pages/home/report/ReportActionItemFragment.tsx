@@ -65,6 +65,13 @@ type ReportActionItemFragmentProps = {
     moderationDecision?: DecisionName;
 };
 
+const MUTED_ACTIONS = [
+    ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+    CONST.REPORT.ACTIONS.TYPE.IOU,
+    CONST.REPORT.ACTIONS.TYPE.APPROVED,
+    CONST.REPORT.ACTIONS.TYPE.MOVED,
+] as ActionName[];
+
 function ReportActionItemFragment({
     pendingAction,
     actionName,
@@ -118,17 +125,7 @@ function ReportActionItemFragment({
                     source={source}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
-                    styleAsMuted={
-                        !!actionName &&
-                        (
-                            [
-                                ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
-                                CONST.REPORT.ACTIONS.TYPE.IOU,
-                                CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                                CONST.REPORT.ACTIONS.TYPE.MOVED,
-                            ] as ActionName[]
-                        ).includes(actionName)
-                    }
+                    styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
                     iouMessage={iouMessage}
                     displayAsGroup={displayAsGroup}
                     style={style}
