@@ -57,7 +57,7 @@ type TaxRatesWithDefault = {
     /** Name of the tax */
     name: string;
 
-    /** Default policy tax ID */
+    /** Default policy tax code */
     defaultExternalID: string;
 
     /** Default value of taxes */
