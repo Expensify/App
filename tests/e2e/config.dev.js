@@ -7,4 +7,5 @@ export default {
     MAIN_APP_PATH: appPath,
     DELTA_APP_PATH: appPath,
     RUNS: 8,
+    BOOT_COOL_DOWN: 5 * 1000,
 };

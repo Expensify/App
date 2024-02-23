@@ -173,7 +173,7 @@ function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number)
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
+function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;

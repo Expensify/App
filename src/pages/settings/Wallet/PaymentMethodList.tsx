@@ -1,4 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
+import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -190,20 +191,13 @@ function PaymentMethodList({
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(cardList ?? {})
                 // Filter by physical, active cards associated with a domain
-                .filter((card) => !card.isVirtual && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0))
-                .toSorted((card1, card2) => {
-                    const isExpensifyCard1 = CardUtils.isExpensifyCard(card1.cardID);
-                    const isExpensifyCard2 = CardUtils.isExpensifyCard(card2.cardID);
-                    if (isExpensifyCard1 === isExpensifyCard2) {
-                        return 0;
-                    }
-
-                    return isExpensifyCard1 ? -1 : 1;
-                });
+                .filter((card) => !card.isVirtual && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
 
             const numberPhysicalExpensifyCards = assignedCards.filter((card) => CardUtils.isExpensifyCard(card.cardID)).length;
 
-            return assignedCards.map((card) => {
+            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !CardUtils.isExpensifyCard(card.cardID));
+
+            return assignedCardsSorted.map((card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
 
