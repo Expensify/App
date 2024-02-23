@@ -50,7 +50,7 @@ type WorkspaceInitialPageOnyxProps = {
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<BottomTabNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 function dismissError(policyID: string) {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+    PolicyUtils.goBackFromInvalidPolicy();
     Policy.removeWorkspace(policyID);
 }
 
@@ -158,6 +158,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.MEMBERS,
         },
+        {
+            translationKey: 'workspace.common.categories',
+            icon: Expensicons.Folder,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.CATEGORIES,
+        },
     ];
 
     const menuItems: WorkspaceMenuItem[] = [
@@ -188,7 +194,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             style={[styles.pb0]}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >

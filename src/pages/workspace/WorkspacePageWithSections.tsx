@@ -118,13 +118,6 @@ function WorkspacePageWithSections({
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
 
-    const goBack = () => {
-        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-
-        // Needed when workspace with given policyID does not exist
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
-    };
-
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
         firstRender.current = false;
@@ -153,8 +146,8 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={goBack}
-                onLinkPress={goBack}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 shouldShow={shouldShow}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 shouldForceFullScreen
