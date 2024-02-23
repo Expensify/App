@@ -21,7 +21,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import asMutable from '@src/types/utils/AsMutable';
+import asMutable from '@src/types/utils/asMutable';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRendererProps<TText | TPhrasing>;
