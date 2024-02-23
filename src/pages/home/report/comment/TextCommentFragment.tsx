@@ -28,7 +28,7 @@ type TextCommentFragmentProps = {
     styleAsDeleted: boolean;
 
     /** Should this message fragment be styled as muted */
-    styleAsMuted: boolean;
+    styleAsMuted?: boolean;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
