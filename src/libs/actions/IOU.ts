@@ -60,7 +60,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
+type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -304,14 +304,8 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Pend
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestCategory_temporaryForRefactor(transactionID: string, category: string) {
+function setMoneyRequestCategory(transactionID: string, category: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function resetMoneyRequestCategory_temporaryForRefactor(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
 function setMoneyRequestTag(transactionID: string, tag: string) {
@@ -3877,14 +3871,6 @@ function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
-function setMoneyRequestCategory(category: string) {
-    Onyx.merge(ONYXKEYS.IOU, {category});
-}
-
-function resetMoneyRequestCategory() {
-    Onyx.merge(ONYXKEYS.IOU, {category: ''});
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
@@ -3942,7 +3928,6 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
                 ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
                 : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
-            resetMoneyRequestCategory();
         }
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
@@ -4105,12 +4090,9 @@ export {
     startMoneyRequest,
     initMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
-    resetMoneyRequestCategory,
-    resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
-    setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated,
     setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestDescription,
