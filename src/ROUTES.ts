@@ -546,4 +546,4 @@ type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute};
+export type {Route, HybridAppRoute, AllRoutes};
