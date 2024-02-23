@@ -29,6 +29,7 @@ const fileDownload: FileDownload = (url, fileName) => {
             // adding href to anchor
             link.href = href;
             link.style.display = 'none';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
             link.download = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(url));
 
             // Append to html link element page
