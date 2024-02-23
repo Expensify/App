@@ -6,9 +6,18 @@
  * This file contains the implementation of the Electron Download Manager.
  */
 'use strict';
+
+import {app, BrowserWindow, dialog, DownloadItem, Session, shell} from 'electron';
 import * as path from 'path';
-import { app, BrowserWindow, shell, dialog, Session, DownloadItem } from 'electron';
 import * as _ from 'underscore';
+
+/**
+ * This file is a ported version of the `electron-dl` package.
+ * It provides a download manager for Electron applications.
+ * The `electron-dl` package simplifies the process of downloading files in Electron apps
+ * by providing a high-level API and handling various download-related tasks.
+ * This file contains the implementation of the Electron Download Manager.
+ */
 
 class CancelError extends Error {}
 
@@ -32,7 +41,7 @@ const getWindowFromBrowserView = (webContents: Electron.WebContents): Electron.B
     }
 };
 
-const getWindowFromWebContents = (webContents: Electron.WebContents): Electron.BrowserWindow | undefined | null=> {
+const getWindowFromWebContents = (webContents: Electron.WebContents): Electron.BrowserWindow | undefined | null => {
     let window_: Electron.BrowserWindow | undefined | null;
     const webContentsType = webContents.getType();
     switch (webContentsType) {
@@ -59,27 +68,16 @@ interface Options {
     errorMessage?: string;
     saveAs?: boolean;
     dialogOptions?: Electron.SaveDialogOptions;
-    onProgress?: (progress: { percent: number; transferredBytes: number; totalBytes: number }) => void;
-    onTotalProgress?: (progress: { percent: number; transferredBytes: number; totalBytes: number }) => void;
+    onProgress?: (progress: {percent: number; transferredBytes: number; totalBytes: number}) => void;
+    onTotalProgress?: (progress: {percent: number; transferredBytes: number; totalBytes: number}) => void;
     onCancel?: (item: Electron.DownloadItem) => void;
-    onCompleted?: (info: {
-        fileName: string;
-        filename: string;
-        path: string;
-        fileSize: number;
-        mimeType: string;
-        url: string;
-    }) => void;
+    onCompleted?: (info: {fileName: string; filename: string; path: string; fileSize: number; mimeType: string; url: string}) => void;
     unregisterWhenDone?: boolean;
     openFolderWhenDone?: boolean;
     onStarted?: (item: Electron.DownloadItem) => void;
 }
 
-const registerListener = (
-    session: Electron.Session,
-    options: Options,
-    callback: (error: Error | null, item?: Electron.DownloadItem) => void = () => {}
-): void => {
+const registerListener = (session: Electron.Session, options: Options, callback: (error: Error | null, item?: Electron.DownloadItem) => void = () => {}): void => {
     const downloadItems = new Set<Electron.DownloadItem>();
     let receivedBytes = 0;
     let completedBytes = 0;
@@ -90,7 +88,7 @@ const registerListener = (
     options = {
         showBadge: true,
         showProgressBar: true,
-        ...options
+        ...options,
     };
 
     const listener = (event: Electron.Event, item: Electron.DownloadItem, webContents: Electron.WebContents): void => {
@@ -115,9 +113,8 @@ const registerListener = (
             filePath = options.overwrite ? path.join(directory, name) : path.join(directory, name);
         }
 
-
         if (options.saveAs) {
-            item.setSaveDialogOptions({ defaultPath: filePath, ...options.dialogOptions });
+            item.setSaveDialogOptions({defaultPath: filePath, ...options.dialogOptions});
         } else {
             item.setSavePath(filePath);
         }
@@ -143,7 +140,7 @@ const registerListener = (
                 options.onProgress({
                     percent: itemTotalBytes ? itemTransferredBytes / itemTotalBytes : 0,
                     transferredBytes: itemTransferredBytes,
-                    totalBytes: itemTotalBytes
+                    totalBytes: itemTotalBytes,
                 });
             }
 
@@ -151,7 +148,7 @@ const registerListener = (
                 options.onTotalProgress({
                     percent: progressDownloadItems(),
                     transferredBytes: receivedBytes,
-                    totalBytes
+                    totalBytes,
                 });
             }
         });
@@ -202,7 +199,7 @@ const registerListener = (
                         path: savePath,
                         fileSize: item.getReceivedBytes(),
                         mimeType: item.getMimeType(),
-                        url: item.getURL()
+                        url: item.getURL(),
                     });
                 }
 
@@ -232,7 +229,7 @@ export default (options: any = {}): void => {
 export const download = (window_: Electron.BrowserWindow, url: string, options: Options): Promise<Electron.DownloadItem> => {
     options = {
         ...options,
-        unregisterWhenDone: true
+        unregisterWhenDone: true,
     };
 
     return new Promise((resolve, reject) => {
@@ -242,7 +239,7 @@ export const download = (window_: Electron.BrowserWindow, url: string, options: 
             } else if (item) {
                 resolve(item);
             } else {
-                reject(new Error("Download item is undefined."));
+                reject(new Error('Download item is undefined.'));
             }
         });
 
@@ -250,4 +247,4 @@ export const download = (window_: Electron.BrowserWindow, url: string, options: 
     });
 };
 
-export type { CancelError, Options };
+export type {CancelError, Options};
