@@ -55,7 +55,7 @@ type Subscription = {
 }
 
 type ChangeOwnerErrors = {
-    changeOwner: {
+    changeOwner?: {
         noBillingCard?: boolean;
         amountOwed?: number;
         ownerOwesAmount?: string;
