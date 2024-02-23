@@ -149,7 +149,6 @@ const SCREENS = {
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
-        CATEGORY: 'Money_Request_Category',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         DISTANCE: 'Money_Request_Distance',

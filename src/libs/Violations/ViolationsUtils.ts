@@ -2,6 +2,7 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +51,7 @@ const ViolationsUtils = {
         }
 
         if (policyRequiresTags) {
-            const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
+            const selectedTags = TransactionUtils.getTagArrayFromName(updatedTransaction.tag ?? '') ?? [];
             const policyTagKeys = Object.keys(policyTagList);
 
             if (policyTagKeys.length === 0) {
