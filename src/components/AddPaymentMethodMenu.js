@@ -4,7 +4,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
@@ -13,7 +12,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
-import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
     /** Should the component be visible? */
@@ -48,6 +46,9 @@ const propTypes = {
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
+
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -59,9 +60,10 @@ const defaultProps = {
     },
     anchorRef: () => {},
     session: {},
+    shouldShowPersonalBankAccountOption: false,
 };
 
-function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, shouldShowPersonalBankAccountOption}) {
     const {translate} = useLocalize();
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
@@ -69,6 +71,8 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
     const canUseBusinessBankAccount =
         ReportUtils.isExpenseReport(iouReport) ||
         (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
+
+    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || ReportUtils.isIOUReport(iouReport);
 
     return (
         <PopoverMenu
@@ -79,7 +83,7 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
             anchorRef={anchorRef}
             onItemSelected={onClose}
             menuItems={[
-                ...(ReportUtils.isIOUReport(iouReport)
+                ...(canUsePersonalBankAccount
                     ? [
                           {
                               text: translate('common.personalBankAccount'),
@@ -116,11 +120,8 @@ AddPaymentMethodMenu.propTypes = propTypes;
 AddPaymentMethodMenu.defaultProps = defaultProps;
 AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(AddPaymentMethodMenu);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(AddPaymentMethodMenu);

@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {InteractionManager, TextInput} from 'react-native';
+import type {TextInput} from 'react-native';
+import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import * as Expensify from '@src/Expensify';
 
@@ -22,10 +23,14 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || !isSplashHidden) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
+        const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
             inputRef.current?.focus();
             setIsScreenTransitionEnded(false);
         });
+
+        return () => {
+            focusTaskHandle.cancel();
+        };
     }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
 
     useFocusEffect(
@@ -34,12 +39,12 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
                 setIsScreenTransitionEnded(true);
             }, CONST.ANIMATED_TRANSITION);
             return () => {
+                setIsScreenTransitionEnded(false);
                 if (!focusTimeoutRef.current) {
                     return;
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []),
     );
 

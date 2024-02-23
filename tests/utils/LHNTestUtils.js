@@ -209,8 +209,8 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
         ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
-        stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
+        statusNum: isArchived ? CONST.REPORT.STATUS_NUM.CLOSED : 0,
+        stateNum: isArchived ? CONST.REPORT.STATE_NUM.APPROVED : 0,
         errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
         isPinned,
         hasDraft,
@@ -252,12 +252,18 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         avatar: '',
         employeeList: [],
         isPolicyExpenseChatEnabled: true,
-        areChatRoomsEnabled: true,
         lastModified: 1697323926777105,
         autoReporting: true,
         autoReportingFrequency: 'immediate',
+        harvesting: {
+            enabled: true,
+        },
+        autoReportingOffset: 1,
+        isPreventSelfApprovalEnabled: true,
+        submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
+        approvalMode: 'BASIC',
     };
 }
 

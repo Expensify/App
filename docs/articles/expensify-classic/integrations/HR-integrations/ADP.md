@@ -70,7 +70,7 @@ You can set Custom Fields and Payroll Codes in bulk using a CSV upload in Expens
 
 If you have additional requirements for your ADP upload, for example, additional headings or datasets, reach out to your Expensify Account Manager who will assist you in customizing your ADP export. Expensify Account Managers are trained to accommodate your data requests and help you retrieve them from the system.
 
-# FAQ 
+{% include faq-begin.md %} 
 
 - Do I need to convert my employee list into new column headings so I can upload it to Expensify?
 
@@ -79,3 +79,5 @@ Yes, you’ll need to convert your ADP employee data to the same headings as the
 - Can I add special fields/items to my ADP Payroll Custom Export Format?
 
 Yes! You can ask your Expensify Account Manager to help you prepare your ADP Payroll export so that it meets your specific requirements. Just reach out to them via the Chat option in Expensify and they’ll help you get set up.
+
+{% include faq-end.md %}

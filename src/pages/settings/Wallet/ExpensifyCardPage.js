@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -14,10 +14,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FormActions from '@libs/actions/FormActions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
@@ -56,7 +58,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
 
         /** Field-specific pending states for offline UI status */
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
@@ -86,38 +88,17 @@ const propTypes = {
 };
 
 const defaultProps = {
-    cardList: {},
-    draftValues: {
-        addressLine1: '',
-        addressLine2: '',
-        city: '',
-        state: '',
-        country: '',
-        zipPostCode: '',
-        phoneNumber: '',
-        legalFirstName: '',
-        legalLastName: '',
-    },
-    loginList: {},
-    privatePersonalDetails: {
-        legalFirstName: '',
-        legalLastName: '',
-        phoneNumber: null,
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
-    },
+    cardList: null,
+    draftValues: null,
+    loginList: null,
+    privatePersonalDetails: null,
 };
 
 function ExpensifyCardPage({
     cardList,
     draftValues,
-    loginList,
     privatePersonalDetails,
+    loginList,
     route: {
         params: {domain},
     },
@@ -125,17 +106,21 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
-    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
+    const domainCards = useMemo(() => cardList && CardUtils.getDomainCards(cardList)[domain], [cardList, domain]);
+    const virtualCard = useMemo(() => (domainCards && _.find(domainCards, (card) => card.isVirtual)) || {}, [domainCards]);
+    const physicalCard = useMemo(() => (domainCards && _.find(domainCards, (card) => !card.isVirtual)) || {}, [domainCards]);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isNotFound, setIsNotFound] = useState(false);
     const [details, setDetails] = useState({});
     const [cardDetailsError, setCardDetailsError] = useState('');
 
-    if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
-    }
+    useEffect(() => {
+        if (!cardList) {
+            return;
+        }
+        setIsNotFound(_.isEmpty(virtualCard) && _.isEmpty(physicalCard));
+    }, [cardList, physicalCard, virtualCard]);
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
@@ -155,14 +140,25 @@ function ExpensifyCardPage({
     };
 
     const goToGetPhysicalCardFlow = () => {
-        const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(draftValues, privatePersonalDetails, loginList);
+        let updatedDraftValues = draftValues;
 
-        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues), loginList);
+        if (!draftValues) {
+            updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(null, privatePersonalDetails, loginList);
+            // Form draft data needs to be initialized with the private personal details
+            // If no draft data exists
+            FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
+        }
+
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues));
     };
 
     const hasDetectedDomainFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
     const cardDetailsErrorObject = cardDetailsError ? {error: cardDetailsError} : {};
+
+    if (isNotFound) {
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
+    }
 
     return (
         <ScreenWrapper
@@ -184,7 +180,7 @@ function ExpensifyCardPage({
                             <DotIndicatorMessage
                                 style={styles.pageWrapper}
                                 textStyles={styles.walletLockedMessage}
-                                messages={{0: translate('cardPage.cardLocked')}}
+                                messages={{0: 'cardPage.cardLocked'}}
                                 type="error"
                             />
                         ) : null}
@@ -200,7 +196,7 @@ function ExpensifyCardPage({
                                     medium
                                     style={[styles.mh5, styles.mb5]}
                                     text={translate('cardPage.reviewTransaction')}
-                                    onPress={() => Link.openOldDotLink('inbox')}
+                                    onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
                                 />
                             </>
                         ) : null}
@@ -218,7 +214,7 @@ function ExpensifyCardPage({
                                         {details.pan ? (
                                             <CardDetails
                                                 pan={details.pan}
-                                                expiration={details.expiration}
+                                                expiration={CardUtils.formatCardExpiration(details.expiration)}
                                                 cvv={details.cvv}
                                                 privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
@@ -227,7 +223,7 @@ function ExpensifyCardPage({
                                             <>
                                                 <MenuItemWithTopDescription
                                                     description={translate('cardPage.virtualCardNumber')}
-                                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                                    title={CardUtils.maskCard('')}
                                                     interactive={false}
                                                     titleStyle={styles.walletCardNumber}
                                                     shouldShowRightComponent
@@ -257,13 +253,13 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 )}
-                                {!_.isEmpty(physicalCard) && (
+                                {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.OPEN && (
                                     <>
                                         <MenuItemWithTopDescription
                                             description={translate('cardPage.physicalCardNumber')}
                                             title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                             interactive={false}
-                                            titleStyle={styles.walletCardMenuItem}
+                                            titleStyle={styles.walletCardNumber}
                                         />
                                         <MenuItem
                                             title={translate('reportCardLostOrDamaged.report')}

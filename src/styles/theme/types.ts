@@ -1,10 +1,10 @@
-import CONST from '@src/CONST';
-import {type ColorScheme, type StatusBarStyle} from '..';
+import type CONST from '@src/CONST';
+import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
 
 type ThemePreference = (typeof CONST.THEME)[keyof typeof CONST.THEME];
-type ThemePreferenceWithoutSystem = Exclude<ThemePreference, 'system'>;
+type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM>;
 
 type ThemeColors = {
     // Figma keys
@@ -17,12 +17,14 @@ type ThemeColors = {
     icon: Color;
     iconMenu: Color;
     iconHovered: Color;
+    iconMenuHovered: Color;
     iconSuccessFill: Color;
     iconReversed: Color;
     iconColorfulBackground: Color;
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    syntax: Color;
     link: Color;
     linkHover: Color;
     buttonDefaultBG: Color;
@@ -68,7 +70,6 @@ type ThemeColors = {
     dropUIBG: Color;
     receiptDropUIBG: Color;
     checkBox: Color;
-    pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
@@ -85,9 +86,10 @@ type ThemeColors = {
     skeletonLHNOut: Color;
     QRLogo: Color;
     starDefaultBG: Color;
-    loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
+    videoPlayerBG: Color;
+    transparentWhite: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

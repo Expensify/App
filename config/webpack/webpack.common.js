@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-const FontPreloadPlugin = require('webpack-font-preload-plugin');
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -22,6 +22,8 @@ const includeModules = [
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    '@react-native/assets',
+    'expo-av',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -58,7 +60,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         publicPath: '/',
     },
     stats: {
-        warningsFilter: [],
+        // We can ignore the "module not installed" warning from lottie-react-native
+        // because we are not using the library for JSON format of Lottie animations.
+        warningsFilter: ['./node_modules/lottie-react-native/lib/module/LottieView/index.web.js'],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -70,8 +74,17 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             isProduction: envFile === '.env.production',
             isStaging: envFile === '.env.staging',
         }),
-        new FontPreloadPlugin({
-            extensions: ['woff2'],
+        new PreloadWebpackPlugin({
+            rel: 'preload',
+            as: 'font',
+            fileWhitelist: [/\.woff2$/],
+            include: 'allAssets',
+        }),
+        new PreloadWebpackPlugin({
+            rel: 'prefetch',
+            as: 'fetch',
+            fileWhitelist: [/\.lottie$/],
+            include: 'allAssets',
         }),
         new ProvidePlugin({
             process: 'process/browser',
@@ -86,8 +99,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
+                {from: 'web/gtm.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/sounds', to: 'sounds'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
@@ -191,7 +206,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
-
+            'react-native-sound': 'react-native-web-sound',
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias
             '@assets': path.resolve(__dirname, '../../assets'),
@@ -228,12 +243,20 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+            crypto: false,
         },
     },
+
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {
             cacheGroups: {
+                // We have to load the whole lottie player to get the player to work in offline mode
+                lottiePlayer: {
+                    test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
+                    name: 'lottiePlayer',
+                    chunks: 'all',
+                },
                 // Extract all 3rd party dependencies (~75% of App) to separate js file
                 // This gives a more efficient caching - 3rd party deps don't change as often as main source
                 // When dependencies don't change webpack would produce the same js file (and content hash)

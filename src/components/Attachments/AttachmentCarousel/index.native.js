@@ -1,8 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,21 +13,17 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import CarouselItem from './CarouselItem';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
-
-    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [activeSource, setActiveSource] = useState(source);
-    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+    const [activeSource, setActiveSource] = useState(source);
 
     const compareImage = useCallback((attachment) => attachment.source === source, [source]);
 
@@ -90,66 +87,55 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 
     /**
-     * Defines how a single attachment should be rendered
-     * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
-     * @returns {JSX.Element}
+     * Toggles the arrows visibility
+     * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
      */
-    const renderItem = useCallback(
-        ({item, isActive}) => (
-            <CarouselItem
-                item={item}
-                isFocused={isActive && activeSource === item.source}
-                onPress={() => setShouldShowArrows(!shouldShowArrows)}
-            />
-        ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+    const toggleArrows = useCallback(
+        (showArrows) => {
+            if (showArrows === undefined) {
+                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
+                return;
+            }
+
+            setShouldShowArrows(showArrows);
+        },
+        [setShouldShowArrows],
     );
 
     return (
-        <View
-            style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) =>
-                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
-            }
-            onMouseEnter={() => setShouldShowArrows(true)}
-            onMouseLeave={() => setShouldShowArrows(false)}
-        >
-            {page === -1 ? (
-                <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
-                    iconWidth={variables.modalTopIconWidth}
-                    iconHeight={variables.modalTopIconHeight}
-                    title={translate('notFound.notHere')}
-                />
+        <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+            {page == null ? (
+                <FullScreenLoadingIndicator />
             ) : (
                 <>
-                    <CarouselButtons
-                        shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
-                        page={page}
-                        attachments={attachments}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrows}
-                    />
-
-                    {containerDimensions.width > 0 && containerDimensions.height > 0 && (
-                        <AttachmentCarouselPager
-                            items={attachments}
-                            renderItem={renderItem}
-                            initialIndex={page}
-                            onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                            onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                    setShouldShowArrows(true);
-                                }
-                            }}
-                            onSwipeDown={onClose}
-                            containerWidth={containerDimensions.width}
-                            containerHeight={containerDimensions.height}
-                            ref={pagerRef}
+                    {page === -1 ? (
+                        <BlockingView
+                            icon={Illustrations.ToddBehindCloud}
+                            iconWidth={variables.modalTopIconWidth}
+                            iconHeight={variables.modalTopIconHeight}
+                            title={translate('notFound.notHere')}
                         />
+                    ) : (
+                        <>
+                            <CarouselButtons
+                                shouldShowArrows={shouldShowArrows}
+                                page={page}
+                                attachments={attachments}
+                                onBack={() => cycleThroughAttachments(-1)}
+                                onForward={() => cycleThroughAttachments(1)}
+                                autoHideArrow={autoHideArrows}
+                                cancelAutoHideArrow={cancelAutoHideArrows}
+                            />
+
+                            <AttachmentCarouselPager
+                                items={attachments}
+                                initialPage={page}
+                                activeSource={activeSource}
+                                onRequestToggleArrows={toggleArrows}
+                                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                                ref={pagerRef}
+                            />
+                        </>
                     )}
                 </>
             )}

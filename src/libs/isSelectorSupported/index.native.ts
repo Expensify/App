@@ -1,4 +1,4 @@
-import IsSelectorSupported from './types';
+import type IsSelectorSupported from './types';
 
 // Native platforms do not support the selector
 const isSelectorSupported: IsSelectorSupported = () => false;

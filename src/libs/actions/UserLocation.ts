@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {UserLocation} from '@src/types/onyx';
+import type {UserLocation} from '@src/types/onyx';
 
 /**
  * Sets the longitude and latitude of user's current location

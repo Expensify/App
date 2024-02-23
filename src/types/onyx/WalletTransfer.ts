@@ -1,7 +1,7 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
-import PaymentMethod from './PaymentMethod';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
+import type PaymentMethod from './PaymentMethod';
 
 type WalletTransfer = {
     /** Selected accountID for transfer */

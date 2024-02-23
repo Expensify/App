@@ -143,7 +143,7 @@ Category violations can happen for the following reasons:
 
 If Scheduled Submit is enabled on a workspace, expenses with category violations will not be auto-submitted unless the expense has a comment added.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## The correct category list isn't showing when one of my employees is categorizing their expenses. Why is this happening?
 Its possible the employee is defaulted to their personal workspace so the expenses are not pulling the correct categories to choose from. Check to be sure the report is listed under the correct workspace by looking under the details section on top right of report. 
@@ -151,3 +151,4 @@ Its possible the employee is defaulted to their personal workspace so the expens
 ## Will the account numbers from our accounting system (QuickBooks Online, Sage Intacct, etc.) show in the Category list when employees are choosing what chart of accounts category to code their expense to?
 The GL account numbers will be visible in the workspace settings when connected to a Control-level workspace for workspace admins to see. We do not provide this information in an employee-facing capacity because most employees do not have access to that information within the accounting integration. 
 If you wish to have this information available to your employees when they are categorizing their expenses, you can edit the account name in your accounting software to include the GL number — i.e. **Accounts Payable - 12345**
+{% include faq-end.md %}

@@ -38,7 +38,7 @@ To create your Control Workspace:
 2. Select *Group* and click the button that says *New Workspace*
 3. Click *Select* under Control
 
-The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your workspace's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and in your company’s workspace settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
+The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your workspace's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and in your company’s workspace settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Visa® Commercial Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. Adopting the Expensify Card with an Annual Subscription gives a 75% discount off the unbundled price.
 
 ## Step 3: Connect your accounting system
 As a small to medium-sized business, it's important to maintain proper spend management to ensure the success and stability of your organization. This requires paying close attention to your expenses, streamlining your financial processes, and making sure that your financial information is accurate, compliant, and transparent. Include best practices such as:
@@ -143,7 +143,7 @@ Let’s walk through the process of linking your business bank account:
 4. Once that’s done, we’ll collect all of the necessary information on your business, such as your legal business name and address
 5. We’ll then collect your personal information, and a photo ID to confirm your identity
 
-You only need to do this once: you are fully set up for not only reimbursing expense reports, but issuing Expensify Cards, collecting customer invoice payments online (if applicable), as well as paying supplier bills online.
+You only need to do this once: you are fully set up for not only reimbursing expense reports, but granting Expensify Cards, collecting customer invoice payments online (if applicable), as well as paying supplier bills online.
 
 ## Step 9: Invite employees and set an approval workflow
 *Select an Approval Mode*
@@ -185,15 +185,20 @@ Expensify supports direct card feeds from most financial institutions. Setting u
 
 ![If you have existing corporate cards](https://help.expensify.com/assets/images/playbook-existing-corporate-card.png){:width="100%"}
 
-As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. One benefit of the Expensify Card for your company is being able to see transactions at the point of purchase which provides you with real-time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS-compliant e-receipts as a backup wherever applicable. 
+As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. The Expensify Card has many benefits for your company. Two in particular that are worth mentioning are: 
+
+1. Seeing transactions at the point of purchase provides you with real-time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS-compliant e-receipts as a backup wherever applicable.
+
+2. The option to issue Unlimited Virtual Cards with a fixed or monthly limit for specific company purchases (ex., Marketing purchases, Advertising, Travel, etc).
 
 ### If you don't have a corporate card, use the Expensify Card (US only)
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back (up to 4% in your first 3 months!)
-- [SmartLimits](https://help.expensify.com/articles/expensify-classic/expensify-card/Card-Settings) to control what each individual cardholder can spend
+- Up to 2% cash back (_Applies to USD purchases only._)
+- [SmartLimits](https://help.expensify.com/articles/expensify-classic/expensify-card/Cardholder-Settings-and-Features) to control what each individual cardholder can spend
 - A stable, unbreakable real-time connection (third-party bank feeds can run into connectivity issues)
-- Receipt compliance - informing notifications (eg. add a receipt!) for users *as soon as the card is swiped*
+- Receipt compliance - informing notifications (e.g. add a receipt!) for users *as soon as the card is swiped*
+- Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
 - A 50% discount on the price of all Expensify plans
 - Multiple discounts and savings on a host of partner tech suppliers 
 - Good Karma - 10% of all card interchange we earn goes directly to the Expensify.org Social Justice Community funds
@@ -202,13 +207,14 @@ The Expensify Card is recommended as the most efficient way to manage your compa
 
 Here’s how to enable it:
 
-1. There are *two ways* you can [apply for the Expensify Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Card-for-Your-Company)
+1. You can [apply for the Expensify Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Card-for-Your-Company)
       - *Via your tasks on the Home page* 
       - *Via Domain Settings* - Go to Settings > Domain > Company Cards > Enable Expensify Card
-2. Assign the cards to your employees
+2. Assign virtual and physical cards to your employees
 3. Set *SmartLimits*:
       - *Employees* - We recommend a low limit for most employees, roughly double the size of the maximum daily spend – such as $1000.  
-      - *Execs* - We recommend a higher limit for executives, roughly 10x the limit of a non-executive employee (eg, $10,000).
+      - *Execs* - We recommend a higher limit for executives, roughly 10x the limit of a non-executive employee (e.g., $10,000).
+      - You can also issue Unlimited Virtual Cards to any employee. These are single-purpose cards with a set SmartLimit that can be used for specific company purchases
 
 Once the Expensify Cards have been assigned, each employee will be prompted to enter their mailing address so they can receive their physical card. In the meantime, a virtual card will be ready to use immediately.
 
@@ -219,7 +225,7 @@ As a small business, managing bills and invoices can be a complex and time-consu
 
 Here are some of the key benefits of using Expensify for bill payments and invoicing:
 - Flexible payment options: Expensify allows you to pay your bills via ACH, credit card, or check, so you can choose the option that works best for you (US businesses only).
-- Free, No Fees: The bill pay and invoicing features come included with every workspace and workspace, so you won't need to pay any additional fees.
+- No Cost Feature: The bill pay and invoicing features come included with every workspace and plan.
 - Integration with your business bank account: With your business bank account verified, you can easily link your finances to receive payment from customers when invoices are paid.
 
 Let’s first chat through how Bill Pay works

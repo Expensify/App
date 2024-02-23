@@ -6,6 +6,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -28,6 +29,7 @@ const viewabilityConfig = {
 };
 
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
@@ -47,6 +49,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
+        if (_.isEqual(attachments, attachmentsFromReport)) {
+            return;
+        }
+
         // Dismiss the modal when deleting an attachment during its display in preview.
         if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();
@@ -62,8 +68,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions, parentReportActions, compareImage]);
+    }, [attachments, reportActions, parentReportActions, compareImage, report.parentReportActionID, setDownloadButtonVisibility, onNavigate]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -135,14 +140,18 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
+        ({item, index}) => (
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
-                onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
+                isSingleItem={attachments.length === 1}
+                onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState) => !oldState) : undefined}
+                isModalHovered={shouldShowArrows}
+                index={index}
+                activeIndex={page}
             />
         ),
-        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, canUseTouchScreen, page, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
@@ -155,6 +164,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
+                    iconColor={theme.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}

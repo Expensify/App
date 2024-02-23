@@ -136,7 +136,7 @@ You will receive a whisper from Concierge any time your content has been flagged
 
 *Note: Any message sent in public chat rooms are automatically reviewed by an automated system looking for offensive content and sent to our moderators for final decisions if it is found.*
 
-# FAQs
+{% include faq-begin.md %}
 
 ## What are the #announce and #admins rooms?
 
@@ -162,3 +162,4 @@ The way your chats display in the left-hand menu is customizable. We offer two d
 - #focus mode will display only unread and pinned chats, and will sort them alphabetically. This setting is perfect for when you need to cut distractions and focus on a crucial project.
 
 You can find your display mode by clicking on your Profile > Preferences > Priority Mode.
+{% include faq-end.md %}

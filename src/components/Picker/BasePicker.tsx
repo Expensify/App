@@ -1,6 +1,8 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import type {ForwardedRef, ReactElement, ReactNode, RefObject} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ScrollView} from 'react-native';
+import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -9,6 +11,8 @@ import Text from '@components/Text';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import type {BasePickerHandle, BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
@@ -44,10 +48,6 @@ function BasePicker<TPickerValue>(
 
     // reference to @react-native-picker/picker
     const picker = useRef<RNPickerSelect>(null);
-
-    // Windows will reuse the text color of the select for each one of the options
-    // so we might need to color accordingly so it doesn't blend with the background.
-    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.pickerOptionsTextColor} : {};
 
     useEffect(() => {
         if (!!value || !items || items.length !== 1 || !onInputChange) {
@@ -92,12 +92,13 @@ function BasePicker<TPickerValue>(
         // eslint-disable-next-line react/display-name
         return () => (
             <Icon
+                fill={theme.icon}
                 src={Expensicons.DownArrow}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles]);
+    }, [icon, size, styles, theme.icon]);
 
     useImperativeHandle(ref, () => ({
         /**
@@ -136,6 +137,21 @@ function BasePicker<TPickerValue>(
         },
     }));
 
+    /**
+     * We pass light text on Android, since Android Native alerts have a dark background in all themes for now.
+     */
+    const itemColor = useMemo(() => {
+        if (getOperatingSystem() === CONST.OS.ANDROID) {
+            return theme.textLight;
+        }
+
+        return theme.text;
+    }, [theme]);
+
+    // Windows will reuse the text color of the select for each one of the options
+    // so we might need to color accordingly so it doesn't blend with the background.
+    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: itemColor} : {};
+
     const hasError = !!errorText;
 
     if (isDisabled) {
@@ -165,7 +181,7 @@ function BasePicker<TPickerValue>(
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={items.map((item) => ({...item, color: theme.pickerOptionsTextColor}))}
+                    items={items.map((item) => ({...item, color: itemColor}))}
                     style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}

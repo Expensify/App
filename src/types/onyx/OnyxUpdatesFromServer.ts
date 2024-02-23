@@ -1,8 +1,11 @@
-import {OnyxUpdate} from 'react-native-onyx';
-import Request from './Request';
-import Response from './Response';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type Request from './Request';
+import type Response from './Response';
 
-type OnyxServerUpdate = OnyxUpdate & {shouldNotify?: boolean};
+type OnyxServerUpdate = OnyxUpdate & {
+    shouldNotify?: boolean;
+    shouldShowPushNotification?: boolean;
+};
 
 type OnyxUpdateEvent = {
     eventType: string;

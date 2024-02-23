@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

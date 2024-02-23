@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
+// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -67,9 +68,10 @@ function Template(args) {
                 label="Street"
                 inputID="street"
                 containerStyles={[defaultStyles.mt4]}
-                hint="No PO box"
+                hint="common.noPO"
             />
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 inputID="dob"
                 label="Date of Birth"
                 containerStyles={[defaultStyles.mt4]}

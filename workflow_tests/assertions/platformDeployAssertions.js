@@ -170,7 +170,8 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             {key: 'max_attempts', value: '5'},
             {key: 'command', value: 'cd ios && bundle exec pod install'},
         ]),
-        utils.createStepAssertion('Decrypt profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AppStore profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AppStore Notification Service profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypting certificate', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Decrypt App Store Connect API key', true, null, 'IOS', 'Decrypting App Store API key', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
     ];
@@ -243,8 +244,9 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         utils.createStepAssertion('Setup Node', true, null, 'WEB', 'Setting up Node'),
         utils.createStepAssertion('Setup Cloudflare CLI', true, null, 'WEB', 'Setting up Cloudflare CLI'),
         utils.createStepAssertion('Configure AWS Credentials', true, null, 'WEB', 'Configuring AWS credentials', [
-            {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-            {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+            {key: 'aws-access-key-id', value: '***'},
+            {key: 'aws-secret-access-key', value: '***'},
+            {key: 'aws-region', value: 'us-east-1'},
         ]),
     ];
     if (isProduction) {

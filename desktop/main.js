@@ -411,9 +411,25 @@ const mainWindow = () => {
                                 },
                             },
                             {
+                                role: 'back',
+                                visible: false,
+                                accelerator: process.platform === 'darwin' ? 'Cmd+Left' : 'Shift+Left',
+                                click: () => {
+                                    browserWindow.webContents.goBack();
+                                },
+                            },
+                            {
                                 id: 'forward',
                                 role: 'forward',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                                click: () => {
+                                    browserWindow.webContents.goForward();
+                                },
+                            },
+                            {
+                                role: 'forward',
+                                visible: false,
+                                accelerator: process.platform === 'darwin' ? 'Cmd+Right' : 'Shift+Right',
                                 click: () => {
                                     browserWindow.webContents.goForward();
                                 },
@@ -507,6 +523,15 @@ const mainWindow = () => {
                         browserWindow.webContents.goBack();
                     }
                     if (cmd === 'browser-forward') {
+                        browserWindow.webContents.goForward();
+                    }
+                });
+
+                browserWindow.on('swipe', (e, direction) => {
+                    if (direction === 'left') {
+                        browserWindow.webContents.goBack();
+                    }
+                    if (direction === 'right') {
                         browserWindow.webContents.goForward();
                     }
                 });

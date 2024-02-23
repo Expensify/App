@@ -12,17 +12,18 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, onPress, isImage, onScaleChanged, translate, onError}) {
+function AttachmentViewImage({url, file, isAuthTokenRequired, isFocused, loadComplete, onPress, onError, isImage, translate}) {
     const styles = useThemeStyles();
     const children = (
         <ImageView
-            onScaleChanged={onScaleChanged}
-            url={source}
+            onError={onError}
+            url={url}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            onError={onError}
+            isFocused={isFocused}
         />
     );
+
     return onPress ? (
         <PressableWithoutFeedback
             onPress={onPress}

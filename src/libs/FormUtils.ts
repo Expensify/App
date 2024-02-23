@@ -1,9 +1,6 @@
-import {OnyxFormKey} from '@src/ONYXKEYS';
+import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 
-type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
-type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
-
-function getDraftKey(formID: OnyxFormKeyWithoutDraft): `${OnyxFormKeyWithoutDraft}Draft` {
+function getDraftKey(formID: OnyxFormKey): OnyxFormDraftKey {
     return `${formID}Draft`;
 }
 

@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -52,7 +53,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const draftText = lodashGet(draftStatus, 'text');
     const draftClearAfter = lodashGet(draftStatus, 'clearAfter');
 
-    const defaultEmoji = draftEmojiCode || currentUserEmojiCode || initialEmoji;
+    const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftText || currentUserStatusText;
 
     const customClearAfter = useMemo(() => {
@@ -69,19 +70,18 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
+    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
-            const clearAfterTime = draftClearAfter || currentUserClearAfter;
+            const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
             if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
                 setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
-
             User.updateCustomStatus({
                 text: statusText,
-                emojiCode,
+                emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
 
@@ -100,7 +100,10 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             emojiCode: '',
             clearAfter: DateUtils.getEndOfToday(),
         });
-        formRef.current.resetForm({[INPUT_IDS.EMOJI_CODE]: initialEmoji});
+        formRef.current.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
+        InteractionManager.runAfterInteractions(() => {
+            navigateBackToPreviousScreen();
+        });
     };
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
@@ -122,6 +125,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         }
         return {};
     }, [brickRoadIndicator]);
+
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
@@ -159,14 +164,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                         />
                         <InputWrapper
                             InputComponent={TextInput}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
-                            autoFocus
-                            shouldDelayFocus
                         />
                     </View>
                     <MenuItemWithTopDescription

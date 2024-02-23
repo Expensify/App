@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import {useEffect, useState} from 'react';
-import {Dimensions, type ScaledSize} from 'react-native';
+import {Dimensions} from 'react-native';
+import type {ScaledSize} from 'react-native';
 
 type InitialWindowDimensions = {
     initialWidth: number;

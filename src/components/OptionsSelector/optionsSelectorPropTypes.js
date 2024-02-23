@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import optionPropTypes from '@components/optionPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
@@ -26,9 +27,6 @@ const propTypes = {
             isDisabled: PropTypes.bool,
         }),
     ).isRequired,
-
-    /** Value in the search input field */
-    value: PropTypes.string.isRequired,
 
     /** Callback fired when text changes */
     onChangeText: PropTypes.func,
@@ -74,6 +72,9 @@ const propTypes = {
 
     /** Whether to disable interactivity of option rows */
     isDisabled: PropTypes.bool,
+
+    /** Whether to disable focus options of rows */
+    disableFocusOptions: PropTypes.bool,
 
     /** Display the text of the option in bold font style */
     boldStyle: PropTypes.bool,
@@ -137,6 +138,9 @@ const propTypes = {
 
     /** Whether nested scroll of options is enabled, true by default */
     nestedScrollEnabled: PropTypes.bool,
+
+    /** Left icon to display in TextInput */
+    textIconLeft: sourcePropTypes,
 };
 
 const defaultProps = {
@@ -166,6 +170,7 @@ const defaultProps = {
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
+    disableFocusOptions: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
     maxLength: CONST.SEARCH_MAX_LENGTH,
@@ -177,6 +182,7 @@ const defaultProps = {
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,
+    textIconLeft: undefined,
 };
 
 export {propTypes, defaultProps};

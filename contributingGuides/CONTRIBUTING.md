@@ -5,7 +5,7 @@ Welcome! Thanks for checking out the New Expensify app and taking the time to co
 If you would like to become an Expensify contributor, the first step is to read this document in its **entirety**. The second step is to review the README guidelines [here](https://github.com/Expensify/App/blob/main/README.md) to understand our coding philosophy and for a general overview of the code repository (i.e. how to run the app locally, testing, storage, our app philosophy, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
 #### Test Accounts
-You can create as many accounts as needed in order to test your changes directly from [the app](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be created by opening the "New Chat" or "Group Chat" pages via the Global Create menu, inputting a valid email or phone number, and tapping the user's avatar.
+You can create as many accounts as needed in order to test your changes directly from [the app](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be created by opening the "New Chat" or "Group Chat" pages via the Global Create menu, inputting a valid email or phone number, and tapping the user's avatar. Do not use Expensify employee or customer accounts for testing.
 
 **Notes**: 
 
@@ -123,7 +123,7 @@ Additionally if you want to discuss an idea with the open source community witho
     ```
 11. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
 12. An Expensify engineer and a member from the Contributor-Plus team will be assigned to your pull request automatically to review.
-13. Daily updates on weekdays are highly recommended. If you know you won’t be able to provide updates for > 1 week, please comment on the PR or issue how long you plan to be out so that we may plan accordingly. We understand everyone needs a little vacation here and there. Any issue that doesn't receive an update for 1 full week may be considered abandoned and the original contract terminated.
+13. Daily updates on weekdays are highly recommended. If you know you won’t be able to provide updates within 48 hours, please comment on the PR or issue stating how long you plan to be out so that we may plan accordingly. We understand everyone needs a little vacation here and there. Any issue that doesn't receive an update for 5 days (including weekend days) may be considered abandoned and the original contract terminated.
 
 #### Submit your pull request for final review
 14. When you are ready to submit your pull request for final review, make sure the following checks pass:

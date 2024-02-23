@@ -1,4 +1,4 @@
-import {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 
 type Data = {
     phpCommandName: string;
@@ -11,6 +11,7 @@ type Response = {
     jsonCode?: number | string;
     onyxData?: OnyxUpdate[];
     requestID?: string;
+    reportID?: string;
     shouldPauseQueue?: boolean;
     authToken?: string;
     encryptedAuthToken?: string;

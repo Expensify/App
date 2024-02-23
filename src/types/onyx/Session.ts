@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type AutoAuthState = ValueOf<typeof CONST.AUTO_AUTH_STATE>;
 
@@ -20,6 +20,9 @@ type Session = {
     /** Currently logged in user encrypted authToken */
     encryptedAuthToken?: string;
 
+    /** Boolean that indicates whether it is loading or not */
+    loading?: boolean;
+
     /** Currently logged in user accountID */
     accountID?: number;
 
@@ -27,6 +30,9 @@ type Session = {
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;
+
+    /** User signed in with short lived token */
+    signedInWithShortLivedAuthToken?: boolean;
 };
 
 export default Session;

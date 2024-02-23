@@ -38,7 +38,7 @@ Your delegate's actions will be noted in the history and comments of each report
 
 The system records every action your vacation delegate takes on your behalf in the **Report History and Comments**. So, you can see when they approved an expense report for you. 
 
-# FAQs
+{% include faq-begin.md %}
 
 ## Why can't my Vacation Delegate reimburse reports that they approve? 
 
@@ -50,5 +50,4 @@ If they do not have access to the reimbursement account used on your workspace, 
 
 Don't worry, your delegate can also pick their own **Vacation Delegate**. This way, expense reports continue to get approved even if multiple people are away.
 
-
-
+{% include faq-end.md %}

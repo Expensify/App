@@ -7,6 +7,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -59,7 +60,7 @@ function SuggestionMention({
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
-        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedMentions.length, isAutoSuggestionPickerLarge),
+        maxIndex: suggestionValues.suggestedMentions.length - 1,
         shouldExcludeTextAreaNodes: false,
     });
 
@@ -149,7 +150,12 @@ function SuggestionMention({
                 if (!detail.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
-                const displayText = detail.displayName === formatPhoneNumber(detail.login) ? detail.displayName : `${detail.displayName} ${detail.login}`;
+                // We don't want to mention system emails like notifications@expensify.com
+                if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
+                    return false;
+                }
+                const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
+                const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
@@ -159,7 +165,7 @@ function SuggestionMention({
             const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
             _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
                 suggestions.push({
-                    text: detail.displayName,
+                    text: PersonalDetailsUtils.getDisplayNameOrDefault(detail),
                     alternateText: formatPhoneNumber(detail.login),
                     login: detail.login,
                     icons: [
@@ -197,7 +203,8 @@ function SuggestionMention({
                 suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
             }
 
-            const leftString = value.substring(0, suggestionEndIndex);
+            const newLineIndex = value.lastIndexOf('\n', selectionEnd - 1);
+            const leftString = value.substring(newLineIndex + 1, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
             const secondToLastWord = words[words.length - 3];

@@ -1,17 +1,18 @@
 import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Onyx, {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
-import type {AuthScreensParamList} from '@navigation/types';
-import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -30,12 +31,15 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import FullScreenNavigator from './Navigators/FullScreenNavigator';
+import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
 type AuthScreensProps = {
@@ -49,21 +53,21 @@ type AuthScreensProps = {
     isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
 
     /** The last Onyx update ID was applied to the client */
-    lastUpdateIDAppliedToClient: OnyxEntry<number>;
-
-    /** Information about any currently running demos */
-    demoInfo: OnyxEntry<OnyxTypes.DemoInfo>;
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
-const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default as React.ComponentType;
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default as React.ComponentType;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
+const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
+const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
+const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -113,6 +117,21 @@ Onyx.connect({
     },
 });
 
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value: OnyxEntry<number>) => {
+        lastUpdateIDAppliedToClient = value;
+    },
+});
+
+function handleNetworkReconnect() {
+    if (isLoadingApp) {
+        App.openApp();
+    } else {
+        App.reconnectApp(lastUpdateIDAppliedToClient);
+    }
+}
+
 const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
@@ -130,10 +149,11 @@ const modalScreenListeners = {
     },
 };
 
-function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -156,13 +176,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => {
-            if (isLoadingApp) {
-                App.openApp();
-            } else {
-                App.reconnectApp(lastUpdateIDAppliedToClient);
-            }
-        });
+        NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -180,7 +194,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(lastUpdateIDAppliedToClient);
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         PriorityMode.autoSwitchToFocusMode();
@@ -189,10 +203,6 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
 
         App.redirectThirdPartyDesktopSignIn();
 
-        // Check if we should be running any demos immediately after signing in.
-        if (demoInfo?.money2020?.isBeginningDemo) {
-            Navigation.navigate(ROUTES.MONEY2020, CONST.NAVIGATION.TYPE.FORCED_UP);
-        }
         if (lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
@@ -255,9 +265,9 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
                 <RootStack.Screen
-                    name={SCREENS.HOME}
-                    options={screenOptions.homeScreen}
-                    getComponent={loadSidebarScreen}
+                    name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
+                    options={screenOptions.bottomTab}
+                    component={BottomTabNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
@@ -284,27 +294,39 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     getComponent={loadConciergePage}
                 />
                 <RootStack.Screen
-                    name={CONST.DEMO_PAGES.SAASTR}
-                    options={defaultScreenOptions}
-                    component={DemoSetupPage}
-                />
-                <RootStack.Screen
-                    name={CONST.DEMO_PAGES.SBE}
-                    options={defaultScreenOptions}
-                    component={DemoSetupPage}
-                />
-                <RootStack.Screen
-                    name={CONST.DEMO_PAGES.MONEY2020}
-                    options={defaultScreenOptions}
-                    component={DemoSetupPage}
-                />
-                <RootStack.Screen
                     name={SCREENS.REPORT_ATTACHMENTS}
                     options={{
                         headerShown: false,
                         presentation: 'transparentModal',
                     }}
                     getComponent={loadReportAttachments}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.PROFILE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadProfileAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadWorkspaceAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.REPORT_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReportAvatar}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -316,6 +338,17 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={screenOptions.rightModalNavigator}
                     component={RightModalNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
+                    options={screenOptions.fullScreen}
+                    component={FullScreenNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    options={screenOptions.leftModalNavigator}
+                    component={LeftModalNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -342,10 +375,7 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     isUsingMemoryOnlyKeys: {
         key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
     },
-    lastUpdateIDAppliedToClient: {
+    initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-    demoInfo: {
-        key: ONYXKEYS.DEMO_INFO,
     },
 })(AuthScreensMemoized);

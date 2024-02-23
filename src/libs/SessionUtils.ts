@@ -4,7 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 /**
  * Determine if the transitioning user is logging in as a new user.
  */
-function isLoggingInAsNewUser(transitionURL: string, sessionEmail: string): boolean {
+function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): boolean {
     // The OldDot mobile app does not URL encode the parameters, but OldDot web
     // does. We don't want to deploy OldDot mobile again, so as a work around we
     // compare the session email to both the decoded and raw email from the transition link.
@@ -20,7 +20,7 @@ function isLoggingInAsNewUser(transitionURL: string, sessionEmail: string): bool
     // If they do not match it might be due to encoding, so check the raw value
     // Capture the un-encoded text in the email param
     const emailParamRegex = /[?&]email=([^&]*)/g;
-    const matches = emailParamRegex.exec(transitionURL);
+    const matches = emailParamRegex.exec(transitionURL ?? '');
     const linkedEmail = matches?.[1] ?? null;
     return linkedEmail !== sessionEmail;
 }
@@ -35,8 +35,9 @@ Onyx.connect({
         if (loggedInDuringSession) {
             return;
         }
-
-        if (session?.authToken) {
+        // We are incorporating a check for 'signedInWithShortLivedAuthToken' to handle cases where login is performed using a ShortLivedAuthToken
+        // This check is necessary because, with ShortLivedAuthToken, 'authToken' gets populated, leading to 'loggedInDuringSession' being assigned a false value
+        if (session?.authToken && !session?.signedInWithShortLivedAuthToken) {
             loggedInDuringSession = false;
         } else {
             loggedInDuringSession = true;

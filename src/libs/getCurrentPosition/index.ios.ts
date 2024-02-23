@@ -1,5 +1,5 @@
 import Geolocation from '@react-native-community/geolocation';
-import {GetCurrentPosition} from './getCurrentPosition.types';
+import type {GetCurrentPosition} from './getCurrentPosition.types';
 
 Geolocation.setRNConfiguration({
     skipPermissionRequests: false,

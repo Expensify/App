@@ -32,7 +32,7 @@ A Workspace admin can enanble indirect reimbursement via **Settings > Workspaces
 **Additional features under Reimbursement > Indirect:**
 If you reimburse through a seperate system or through payroll, Expensify can collect and export employee bank account details for you.  Just reach out to your Account Manager or concierge@expensify.com for us to add the Reimbursement Details Export format to the account. 
 
-# FAQ
+{% include faq-begin.md %}
 
 ## How do I export employee bank account details once the Reimbursement Details Export format is added to my account? 
 
@@ -45,3 +45,4 @@ Bank account names can be updated via **Settings > Accounts > Payments** and cli
 ## What is the benefit of setting a default reimburser?
 
 The main benefit of being defined as the "reimburser" in the Workspace settings is that this user will receive notifications on their Home page alerting them when reports need to be reimbursed. 
+{% include faq-end.md %}

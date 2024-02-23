@@ -8,7 +8,7 @@ import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import BaseListItem from '@components/SelectionList/BaseListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
@@ -54,21 +54,17 @@ function getSelectedStatusType(data) {
 }
 
 const useValidateCustomDate = (data) => {
-    const {translate} = useLocalize();
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
         const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(data);
 
-        const dateError = dateValidationErrorKey ? translate(dateValidationErrorKey) : '';
-        setCustomDateError(dateError);
-
-        const timeError = timeValidationErrorKey ? translate(timeValidationErrorKey) : '';
-        setCustomTimeError(timeError);
+        setCustomDateError(dateValidationErrorKey);
+        setCustomTimeError(timeValidationErrorKey);
 
         return {
-            dateError,
-            timeError,
+            dateValidationErrorKey,
+            timeValidationErrorKey,
         };
     };
 
@@ -160,12 +156,12 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const timePeriodOptions = useCallback(
         () =>
-            _.map(statusType, (item, index) => (
-                <BaseListItem
+            _.map(statusType, (item) => (
+                <RadioListItem
                     item={item}
-                    key={`${index}+${item.value}`}
                     onSelectRow={() => updateMode(item)}
                     showTooltip={false}
+                    isFocused={item.isSelected}
                 />
             )),
         [statusType, updateMode],
@@ -202,7 +198,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE)}
                                 errorText={customDateError}
-                                titleTextStyle={styles.flex1}
+                                titleStyle={styles.flex1}
                                 brickRoadIndicator={redBrickDateIndicator}
                             />
                             <MenuItemWithTopDescription
@@ -212,7 +208,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
                                 errorText={customTimeError}
-                                titleTextStyle={styles.flex1}
+                                titleStyle={styles.flex1}
                                 brickRoadIndicator={redBrickTimeIndicator}
                             />
                         </>

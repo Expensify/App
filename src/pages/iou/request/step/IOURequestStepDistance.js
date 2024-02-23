@@ -21,6 +21,7 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -94,7 +95,7 @@ function IOURequestStepDistance({
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
@@ -102,7 +103,9 @@ function IOURequestStepDistance({
      * @param {Number} index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(iouType, transactionID, reportID, index));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, transactionID, report.reportID, index, Navigation.getActiveRouteWithoutParams()),
+        );
     };
 
     const navigateToNextStep = useCallback(() => {
@@ -131,8 +134,12 @@ function IOURequestStepDistance({
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
 
+        if (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) {
+            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
+        }
+
         if (_.size(validatedWaypoints) < 2) {
-            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
+            return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
     };
 
@@ -144,8 +151,7 @@ function IOURequestStepDistance({
 
             const newWaypoints = {};
             _.each(data, (waypoint, index) => {
-                const newWaypoint = lodashGet(waypoints, waypoint, {});
-                newWaypoints[`waypoint${index}`] = _.isEmpty(newWaypoint) ? null : newWaypoint;
+                newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
             });
 
             setOptimisticWaypoints(newWaypoints);
@@ -159,12 +165,12 @@ function IOURequestStepDistance({
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading) {
+        if (_.size(validatedWaypoints) < 2 || (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) || hasRouteError || isLoadingRoute || isLoading) {
             setHasError(true);
             return;
         }
         navigateToNextStep();
-    }, [setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
+    }, [setHasError, waypoints, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
 
     return (
         <StepScreenWrapper
@@ -205,7 +211,7 @@ function IOURequestStepDistance({
                 </View>
                 <View style={[styles.w100, styles.pt2]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                    {((hasError && _.size(validatedWaypoints) < 2) || hasRouteError) && (
+                    {((hasError && _.size(validatedWaypoints) < 2) || (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) || hasRouteError) && (
                         <DotIndicatorMessage
                             style={[styles.mh4, styles.mv3]}
                             messages={getError()}
