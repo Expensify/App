@@ -2106,6 +2106,9 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
                     errors: {
                         requiresCategory: null,
                     },
+                    pendingFields: {
+                        requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             },
         ],
@@ -2115,6 +2118,9 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     errors: {
+                        requiresCategory: null,
+                    },
+                    pendingFields: {
                         requiresCategory: null,
                     },
                 },
@@ -2127,6 +2133,9 @@ const setWorkspaceRequiresCategory = (policyID: string, requiresCategory: boolea
                 value: {
                     requiresCategory: !requiresCategory,
                     errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.genericFailureMessage'),
+                    pendingFields: {
+                        requiresCategory: null,
+                    },
                 },
             },
         ],
