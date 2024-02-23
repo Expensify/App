@@ -16,7 +16,7 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
     const containsHtml = StringUtils.containsHtml(fullTitle);
     if (containsHtml) {
         return (
-            <View style={[textStyles as ViewStyle, StyleUtils.getHeightOfRenderHtmlText(numberOfLines)]}>
+            <View style={[textStyles as ViewStyle, StyleUtils.getHeightOfRenderHtmlText(fullTitle, numberOfLines)]}>
                 <RenderHTML html={fullTitle} />
             </View>
         );

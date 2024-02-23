@@ -1320,7 +1320,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of RenderHtml text container with numberOfLines=1
      */
-    getHeightOfRenderHtmlText: (numberOfLines: number): ViewStyle => (numberOfLines === 1 ? {height: styles.webViewStyles.baseFontStyle.lineHeight} : {}),
+    getHeightOfRenderHtmlText: (text: string, numberOfLines: number): ViewStyle => {
+        if (numberOfLines !== 1) {
+            return {};
+        }
+        let height = styles.webViewStyles.baseFontStyle.lineHeight;
+        if (text.includes('<blockquote>')) {
+            const {marginTop, marginBottom} = styles.webViewStyles.tagStyles.blockquote;
+            height += marginTop + marginBottom;
+        }
+        return {height};
+    },
 
     /**
      * Return the height of magic code input container
