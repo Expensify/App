@@ -1,6 +1,6 @@
-import type {BrowserWindow} from 'electron';
-import type {Options} from './electronDownloadManager';
-import {download as electronDownload} from './electronDownloadManager';
+import type { BrowserWindow } from 'electron';
+import type { Options } from './electronDownloadManager';
+import { download as electronDownload } from './electronDownloadManager';
 
 type DownloadItem = {
     win: BrowserWindow;
@@ -9,22 +9,31 @@ type DownloadItem = {
 };
 
 type DownloadQueue = DownloadItem[];
-
 const createDownloadQueue = () => {
     const queue: DownloadQueue = [];
 
-    const processQueue = (): void => {
+    const shiftDownloadItem = (): DownloadItem | undefined => {
         const item = queue.shift();
-        if (!item) {
-            return;
+        if (queue.length > 0) {
+            // This code block contains a cyclic dependency between functions, 
+            // so one of them should have the eslint-disable-next-line comment
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            downloadItem(queue[0]);
         }
+        return item;
+    };
 
+    const downloadItem = (item: DownloadItem): void => {
         const newItem = {
             ...item,
             options: {
                 ...item.options,
-                onCompleted: processQueue,
-                onCancel: processQueue,
+                onCompleted: () => {
+                    shiftDownloadItem();
+                },
+                onCancel: () => {
+                    shiftDownloadItem();
+                },
             },
         };
 
@@ -34,12 +43,12 @@ const createDownloadQueue = () => {
     const pushDownloadItem = (item: DownloadItem): number => {
         const len = queue.push(item);
         if (queue.length === 1) {
-            processQueue();
+            downloadItem(queue[0]);
         }
         return len;
     };
 
-    return {pushDownloadItem};
+    return { pushDownloadItem, shiftDownloadItem };
 };
 
 export default createDownloadQueue;
