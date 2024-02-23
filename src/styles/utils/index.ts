@@ -1486,6 +1486,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isDisabled && styles.buttonOpacityDisabled),
     }),
 
+    // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
         ...StyleSheet.flatten(descriptionTextStyle),
         opacity: styles.opacitySemiTransparent.opacity,
