@@ -507,6 +507,10 @@ const ROUTES = {
         route: 'workspace/:policyID/members',
         getRoute: (policyID: string) => `workspace/${policyID}/members` as const,
     },
+    WORKSPACE_CATEGORIES: {
+        route: 'workspace/:policyID/categories',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
@@ -546,4 +550,4 @@ type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute};
+export type {Route, HybridAppRoute, AllRoutes};
