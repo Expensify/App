@@ -111,7 +111,7 @@ function IOURequestStepDistance({
     // }, [waypoints]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     /**
