@@ -5,4 +5,5 @@ const codeWordWrapper: CodeWordWrapperStyles = {};
 const codeWordStyle: CodeWordStyles = {};
 const codeTextStyle: CodeTextStyles = {};
 const codePlainTextStyle: CodeTextStyles = {};
-export default {codeWordWrapper, codeWordStyle, codeTextStyle, codePlainTextStyle};
+const codeWrapperOffset = 0;
+export default {codeWordWrapper, codeWordStyle, codeTextStyle, codePlainTextStyle, codeWrapperOffset};

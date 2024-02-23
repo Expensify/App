@@ -16,6 +16,7 @@ import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
+import codeStyles from './codeStyles';
 import containerComposeStyles from './containerComposeStyles';
 import cursor from './cursor';
 import FontUtils from './FontUtils';
@@ -1328,6 +1329,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         if (text.includes('<blockquote>')) {
             const {marginTop, marginBottom} = styles.webViewStyles.tagStyles.blockquote;
             height += marginTop + marginBottom;
+        } else if (text.includes('<code>')) {
+            height += codeStyles.codeWrapperOffset;
         }
         return {height};
     },
