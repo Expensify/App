@@ -20,7 +20,7 @@ function OnboardingPersonalDetails() {
     }, []);
 
     return (
-        <View style={[styles.defaultModalContainer, styles.w100, styles.h100, shouldUseNarrowLayout ? undefined : styles.pt8]}>
+        <View style={[styles.defaultModalContainer, styles.w100, styles.h100, !shouldUseNarrowLayout && styles.pt8]}>
             <View style={{maxHeight: windowHeight}}>
                 <HeaderWithBackButton
                     shouldShowCloseButton
