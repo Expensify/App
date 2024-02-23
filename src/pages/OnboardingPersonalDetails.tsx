@@ -77,7 +77,6 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
         <View style={[styles.h100, styles.defaultModalContainer, !shouldUseNarrowLayout && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton={false}
-                shouldShowCloseButton
                 onCloseButtonPress={closeModal}
                 iconFill={theme.iconColorfulBackground}
                 progressBarPercentage={33.3}
