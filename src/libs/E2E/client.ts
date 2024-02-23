@@ -3,10 +3,19 @@ import Routes from '../../../tests/e2e/server/routes';
 import type {NetworkCacheMap, TestConfig} from './types';
 
 type TestResult = {
+    /** Name of the test */
     name: string;
+
+    /** The branch where test were running */
     branch?: string;
+
+    /** Duration in milliseconds */
     duration?: number;
+
+    /** Optional, if set indicates that the test run failed and has no valid results. */
     error?: string;
+
+    /** Render count */
     renderCount?: number;
 };
 
@@ -113,3 +122,4 @@ export default {
     updateNetworkCache,
     getNetworkCache,
 };
+export type {TestResult, NativeCommand};
