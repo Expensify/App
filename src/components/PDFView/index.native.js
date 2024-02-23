@@ -104,8 +104,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
-     * @param numberOfPages
-     * @param path - Path to cache location
+     * @param {Number} numberOfPages
+     * @param {Number} path - Path to cache location
      */
     const finishPDFLoad = (numberOfPages, path) => {
         setShouldRequestPassword(false);
