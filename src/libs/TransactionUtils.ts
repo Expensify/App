@@ -451,13 +451,6 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
 }
 
 /**
- * Check if the transaction has missing required fields
- */
-function hasMissingRequiredFields(transaction: OnyxEntry<Transaction>): boolean {
-    return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
-}
-
-/**
  * Check if the transaction has a defined route
  */
 function hasRoute(transaction: Transaction): boolean {
@@ -641,7 +634,6 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
-    hasMissingRequiredFields,
 };
 
 export type {TransactionChanges};
