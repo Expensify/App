@@ -1,13 +1,13 @@
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
-import CONST from '@src/CONST';
-import type { ValueOf } from 'type-fest';
 
 let credentials: Credentials | null = null;
 let authToken: string | null = null;
-let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;  
+let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
 let offline = false;
 let authenticating = false;

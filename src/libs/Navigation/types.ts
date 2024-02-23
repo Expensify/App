@@ -477,10 +477,9 @@ type SharedScreensParamList = {
         validateCode: string;
         exitTo?: Routes | HybridAppRoute;
     };
-}
+};
 
 type PublicScreensParamList = SharedScreensParamList & {
-
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
         validateCode?: string;
