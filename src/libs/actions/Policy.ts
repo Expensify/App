@@ -1635,8 +1635,8 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, reportTags?: string): RecentlyUsedTags {
-    if (!policyID || !reportTags) {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTags?: string): RecentlyUsedTags {
+    if (!policyID || !transactionTags) {
         return {};
     }
 
@@ -1645,7 +1645,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, reportTags?: s
     const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
     const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
-    reportTags.split(CONST.COLON).forEach((tag, index) => {
+    TransactionUtils.getTagArrayFromName(transactionTags).forEach((tag, index) => {
         if (!tag) {
             return;
         }

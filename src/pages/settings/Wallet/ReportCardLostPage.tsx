@@ -25,7 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {RequestPhysicalCardForm} from '@src/types/form';
+import type {ReportPhysicalCardForm} from '@src/types/form';
 import type {Card, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -53,7 +53,7 @@ const OPTIONS: Option[] = [
 
 type ReportCardLostPageOnyxProps = {
     /** Onyx form data */
-    formData: OnyxEntry<RequestPhysicalCardForm>;
+    formData: OnyxEntry<ReportPhysicalCardForm>;
 
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;

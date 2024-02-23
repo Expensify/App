@@ -4,7 +4,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, TransferWalletBalanceParams} from '@libs/API/parameters';
+import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {AddDebitCardForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -153,17 +153,17 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
  * Calls the API to add a new card.
  *
  */
-function addPaymentCard(params: AddDebitCardForm) {
-    const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate ?? '');
-    const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate ?? '');
+function addPaymentCard(params: PaymentCardParams) {
+    const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
+    const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
     const parameters: AddPaymentCardParams = {
-        cardNumber: params.cardNumber ?? '',
+        cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
-        cardCVV: params.securityCode ?? '',
-        addressName: params.nameOnCard ?? '',
-        addressZip: params.addressZipCode ?? '',
+        cardCVV: params.securityCode,
+        addressName: params.nameOnCard,
+        addressZip: params.addressZipCode,
         currency: CONST.CURRENCY.USD,
         isP2PDebitCard: true,
     };
@@ -206,7 +206,15 @@ function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
         isLoading: false,
         errors: undefined,
-        setupComplete: false,
+        [INPUT_IDS.SETUP_COMPLETE]: false,
+        [INPUT_IDS.NAME_ON_CARD]: '',
+        [INPUT_IDS.CARD_NUMBER]: '',
+        [INPUT_IDS.EXPIRATION_DATE]: '',
+        [INPUT_IDS.SECURITY_CODE]: '',
+        [INPUT_IDS.ADDRESS_STREET]: '',
+        [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
+        [INPUT_IDS.ADDRESS_STATE]: '',
+        [INPUT_IDS.ACCEPT_TERMS]: '',
     });
 }
 
