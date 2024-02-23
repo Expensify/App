@@ -71,6 +71,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                             defaultValue={currentUserDetails?.firstName}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
+                            autoFocus
                         />
                     </View>
                     <View>
