@@ -38,7 +38,7 @@ type TaxRate = {
     /** Name of the a tax rate. */
     name: string;
 
-    /** The value of the tax rate. */
+    /** The value of the tax rate as percentage. */
     value: string;
 
     /** The code associated with the tax rate. */
