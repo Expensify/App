@@ -1,5 +1,5 @@
-import type { DownloadItem, Session, SaveDialogOptions, WebContents, Event } from 'electron';
-import { app, BrowserWindow, dialog, shell } from 'electron';
+import type {DownloadItem, Event, SaveDialogOptions, Session, WebContents} from 'electron';
+import {app, BrowserWindow, dialog, shell} from 'electron';
 import * as path from 'path';
 
 /**
@@ -66,7 +66,7 @@ type Options = {
     unregisterWhenDone?: boolean;
     openFolderWhenDone?: boolean;
     onStarted?: (item: DownloadItem) => void;
-}
+};
 
 const registerListener = (session: Session, prevOptions: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => {}): void => {
     const downloadItems = new Set<DownloadItem>();
@@ -205,7 +205,6 @@ const registerListener = (session: Session, prevOptions: Options, callback: (err
 
     session.on('will-download', listener);
 };
-
 
 export default (options: Options = {}): void => {
     app.on('session-created', (session: Session) => {

@@ -1,12 +1,12 @@
-import type { BrowserWindow } from 'electron';
-import type { Options} from './electronDownloadManager';
+import type {BrowserWindow} from 'electron';
+import type {Options} from './electronDownloadManager';
 import {download as electronDownload} from './electronDownloadManager';
 
 type DownloadItem = {
     win: BrowserWindow;
     url: string;
     options: Options;
-}
+};
 
 type DownloadQueue = DownloadItem[];
 

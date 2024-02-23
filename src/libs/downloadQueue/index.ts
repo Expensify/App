@@ -1,5 +1,4 @@
 // no implementation except for desktop
-const createDownloadQueue = () => {
-};
+const createDownloadQueue = () => {};
 
 export default createDownloadQueue;
