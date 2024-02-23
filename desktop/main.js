@@ -4,13 +4,13 @@ const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
-const {machineId} = require('node-machine-id');
+const {machineId} = require('node-machine-id'); 
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
 const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
-const createDownloadQueue = require('../src/libs/downloadQueue');
+const createDownloadQueue = require('../src/libs/downloadQueue').default;
 
 const port = process.env.PORT || 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
@@ -602,7 +602,7 @@ const mainWindow = () => {
 
                 ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, async (event, info) => {
                     info.win = browserWindow
-                    downloadQueue.push(info);
+                    downloadQueue.pushDownloadItem(info);
                 });
 
                 return browserWindow;

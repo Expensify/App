@@ -1,17 +1,20 @@
-import * as ApiUtils from '@libs/ApiUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import * as Link from '@userActions/Link';
-import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+import type { Options } from '@libs/downloadQueue/electronDownloadManager';
 
 /**
  * The function downloads an attachment on desktop platforms.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false) => {
-    window.electron.send(ELECTRON_EVENTS.DOWNLOAD, { url, filename: fileName })
+    const options: Options ={ 
+        filename: fileName,
+        saveAs: true,
+        //showing badge and progress bar only supported on macos and linux, better to disable it
+        showBadge: false,
+        showProgressBar: false
+    } 
+    window.electron.send(ELECTRON_EVENTS.DOWNLOAD, { url, options} )
     return Promise.resolve();
 };
 

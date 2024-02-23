@@ -1,9 +1,9 @@
-import { download as electronDownload } from '@libs/downloadQueue/electronDownloadManager';
+import { download as electronDownload, Options } from '@libs/downloadQueue/electronDownloadManager';
 
 interface DownloadItem {
   win: any;
   url: string;
-  options: Electron.Options
+  options: Options;
 }
 
 type DownloadQueue = DownloadItem[];
@@ -18,7 +18,7 @@ const createDownloadQueue = () => {
     }
     return len;
   };
-
+ 
   const shiftDownloadItem = (): DownloadItem | undefined => {
     const item = queue.shift();
     if (queue.length > 0) {
@@ -28,12 +28,15 @@ const createDownloadQueue = () => {
   };
 
   const downloadItem = (item: DownloadItem): void => {
+console.log('[wildebug] downloadItem item aosdifasdf', item);
+    
     item.options.onCompleted = () => {
       shiftDownloadItem();
     };
 
-    item.options.onCancel = item.options.onCompleted;
-
+    item.options.onCancel = () => {
+      shiftDownloadItem();
+    };
     electronDownload(item.win, item.url, item.options);
   };
 

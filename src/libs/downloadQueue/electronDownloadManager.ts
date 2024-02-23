@@ -250,4 +250,4 @@ export const download = (window_: Electron.BrowserWindow, url: string, options: 
     });
 };
 
-export { CancelError };
+export type { CancelError, Options };
