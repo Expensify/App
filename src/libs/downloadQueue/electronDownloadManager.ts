@@ -1,4 +1,5 @@
-import { app, BrowserWindow, dialog, DownloadItem, Session, shell, SaveDialogOptions, WebContents, Event } from 'electron';
+import type { DownloadItem, Session, SaveDialogOptions, WebContents, Event } from 'electron';
+import { app, BrowserWindow, dialog, shell } from 'electron';
 import * as path from 'path';
 import * as _ from 'underscore';
 
@@ -50,7 +51,7 @@ const getWindowFromWebContents = (webContents: WebContents): BrowserWindow | und
     return window_;
 };
 
-interface Options {
+type Options = {
     showBadge?: boolean;
     showProgressBar?: boolean;
     directory?: string;

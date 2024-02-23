@@ -35,7 +35,7 @@
     "android-build-e2edelta": "bundle exec fastlane android build_e2edelta",
     "test": "TZ=utc jest",
     "typecheck": "tsc",
-    "lint": "eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
+    "lint": "eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint --fix",
     "lint-changed": "eslint --fix $(git diff --diff-filter=AM --name-only main -- \"*.js\" \"*.ts\" \"*.tsx\")",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",

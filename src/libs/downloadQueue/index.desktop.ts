@@ -1,6 +1,7 @@
-import {download as electronDownload, Options} from '@libs/downloadQueue/electronDownloadManager';
+import type { Options} from './electronDownloadManager';
+import {download as electronDownload} from './electronDownloadManager';
 
-interface DownloadItem {
+type DownloadItem = {
     win: any;
     url: string;
     options: Options;
