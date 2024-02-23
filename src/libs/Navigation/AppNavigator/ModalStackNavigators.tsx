@@ -47,7 +47,10 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  * @param getScreenOptions optional function that returns the screen options, override the default options
  */
 function createModalStackNavigatorFactory(factory: typeof createPlatformStackNavigator) {
-    return function createNestedModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions): React.ComponentType {
+    return function createNestedModalStackNavigator<TStackParams extends ParamListBase>(
+        screens: Screens,
+        getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions,
+    ): React.ComponentType {
         const ModalStackNavigator = factory<TStackParams>();
 
         function ModalStack() {
@@ -77,7 +80,7 @@ function createModalStackNavigatorFactory(factory: typeof createPlatformStackNav
         ModalStack.displayName = 'ModalStack';
 
         return ModalStack;
-    }
+    };
 }
 
 const createModalStackNavigator = createModalStackNavigatorFactory(createPlatformStackNavigator);
