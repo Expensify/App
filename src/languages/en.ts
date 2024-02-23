@@ -26,6 +26,7 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -129,6 +130,7 @@ export default {
         next: 'Next',
         previous: 'Previous',
         goBack: 'Go back',
+        create: 'Create',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
@@ -203,6 +205,7 @@ export default {
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
         admin: 'Admin',
+        owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
@@ -306,6 +309,8 @@ export default {
         of: 'of',
         default: 'Default',
         update: 'Update',
+        member: 'Member',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Use current location',
@@ -425,7 +430,6 @@ export default {
         oneMoment: "One moment while we redirect you to your company's single sign-on portal.",
     },
     reportActionCompose: {
-        addAction: 'Actions',
         dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
@@ -666,6 +670,20 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
+        holdRequest: 'Hold request',
+        unholdRequest: 'Unhold request',
+        heldRequest: ({comment}: HeldRequestParams) => `held this request with the comment: ${comment}`,
+        unheldRequest: 'unheld this request',
+        explainHold: "Explain why you're holding this request.",
+        reason: 'Reason',
+        holdReasonRequired: 'A reason is required when holding.',
+        requestOnHold: 'This request was put on hold. Review the comments for next steps.',
+        confirmApprove: 'Confirm what to approve',
+        confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
+        confirmPay: 'Confirm what to pay',
+        confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
+        payOnly: 'Pay only',
+        approveOnly: 'Approve only',
         holdEducationalTitle: 'This request is on',
         whatIsHoldTitle: 'What is hold?',
         whatIsHoldExplain: 'Hold is our way of streamlining financial collaboration. "Reject" is so harsh!',
@@ -733,11 +751,6 @@ export default {
     shareCodePage: {
         title: 'Your code',
         subtitle: 'Invite members to Expensify by sharing your personal QR code or referral link.',
-    },
-    loungeAccessPage: {
-        loungeAccess: 'Lounge access',
-        headline: 'The Expensify Lounge is closed.',
-        description: "The Expensify Lounge in San Francisco is closed for the time being, but we'll update this page when it reopens!",
     },
     pronounsPage: {
         pronouns: 'Pronouns',
@@ -1735,6 +1748,7 @@ export default {
             },
             addedWithPrimary: 'Some users were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
+            membersListTitle: 'Directory of all workspace members.',
         },
         card: {
             header: 'Unlock free Expensify Cards',
@@ -2293,7 +2307,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: 'Amount greater than scanned receipt',
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
@@ -2303,8 +2317,8 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
-            `Receipt required${formattedLimit ? ` over ${formattedLimit}${category ? ' category limit' : ''}` : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ' category limit' : ''}` : ''}`,
+        reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
