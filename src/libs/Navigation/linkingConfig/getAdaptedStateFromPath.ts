@@ -315,8 +315,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
         throw new Error('Unable to parse path');
     }
 
-    const tmp = getAdaptedState(state, policyID);
-    return tmp;
+    return getAdaptedState(state, policyID);
 };
 
 export default getAdaptedStateFromPath;

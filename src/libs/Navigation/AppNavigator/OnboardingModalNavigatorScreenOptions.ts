@@ -1,6 +1,6 @@
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import type { ThemeStyles } from '@styles/index';
+import type {ThemeStyles} from '@styles/index';
 
 /**
  * Modal stack navigator screen options generator function

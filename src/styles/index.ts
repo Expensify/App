@@ -1516,18 +1516,18 @@ const styles = (theme: ThemeColors) =>
             } satisfies ViewStyle),
 
         onboardingNavigatorOuterView: {
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
-        ({
-            width: shouldUseNarrowLayout ? 500 : '100%',
-            height: shouldUseNarrowLayout ? 712 : '100%',
-            borderRadius: shouldUseNarrowLayout ? 16 : 0,
-            overflow: 'hidden',
-        } satisfies ViewStyle),
+            ({
+                width: shouldUseNarrowLayout ? 500 : '100%',
+                height: shouldUseNarrowLayout ? 712 : '100%',
+                borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
 
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,

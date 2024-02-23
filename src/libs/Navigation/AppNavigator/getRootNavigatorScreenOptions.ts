@@ -1,23 +1,23 @@
 import type {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
+import type {ViewStyle} from 'react-native';
 import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
-import type { ViewStyle } from 'react-native';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
 import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
 
 type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => StackNavigationOptions;
 
 type ScreenOptions = {
-    rightModalNavigator: StackNavigationOptions,
-    onboardingModalNavigator: GetOnboardingModalNavigatorOptions,
-    leftModalNavigator: StackNavigationOptions,
-    homeScreen: StackNavigationOptions,
-    fullScreen: StackNavigationOptions,
-    centralPaneNavigator: StackNavigationOptions,
-    bottomTab: StackNavigationOptions,
-}
+    rightModalNavigator: StackNavigationOptions;
+    onboardingModalNavigator: GetOnboardingModalNavigatorOptions;
+    leftModalNavigator: StackNavigationOptions;
+    homeScreen: StackNavigationOptions;
+    fullScreen: StackNavigationOptions;
+    centralPaneNavigator: StackNavigationOptions;
+    bottomTab: StackNavigationOptions;
+};
 
 const commonScreenOptions: StackNavigationOptions = {
     headerShown: false,
@@ -32,7 +32,7 @@ const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
 
 const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, themeStyles, StyleUtils) => {
-    const modalCardStyleInterpolator = createModalCardStyleInterpolator(StyleUtils); 
+    const modalCardStyleInterpolator = createModalCardStyleInterpolator(StyleUtils);
 
     return {
         rightModalNavigator: {
