@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
-import React, {memo, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import {ActivityIndicator, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -11,6 +11,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,6 +25,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
+import AttachmentViewVideo from './AttachmentViewVideo';
 import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
 const propTypes = {
@@ -58,6 +60,10 @@ const propTypes = {
 
     /** The id of the report action related to the attachment */
     reportActionID: PropTypes.string,
+
+    isHovered: PropTypes.bool,
+
+    optionalVideoDuration: PropTypes.number,
 };
 
 const defaultProps = {
@@ -70,6 +76,8 @@ const defaultProps = {
     maybeIcon: false,
     transactionID: '',
     reportActionID: '',
+    isHovered: false,
+    optionalVideoDuration: 0,
 };
 
 function AttachmentView({
@@ -84,20 +92,29 @@ function AttachmentView({
     translate,
     isFocused,
     isUsedInCarousel,
-    isSingleCarouselItem,
-    carouselItemIndex,
-    carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
     maybeIcon,
     fallbackSource,
     transaction,
     reportActionID,
+    isHovered,
+    optionalVideoDuration,
 }) {
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const isVideo = typeof source === 'string' && Str.isVideo(source);
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        updateCurrentlyPlayingURL(isVideo ? source : null);
+    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL]);
+
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -162,8 +179,6 @@ function AttachmentView({
                     isFocused={isFocused}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
-                    carouselItemIndex={carouselItemIndex}
-                    carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
@@ -192,14 +207,22 @@ function AttachmentView({
                 loadComplete={loadComplete}
                 isFocused={isFocused}
                 isUsedInCarousel={isUsedInCarousel}
-                isSingleCarouselItem={isSingleCarouselItem}
-                carouselItemIndex={carouselItemIndex}
-                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onError={() => {
                     setImageError(true);
                 }}
+            />
+        );
+    }
+
+    if (isVideo || (file && Str.isVideo(file.name))) {
+        return (
+            <AttachmentViewVideo
+                source={source}
+                shouldUseSharedVideoElement={isUsedInCarousel}
+                isHovered={isHovered}
+                videoDuration={optionalVideoDuration}
             />
         );
     }

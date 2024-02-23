@@ -14,19 +14,19 @@
  */
 
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
-const fs = require('fs');
-const _ = require('underscore');
-const defaultConfig = require('./config');
-const Logger = require('./utils/logger');
-const execAsync = require('./utils/execAsync');
-const killApp = require('./utils/killApp');
-const launchApp = require('./utils/launchApp');
-const createServerInstance = require('./server');
-const installApp = require('./utils/installApp');
-const withFailTimeout = require('./utils/withFailTimeout');
-const reversePort = require('./utils/androidReversePort');
-const sleep = require('./utils/sleep');
-const compare = require('./compare/compare');
+import {execSync} from 'child_process';
+import fs from 'fs';
+import _ from 'underscore';
+import compare from './compare/compare';
+import defaultConfig from './config';
+import createServerInstance from './server';
+import reversePort from './utils/androidReversePort';
+import installApp from './utils/installApp';
+import killApp from './utils/killApp';
+import launchApp from './utils/launchApp';
+import * as Logger from './utils/logger';
+import sleep from './utils/sleep';
+import withFailTimeout from './utils/withFailTimeout';
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
@@ -38,184 +38,50 @@ const getArg = (argName) => {
     return args[argIndex + 1];
 };
 
-let branch = 'main';
-if (args.includes('--branch')) {
-    branch = getArg('--branch');
-}
-
-let label = branch;
-if (args.includes('--label')) {
-    label = getArg('--label');
-}
-
 let config = defaultConfig;
 const setConfigPath = (configPathParam) => {
     let configPath = configPathParam;
     if (!configPath.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require(configPath);
+    const customConfig = require(configPath).default;
     config = _.extend(defaultConfig, customConfig);
 };
-
-const skipCheckout = args.includes('--skipCheckout');
-
-const skipInstallDeps = args.includes('--skipInstallDeps');
-
-// There are three build modes:
-// 1. full: rebuilds the full native app in (e2e) release mode
-// 2. js-only: only rebuilds the js bundle, and then re-packages
-//             the existing native app with the new bundle. If there
-//             is no existing native app, it will fallback to mode "full"
-// 3. skip: does not rebuild anything, and just runs the existing native app
-let buildMode = 'full';
-
-// When we are in dev mode we want to apply certain default params and configs
-const isDevMode = args.includes('--development');
-if (isDevMode) {
-    setConfigPath('config.local.js');
-    buildMode = 'js-only';
-}
-
-if (args.includes('--buildMode')) {
-    buildMode = getArg('--buildMode');
-}
 
 if (args.includes('--config')) {
     const configPath = getArg('--config');
     setConfigPath(configPath);
 }
 
-// Important set app path after correct config file has been set
-let mainAppPath = getArg('--mainAppPath') || config.MAIN_APP_PATH;
-let deltaAppPath = getArg('--deltaAppPath') || config.DELTA_APP_PATH;
-
-// Create some variables after the correct config file has been loaded
-const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;
-
-if (isDevMode) {
-    Logger.note(`🟠 Running in development mode.`);
+// Important: set app path only after correct config file has been loaded
+const mainAppPath = getArg('--mainAppPath') || config.MAIN_APP_PATH;
+const deltaAppPath = getArg('--deltaAppPath') || config.DELTA_APP_PATH;
+// Check if files exists:
+if (!fs.existsSync(mainAppPath)) {
+    throw new Error(`Main app path does not exist: ${mainAppPath}`);
+}
+if (!fs.existsSync(deltaAppPath)) {
+    throw new Error(`Delta app path does not exist: ${deltaAppPath}`);
 }
 
-if (isDevMode) {
-    // On dev mode only delete any existing output file but keep the folder
-    if (fs.existsSync(OUTPUT_FILE)) {
-        fs.rmSync(OUTPUT_FILE);
-    }
-} else {
-    // On CI it is important to re-create the output dir, it has a different owner
-    // therefore this process cannot write to it
-    try {
-        fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
+// On CI it is important to re-create the output dir, it has a different owner
+// therefore this process cannot write to it
+try {
+    fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
 
-        fs.mkdirSync(config.OUTPUT_DIR);
-    } catch (error) {
-        // Do nothing
-        console.error(error);
-    }
+    fs.mkdirSync(config.OUTPUT_DIR);
+} catch (error) {
+    // Do nothing
+    console.error(error);
 }
 
 // START OF TEST CODE
 
 const runTests = async () => {
-    // check if using buildMode "js-only" or "none" is possible
-    if (buildMode !== 'full') {
-        const mainAppExists = fs.existsSync(mainAppPath);
-        const deltaAppExists = fs.existsSync(deltaAppPath);
-        if (!mainAppExists || !deltaAppExists) {
-            Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
-            Logger.note(`App path: ${mainAppPath}`);
-
-            buildMode = 'full';
-        }
-    }
-
-    // Build app
-    if (buildMode === 'full') {
-        Logger.log(`Test setup - building main branch`);
-
-        if (!skipCheckout) {
-            // Switch branch
-            Logger.log(`Test setup - checkout main`);
-            await execAsync(`git checkout main`);
-        }
-
-        if (!skipInstallDeps) {
-            Logger.log(`Test setup - npm install`);
-            await execAsync('npm i');
-        }
-
-        await execAsync('npm run android-build-e2e');
-
-        if (branch != null && !skipCheckout) {
-            // Switch branch
-            Logger.log(`Test setup - checkout branch '${branch}'`);
-            await execAsync(`git checkout ${branch}`);
-        }
-
-        if (!skipInstallDeps) {
-            Logger.log(`Test setup - npm install`);
-            await execAsync('npm i');
-        }
-
-        Logger.log(`Test setup '${branch}' - building delta branch`);
-        await execAsync('npm run android-build-e2edelta');
-    } else if (buildMode === 'js-only') {
-        Logger.log(`Test setup '${branch}' - building js bundle`);
-
-        if (!skipInstallDeps) {
-            Logger.log(`Test setup '${branch}' - npm install`);
-            await execAsync('npm i');
-        }
-
-        // Build a new JS bundle
-        if (!skipCheckout) {
-            // Switch branch
-            Logger.log(`Test setup - checkout main`);
-            await execAsync(`git checkout main`);
-        }
-
-        if (!skipInstallDeps) {
-            Logger.log(`Test setup - npm install`);
-            await execAsync('npm i');
-        }
-
-        const tempDir = `${config.OUTPUT_DIR}/temp`;
-        let tempBundlePath = `${tempDir}/index.android.bundle`;
-        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
-        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
-        // Repackage the existing native app with the new bundle
-        let tempApkPath = `${tempDir}/app-release.apk`;
-        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${mainAppPath} ${tempBundlePath} ${tempApkPath}`);
-        mainAppPath = tempApkPath;
-
-        // Build a new JS bundle
-        if (!skipCheckout) {
-            // Switch branch
-            Logger.log(`Test setup - checkout main`);
-            await execAsync(`git checkout ${branch}`);
-        }
-
-        if (!skipInstallDeps) {
-            Logger.log(`Test setup - npm install`);
-            await execAsync('npm i');
-        }
-
-        tempBundlePath = `${tempDir}/index.android.bundle`;
-        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
-        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`, {E2E_TESTING: 'true'});
-        // Repackage the existing native app with the new bundle
-        tempApkPath = `${tempDir}/app-release.apk`;
-        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${deltaAppPath} ${tempBundlePath} ${tempApkPath}`);
-        deltaAppPath = tempApkPath;
-    }
-
-    let progressLog = Logger.progressInfo('Installing apps and reversing port');
-
+    Logger.info('Installing apps and reversing port');
     await installApp('android', config.MAIN_APP_PACKAGE, mainAppPath);
     await installApp('android', config.DELTA_APP_PACKAGE, deltaAppPath);
     await reversePort();
-    progressLog.done();
 
     // Start the HTTP server
     const server = createServerInstance();
@@ -250,148 +116,106 @@ const runTests = async () => {
         results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] || []).concat(result);
     });
 
+    // Function to run a single test iteration
+    async function runTestIteration(appPackage, iterationText, launchArgs) {
+        Logger.info(iterationText);
+
+        // Making sure the app is really killed (e.g. if a prior test run crashed)
+        Logger.log('Killing', appPackage);
+        await killApp('android', appPackage);
+
+        Logger.log('Launching', appPackage);
+        await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
+
+        await withFailTimeout(
+            new Promise((resolve) => {
+                const cleanup = server.addTestDoneListener(() => {
+                    Logger.success(iterationText);
+                    cleanup();
+                    resolve();
+                });
+            }),
+            iterationText,
+        );
+
+        Logger.log('Killing', appPackage);
+        await killApp('android', appPackage);
+    }
+
     // Run the tests
-    const suites = _.values(config.TESTS_CONFIG);
-    for (let suiteIndex = 0; suiteIndex < suites.length; suiteIndex++) {
-        const suite = _.values(config.TESTS_CONFIG)[suiteIndex];
+    const tests = _.values(config.TESTS_CONFIG);
+    for (let testIndex = 0; testIndex < tests.length; testIndex++) {
+        const test = _.values(config.TESTS_CONFIG)[testIndex];
 
         // check if we want to skip the test
         if (args.includes('--includes')) {
             const includes = args[args.indexOf('--includes') + 1];
 
             // assume that "includes" is a regexp
-            if (!suite.name.match(includes)) {
+            if (!test.name.match(includes)) {
                 // eslint-disable-next-line no-continue
                 continue;
             }
         }
 
-        const coolDownLogs = Logger.progressInfo(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
-        coolDownLogs.updateText(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
-
-        // Having the cooldown right at the beginning should hopefully lower the chances of heat
+        // Having the cooldown right at the beginning lowers the chances of heat
         // throttling from the previous run (which we have no control over and will be a
-        // completely different AWS DF customer/app). It also gives the time to cool down between test suites.
+        // completely different AWS DF customer/app). It also gives the time to cool down between tests.
+        Logger.info(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
         await sleep(config.BOOT_COOL_DOWN);
-        coolDownLogs.done();
 
-        server.setTestConfig(suite);
+        server.setTestConfig(test);
 
-        const warmupLogs = Logger.progressInfo(`Running warmup '${suite.name}'`);
+        const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
 
-        let progressText = `Warmup for suite '${suite.name}' [${suiteIndex + 1}/${suites.length}]\n`;
-        warmupLogs.updateText(progressText);
+        // Warmup the main app:
+        await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}`);
 
-        Logger.log('Killing main app');
-        await killApp('android', config.MAIN_APP_PACKAGE);
-        Logger.log('Launching main app');
-        await launchApp('android', config.MAIN_APP_PACKAGE);
+        // Warmup the delta app:
+        await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}`);
 
-        await withFailTimeout(
-            new Promise((resolve) => {
-                const cleanup = server.addTestDoneListener(() => {
-                    Logger.log('Main warm up ready ✅');
-                    cleanup();
-                    resolve();
-                });
-            }),
-            progressText,
-        );
-
-        Logger.log('Killing main app');
-        await killApp('android', config.MAIN_APP_PACKAGE);
-
-        Logger.log('Killing delta app');
-        await killApp('android', config.DELTA_APP_PACKAGE);
-        Logger.log('Launching delta app');
-        await launchApp('android', config.DELTA_APP_PACKAGE);
-
-        await withFailTimeout(
-            new Promise((resolve) => {
-                const cleanup = server.addTestDoneListener(() => {
-                    Logger.log('Delta warm up ready ✅');
-                    cleanup();
-                    resolve();
-                });
-            }),
-            progressText,
-        );
-
-        Logger.log('Killing delta app');
-        await killApp('android', config.DELTA_APP_PACKAGE);
-
-        warmupLogs.done();
+        // For each test case we allow the test to fail three times before we stop the test run:
+        const errorCountRef = {
+            errorCount: 0,
+            allowedExceptions: 3,
+        };
 
         // We run each test multiple time to average out the results
-        const testLog = Logger.progressInfo('');
-        for (let i = 0; i < config.RUNS; i++) {
-            progressText = `Suite '${suite.name}' [${suiteIndex + 1}/${suites.length}], iteration [${i + 1}/${config.RUNS}]\n`;
-            testLog.updateText(progressText);
+        for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
+            const onError = (e) => {
+                errorCountRef.errorCount += 1;
+                if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
+                    Logger.error("There was an error running the test and we've reached the maximum number of allowed exceptions. Stopping the test run.");
+                    // If the error happened on the first test run, the test is broken
+                    // and we should not continue running it. Or if we have reached the
+                    // maximum number of allowed exceptions, we should stop the test run.
+                    throw e;
+                }
+                Logger.warn(`There was an error running the test. Continuing the test run. Error: ${e}`);
+            };
 
-            Logger.log('Killing delta app');
-            await killApp('android', config.DELTA_APP_PACKAGE);
-
-            Logger.log('Killing main app');
-            await killApp('android', config.MAIN_APP_PACKAGE);
-
-            Logger.log('Starting main app');
-            await launchApp('android', config.MAIN_APP_PACKAGE, config.ACTIVITY_PATH, {
+            const launchArgs = {
                 mockNetwork: true,
-            });
+            };
 
-            // Wait for a test to finish by waiting on its done call to the http server
+            const iterationText = `Test '${test.name}' [${testIndex + 1}/${tests.length}], iteration [${testIteration + 1}/${config.RUNS}]`;
+            const mainIterationText = `[MAIN] ${iterationText}`;
+            const deltaIterationText = `[DELTA] ${iterationText}`;
             try {
-                await withFailTimeout(
-                    new Promise((resolve) => {
-                        const cleanup = server.addTestDoneListener(() => {
-                            Logger.log(`Test iteration ${i + 1} done!`);
-                            cleanup();
-                            resolve();
-                        });
-                    }),
-                    progressText,
-                );
+                // Run the test on the main app:
+                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, launchArgs);
+
+                // Run the test on the delta app:
+                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
             } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
-            }
-
-            Logger.log('Killing main app');
-            await killApp('android', config.MAIN_APP_PACKAGE);
-
-            Logger.log('Starting delta app');
-            await launchApp('android', config.DELTA_APP_PACKAGE, config.ACTIVITY_PATH, {
-                mockNetwork: true,
-            });
-
-            // Wait for a test to finish by waiting on its done call to the http server
-            try {
-                await withFailTimeout(
-                    new Promise((resolve) => {
-                        const cleanup = server.addTestDoneListener(() => {
-                            Logger.log(`Test iteration ${i + 1} done!`);
-                            cleanup();
-                            resolve();
-                        });
-                    }),
-                    progressText,
-                );
-            } catch (e) {
-                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                testLog.done();
-                throw e; // Rethrow to abort execution
+                onError(e);
             }
         }
-        testLog.done();
     }
 
     // Calculate statistics and write them to our work file
-    progressLog = Logger.progressInfo('Calculating statics and writing results');
-
+    Logger.info('Calculating statics and writing results');
     compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`);
-
-    progressLog.done();
 
     await server.stop();
 };
@@ -407,13 +231,13 @@ const run = async () => {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
-        require('child_process').execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
-        require('child_process').execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
-        require('child_process').execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
+        execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
+        execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
+        execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
 
-        require('child_process').execSync(`cat ${config.LOG_FILE}`);
+        execSync(`cat ${config.LOG_FILE}`);
         try {
-            require('child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+            execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
         } catch (ignoredError) {
             // the error is ignored, as the file might not exist if the test
             // run wasn't started with an emulator

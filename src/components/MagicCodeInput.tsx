@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import type {MaybePhraseKey} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
@@ -32,7 +33,7 @@ type MagicCodeInputProps = {
     shouldDelayFocus?: boolean;
 
     /** Error text to display */
-    errorText?: string;
+    errorText?: MaybePhraseKey;
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete: AutoCompleteVariant;
@@ -366,6 +367,7 @@ function MagicCodeInput(
                         collapsable={false}
                     >
                         <TextInput
+                            disableKeyboard={isDisableKeyboard}
                             onLayout={(e) => {
                                 inputWidth.current = e.nativeEvent.layout.width;
                             }}
@@ -428,3 +430,4 @@ function MagicCodeInput(
 MagicCodeInput.displayName = 'MagicCodeInput';
 
 export default forwardRef(MagicCodeInput);
+export type {AutoCompleteVariant, MagicCodeInputHandle};

@@ -4,8 +4,6 @@ import {ScrollView, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,9 +33,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    // We only want policy owners and admins to be able to modify the welcome message, but not in thread chat
-    const shouldDisableWelcomeMessage = ReportUtils.shouldDisableWelcomeMessage(report, linkedWorkspace);
-
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
     const notificationPreference =
@@ -48,6 +43,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
@@ -146,8 +142,17 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 />
                             </View>
                         )}
-                        {report?.visibility !== undefined && (
-                            <View style={[styles.pv3]}>
+                    </View>
+                    {report?.visibility !== undefined &&
+                        (shouldAllowChangeVisibility ? (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
+                                description={translate('newRoomPage.visibility')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
+                            />
+                        ) : (
+                            <View style={[styles.pv3, styles.ph5]}>
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
                                     numberOfLines={1}
@@ -162,16 +167,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 </Text>
                                 <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate(`newRoomPage.${report.visibility}Description`)}</Text>
                             </View>
-                        )}
-                    </View>
-                    {!shouldDisableWelcomeMessage && (
-                        <MenuItem
-                            title={translate('welcomeMessagePage.welcomeMessage')}
-                            icon={Expensicons.ChatBubble}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WELCOME_MESSAGE.getRoute(reportID))}
-                            shouldShowRightIcon
-                        />
-                    )}
+                        ))}
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
