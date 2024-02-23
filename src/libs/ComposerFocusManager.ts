@@ -36,7 +36,8 @@ const activeModals: ModalId[] = [];
 const promiseMap = new Map<ModalId, PromiseMapValue>();
 
 /**
- * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible.
+ * Returns the ref of the currently focused text field, if one exists
+ * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible by using `currentlyFocusedField` instead.
  */
 function getActiveInput() {
     return (TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField()) as InputElement;
