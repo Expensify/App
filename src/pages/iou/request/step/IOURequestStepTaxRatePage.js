@@ -27,6 +27,7 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
+    /* Onyx Props */
     /** The policy of the report */
     policy: PropTypes.shape({
         /** Collection of tax rates attached to a policy */
