@@ -14,7 +14,7 @@ function ValidateLoginPage({
     account,
     credentials,
     route: {
-        params: {accountID, validateCode},
+        params: {accountID, validateCode, exitTo},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
@@ -27,12 +27,17 @@ function ValidateLoginPage({
     useEffect(() => {
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
-            Navigation.navigate();
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack();
+            });
             return;
         }
         Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
+            if (exitTo) {
+                Session.handleExitToNavigation(exitTo);
+            }
             return;
         }
 
@@ -43,12 +48,17 @@ function ValidateLoginPage({
 
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
+            if (exitTo) {
+                Session.handleExitToNavigation(exitTo);
+            }
             return;
         }
 
         // The user clicked the option to sign in the current tab
-        Navigation.navigate();
-    }, [login, cachedAccountID, is2FARequired]);
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack();
+        });
+    }, [login, cachedAccountID, is2FARequired, exitTo]);
 
     return (
         <>
