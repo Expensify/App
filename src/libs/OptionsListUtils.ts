@@ -975,7 +975,13 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
+    const enabledAndSelectedCategories = sortedCategories.filter((category) => category.enabled || selectedOptionNames.includes(category.name));
+    selectedOptions.forEach((selectedOption) => {
+        const enabledAndSelectedCategoriesIndex = enabledAndSelectedCategories.findIndex((category) => category.name === selectedOption.name);
+        if (enabledAndSelectedCategoriesIndex !== -1) {
+            enabledAndSelectedCategories.splice(enabledAndSelectedCategoriesIndex, 1, selectedOption);
+        }
+    });
     const numberOfVisibleCategories = enabledAndSelectedCategories.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
