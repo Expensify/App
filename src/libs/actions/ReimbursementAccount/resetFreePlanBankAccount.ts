@@ -11,7 +11,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 /**
  * Reset user's reimbursement account. This will delete the bank account.
  */
-function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<OnyxTypes.Session>) {
+function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<OnyxTypes.Session>, policyID: string) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -24,6 +24,7 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
         {
             bankAccountID,
             ownerEmail: session.email,
+            policyID,
         },
         {
             optimisticData: [
