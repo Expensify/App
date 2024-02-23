@@ -2,6 +2,7 @@ import type {Video} from 'expo-av';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type PlaybackContext = {
     updateCurrentlyPlayingURL: (url: string) => void;
@@ -20,4 +21,21 @@ type VolumeContext = {
     volume: SharedValue<number>;
 };
 
-export type {PlaybackContext, VolumeContext};
+type SingularMenuItem = {
+    icon?: IconAsset;
+    text: string;
+    onSelected: () => void;
+};
+
+type MenuItem = {
+    icon: IconAsset;
+    text: string;
+    subMenuItems: SingularMenuItem[];
+};
+
+type VideoPopoverMenuContext = {
+    menuItems: [SingularMenuItem, MenuItem];
+    updatePlaybackSpeed: (speed: number) => void;
+};
+
+export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, MenuItem, SingularMenuItem};
