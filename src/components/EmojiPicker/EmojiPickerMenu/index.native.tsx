@@ -1,8 +1,11 @@
 import React, {useCallback} from 'react';
+import type {ForwardedRef} from 'react';
+import lodashDebounce from 'lodash/debounce';
 import {View} from 'react-native';
 import {runOnUI, scrollTo} from 'react-native-reanimated';
-import _ from 'underscore';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
+import type { BaseTextInputRef } from '@components/TextInput/BaseTextInput/types';
+import type {TranslationPaths} from '@src/languages/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -13,12 +16,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
-import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
+import type EmojiPickerMenuProps from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
-const propTypes = emojiPickerMenuPropTypes;
-
-function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
+function EmojiPickerMenu(onEmojiSelected: EmojiPickerMenuProps, activeEmoji: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -44,11 +45,11 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
      *
      * @param {String} searchTerm
      */
-    const filterEmojis = _.debounce((searchTerm) => {
+    const filterEmojis = lodashDebounce((searchTerm) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         if (emojiListRef.current) {
-            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
+            emojiListRef?.current?.scrollToOffset({offset: 0, animated: false});
         }
 
         if (normalizedSearchTerm === '') {
@@ -62,7 +63,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
         setHeaderIndices([]);
     }, 300);
 
-    const scrollToHeader = (headerIndex) => {
+    const scrollToHeader = (headerIndex: number) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         runOnUI(() => {
             'worklet';
@@ -76,8 +77,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
      *
-     * @param {Object} item
-     * @returns {*}
+     * @param item
      */
     const renderItem = useCallback(
         ({item, target}) => {
@@ -89,17 +89,17 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
             if (item.header) {
                 return (
                     <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}>
-                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
                     </View>
                 );
             }
 
-            const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
+            const emojiCode = types?.[preferredSkinTone as number] ? types[preferredSkinTone as number] : code;
             const shouldEmojiBeHighlighted = Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (
                 <EmojiPickerMenuItem
-                    onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
+                    onPress={singleExecution((emoji: string) => onEmojiSelected(emoji, item))}
                     emoji={emojiCode}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />
@@ -141,7 +141,6 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
 }
 
 EmojiPickerMenu.displayName = 'EmojiPickerMenu';
-EmojiPickerMenu.propTypes = propTypes;
 
 const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
     <EmojiPickerMenu

@@ -4,6 +4,7 @@ import emojis from '@assets/emojis';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
 import type {PickerEmojis} from '@assets/emojis/types';
 import type {SupportedLanguage} from '@libs/EmojiTrie';
+import type {FlashList} from '@shopify/flash-list';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,7 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 
 const useEmojiPickerMenu = () => {
-    const emojiListRef = useAnimatedRef();
+    const emojiListRef = useAnimatedRef<FlashList<string>>();
     const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);

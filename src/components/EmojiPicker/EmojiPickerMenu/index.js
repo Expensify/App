@@ -20,7 +20,7 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
-import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
+import emojiPickerMenuPropTypes from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const propTypes = {
