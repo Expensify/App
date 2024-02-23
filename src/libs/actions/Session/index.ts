@@ -41,7 +41,6 @@ import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
-import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -583,7 +582,6 @@ function resetHomeRouteParams() {
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
-    Welcome.resetReadyCheck();
     PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
@@ -890,7 +888,7 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
-    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
 
     if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
         return true;

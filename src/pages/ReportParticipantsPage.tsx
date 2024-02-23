@@ -45,7 +45,8 @@ const getAllParticipants = (
     ReportUtils.getVisibleMemberIDs(report)
         .map((accountID, index) => {
             const userPersonalDetail = personalDetails?.[accountID];
-            const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail?.login ?? '') ?? translate('common.hidden');
+            const userLogin =
+                !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
             return {
@@ -76,7 +77,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
 
     const participants = getAllParticipants(report, personalDetails, translate).map((participant) => ({
         ...participant,
-        isDisabled: participant?.accountID ? ReportUtils.isOptimisticPersonalDetail(participant.accountID) : false,
+        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? 0) || CONST.RESTRICTED_ACCOUNT_IDS.includes(participant.accountID ?? 0),
     }));
 
     return (
@@ -87,6 +88,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report)}>
                     <HeaderWithBackButton
+                        onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
                         title={translate(
                             ReportUtils.isChatRoom(report) ||
                                 ReportUtils.isPolicyExpenseChat(report) ||
@@ -112,7 +114,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
                                     if (!option.accountID) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID));
+                                    Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, report ? ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID) : undefined));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

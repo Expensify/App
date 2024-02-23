@@ -1,19 +1,24 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
+import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import * as Console from '@libs/actions/Console';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -40,17 +45,30 @@ const keysToPreserve: OnyxKey[] = [
 type BaseMenuItem = {
     translationKey: TranslationPaths;
     icon: React.FC<SvgProps>;
-    action: () => void;
+    action: () => void | Promise<void>;
 };
 
-function TroubleshootPage() {
+type TroubleshootPageOnyxProps = {
+    shouldStoreLogs: OnyxEntry<boolean>;
+};
+
+type TroubleshootPageProps = TroubleshootPageOnyxProps;
+
+function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
+    const waitForNavigate = useWaitForNavigation();
 
     const menuItems = useMemo(() => {
+        const debugConsoleItem: BaseMenuItem = {
+            translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
+            icon: Expensicons.Gear,
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE)),
+        };
+
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
@@ -59,13 +77,19 @@ function TroubleshootPage() {
             },
         ];
 
-        return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey),
-            icon: item.icon,
-            onPress: item.action,
-        }));
-    }, [translate]);
+        if (shouldStoreLogs) {
+            baseMenuItems.push(debugConsoleItem);
+        }
+
+        return baseMenuItems
+            .map((item) => ({
+                key: item.translationKey,
+                title: translate(item.translationKey),
+                icon: item.icon,
+                onPress: item.action,
+            }))
+            .reverse();
+    }, [shouldStoreLogs, translate, waitForNavigate]);
 
     return (
         <IllustratedHeaderPageLayout
@@ -86,6 +110,15 @@ function TroubleshootPage() {
                         {translate('initialSettingsPage.troubleshoot.submitBug')}
                     </TextLink>
                 </Text>
+            </View>
+            <View style={[styles.ml5, styles.mr8]}>
+                <TestToolRow title="Client side logging">
+                    <Switch
+                        accessibilityLabel="Client side logging"
+                        isOn={!!shouldStoreLogs}
+                        onToggle={() => (shouldStoreLogs ? Console.disableLoggingAndFlushLogs() : Console.setShouldStoreLogs(true))}
+                    />
+                </TestToolRow>
             </View>
             <MenuItemList
                 menuItems={menuItems}
@@ -117,4 +150,8 @@ function TroubleshootPage() {
 
 TroubleshootPage.displayName = 'TroubleshootPage';
 
-export default TroubleshootPage;
+export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
+    shouldStoreLogs: {
+        key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+})(TroubleshootPage);
