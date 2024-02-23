@@ -13,7 +13,6 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -43,7 +42,6 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
 
