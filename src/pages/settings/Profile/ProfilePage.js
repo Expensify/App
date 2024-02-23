@@ -7,6 +7,7 @@ import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
@@ -201,7 +202,7 @@ function ProfilePage(props) {
                         {isLoadingPersonalDetails ? (
                             <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
                         ) : (
-                            <>
+                            <MenuItemGroup>
                                 {_.map(privateOptions, (detail, index) => (
                                     <MenuItemWithTopDescription
                                         key={`${detail.title}_${index}`}
@@ -212,7 +213,7 @@ function ProfilePage(props) {
                                         onPress={() => Navigation.navigate(detail.pageRoute)}
                                     />
                                 ))}
-                            </>
+                            </MenuItemGroup>
                         )}
                     </Section>
                 </View>
