@@ -665,6 +665,8 @@ function createOption(
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
+        result.isSelfDM = ReportUtils.isSelfDM(report);
+
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -1732,6 +1734,7 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
         includeThreads: true,
         includeMoneyRequests: true,
         includeTasks: true,
+        includeSelfDM: true,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);

@@ -399,6 +399,7 @@ type OptionData = {
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
     name?: string | null;
+    isSelfDM?: boolean | null;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -2568,6 +2569,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isArchivedRoom(report)) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
+    }
+
+    if (isSelfDM(report)) {
+        formattedName = getDisplayNameForParticipant(report?.participantAccountIDs?.[0], undefined, undefined, true);
     }
 
     if (formattedName) {
