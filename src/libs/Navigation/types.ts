@@ -479,7 +479,10 @@ type SharedScreensParamList = {
     };
 };
 
-type PublicScreensParamList = SharedScreensParamList & {
+type PublicScreensParamList = {
+    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]:  ValueOf<SharedScreensParamList, typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR>;
+    [SCREENS.TRANSITION_BETWEEN_APPS]:  ValueOf<SharedScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+    [SCREENS.VALIDATE_LOGIN]:  ValueOf<SharedScreensParamList, typeof SCREENS.VALIDATE_LOGIN>;
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
         validateCode?: string;
@@ -489,7 +492,10 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SAML_SIGN_IN]: undefined;
 };
 
-type AuthScreensParamList = SharedScreensParamList & {
+type AuthScreensParamList = {
+    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]:  ValueOf<SharedScreensParamList, typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR>;
+    [SCREENS.TRANSITION_BETWEEN_APPS]:  ValueOf<SharedScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+    [SCREENS.VALIDATE_LOGIN]:  ValueOf<SharedScreensParamList, typeof SCREENS.VALIDATE_LOGIN>;
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
