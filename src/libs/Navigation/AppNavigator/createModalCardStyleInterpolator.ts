@@ -15,15 +15,14 @@ type CreateModalCardStyleInterpolator = (StyleUtils: StyleUtilsType) => ModalCar
 const createModalCardStyleInterpolator: CreateModalCardStyleInterpolator =
     (StyleUtils) =>
     (isSmallScreenWidth, isFullScreenModal, shouldUseNarrowLayout, {current: {progress}, inverted, layouts: {screen}}, outputRangeMultiplier = 1) => {
-
-        if(shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayout) {
             return {
                 cardStyle: {
                     opacity: progress,
                 },
             };
         }
-        
+
         const translateX = Animated.multiply(
             progress.interpolate({
                 inputRange: [0, 1],
