@@ -53,7 +53,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 
-let sessionAuthTokenType: string | null = '';
+let sessionAuthTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null = null;
 let sessionAuthToken: string | null = null;
 let authPromiseResolver: ((value: boolean) => void) | null = null;
 
@@ -83,7 +83,7 @@ Onyx.connect({
 });
 
 function isSupportalToken(): boolean {
-    return sessionAuthTokenType === 'supportal';
+    return sessionAuthTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
 /**
