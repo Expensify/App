@@ -1735,7 +1735,7 @@ function createSplitsAndOnyxData(
         // For Control policy expense chats, if the report is already approved, create a new expense report
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
         const shouldCreateNewOneOnOneIOUReport =
-            !oneOnOneIOUReport || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+            !oneOnOneIOUReport || (isOwnPolicyExpenseChat && ReportUtils.isPaidGroupPolicy(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
@@ -2366,7 +2366,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
         const shouldCreateNewOneOnOneIOUReport =
-            !oneOnOneIOUReport || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+            !oneOnOneIOUReport || (isPolicyExpenseChat && ReportUtils.isPaidGroupPolicy(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
