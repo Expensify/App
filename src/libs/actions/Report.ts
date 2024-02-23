@@ -177,17 +177,17 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
     const isWeb = ([CONST.PLATFORM.WEB] as unknown as string).includes(getPlatform());
-
-    if (!isWeb) {
-        return;
-    }
-
     const currentParams = new URLSearchParams(url ?? '');
     const currentExitToRoute = currentParams.get('exitTo') ?? '';
     const {reportID: currentReportID} = ReportUtils.parseReportRouteParams(currentExitToRoute);
 
-    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
+    if (!isWeb) {
+        reportIDDeeplinkedFromOldDot = currentReportID;
 
+        return;
+    }
+
+    const prevUrl = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.INITIAL_URL);
     const prevParams = new URLSearchParams(prevUrl ?? '');
     const prevExitToRoute = prevParams.get('exitTo') ?? '';
     const {reportID: prevReportID} = ReportUtils.parseReportRouteParams(prevExitToRoute);
