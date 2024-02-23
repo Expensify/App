@@ -30,11 +30,11 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.L
 
 const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    if (values.firstName && !ValidationUtils.isValidPersonName(values.firstName)) {
+    if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
         errors.firstName = 'bankAccount.error.firstName';
     }
 
-    if (values.lastName && !ValidationUtils.isValidPersonName(values.lastName)) {
+    if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
         errors.lastName = 'bankAccount.error.lastName';
     }
     return errors;
