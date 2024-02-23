@@ -88,7 +88,7 @@ jobs:
                     repo: context.repo.repo,
                     title: issueTitle,
                     body: issueBody,
-                    labels: [failureLabel, 'Daily'],
+                    labels: [failureLabel, 'Hourly'],
                     assignees: [prMerger]
                   });
                 }
