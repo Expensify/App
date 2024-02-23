@@ -11,6 +11,7 @@ type Rate = {
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    enabled?: boolean;
 };
 
 type Attributes = {
@@ -22,6 +23,8 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
+    defaultCategory?: string;
+    enabled?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
@@ -102,8 +105,11 @@ type Policy = {
         enabled: boolean;
     };
 
-    /** Whether the self approval or submitting is enabled */
+    /** @deprecated Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
     autoReportingOffset?: AutoReportingOffset;
@@ -138,8 +144,14 @@ type Policy = {
     /** Whether policy is updating */
     isPolicyUpdating?: boolean;
 
+    /** The approver of the policy */
+    approver?: string;
+
     /** The approval mode set up on this policy */
     approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Whether the auto approval is enabled */
+    isAutoApprovalEnabled?: boolean;
 
     /** Whether transactions should be billable by default */
     defaultBillable?: boolean;
@@ -159,11 +171,17 @@ type Policy = {
     /** Whether the workspace has multiple levels of tags enabled */
     hasMultipleTagLists?: boolean;
 
-    /** When tax tracking is enabled */
+    /**
+     * Whether or not the policy has tax tracking enabled
+     *
+     * @deprecated - use tax.trackingEnabled instead
+     */
     isTaxTrackingEnabled?: boolean;
 
-    /** The email of the reimburser set when reimbursement is direct */
-    reimburserEmail?: string;
+    /** Whether or not the policy has tax tracking enabled */
+    tax?: {
+        trackingEnabled: boolean;
+    };
 
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;

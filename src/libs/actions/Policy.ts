@@ -6,6 +6,7 @@ import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -19,8 +20,11 @@ import type {
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    SetWorkspaceApprovalModeParams,
+    SetWorkspaceAutoReportingParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
+    UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -40,7 +44,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyMember,
-    PolicyTags,
+    PolicyTagList,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
@@ -174,7 +178,7 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
-let allPolicyTags: OnyxCollection<PolicyTags> = {};
+let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -261,7 +265,9 @@ function deleteWorkspace(policyID: string, policyName: string) {
             : []),
     ];
 
-    const reportsToArchive = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+    const reportsToArchive = Object.values(allReports ?? {}).filter(
+        (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
+    );
     reportsToArchive.forEach((report) => {
         const {reportID, ownerAccountID} = report ?? {};
         optimisticData.push({
@@ -378,6 +384,87 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     return announceRoomMembers;
 }
 
+function setWorkspaceAutoReporting(policyID: string, enabled: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: enabled,
+                pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: !enabled,
+                pendingFields: {isAutoApprovalEnabled: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {isAutoApprovalEnabled: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
+    const isAutoApprovalEnabled = approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC;
+
+    const value = {
+        approver,
+        approvalMode,
+        isAutoApprovalEnabled,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                ...value,
+                pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {approvalMode: null},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {approvalMode: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceApprovalModeParams = {policyID, value: JSON.stringify(value)};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
+}
+
 /**
  * Build optimistic data for removing users from the announcement room
  */
@@ -418,6 +505,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
 
 /**
  * Remove the passed members from the policy employeeList
+ * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function removeMembers(accountIDs: number[], policyID: string) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
@@ -635,6 +723,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
 
 /**
  * Adds members to the specified workspace/policyID
+ * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
@@ -914,6 +1003,62 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, {
+        optimisticData,
+        finallyData,
+        failureData,
+    });
+}
+
+function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string) {
+    if (description === currentDescription) {
+        return;
+    }
+    const parsedDescription = ReportUtils.getParsedComment(description);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                description: parsedDescription,
+                pendingFields: {
+                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    description: null,
+                },
+            },
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    description: null,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: {
+                    description: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: UpdateWorkspaceDescriptionParams = {
+        policyID,
+        description: parsedDescription,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION, params, {
         optimisticData,
         finallyData,
         failureData,
@@ -1574,20 +1719,26 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, tag?: string): RecentlyUsedTags {
-    if (!policyID || !tag) {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTags?: string): RecentlyUsedTags {
+    if (!policyID || !transactionTags) {
         return {};
     }
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-    const tagListKey = Object.keys(policyTags)[0];
+    const policyTagKeys = Object.keys(policyTags);
     const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
+    const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
-    return {
-        ...policyRecentlyUsedTags,
-        [tagListKey]: lodashUnion([tag], policyRecentlyUsedTags?.[tagListKey] ?? []),
-    };
+    TransactionUtils.getTagArrayFromName(transactionTags).forEach((tag, index) => {
+        if (!tag) {
+            return;
+        }
+
+        const tagListKey = policyTagKeys[index];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([...tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
+    });
+
+    return newOptimisticPolicyRecentlyUsedTags;
 }
 
 /**
@@ -1607,7 +1758,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
-    const employeeEmail = iouReport.ownerEmail;
+    const employeeEmail = iouReport.ownerEmail ?? '';
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
     const oldPersonalPolicyID = iouReport.policyID;
     const iouReportID = iouReport.reportID;
@@ -1627,7 +1778,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    if (!employeeAccountID || !employeeEmail) {
+    if (!employeeAccountID) {
         return;
     }
 
@@ -2067,4 +2218,7 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
+    setWorkspaceAutoReporting,
+    setWorkspaceApprovalMode,
+    updateWorkspaceDescription,
 };

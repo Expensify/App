@@ -5,7 +5,6 @@ import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
-import type {ReactElement} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -18,8 +17,8 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyCategory,
     PolicyTag,
+    PolicyTagList,
     Report,
     ReportAction,
     ReportActions,
@@ -79,6 +78,7 @@ type CategorySection = {
 type Category = {
     name: string;
     enabled: boolean;
+    isSelected?: boolean;
 };
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
@@ -122,11 +122,11 @@ type MemberForList = {
     keyForList: string;
     isSelected: boolean;
     isDisabled: boolean;
-    accountID?: number;
+    accountID?: number | null;
     login: string;
-    rightElement: ReactElement | null;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
+    reportID: string;
 };
 
 type SectionForSearchTerm = {
@@ -562,7 +562,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
@@ -796,8 +796,8 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategory[] | PolicyTag[]): boolean {
-    return options.some((option) => option.enabled);
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
+    return Object.values(options).some((option) => option.enabled);
 }
 
 /**
@@ -901,6 +901,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText: option.name,
                 tooltipText: option.name,
                 isDisabled: !option.enabled,
+                isSelected: !!option.isSelected,
             });
 
             return;
@@ -921,6 +922,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
+                isSelected: !!option.isSelected,
             });
         });
     });
@@ -973,7 +975,7 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = sortedCategories.filter((category) => category.enabled || selectedOptionNames.includes(category.name));
+    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
     const numberOfVisibleCategories = enabledAndSelectedCategories.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
@@ -1059,7 +1061,8 @@ function getTagsOptions(tags: Category[]): Option[] {
 function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
     const tagSections = [];
     const sortedTags = sortTags(tags);
-    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
     let indexOffset = 0;
 
@@ -1107,7 +1110,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         return tagSections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
             const tagObject = tags.find((tag) => tag.name === recentlyUsedTag);
@@ -1116,14 +1118,12 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         .map((tag) => ({name: tag, enabled: true}));
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
-    if (selectedOptions) {
-        const selectedTagOptions = selectedOptions.map((option) => {
-            const tagObject = tags.find((tag) => tag.name === option.name);
-            return {
-                name: option.name,
-                enabled: !!tagObject?.enabled,
-            };
-        });
+    if (selectedOptions.length) {
+        const selectedTagOptions = selectedOptions.map((option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to unselect even though the selected category is disabled
+            enabled: true,
+        }));
 
         tagSections.push({
             // "Selected" section
@@ -1159,6 +1159,15 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     });
 
     return tagSections;
+}
+
+/**
+ * Verifies that there is at least one enabled tag
+ */
+function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>) {
+    const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
+
+    return hasEnabledOptions(policyTagValueList);
 }
 
 type PolicyTaxRateWithDefault = {
@@ -1483,6 +1492,10 @@ function getOptions(
             return;
         }
 
+        if (!accountIDs || accountIDs.length === 0) {
+            return;
+        }
+
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
         // policyExpenseChats or chatRooms since those are not people.
@@ -1719,6 +1732,19 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
     return options;
 }
 
+function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
+    return getOptions(reports, personalDetails, {
+        betas,
+        searchInputValue: searchValue.trim(),
+        includeRecentReports: true,
+        includeMultipleParticipantReports: true,
+        sortByReportTypeInSearch: true,
+        includePersonalDetails: true,
+        forcePolicyNamePreview: true,
+        includeOwnedWorkspaceChats: true,
+    });
+}
+
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
@@ -1837,14 +1863,8 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config?: Partial<MemberForList>): MemberForList;
-function formatMemberForList(member: null | undefined, config?: Partial<MemberForList>): undefined;
-function formatMemberForList(member: ReportUtils.OptionData | null | undefined, config: Partial<MemberForList> = {}): MemberForList | undefined {
-    if (!member) {
-        return undefined;
-    }
-
-    const accountID = member.accountID ?? undefined;
+function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
+    const accountID = member.accountID;
 
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1853,14 +1873,13 @@ function formatMemberForList(member: ReportUtils.OptionData | null | undefined, 
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         keyForList: member.keyForList || String(accountID ?? 0) || '',
-        isSelected: false,
-        isDisabled: false,
+        isSelected: member.isSelected ?? false,
+        isDisabled: member.isDisabled ?? false,
         accountID,
         login: member.login ?? '',
-        rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
-        ...config,
+        reportID: member.reportID,
     };
 }
 
@@ -2020,9 +2039,11 @@ export {
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
+    hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
+    getShareLogOptions,
 };
 
-export type {MemberForList, CategorySection};
+export type {MemberForList, CategorySection, GetOptions};

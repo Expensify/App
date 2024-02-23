@@ -1,18 +1,20 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {GetPhysicalCardForm, LoginList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
+import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
 
-function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): Route {
+function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
     const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
 
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
     }
-    if (!phoneNumber && !UserUtils.getSecondaryPhoneLogin(loginList)) {
+    if (!phoneNumber || !LoginUtils.validateNumber(phoneNumber)) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain);
     }
     if (!(address?.street && address?.city && address?.state && address?.country && address?.zip)) {
@@ -22,8 +24,8 @@ function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<Priva
     return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain);
 }
 
-function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>) {
-    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails, loginList));
+function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) {
+    Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails));
 }
 
 /**
@@ -34,8 +36,8 @@ function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: OnyxE
  * @param loginList
  * @returns
  */
-function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>) {
-    const expectedRoute = getCurrentRoute(domain, privatePersonalDetails, loginList);
+function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) {
+    const expectedRoute = getCurrentRoute(domain, privatePersonalDetails);
 
     // If the user is on the current route or the current route is confirmation, then he's allowed to stay on the current step
     if ([currentRoute, ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain)].includes(expectedRoute)) {
@@ -52,7 +54,11 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  * @param privatePersonalDetails
  * @returns
  */
-function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): GetPhysicalCardForm {
+function getUpdatedDraftValues(
+    draftValues: OnyxEntry<GetPhysicalCardForm>,
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
+    loginList: OnyxEntry<LoginList>,
+): Partial<GetPhysicalCardForm> {
     const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
 
     return {
