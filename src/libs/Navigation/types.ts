@@ -92,9 +92,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: undefined;
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: undefined;
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
+        backTo: Routes;
+    };
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
+        contactMethod: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -146,6 +152,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
+    [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
         policyID: string;
     };
@@ -257,9 +264,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: string;
     };
-    [SCREENS.MONEY_REQUEST.CATEGORY]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
         iouType: string;
