@@ -114,10 +114,7 @@ function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BU
         return;
     }
     focusMap.set(id, {input, businessType});
-    if (!input) {
-        return;
-    }
-    input.blur();
+    input?.blur();
 }
 
 /**
@@ -253,9 +250,6 @@ function tryRestoreFocusByExternal(businessType: BusinessType) {
     }
     const [key, {input}] = stack.slice(-1)[0];
     focusMap.delete(key);
-    if (!input) {
-        return;
-    }
     focus(input);
 }
 
