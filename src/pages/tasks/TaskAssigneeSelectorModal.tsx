@@ -10,10 +10,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import type {RadioItem, User} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -37,13 +37,13 @@ type TaskAssigneeSelectorModalOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type UseOptionsProps = {
+type UseOptions = {
     reports: OnyxCollection<Report>;
 };
 
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps;
 
-function useOptions({reports}: UseOptionsProps) {
+function useOptions({reports}: UseOptions) {
     const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
@@ -152,11 +152,22 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             });
         }
 
-        return sectionsList;
+        return sectionsList.map((section) => ({
+            ...section,
+            data: section.data.map((option) => ({
+                ...option,
+                text: option.text ?? '',
+                alternateText: option.alternateText ?? undefined,
+                keyForList: option.keyForList ?? '',
+                isDisabled: option.isDisabled ?? undefined,
+                login: option.login ?? undefined,
+                shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+            })),
+        }));
     }, [currentUserOption, personalDetails, recentReports, translate, userToInvite]);
 
     const selectReport = useCallback(
-        (option: User & RadioItem) => {
+        (option: ListItem) => {
             if (!option) {
                 return;
             }
@@ -164,15 +175,25 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = TaskActions.setAssigneeValue(option?.login ?? '', option?.accountID ?? 0, report.reportID, OptionsListUtils.isCurrentUser(option));
+                    const assigneeChatReport = TaskActions.setAssigneeValue(
+                        option?.login ?? '',
+                        option?.accountID ?? -1,
+                        report.reportID,
+                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1}),
+                    );
 
                     // Pass through the selected assignee
-                    TaskActions.editTaskAssignee(report, session?.accountID ?? 0, option?.login ?? '', option.accountID, assigneeChatReport);
+                    TaskActions.editTaskAssignee(report, session?.accountID ?? 0, option?.login ?? '', option?.accountID, assigneeChatReport);
                 }
                 Navigation.dismissModal(report.reportID);
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
-                TaskActions.setAssigneeValue(option?.login ?? '', option.accountID, task?.shareDestination ?? '', OptionsListUtils.isCurrentUser(option));
+                TaskActions.setAssigneeValue(
+                    option?.login ?? '',
+                    option.accountID,
+                    task?.shareDestination ?? '',
+                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1}),
+                );
                 Navigation.goBack(ROUTES.NEW_TASK);
             }
         },
@@ -190,7 +211,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             includeSafeAreaPaddingBottom={false}
             testID={TaskAssigneeSelectorModal.displayName}
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
                         title={translate('task.assignee')}
@@ -198,14 +219,13 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <SelectionList
-                            sections={didScreenTransitionEnd && !isLoading ? sections : CONST.EMPTY_ARRAY}
+                            sections={didScreenTransitionEnd && !isLoading ? sections : []}
                             ListItem={UserListItem}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             textInputValue={searchValue}
                             headerMessage={headerMessage}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
                         />
                     </View>

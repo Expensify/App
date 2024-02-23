@@ -1834,7 +1834,7 @@ function getFilteredOptions(
 function getShareDestinationOptions(
     reports: Record<string, Report | null>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] | null = [],
+    betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
     excludeLogins: string[] = [],
