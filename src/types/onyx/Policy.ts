@@ -105,8 +105,11 @@ type Policy = {
         enabled: boolean;
     };
 
-    /** Whether the self approval or submitting is enabled */
+    /** @deprecated Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
     autoReportingOffset?: AutoReportingOffset;
