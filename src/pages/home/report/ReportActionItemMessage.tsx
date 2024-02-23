@@ -48,7 +48,6 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     style={style}
                     source=""
                     styleAsDeleted={false}
-                    styleAsMuted={false}
                 />
             </View>
         );
