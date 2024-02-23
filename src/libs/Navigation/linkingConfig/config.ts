@@ -61,6 +61,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.MEMBERS]: {
                     path: ROUTES.WORKSPACE_MEMBERS.route,
                 },
+                [SCREENS.WORKSPACE.CATEGORIES]: {
+                    path: ROUTES.WORKSPACE_CATEGORIES.route,
+                },
             },
         },
         [SCREENS.NOT_FOUND]: '*',
