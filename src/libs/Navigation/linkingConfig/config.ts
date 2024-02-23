@@ -538,7 +538,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.WORKSPACE.PROFILE]: {
                             path: ROUTES.WORKSPACE_PROFILE.route,
-                            exact: true,
                         },
                         [SCREENS.WORKSPACE.CARD]: {
                             path: ROUTES.WORKSPACE_CARD.route,

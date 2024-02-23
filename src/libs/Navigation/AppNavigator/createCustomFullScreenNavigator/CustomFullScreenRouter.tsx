@@ -1,12 +1,13 @@
 import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
+import routes from 'tests/e2e/server/routes';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
 
-const isAtLeastOneInState = (state: StackState, screenName: string): boolean => !!state.routes.find((route) => route.name === screenName);
+const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
 
 function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
@@ -42,9 +43,7 @@ function adaptStateIfNecessary(state: StackState) {
                         routes: [
                             {
                                 name: SCREENS.WORKSPACE.PROFILE,
-                                params: {
-                                    policyID: '867ECBA40E63CFA1',
-                                },
+                                params: state.routes[0]?.params,
                             },
                         ],
                     },
