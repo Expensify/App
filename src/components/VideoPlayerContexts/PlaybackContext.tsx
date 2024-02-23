@@ -69,10 +69,7 @@ function PlaybackContextProvider({children}: {children: ReactNode}) {
     const checkVideoPlaying = useCallback(
         (statusCallback: (isPlaying: boolean) => void) => {
             currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
-                if (!('isPlaying' in status)) {
-                    return;
-                }
-                statusCallback(status.isPlaying);
+                statusCallback('isPlaying' in status && status.isPlaying);
             });
         },
         [currentVideoPlayerRef],
