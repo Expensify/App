@@ -1,5 +1,4 @@
 import type {Video} from 'expo-av';
-import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -107,9 +106,5 @@ function usePlaybackContext() {
 }
 
 PlaybackContextProvider.displayName = 'PlaybackContextProvider';
-PlaybackContextProvider.propTypes = {
-    /** Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
-};
 
 export {PlaybackContextProvider, usePlaybackContext};
