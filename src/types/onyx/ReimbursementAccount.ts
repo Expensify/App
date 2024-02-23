@@ -38,6 +38,8 @@ type ACHData = BeneficialOwnersStepProps &
 
         /** Policy ID of the workspace the bank account is being set up on */
         policyID?: string;
+
+        isOnfidoSetupComplete?: boolean;
     };
 
 type ReimbursementAccount = {

@@ -48,7 +48,7 @@ function AddressSearch(
             street: 'addressStreet',
             street2: 'addressStreet2',
             city: 'addressCity',
-            state: 'addressState' as State,
+            state: 'addressState',
             zipCode: 'addressZipCode',
             lat: 'addressLat',
             lng: 'addressLng',

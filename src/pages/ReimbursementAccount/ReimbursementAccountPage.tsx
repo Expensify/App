@@ -1,10 +1,12 @@
+import {RouteProp} from '@react-navigation/native';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
+import lodashPick from 'lodash/pick';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
@@ -18,13 +20,19 @@ import compose from '@libs/compose';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
+import {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
-import withPolicy from '@pages/workspace/withPolicy';
+import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+import {ACHData} from '@src/types/onyx/ReimbursementAccount';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
@@ -36,72 +44,77 @@ import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropT
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
 
-const propTypes = {
+type ReimbursementAccountDraft = {
+    bankAccountID: number;
+
+    /** Props needed for BankAccountStep */
+    accountNumber: string;
+    routingNumber: string;
+    acceptTerms: boolean;
+    plaidAccountID: string;
+    mask: string;
+
+    /** Props needed for CompanyStep */
+    companyName: string;
+    addressStreet: string;
+    addressCity: string;
+    addressState: string;
+    addressZipCode: string;
+    companyPhone: string;
+    website: string;
+    companyTaxID: string;
+    incorporationType: string;
+    incorporationDate: string | Date;
+    incorporationState: string;
+    hasNoConnectionToCannabis: boolean;
+
+    /** Props needed for RequestorStep */
+    firstName: string;
+    lastName: string;
+    requestorAddressStreet: string;
+    requestorAddressCity: string;
+    requestorAddressState: string;
+    requestorAddressZipCode: string;
+    dob: string | Date;
+    ssnLast4: string;
+    isOnfidoSetupComplete: boolean;
+
+    /** Props needed for ACHContractStep */
+    ownsMoreThan25Percent: boolean;
+    hasOtherBeneficialOwners: boolean;
+    acceptTermsAndConditions: boolean;
+    certifyTrueInformation: boolean;
+    beneficialOwners: string;
+    beneficialOwnerKeys: string[];
+};
+
+type ReimbursementAccountOnyxProps = {
     /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken: PropTypes.string,
+    plaidLinkToken?: OnyxEntry<string>;
 
     /** Plaid SDK current event */
-    plaidCurrentEvent: PropTypes.string,
-
-    /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    /** The token required to initialize the Onfido SDK */
-    onfidoToken: PropTypes.string,
-
-    /** Policy values needed in the component */
-    policy: PropTypes.shape({
-        name: PropTypes.string,
-    }),
+    plaidCurrentEvent?: OnyxEntry<string>;
 
     /** Indicated whether the app is loading */
-    isLoadingApp: PropTypes.bool,
+    isLoadingApp: OnyxEntry<boolean>;
 
     /** Holds information about the users account that is logging in */
-    account: PropTypes.shape({
-        /** Whether a sign on form is loading (being submitted) */
-        isLoading: PropTypes.bool,
-    }),
+    account: OnyxEntry<OnyxTypes.Account>;
 
     /** Current session for the user */
-    session: PropTypes.shape({
-        /** User login */
-        email: PropTypes.string,
-    }),
+    session: OnyxEntry<OnyxTypes.Session>;
 
-    /** Route object from navigation */
-    route: PropTypes.shape({
-        /** Params that are passed into the route */
-        params: PropTypes.shape({
-            /** A step to navigate to if we need to drop the user into a specific point in the flow */
-            stepToOpen: PropTypes.string,
-            policyID: PropTypes.string,
-        }),
-    }),
+    /** ACH data for the withdrawal account actively being set up */
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+
+    /** The token required to initialize the Onfido SDK */
+    onfidoToken: OnyxEntry<string>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-    onfidoToken: '',
-    policy: {},
-    plaidLinkToken: '',
-    plaidCurrentEvent: '',
-    isLoadingApp: false,
-    account: {},
-    session: {
-        email: null,
-    },
-    route: {
-        params: {
-            stepToOpen: '',
-            policyID: '',
-        },
-    },
-};
+type ReimbursementAccountPageProps = WithPolicyProps & ReimbursementAccountOnyxProps & RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
 const ROUTE_NAMES = {
     COMPANY: 'company',
@@ -116,11 +129,9 @@ const ROUTE_NAMES = {
 /**
  * We can pass stepToOpen in the URL to force which step to show.
  * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
- * @param {Object} route
- * @returns {String}
  */
-function getStepToOpenFromRouteParams(route) {
-    switch (lodashGet(route, ['params', 'stepToOpen'], '')) {
+function getStepToOpenFromRouteParams(route: RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): ValueOf<typeof CONST.BANK_ACCOUNT.STEP> | '' {
+    switch (route.params.stepToOpen ?? '') {
         case ROUTE_NAMES.NEW:
             return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         case ROUTE_NAMES.COMPANY:
@@ -140,11 +151,7 @@ function getStepToOpenFromRouteParams(route) {
     }
 }
 
-/**
- * @param {String} currentStep
- * @returns {String}
- */
-function getRouteForCurrentStep(currentStep) {
+function getRouteForCurrentStep(currentStep: ValueOf<typeof CONST.BANK_ACCOUNT.STEP>): ValueOf<typeof ROUTE_NAMES> {
     switch (currentStep) {
         case CONST.BANK_ACCOUNT.STEP.COMPANY:
             return ROUTE_NAMES.COMPANY;
@@ -164,7 +171,18 @@ function getRouteForCurrentStep(currentStep) {
     }
 }
 
-function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingApp, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
+function ReimbursementAccountPage({
+    reimbursementAccount,
+    route,
+    onfidoToken = '',
+    policy,
+    account,
+    isLoadingApp = false,
+    session,
+    plaidLinkToken = '',
+    plaidCurrentEvent = '',
+    reimbursementAccountDraft,
+}: ReimbursementAccountPageProps) {
     /**
         The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         user left off. This view will refer to the achData as the single source of truth to determine which route to
@@ -172,26 +190,19 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         next step.
     */
-    const achData = lodashGet(reimbursementAccount, 'achData', {});
+    const achData = reimbursementAccount?.achData;
 
-    /**
-     * @param {Array} fieldNames
-     *
-     * @returns {Object}
-     */
-    function getBankAccountFields(fieldNames) {
+    function getBankAccountFields<T extends keyof ACHData>(fieldNames: T[]): Pick<ACHData, T> {
+        // @ts-expect-error -- Pick<ACHData, T> is more acurate type in this case because lodashPick returns Partial<ACHData>
         return {
-            ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
+            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
         };
     }
 
     /**
      * Returns selected bank account fields based on field names provided.
-     *
-     * @param {string} step
-     * @returns {Array<string>}
      */
-    function getFieldsForStep(step) {
+    function getFieldsForStep(step: string): string[] {
         switch (step) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 return ['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings'];
@@ -218,21 +229,21 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
-     * @returns {Boolean}
+
      */
-    function hasInProgressVBBA() {
-        return achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
+    function hasInProgressVBBA(): boolean {
+        return !!achData?.bankAccountID && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
     }
     /*
      * Calculates the state used to show the "Continue with setup" view. If a bank account setup is already in progress and
      * no specific further step was passed in the url we'll show the workspace bank account reset modal if the user wishes to start over
      */
-    function getShouldShowContinueSetupButtonInitialValue() {
+    function getShouldShowContinueSetupButtonInitialValue(): boolean {
         if (!hasInProgressVBBA()) {
             // Since there is no VBBA in progress, we won't need to show the component ContinueBankAccountSetup
             return false;
         }
-        return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams(route));
+        return achData?.state === BankAccount.STATE.PENDING || [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''].includes(getStepToOpenFromRouteParams(route));
     }
 
     /**
@@ -244,14 +255,14 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(
-        reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && _.has(reimbursementAccount, 'achData.currentStep'),
+        reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount.achData && 'currentStep' in reimbursementAccount.achData,
     );
 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
 
-    const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    const policyName = lodashGet(policy, 'name', '');
-    const policyID = lodashGet(route.params, 'policyID', '');
+    const currentStep = achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    const policyName = policy?.name ?? '';
+    const policyID = route.params.policyID ?? '';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -261,17 +272,17 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
     /**
      * Retrieve verified business bank account currently being set up.
-     * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
+     * @param ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
-    function fetchData(ignoreLocalCurrentStep) {
+    function fetchData(ignoreLocalCurrentStep?: boolean) {
         // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
         BankAccounts.setReimbursementAccountLoading(true);
 
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = getStepToOpenFromRouteParams(route);
-        const subStep = achData.subStep || '';
-        const localCurrentStep = achData.currentStep || '';
+        const subStep = achData?.subStep ?? '';
+        const localCurrentStep = achData?.currentStep ?? '';
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
     }
 
@@ -304,7 +315,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             if (
                 prevReimbursementAccount &&
                 prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                reimbursementAccount.pendingAction !== prevReimbursementAccount.pendingAction
+                reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
             ) {
                 setShouldShowContinueSetupButton(hasInProgressVBBA());
             }
@@ -316,7 +327,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             const currentStepRouteParam = getStepToOpenFromRouteParams(route);
             if (currentStepRouteParam === currentStep) {
                 // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
                     BankAccounts.hideBankAccountErrors();
                 }
 
@@ -325,7 +336,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             }
 
             // Update the data that is returned from back-end to draft value
-            const draftStep = reimbursementAccount.draftStep;
+            const draftStep = reimbursementAccount?.draftStep;
             if (draftStep) {
                 BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
             }
@@ -337,9 +348,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const backTo = lodashGet(route.params, 'backTo');
+            const backTo = route.params.backTo;
             // eslint-disable-next-line no-shadow
-            const policyID = lodashGet(route.params, 'policyID');
+            const policyID = route.params.policyID;
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
@@ -354,17 +365,11 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         fetchData(true);
     };
 
-    /**
-     * @param {String} fieldName
-     * @param {String} defaultValue
-     *
-     * @returns {String}
-     */
-    const getDefaultStateForField = (fieldName, defaultValue = '') => lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
+    const getDefaultStateForField = (fieldName: keyof ACHData, defaultValue = ''): string | number | boolean | string[] => reimbursementAccount?.achData?.[fieldName] ?? defaultValue;
 
     const goBack = () => {
-        const subStep = achData.subStep;
-        const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
+        const subStep = achData?.subStep;
+        const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
@@ -401,9 +406,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
+                if ([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP].some((value) => value === achData?.state)) {
                     BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
-                } else if (!isOffline && achData.state === BankAccount.STATE.PENDING) {
+                } else if (!isOffline && achData?.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                 } else {
                     Navigation.goBack();
@@ -415,19 +420,16 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         }
     };
 
-    const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
+    const isLoading = (!!isLoadingApp || !!account?.isLoading || reimbursementAccount?.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
         isOffline &&
-        _.contains(
-            [
-                CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
-                CONST.BANK_ACCOUNT.STEP.COMPANY,
-                CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS,
-                CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
-            ],
-            currentStep,
-        )
+        [
+            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+            CONST.BANK_ACCOUNT.STEP.COMPANY,
+            CONST.BANK_ACCOUNT.STEP.REQUESTOR,
+            CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS,
+            CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
+        ].some((value) => value === currentStep)
     );
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
@@ -443,16 +445,16 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 <FullPageNotFoundView
                     shouldShow
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 />
             </ScreenWrapper>
         );
     }
 
     let errorText;
-    const userHasPhonePrimaryEmail = Str.endsWith(session.email, CONST.SMS.DOMAIN);
-    const throttledDate = lodashGet(reimbursementAccount, 'throttledDate', '');
-    const hasUnsupportedCurrency = lodashGet(policy, 'outputCurrency', '') !== CONST.CURRENCY.USD;
+    const userHasPhonePrimaryEmail = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
+    const throttledDate = reimbursementAccount?.throttledDate ?? '';
+    const hasUnsupportedCurrency = (policy?.outputCurrency ?? '') !== CONST.CURRENCY.USD;
 
     if (userHasPhonePrimaryEmail) {
         errorText = translate('bankAccount.hasPhoneLoginError');
@@ -510,7 +512,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-        const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
+        const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
         return (
             <RequestorStep
                 ref={requestorStepRef}
@@ -542,12 +544,10 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 }
 
-ReimbursementAccountPage.propTypes = propTypes;
-ReimbursementAccountPage.defaultProps = defaultProps;
 ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
-export default compose(
-    withOnyx({
+export default withPolicy(
+    withOnyx<ReimbursementAccountPageProps, ReimbursementAccountOnyxProps>({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
@@ -572,6 +572,5 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
         },
-    }),
-    withPolicy,
-)(ReimbursementAccountPage);
+    })(ReimbursementAccountPage),
+);
