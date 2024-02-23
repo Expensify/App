@@ -39,9 +39,7 @@ function VideoPopoverMenuContextProvider({children}: {children: ReactNode}) {
                 {
                     icon: Expensicons.Download,
                     text: translate('common.download'),
-                    onSelected: () => {
-                        downloadAttachment();
-                    },
+                    onSelected: downloadAttachment,
                 },
                 {
                     icon: Expensicons.Meter,
