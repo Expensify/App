@@ -6,6 +6,12 @@ import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
+type RateAndUnit = {
+    unit: string,
+    rate: number
+}
+type CurrencyDefaultMileageRate = Record<string, RateAndUnit>
+
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
@@ -3305,6 +3311,16 @@ const CONST = {
             ADDRESS: 3,
         },
     },
+    CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
+        "EUR": {
+          "unit": "kilometer",
+          "rate": 1
+        },
+        "USD": {
+          "unit": "mile",
+          "rate": 2
+        }
+    }`) as CurrencyDefaultMileageRate, 
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
