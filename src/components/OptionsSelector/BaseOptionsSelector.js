@@ -138,6 +138,7 @@ function BaseOptionsSelector(props) {
     const initialAllOptions = useMemo(() => flattenSections(), []);
     const [allOptions, setAllOptions] = useState(initialAllOptions);
     const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
+    const [focusedOption, setFocusedOption] = useState(allOptions[focusedIndex]);
 
     /**
      * Maps sections to render only allowed count of them per section.
@@ -197,18 +198,18 @@ function BaseOptionsSelector(props) {
     const selectFocusedOption = useCallback(
         (e) => {
             const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
-            const focusedOption = focusedItemKey ? _.find(allOptions, (option) => option.keyForList === focusedItemKey) : allOptions[focusedIndex];
+            const localFocusedOption = focusedItemKey ? _.find(allOptions, (option) => option.keyForList === focusedItemKey) : allOptions[focusedIndex];
 
-            if (!focusedOption || !isFocused) {
+            if (!localFocusedOption || !isFocused) {
                 return;
             }
 
             if (props.canSelectMultipleOptions) {
-                selectRow(focusedOption);
+                selectRow(localFocusedOption);
             } else if (!shouldDisableRowSelection) {
                 setShouldDisableRowSelection(true);
 
-                let result = selectRow(focusedOption);
+                let result = selectRow(localFocusedOption);
                 if (!(result instanceof Promise)) {
                     result = Promise.resolve();
                 }
@@ -262,12 +263,12 @@ function BaseOptionsSelector(props) {
                     return;
                 }
 
-                const focusedOption = allOptions[focusedIndex];
-                if (!focusedOption) {
+                const localFocusedOption = allOptions[focusedIndex];
+                if (!localFocusedOption) {
                     return;
                 }
 
-                selectRow(focusedOption);
+                selectRow(localFocusedOption);
             },
             CTRLEnterConfig.descriptionKey,
             CTRLEnterConfig.modifiers,
@@ -291,12 +292,12 @@ function BaseOptionsSelector(props) {
             return;
         }
 
-        const focusedOption = allOptions[focusedIndex];
-        if (!focusedOption) {
+        const localFocusedOption = allOptions[focusedIndex];
+        if (!localFocusedOption) {
             return;
         }
 
-        selectRow(focusedOption);
+        selectRow(localFocusedOption);
         // we don't need to include the whole props object as the dependency
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allOptions, focusedIndex, props.canSelectMultipleOptions, props.onConfirmSelection, selectRow]);
@@ -395,6 +396,11 @@ function BaseOptionsSelector(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [paginationPage]);
 
+    useEffect(() => {
+        setFocusedOption(allOptions[focusedIndex]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [focusedIndex]);
+
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // Screen coming back into focus, for example
@@ -420,10 +426,12 @@ function BaseOptionsSelector(props) {
         }
 
         const newFocusedIndex = props.selectedOptions.length;
+        const prevFocusedOption = _.find(newOptions, (option) => focusedOption && option.keyForList === focusedOption.keyForList);
+        const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => focusedOption && option.keyForList === focusedOption.keyForList) : undefined;
 
         setSections(newSections);
         setAllOptions(newOptions);
-        setFocusedIndex(_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex);
+        setFocusedIndex(prevFocusedOptionIndex || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
         // we want to run this effect only when the sections change
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.sections]);

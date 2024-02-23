@@ -16,8 +16,6 @@ import type SCREENS from '@src/SCREENS';
 import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestCategoryPage from './EditRequestCategoryPage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestTagPage from './EditRequestTagPage';
 
 type EditSplitBillOnyxProps = {
@@ -39,15 +37,9 @@ type EditSplitBillOnyxProps = {
 type EditSplitBillProps = EditSplitBillOnyxProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
 
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
-    const {field: fieldToEdit, reportID, reportActionID, currency} = route.params;
+    const {field: fieldToEdit, reportID, reportActionID, currency, tagIndex} = route.params;
 
-    const {
-        amount: transactionAmount,
-        currency: transactionCurrency,
-        merchant: transactionMerchant,
-        category: transactionCategory,
-        tag: transactionTag,
-    } = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
+    const {amount: transactionAmount, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
 
     const defaultCurrency = currency ?? transactionCurrency;
     function navigateBackToSplitDetails() {
@@ -82,34 +74,12 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         );
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-        return (
-            <EditRequestMerchantPage
-                defaultMerchant={transactionMerchant ?? ''}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({merchant: transactionChanges.merchant.trim()});
-                }}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
-        return (
-            <EditRequestCategoryPage
-                defaultCategory={transactionCategory ?? ''}
-                policyID={report?.policyID ? report.policyID : ''}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({category: transactionChanges.category.trim()});
-                }}
-            />
-        );
-    }
-
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG) {
         return (
             <EditRequestTagPage
                 defaultTag={transactionTag ?? ''}
                 policyID={report?.policyID ?? ''}
+                tagIndex={Number(tagIndex)}
                 onSubmit={(transactionChanges) => {
                     setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
                 }}
