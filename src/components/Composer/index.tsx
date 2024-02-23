@@ -73,6 +73,7 @@ function Composer(
         isReportActionCompose = false,
         isComposerFullSize = false,
         shouldContainScroll = false,
+        isMainComposer = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -344,13 +345,17 @@ function Composer(
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
-                    ReportActionComposeFocusManager.onComposerFocus(() => {
-                        if (!textInput.current) {
-                            return;
-                        }
+                    if (isMainComposer) {
+                        ReportActionComposeFocusManager.onComposerFocus(null);
+                    } else {
+                        ReportActionComposeFocusManager.onComposerFocus(() => {
+                            if (!textInput.current) {
+                                return;
+                            }
 
-                        textInput.current.focus();
-                    });
+                            textInput.current.focus();
+                        });
+                    }
 
                     props.onFocus?.(e);
                 }}

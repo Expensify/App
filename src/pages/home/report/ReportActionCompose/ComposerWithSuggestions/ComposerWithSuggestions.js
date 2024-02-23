@@ -447,7 +447,7 @@ function ComposerWithSuggestions({
      * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
-        focusComposerWithDelay(textInputRef.current)(shouldDelay);
+        focusComposerWithDelay()(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
@@ -592,6 +592,7 @@ function ComposerWithSuggestions({
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                 <Composer
+                    isMainComposer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={shouldAutoFocus}
                     multiline
