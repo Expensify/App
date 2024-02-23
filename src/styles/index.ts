@@ -2320,6 +2320,7 @@ const styles = (theme: ThemeColors) =>
 
         getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
             ({
+                width: isSmallScreenWidth ? '100%' : 350,
                 flexBasis: isSmallScreenWidth ? '100%' : 350,
                 flexGrow: 0,
                 alignSelf: 'flex-start',
