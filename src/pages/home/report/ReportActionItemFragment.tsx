@@ -60,7 +60,7 @@ type ReportActionItemFragmentProps = {
     pendingAction?: OnyxCommon.PendingAction;
 
     /** The report action name */
-    actionName: ActionName;
+    actionName?: ActionName;
 
     moderationDecision?: DecisionName;
 };
