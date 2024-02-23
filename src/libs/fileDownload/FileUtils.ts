@@ -92,10 +92,6 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    if (!fileName) {
-        Log.warn('[FileUtils] Could not get attachment name', {url});
-    }
-
     return decodeURIComponent(fileName).replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
