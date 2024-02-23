@@ -1,12 +1,12 @@
-import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
+const Stack = createPlatformStackNavigator<CentralPaneNavigatorParamList>();
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
@@ -15,7 +15,7 @@ type Screens = Partial<Record<keyof CentralPaneNavigatorParamList, () => React.C
 
 const workspaceSettingsScreens = {
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.OVERVIEW]: () => require('../../../../../pages/workspace/WorkspaceOverviewPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CARD]: () => require('../../../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.BILLS]: () => require('../../../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,

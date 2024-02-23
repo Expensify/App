@@ -65,7 +65,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
 
     const contentRef = useRef<View>(null);
-    const anchorRef = useRef<View | HTMLDivElement>(null);
+    const anchorRef = useRef<View | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
     const contextMenuTargetNode = useRef<HTMLElement | null>(null);
@@ -163,11 +163,16 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         isPinnedChat = false,
         isUnreadChat = false,
         disabledOptions = [],
+        shouldCloseOnTarget = false,
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLElement;
-
+        if (shouldCloseOnTarget) {
+            anchorRef.current = event.target as HTMLDivElement;
+        } else {
+            anchorRef.current = null;
+        }
         setInstanceID(Math.random().toString(36).substr(2, 5));
 
         onPopoverShow.current = onShow;
@@ -250,7 +255,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID, reportAction);
+            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
         }
