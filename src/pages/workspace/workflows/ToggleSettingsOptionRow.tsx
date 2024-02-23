@@ -9,12 +9,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ToggleSettingOptionRowProps = {
+    /** Icon to be shown for the option */
     icon: React.FC<SvgProps>;
+    /** Title of the option */
     title: string;
+    /** Subtitle of the option */
     subtitle: string;
+    /** Whether the option is enabled or not */
     isActive: boolean;
+    /** Callback to be called when the switch is toggled */
     onToggle: (isEnabled: boolean) => void;
+    /** SubMenuItems will be shown when the option is enabled */
     subMenuItems?: React.ReactNode;
+    /** If there is a pending action, we will grey out the option */
     pendingAction?: PendingAction;
 };
 const ICON_SIZE = 48;
