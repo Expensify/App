@@ -205,6 +205,7 @@ export default {
         iAcceptThe: 'I accept the ',
         remove: 'Remove',
         admin: 'Admin',
+        owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
@@ -308,6 +309,8 @@ export default {
         of: 'of',
         default: 'Default',
         update: 'Update',
+        member: 'Member',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1755,6 +1758,7 @@ export default {
             },
             addedWithPrimary: 'Some users were added with their primary logins.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
+            membersListTitle: 'Directory of all workspace members.',
         },
         card: {
             header: 'Unlock free Expensify Cards',

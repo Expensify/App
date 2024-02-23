@@ -93,7 +93,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
     );
 }
 
-function isExpensifyTeam(email: string): boolean {
+function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }

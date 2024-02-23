@@ -3067,6 +3067,20 @@ const styles = (theme: ThemeColors) =>
             bottom: -8,
         },
 
+        primaryMediumIcon: {
+            alignItems: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
+            color: theme.textReversed,
+            height: 40,
+            width: 40,
+            justifyContent: 'center',
+        },
+
+        primaryMediumText: {
+            fontSize: variables.iconSizeNormal,
+        },
+
         workspaceOwnerAvatarWrapper: {
             margin: 6,
         },
@@ -3099,19 +3113,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderBottomWidth: 1,
             ...spacing.pb2,
-        },
-
-        peopleBadge: {
-            backgroundColor: theme.icon,
-            ...spacing.ph3,
-            ...spacing.ml3,
-        },
-
-        peopleBadgeText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
-            ...whiteSpace.noWrap,
         },
 
         offlineFeedback: {
@@ -4228,6 +4229,17 @@ const styles = (theme: ThemeColors) =>
             height: StyleSheet.hairlineWidth,
             backgroundColor: theme.border,
             marginHorizontal: 20,
+        },
+
+        selectionListPressableItemWrapper: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            marginHorizontal: 20,
+            marginBottom: 12,
+            backgroundColor: theme.highlightBG,
+            borderRadius: 8,
         },
 
         draggableTopBar: {
