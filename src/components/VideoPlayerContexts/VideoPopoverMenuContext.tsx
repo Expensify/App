@@ -33,27 +33,26 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         });
     }, [currentVideoPlayerRef]);
 
-    const menuItems = useMemo(
-        () =>
-            [
-                {
-                    icon: Expensicons.Download,
-                    text: translate('common.download'),
-                    onSelected: downloadAttachment,
-                },
-                {
-                    icon: Expensicons.Meter,
-                    text: translate('videoPlayer.playbackSpeed'),
-                    subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
-                        icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
-                        text: speed.toString(),
-                        onSelected: () => {
-                            updatePlaybackSpeed(speed);
-                        },
-                        shouldPutLeftPaddingWhenNoIcon: true,
-                    })),
-                },
-            ] as [SingularMenuItem, MenuItem],
+    const menuItems = useMemo<[SingularMenuItem, MenuItem]>(
+        () => [
+            {
+                icon: Expensicons.Download,
+                text: translate('common.download'),
+                onSelected: downloadAttachment,
+            },
+            {
+                icon: Expensicons.Meter,
+                text: translate('videoPlayer.playbackSpeed'),
+                subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
+                    icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
+                    text: speed.toString(),
+                    onSelected: () => {
+                        updatePlaybackSpeed(speed);
+                    },
+                    shouldPutLeftPaddingWhenNoIcon: true,
+                })),
+            },
+        ],
         [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed],
     );
 

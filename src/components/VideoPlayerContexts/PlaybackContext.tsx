@@ -20,31 +20,20 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        if (!currentVideoPlayerRef?.current?.stopAsync) {
-            return;
-        }
-        currentVideoPlayerRef.current.stopAsync();
+        currentVideoPlayerRef.current?.stopAsync?.();
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        if (!currentVideoPlayerRef?.current?.setStatusAsync) {
-            return;
-        }
-        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-           if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
+        currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+            if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: true, positionMillis: 0});
             }
-
             currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: true});
-            }
         });
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
-        if (!currentVideoPlayerRef?.current?.unloadAsync) {
-            return;
-        }
-        currentVideoPlayerRef.current.unloadAsync();
+        currentVideoPlayerRef.current?.unloadAsync?.();
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(

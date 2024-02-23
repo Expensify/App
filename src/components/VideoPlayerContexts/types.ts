@@ -22,9 +22,10 @@ type VolumeContext = {
 };
 
 type SingularMenuItem = {
-    icon?: IconAsset;
+    icon: IconAsset | null;
     text: string;
     onSelected: () => void;
+    shouldPutLeftPaddingWhenNoIcon?: boolean;
 };
 
 type MenuItem = {
