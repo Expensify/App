@@ -14,10 +14,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -71,6 +70,7 @@ const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
 function BankAccountStep(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
@@ -112,7 +112,7 @@ function BankAccountStep(props) {
         >
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
-                    title={props.translate('workspace.common.connectBankAccount')}
+                    title={translate('workspace.common.connectBankAccount')}
                     subtitle={props.policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onBackButtonPress={props.onBackButtonPress}
@@ -122,19 +122,19 @@ function BankAccountStep(props) {
                 <ScrollView style={[styles.flex1]}>
                     <Section
                         icon={Illustrations.MoneyWings}
-                        title={props.translate('workspace.bankAccount.streamlinePayments')}
+                        title={translate('workspace.bankAccount.streamlinePayments')}
                     >
                         <View style={[styles.mv3]}>
-                            <Text>{props.translate('bankAccount.toGetStarted')}</Text>
+                            <Text>{translate('bankAccount.toGetStarted')}</Text>
                         </View>
                         {Boolean(plaidDesktopMessage) && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href={bankAccountRoute}>{props.translate(plaidDesktopMessage)}</TextLink>
+                                <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         <Button
                             icon={Expensicons.Bank}
-                            text={props.translate('bankAccount.connectOnlineWithPlaid')}
+                            text={translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => {
                                 if (props.isPlaidDisabled || !props.user.validated) {
                                     return;
@@ -153,7 +153,7 @@ function BankAccountStep(props) {
                         <View style={[styles.mv3]}>
                             <MenuItem
                                 icon={Expensicons.Connect}
-                                title={props.translate('bankAccount.connectManually')}
+                                title={translate('bankAccount.connectManually')}
                                 disabled={!props.user.validated}
                                 onPress={() => {
                                     removeExistingBankAccountDetails();
@@ -172,26 +172,26 @@ function BankAccountStep(props) {
                             />
 
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
-                                {props.translate('bankAccount.validateAccountError.phrase1')}
+                                {translate('bankAccount.validateAccountError.phrase1')}
                                 <TextLink
                                     fontSize={variables.fontSizeLabel}
                                     onPress={Session.signOutAndRedirectToSignIn}
                                 >
-                                    {props.translate('bankAccount.validateAccountError.phrase2')}
+                                    {translate('bankAccount.validateAccountError.phrase2')}
                                 </TextLink>
                                 .
                             </Text>
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
+                        <TextLink href="https://use.expensify.com/privacy">{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}
-                            accessibilityLabel={props.translate('bankAccount.yourDataIsSecure')}
+                            accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         >
                             <TextLink href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/">
-                                {props.translate('bankAccount.yourDataIsSecure')}
+                                {translate('bankAccount.yourDataIsSecure')}
                             </TextLink>
                             <View style={[styles.ml1]}>
                                 <Icon
@@ -211,14 +211,11 @@ BankAccountStep.propTypes = propTypes;
 BankAccountStep.defaultProps = defaultProps;
 BankAccountStep.displayName = 'BankAccountStep';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-        isPlaidDisabled: {
-            key: ONYXKEYS.IS_PLAID_DISABLED,
-        },
-    }),
-)(BankAccountStep);
+export default withOnyx({
+    user: {
+        key: ONYXKEYS.USER,
+    },
+    isPlaidDisabled: {
+        key: ONYXKEYS.IS_PLAID_DISABLED,
+    },
+})(BankAccountStep);
