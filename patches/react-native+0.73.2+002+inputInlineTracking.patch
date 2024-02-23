@@ -10,7 +10,7 @@ index 4073836..95ba88e 100644
 +      selection: $ReadOnly<{|
 +        start: Double,
 +        end: Double,
-+        cursorPosition: $ReadOnly<{|
++        cursorPosition?: $ReadOnly<{|
 +          start: $ReadOnly<{|
 +            x: Double,
 +            y: Double,
@@ -32,7 +32,7 @@ index 5cb6bf1..af1b199 100644
    selection: {
      start: number;
      end: number;
-+    cursorPosition: {
++    cursorPosition?: {
 +      start: {
 +        x: number;
 +        y: number;
