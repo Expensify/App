@@ -92,7 +92,7 @@ function isSupportalToken(): boolean {
 function setSupportAuthToken(supportAuthToken: string, email?: string, accountID?: number) {
     if (supportAuthToken) {
         Onyx.merge(ONYXKEYS.SESSION, {
-            authTokenType: 'support',
+            authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT,
             authToken: supportAuthToken,
             email,
             accountID,
