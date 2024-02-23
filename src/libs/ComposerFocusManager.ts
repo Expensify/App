@@ -205,12 +205,9 @@ function resetReadyToFocus(id: ModalId) {
 }
 
 /**
- * Backward compatibility, for cases without an ID, it's fine to just take the topmost one.
+ * Backward compatibility, for cases without an ModalId param, it's fine to just take the topmost one.
  */
-function getKey(id: ModalId) {
-    if (id) {
-        return id;
-    }
+function getTopmostModalId() {
     if (promiseMap.size < 1) {
         return 0;
     }
@@ -218,7 +215,7 @@ function getKey(id: ModalId) {
 }
 
 function setReadyToFocus(id?: ModalId) {
-    const key = getKey(id);
+    const key = id ?? getTopmostModalId();
     const promise = promiseMap.get(key);
     if (!promise) {
         return;
@@ -228,7 +225,7 @@ function setReadyToFocus(id?: ModalId) {
 }
 
 function isReadyToFocus(id?: ModalId) {
-    const key = getKey(id);
+    const key = id ?? getTopmostModalId();
     const promise = promiseMap.get(key);
     if (!promise) {
         return Promise.resolve();
