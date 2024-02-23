@@ -26,6 +26,10 @@ import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from 
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
 
+type OptionsProps = {
+    preventGoBack?: boolean;
+};
+
 let currentUserEmail = '';
 let currentUserAccountID = -1;
 Onyx.connect({
@@ -70,7 +74,7 @@ function updatePronouns(pronouns: string) {
     Navigation.goBack();
 }
 
-function updateDisplayName(firstName: string, lastName: string) {
+function updateDisplayName(firstName: string, lastName: string, options: OptionsProps = {}) {
     if (currentUserAccountID) {
         const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
@@ -94,7 +98,9 @@ function updateDisplayName(firstName: string, lastName: string) {
         });
     }
 
-    Navigation.goBack();
+    if (!options.preventGoBack) {
+        Navigation.goBack();
+    }
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {

@@ -356,7 +356,7 @@ function isValidPersonName(value: string) {
 /**
  * Checks if the provided string includes any of the provided reserved words
  */
-function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
+function doesContainReservedWord(value: string, reservedWords: readonly string[]): boolean {
     const valueToCheck = value.trim().toLowerCase();
     return reservedWords.some((reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }

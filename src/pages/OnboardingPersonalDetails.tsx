@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import Text from '@components/Text';
@@ -12,7 +13,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,9 +32,33 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const currentUserDetails = currentUserPersonalDetails || {};
 
-    const saveAndNavigate = useCallback(() => {
+    const saveAndNavigate = useCallback((values: FormOnyxValues<'displayNameForm'>) => {
+        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim(), {preventGoBack: true});
+
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
     }, []);
+
+    const validate = (values: FormOnyxValues<'displayNameForm'>) => {
+        const errors = {};
+
+        // First we validate the first name field
+        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
+        }
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
+        }
+
+        // Then we validate the last name field
+        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
+        }
+        if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.containsReservedWord');
+        }
+
+        return errors;
+    };
 
     // TODO: To be deleted - dismissing the modal
     // won't be possible in final version
@@ -55,7 +83,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                 <FormProvider
                     style={[styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
-                    // validate={validate}
+                    validate={validate}
                     onSubmit={saveAndNavigate}
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
