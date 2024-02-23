@@ -2,6 +2,7 @@ import type {RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {MaybePhraseKey} from '@libs/Localize';
+import {State} from '@libs/Navigation/types';
 import type Locale from '@src/types/onyx/Locale';
 
 type CurrentLocationButtonProps = {
@@ -16,7 +17,7 @@ type RenamedInputKeysProps = {
     street: string;
     street2: string;
     city: string;
-    state: string;
+    state: State;
     lat: string;
     lng: string;
     zipCode: string;
@@ -77,7 +78,7 @@ type AddressSearchProps = {
     predefinedPlaces?: Place[];
 
     /** A map of inputID key names */
-    renamedInputKeys: RenamedInputKeysProps;
+    renamedInputKeys?: RenamedInputKeysProps;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;

@@ -98,8 +98,8 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                     InputComponent={StatePicker}
                     inputID={inputKeys?.state ?? 'stateInput'}
                     shouldSaveDraft={shouldSaveDraft}
-                    value={values?.state ?? ''}
-                    defaultValue={defaultValues?.state ?? ''}
+                    value={values?.state}
+                    defaultValue={defaultValues?.state}
                     onInputChange={(value) => onFieldChange({state: value})}
                     errorText={errors?.state ? 'bankAccount.error.addressState' : ''}
                 />
