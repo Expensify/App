@@ -1,6 +1,5 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
