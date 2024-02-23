@@ -102,16 +102,18 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [setShouldShowArrows],
     );
 
+    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
+
     if (page == null) {
         return (
-            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+            <View style={containerStyles}>
                 <FullScreenLoadingIndicator />;
             </View>
         );
     }
 
     return (
-        <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+        <View style={containerStyles}>
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
