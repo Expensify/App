@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -99,7 +99,21 @@ function HeaderWithBackButton({
                 textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
             />
         );
-    }, [StyleUtils, policy, progressBarPercentage, report, shouldEnableDetailPageNavigation, shouldShowAvatarWithDisplay, stepCounter, styles.progressBar, styles.progressBarWrapper, subtitle, title, titleColor, translate]);
+    }, [
+        StyleUtils,
+        policy,
+        progressBarPercentage,
+        report,
+        shouldEnableDetailPageNavigation,
+        shouldShowAvatarWithDisplay,
+        stepCounter,
+        styles.progressBar,
+        styles.progressBarWrapper,
+        subtitle,
+        title,
+        titleColor,
+        translate,
+    ]);
 
     return (
         <View
