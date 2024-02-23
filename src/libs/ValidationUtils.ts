@@ -81,7 +81,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: string | boolean | Date): boolean {
+function isRequiredFulfilled(value?: FormValue): boolean {
     if (!value) {
         return false;
     }
@@ -107,7 +107,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
     const errors: FormInputErrors<TFormID> = {};
 
     requiredFields.forEach((fieldKey) => {
-        if (isRequiredFulfilled(values[fieldKey] as keyof FormOnyxValues)) {
+        if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             return;
         }
 
