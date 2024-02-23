@@ -4,6 +4,7 @@ import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
@@ -21,8 +22,8 @@ function Image(props) {
             // There is currently a `react-native-web` bug preventing the authToken being passed
             // in the headers of the image request so the authToken is added as a query param.
             // On native the authToken IS passed in the image request headers
-            const authToken = lodashGet(session, 'encryptedAuthToken', null);
-            return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+            const authToken = lodashGet(session, CONST.ENCRYPTED_AUTH_TOKEN_KEY, null);
+            return {uri: `${propsSource.uri}?${CONST.ENCRYPTED_AUTH_TOKEN_KEY}=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.

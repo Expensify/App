@@ -87,7 +87,19 @@ function showCameraPermissionsAlert() {
  *    with underscores.
  */
 function getFileName(url: string): string {
-    const fileName = url.split(/[#?/]/).pop() ?? '';
+    let fileName = url;
+
+    // Remove encryptedAuthToken if exists
+    if (fileName.includes(`?${CONST.ENCRYPTED_AUTH_TOKEN_KEY}=`)) {
+        fileName = fileName.split(`?${CONST.ENCRYPTED_AUTH_TOKEN_KEY}=`)[0];
+    }
+
+    fileName = fileName.split(/[#?/]/).pop() ?? '';
+
+    if (!fileName) {
+        Log.warn('[FileUtils] Could not get attachment name', {url});
+    }
+
     if (!fileName) {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }

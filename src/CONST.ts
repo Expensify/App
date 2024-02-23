@@ -1003,6 +1003,7 @@ const CONST = {
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
     ATTACHMENT_DURATION_ATTRIBUTE: 'data-expensify-duration',
+    ENCRYPTED_AUTH_TOKEN_KEY: 'encryptedAuthToken',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
