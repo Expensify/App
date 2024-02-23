@@ -152,7 +152,7 @@ function SuggestionMention(
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: PersonalDetailsUtils.getDisplayNameOrDefault(detail),
-                    alternateText: formatPhoneNumber(detail?.login),
+                    alternateText: formatPhoneNumber(detail?.login ?? ''),
                     login: detail?.login,
                     icons: [
                         {
