@@ -12,15 +12,15 @@ type ToggleSettingOptionRowProps = {
     icon: React.FC<SvgProps>;
     title: string;
     subtitle: string;
-    hasBeenToggled: boolean;
+    isActive: boolean;
     onToggle: (isEnabled: boolean) => void;
     subMenuItems?: React.ReactNode;
     pendingAction?: PendingAction;
 };
 const ICON_SIZE = 48;
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, hasBeenToggled, pendingAction}: ToggleSettingOptionRowProps) {
-    const [isEnabled, setIsEnabled] = useState(hasBeenToggled);
+function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction}: ToggleSettingOptionRowProps) {
+    const [isEnabled, setIsEnabled] = useState(isActive);
     const styles = useThemeStyles();
     const toggleSwitch = () => {
         setIsEnabled(!isEnabled);

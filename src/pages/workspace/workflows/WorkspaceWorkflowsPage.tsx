@@ -34,8 +34,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isOffline} = useNetwork();
 
     const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
-    const policyOwnerDisplayName = ownerPersonalDetails[0].displayName;
-
+    const policyOwnerDisplayName = ownerPersonalDetails[0]?.displayName;
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(
@@ -60,7 +59,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
-                hasBeenToggled: policy?.harvesting?.enabled ?? false,
+                isActive: policy?.harvesting?.enabled ?? false,
                 pendingAction: policy?.pendingFields?.isAutoApprovalEnabled as PendingAction,
             },
             {
@@ -83,7 +82,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                     />
                 ),
-                hasBeenToggled: policy?.isAutoApprovalEnabled ?? false,
+                isActive: policy?.isAutoApprovalEnabled ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode as PendingAction,
             },
             {
@@ -107,7 +106,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     />
                 ),
                 isEndOptionRow: true,
-                hasBeenToggled: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
+                isActive: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ],
         [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle, isOffline, StyleUtils],
@@ -121,7 +120,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle={item.subtitle}
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
-                hasBeenToggled={item.hasBeenToggled}
+                isActive={item.isActive}
                 pendingAction={item.pendingAction}
             />
         </View>
