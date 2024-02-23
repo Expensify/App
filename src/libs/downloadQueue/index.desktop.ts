@@ -3,10 +3,7 @@ import { download as electronDownload } from '@libs/downloadQueue/electronDownlo
 interface DownloadItem {
   win: any;
   url: string;
-  options: {
-    onCompleted: () => void;
-    onCancel: () => void;
-  };
+  options: Electron.Options
 }
 
 type DownloadQueue = DownloadItem[];

@@ -4,13 +4,14 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
+import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 /**
  * The function downloads an attachment on desktop platforms.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false) => {
-    
+    window.electron.send(ELECTRON_EVENTS.DOWNLOAD, { url, filename: fileName })
     return Promise.resolve();
 };
 
