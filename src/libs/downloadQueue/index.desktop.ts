@@ -1,6 +1,6 @@
-import type { BrowserWindow } from 'electron';
-import type { Options } from './electronDownloadManager';
-import { download as electronDownload } from './electronDownloadManager';
+import type {BrowserWindow} from 'electron';
+import type {Options} from './electronDownloadManager';
+import {download as electronDownload} from './electronDownloadManager';
 
 type DownloadItem = {
     win: BrowserWindow;
@@ -15,7 +15,7 @@ const createDownloadQueue = () => {
     const shiftDownloadItem = (): DownloadItem | undefined => {
         const item = queue.shift();
         if (queue.length > 0) {
-            // This code block contains a cyclic dependency between functions, 
+            // This code block contains a cyclic dependency between functions,
             // so one of them should have the eslint-disable-next-line comment
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             downloadItem(queue[0]);
@@ -48,7 +48,7 @@ const createDownloadQueue = () => {
         return len;
     };
 
-    return { pushDownloadItem, shiftDownloadItem };
+    return {pushDownloadItem, shiftDownloadItem};
 };
 
 export default createDownloadQueue;

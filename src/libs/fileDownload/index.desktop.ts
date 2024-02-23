@@ -16,7 +16,7 @@ const fileDownload: FileDownload = (url, fileName) => {
     window.electron.send(ELECTRON_EVENTS.DOWNLOAD, {url, options});
 
     /**
-     * Adds a 1000ms delay to keep showing the loading spinner 
+     * Adds a 1000ms delay to keep showing the loading spinner
      * and prevent rapid clicks on the same download link.
      */
     return new Promise((resolve) => {
