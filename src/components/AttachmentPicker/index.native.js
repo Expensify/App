@@ -1,7 +1,7 @@
 import lodashCompact from 'lodash/compact';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, View} from 'react-native';
+import {Alert, Image as RNImage, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -243,22 +243,23 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 onCanceled.current();
                 return Promise.resolve();
             }
-
             const fileData = _.first(attachments);
-
-            if (fileData.width === -1 || fileData.height === -1) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current(result);
-                })
-                .catch((error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
-                });
+            RNImage.getSize(fileData.uri, (width, height) => {
+                fileData.width = width;
+                fileData.height = height;
+                if (fileData.width === -1 || fileData.height === -1) {
+                    showImageCorruptionAlert();
+                    return Promise.resolve();
+                }
+                return getDataForUpload(fileData)
+                    .then((result) => {
+                        completeAttachmentSelection.current(result);
+                    })
+                    .catch((error) => {
+                        showGeneralAlert(error.message);
+                        throw error;
+                    });
+            });
         },
         [showGeneralAlert, showImageCorruptionAlert],
     );
