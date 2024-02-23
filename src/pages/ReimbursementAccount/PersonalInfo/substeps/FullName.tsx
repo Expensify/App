@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -14,9 +15,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type FullNameOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -25,16 +25,16 @@ type FullNameOnyxProps = {
 
 type FullNameProps = FullNameOnyxProps & SubStepProps;
 
-const PERSONAL_INFO_STEP_KEY = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
 
-const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    if (values.firstName && !ValidationUtils.isValidPersonName(values.firstName)) {
+    if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
         errors.firstName = 'bankAccount.error.firstName';
     }
 
-    if (values.lastName && !ValidationUtils.isValidPersonName(values.lastName)) {
+    if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
         errors.lastName = 'bankAccount.error.lastName';
     }
     return errors;
@@ -97,6 +97,7 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
 FullName.displayName = 'FullName';
 
 export default withOnyx<FullNameProps, FullNameOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

@@ -9,7 +9,7 @@ import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './t
 
 function ValidateLoginPage({
     route: {
-        params: {accountID, validateCode},
+        params: {accountID, validateCode, exitTo},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
@@ -21,7 +21,7 @@ function ValidateLoginPage({
                 // because we don't want to block the user with the interstitial page.
                 Navigation.goBack();
             } else {
-                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode);
+                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps

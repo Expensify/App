@@ -84,6 +84,7 @@ class BaseOptionsSelector extends Component {
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
         const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
+        this.focusedOption = allOptions[focusedIndex];
 
         this.state = {
             sections,
@@ -113,22 +114,19 @@ class BaseOptionsSelector extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
-            if (this.state.disableEnterShortCut) {
-                if (this.unsubscribeEnter) {
-                    this.unsubscribeEnter();
-                    this.unsubscribeEnter = undefined;
-                }
-            } else {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unsubscribeEnter();
+            if (!this.state.disableEnterShortCut) {
                 this.subscribeToEnterShortcut();
             }
         }
 
         if (prevProps.isFocused !== this.props.isFocused) {
+            // Unregister the shortcut before registering a new one to avoid lingering shortcut listener
+            this.unSubscribeFromKeyboardShortcut();
             if (this.props.isFocused) {
                 this.subscribeToEnterShortcut();
                 this.subscribeToCtrlEnterShortcut();
-            } else {
-                this.unSubscribeFromKeyboardShortcut();
             }
         }
 
@@ -149,6 +147,10 @@ class BaseOptionsSelector extends Component {
             });
         }
 
+        if (prevState.focusedIndex !== this.state.focusedIndex) {
+            this.focusedOption = this.state.allOptions[this.state.focusedIndex];
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
@@ -165,13 +167,14 @@ class BaseOptionsSelector extends Component {
         }
         const newFocusedIndex = this.props.selectedOptions.length;
         const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
-
+        const prevFocusedOption = _.find(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
+        const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
                 sections: newSections,
                 allOptions: newOptions,
-                focusedIndex: _.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex,
+                focusedIndex: prevFocusedOptionIndex || (_.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex),
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -293,9 +296,6 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeToEnterShortcut() {
-        if (this.unsubscribeEnter) {
-            this.unsubscribeEnter();
-        }
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -308,9 +308,6 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeToCtrlEnterShortcut() {
-        if (this.unsubscribeCTRLEnter) {
-            this.unsubscribeCTRLEnter();
-        }
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -336,12 +333,10 @@ class BaseOptionsSelector extends Component {
     unSubscribeFromKeyboardShortcut() {
         if (this.unsubscribeEnter) {
             this.unsubscribeEnter();
-            this.unsubscribeEnter = undefined;
         }
 
         if (this.unsubscribeCTRLEnter) {
             this.unsubscribeCTRLEnter();
-            this.unsubscribeCTRLEnter = undefined;
         }
     }
 
