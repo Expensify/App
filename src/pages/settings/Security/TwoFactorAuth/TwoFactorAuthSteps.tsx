@@ -1,6 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types'
+import type SCREENS from '@src/SCREENS';
 import {withOnyx} from 'react-native-onyx';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
@@ -14,10 +16,10 @@ import EnabledStep from './Steps/EnabledStep';
 import SuccessStep from './Steps/SuccessStep';
 import VerifyStep from './Steps/VerifyStep';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
-import type {RouteParam, TwoFactorAuthStepOnyxBothProps, TwoFactorAuthStepProps} from './TwoFactorAuthPropTypes';
+import type { TwoFactorAuthStepOnyxProps, TwoFactorAuthStepProps} from './TwoFactorAuthStepProps';
 
 function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
-    const route = useRoute<RouteProp<RouteParam, 'params'>>();
+    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
     const backTo = route.params?.backTo ?? '';
     const [currentStep, setCurrentStep] = useState<TwoFactorAuthStep>(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
@@ -68,7 +70,6 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
     return <TwoFactorAuthContext.Provider value={contextValue}>{renderStep()}</TwoFactorAuthContext.Provider>;
 }
 
-export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps>({
+export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
-    session: {key: ONYXKEYS.SESSION},
 })(TwoFactorAuthSteps);

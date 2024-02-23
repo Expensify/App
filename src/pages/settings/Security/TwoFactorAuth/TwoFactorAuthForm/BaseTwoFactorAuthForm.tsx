@@ -5,7 +5,7 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import type {TwoFactorAuthStepOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import type {TwoFactorAuthStepOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthStepProps';
 import * as Session from '@userActions/Session';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';

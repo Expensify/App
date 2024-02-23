@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {BackToParams} from '@libs/Navigation/types'
 import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import Section from '@components/Section';
@@ -17,18 +18,14 @@ import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import type {TwoFactorAuthStepOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import type {TwoFactorAuthStepOnyxProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthStepProps';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 
-type CodesStepProps = TwoFactorAuthStepOnyxProps & {
-    /** The route to go back to when the user cancels */
-    backTo: Route | undefined;
-};
+type CodesStepProps = TwoFactorAuthStepOnyxProps & BackToParams
 
 function CodesStep({account, backTo}: CodesStepProps) {
     const theme = useTheme();
@@ -40,7 +37,8 @@ function CodesStep({account, backTo}: CodesStepProps) {
     const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
-        if (account?.requiresTwoFactorAuth ?? account?.recoveryCodes) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (account?.requiresTwoFactorAuth || account?.recoveryCodes) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
@@ -124,7 +122,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     </View>
                 </Section>
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    {Object.keys(error).length && (
+                    {Boolean(error) && (
                         <FormHelpMessage
                             isError
                             message={translate(error as TranslationPaths)}

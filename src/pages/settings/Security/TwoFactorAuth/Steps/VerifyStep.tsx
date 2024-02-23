@@ -15,16 +15,18 @@ import Clipboard from '@libs/Clipboard';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
-import type {TwoFactorAuthStepOnyxBothProps, TwoFactorAuthStepProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import type {TwoFactorAuthStepOnyxProps, TwoFactorAuthStepProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthStepProps';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import { useSession } from '@components/OnyxProvider';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
-function VerifyStep({account, session}: TwoFactorAuthStepProps) {
+function VerifyStep({account}: TwoFactorAuthStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const session =  useSession();
 
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -132,7 +134,6 @@ function VerifyStep({account, session}: TwoFactorAuthStepProps) {
 
 VerifyStep.displayName = 'VerifyStep';
 
-export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps>({
+export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
-    session: {key: ONYXKEYS.SESSION},
 })(VerifyStep);
