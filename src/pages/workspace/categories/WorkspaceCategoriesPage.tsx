@@ -93,6 +93,18 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
     };
 
+    const settingsButton = (
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <Button
+                medium
+                onPress={navigateToCategorySettings}
+                icon={Expensicons.Gear}
+                text={translate('common.settings')}
+                style={[isSmallScreenWidth && styles.w50]}
+            />
+        </View>
+    );
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -107,14 +119,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                         title={translate('workspace.common.categories')}
                         shouldShowBackButton={isSmallScreenWidth}
                     >
-                        <Button
-                            medium
-                            onPress={navigateToCategorySettings}
-                            icon={Expensicons.Gear}
-                            text={translate('common.settings')}
-                            style={[isSmallScreenWidth && styles.w50]}
-                        />
+                        {!isSmallScreenWidth && settingsButton}
                     </HeaderWithBackButton>
+                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{settingsButton}</View>}
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     </View>
