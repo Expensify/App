@@ -127,7 +127,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.workflows')}
@@ -135,7 +136,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowNotFoundPage={!isPaidGroupPolicy}
+            shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
         >
             <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Section
