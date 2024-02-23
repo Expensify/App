@@ -94,7 +94,6 @@ function MoneyRequestAmountForm(
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length ?? 0,
         end: selectedAmountAsString.length ?? 0,
-        cursorPosition: {start: {x: 0, y: 0}, end: {x: 0, y: 0}},
     });
 
     const forwardDeletePressedRef = useRef(false);
