@@ -73,9 +73,9 @@ function createCentralPaneNavigator(route: NavigationPartialRoute<CentralPaneNam
 function createFullScreenNavigator(route: NavigationPartialRoute<FullScreenName>): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
     const routes = [];
 
-    routes.push({name: SCREENS.SETTINGS.ROOT});
+    routes.push({name: SCREENS.WORKSPACE.INITIAL});
     routes.push({
-        name: SCREENS.SETTINGS_CENTRAL_PANE,
+        name: SCREENS.WORKSPACES_CENTRAL_PANE,
         state: getRoutesWithIndex([route]),
     });
 
@@ -124,11 +124,11 @@ function getMatchingRootRouteForRHPRoute(
     }
 
     // Check for FullScreenNavigator
-    // for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
-    //     if (RHPNames && RHPNames.includes(route.name)) {
-    //         return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
-    //     }
-    // }
+    for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
+        if (RHPNames && RHPNames.includes(route.name)) {
+            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
+        }
+    }
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {

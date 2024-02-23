@@ -186,16 +186,18 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
 
-// const AccountSettingsModalStackNavigator = createModalStackNavigator(
-//     {
-//         [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
-//         [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-//         [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-//         [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
-//         [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
-//     },
-//     (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
-// );
+const WorkspaceSettingsModalStackNavigator = createModalStackNavigator(
+    {
+        [SCREENS.WORKSPACE.PROFILE]: () => require('../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.BILLS]: () => require('../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.INVOICES]: () => require('../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
+        [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
+    },
+    (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
+);
 
 const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
@@ -298,7 +300,6 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 });
 
 export {
-    // AccountSettingsModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
     OnboardEngagementModalStackNavigator,
@@ -327,4 +328,5 @@ export {
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
+    WorkspaceSettingsModalStackNavigator,
 };

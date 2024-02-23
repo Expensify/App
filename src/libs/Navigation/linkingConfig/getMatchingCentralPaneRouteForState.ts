@@ -41,9 +41,9 @@ function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>): 
 
     const centralPaneName = TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name][0];
 
-    if (topmostBottomTabRoute.name === SCREENS.WORKSPACE.INITIAL) {
-        return {name: centralPaneName, params: topmostBottomTabRoute.params};
-    }
+    // if (topmostBottomTabRoute.name === SCREENS.WORKSPACE.INITIAL) {
+    //     return {name: centralPaneName, params: topmostBottomTabRoute.params};
+    // }
 
     if (topmostBottomTabRoute.name === SCREENS.HOME) {
         return {name: centralPaneName, params: {reportID: getTopMostReportIDFromRHP(state)}};

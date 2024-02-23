@@ -16,7 +16,7 @@ function reduceReportRoutes(routes: Routes): Routes {
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
-        if (route.name === SCREENS.SETTINGS_CENTRAL_PANE) {
+        if (route.name === SCREENS.WORKSPACES_CENTRAL_PANE) {
             // Remove all report routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);

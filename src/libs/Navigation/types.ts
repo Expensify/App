@@ -453,12 +453,38 @@ type RightModalNavigatorParamList = {
 //     [SCREENS.SETTINGS.ABOUT]: undefined;
 // };
 
-type FullScreenNavigatorParamList = {};
+type WorkspacesCentralPaneNavigatorParamList = {
+    [SCREENS.WORKSPACE.PROFILE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CARD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.REIMBURSE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.BILLS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TRAVEL]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+};
+
+type FullScreenNavigatorParamList = {
+    [SCREENS.WORKSPACE.INITIAL]: undefined;
+    [SCREENS.WORKSPACES_CENTRAL_PANE]: NavigatorScreenParams<WorkspacesCentralPaneNavigatorParamList>;
+};
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.SETTINGS.ROOT]: undefined;
-    [SCREENS.WORKSPACE.INITIAL]: undefined;
 };
 
 type PublicScreensParamList = {
@@ -524,7 +550,7 @@ type BottomTabName = keyof BottomTabNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneNavigatorParamList;
 
-type FullScreenName = keyof SettingsCentralPaneNavigatorParamList;
+type FullScreenName = keyof WorkspacesCentralPaneNavigatorParamList;
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -578,4 +604,5 @@ export type {
     WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
+    FullScreenNavigatorParamList,
 };

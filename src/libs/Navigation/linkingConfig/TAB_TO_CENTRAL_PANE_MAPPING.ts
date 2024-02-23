@@ -11,15 +11,6 @@ const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneName[]> = {
         SCREENS.SETTINGS.ABOUT,
         SCREENS.SETTINGS.WORKSPACES,
     ],
-    [SCREENS.WORKSPACE.INITIAL]: [
-        SCREENS.WORKSPACE.PROFILE,
-        SCREENS.WORKSPACE.CARD,
-        SCREENS.WORKSPACE.REIMBURSE,
-        SCREENS.WORKSPACE.BILLS,
-        SCREENS.WORKSPACE.INVOICES,
-        SCREENS.WORKSPACE.TRAVEL,
-        SCREENS.WORKSPACE.MEMBERS,
-    ],
 };
 
 const generateCentralPaneToTabMapping = (): Record<CentralPaneName, BottomTabName> => {

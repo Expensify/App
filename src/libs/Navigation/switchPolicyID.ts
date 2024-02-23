@@ -134,10 +134,10 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
             }
 
             // When the user from the screen with the workspaces list opens the specific workspace from the switcher, the appropriate settings screen has to be pushed to the CentralPane.
-            if (screen === SCREENS.SETTINGS.WORKSPACES && policyID) {
-                screen = TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.WORKSPACE.INITIAL][0];
-                params.policyID = policyID;
-            }
+            // if (screen === SCREENS.SETTINGS.WORKSPACES && policyID) {
+            //     screen = TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.WORKSPACE.INITIAL][0];
+            //     params.policyID = policyID;
+            // }
 
             root.dispatch({
                 type: CONST.NAVIGATION.ACTION_TYPE.PUSH,

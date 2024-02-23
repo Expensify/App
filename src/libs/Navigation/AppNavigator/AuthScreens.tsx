@@ -33,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import * as ModalStackNavigators from './ModalStackNavigators';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -340,11 +341,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                {/* <RootStack.Screen
+                <RootStack.Screen
                     name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={screenOptions.fullScreen}
                     component={FullScreenNavigator}
-                /> */}
+                />
                 <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
                     options={screenOptions.leftModalNavigator}
@@ -356,11 +357,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
                 />
-                {/* <RootStack.Screen
-                    name={SCREENS.SETTINGS_CENTRAL_PANE}
-                    options={screenOptions.centralPaneNavigator}
-                    component={ModalStackNavigators.AccountSettingsModalStackNavigator}
-                /> */}
             </RootStack.Navigator>
         </View>
     );

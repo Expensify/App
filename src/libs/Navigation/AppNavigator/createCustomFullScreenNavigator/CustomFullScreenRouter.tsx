@@ -12,7 +12,7 @@ function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
 
     // There should always be SETTINGS.ROOT screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
-    if (!isAtLeastOneInState(state, SCREENS.SETTINGS.ROOT)) {
+    if (!isAtLeastOneInState(state, SCREENS.WORKSPACE.INITIAL)) {
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
         state.stale = true; // eslint-disable-line
@@ -20,7 +20,9 @@ function adaptStateIfNecessary(state: StackState) {
         // This is necessary for ts to narrow type down to PartialState.
         if (state.stale === true) {
             // Unshift the root screen to fill left pane.
-            state.routes.unshift({name: SCREENS.SETTINGS.ROOT});
+            state.routes.unshift({
+                name: SCREENS.WORKSPACE.INITIAL,
+            });
         }
     }
 
@@ -28,19 +30,21 @@ function adaptStateIfNecessary(state: StackState) {
     // - SETINGS.ROOT to cover left pane.
     // - SETTINGS_CENTRAL_PANE to cover central pane.
     if (!isNarrowLayout) {
-        if (!isAtLeastOneInState(state, SCREENS.SETTINGS_CENTRAL_PANE)) {
+        if (!isAtLeastOneInState(state, SCREENS.WORKSPACES_CENTRAL_PANE)) {
             // @ts-expect-error Updating read only property
             // noinspection JSConstantReassignment
             state.stale = true; // eslint-disable-line
-
             // Push the default settings central pane screen.
             if (state.stale === true) {
                 state.routes.push({
-                    name: SCREENS.SETTINGS_CENTRAL_PANE,
+                    name: SCREENS.WORKSPACES_CENTRAL_PANE,
                     state: {
                         routes: [
                             {
-                                name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                name: SCREENS.WORKSPACE.PROFILE,
+                                params: {
+                                    policyID: '867ECBA40E63CFA1',
+                                },
                             },
                         ],
                     },
