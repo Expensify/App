@@ -1,12 +1,12 @@
-import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
+const Stack = createPlatformStackNavigator<CentralPaneNavigatorParamList>();
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
@@ -22,6 +22,7 @@ const workspaceSettingsScreens = {
     [SCREENS.WORKSPACE.INVOICES]: () => require('../../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CATEGORIES]: () => require('../../../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
 } satisfies Screens;
 
 function BaseCentralPaneNavigator() {
