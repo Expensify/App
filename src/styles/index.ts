@@ -4414,7 +4414,7 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        progressBar: {
+        headerProgressBar: {
             width: variables.componentSizeMedium,
             height: variables.iconSizeXXXSmall,
             borderRadius: variables.componentBorderRadiusRounded,
@@ -4422,7 +4422,7 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        progressBarFill: {
+        headerProgressBarFill: {
             borderRadius: variables.componentBorderRadiusRounded,
             height: '100%',
             backgroundColor: theme.progressBarFill,
