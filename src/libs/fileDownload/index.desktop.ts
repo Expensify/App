@@ -10,7 +10,7 @@ const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOp
     const options: Options = {
         filename: fileName,
         saveAs: true,
-        //showing badge and progress bar only supported on macos and linux, better to disable it
+        // showing badge and progress bar only supported on macos and linux, better to disable it
         showBadge: false,
         showProgressBar: false,
     };

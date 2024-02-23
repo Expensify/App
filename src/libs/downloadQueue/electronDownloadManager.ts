@@ -1,13 +1,4 @@
-/**
- * This file is a ported version of the `electron-dl` package.
- * It provides a download manager for Electron applications.
- * The `electron-dl` package simplifies the process of downloading files in Electron apps
- * by providing a high-level API and handling various download-related tasks.
- * This file contains the implementation of the Electron Download Manager.
- */
-'use strict';
-
-import {app, BrowserWindow, dialog, DownloadItem, Session, shell} from 'electron';
+import { app, BrowserWindow, dialog, DownloadItem, Session, shell, SaveDialogOptions, WebContents, Event } from 'electron';
 import * as path from 'path';
 import * as _ from 'underscore';
 
@@ -31,7 +22,7 @@ const majorElectronVersion = (): number => {
     return Number.parseInt(version[0], 10);
 };
 
-const getWindowFromBrowserView = (webContents: Electron.WebContents): Electron.BrowserWindow | undefined => {
+const getWindowFromBrowserView = (webContents: WebContents): BrowserWindow | undefined => {
     for (const currentWindow of BrowserWindow.getAllWindows()) {
         for (const currentBrowserView of currentWindow.getBrowserViews()) {
             if (currentBrowserView.webContents.id === webContents.id) {
@@ -41,8 +32,8 @@ const getWindowFromBrowserView = (webContents: Electron.WebContents): Electron.B
     }
 };
 
-const getWindowFromWebContents = (webContents: Electron.WebContents): Electron.BrowserWindow | undefined | null => {
-    let window_: Electron.BrowserWindow | undefined | null;
+const getWindowFromWebContents = (webContents: WebContents): BrowserWindow | undefined | null => {
+    let window_: BrowserWindow | undefined | null;
     const webContentsType = webContents.getType();
     switch (webContentsType) {
         case 'webview':
@@ -67,18 +58,18 @@ interface Options {
     overwrite?: boolean;
     errorMessage?: string;
     saveAs?: boolean;
-    dialogOptions?: Electron.SaveDialogOptions;
+    dialogOptions?: SaveDialogOptions;
     onProgress?: (progress: {percent: number; transferredBytes: number; totalBytes: number}) => void;
     onTotalProgress?: (progress: {percent: number; transferredBytes: number; totalBytes: number}) => void;
-    onCancel?: (item: Electron.DownloadItem) => void;
+    onCancel?: (item: DownloadItem) => void;
     onCompleted?: (info: {fileName: string; filename: string; path: string; fileSize: number; mimeType: string; url: string}) => void;
     unregisterWhenDone?: boolean;
     openFolderWhenDone?: boolean;
-    onStarted?: (item: Electron.DownloadItem) => void;
+    onStarted?: (item: DownloadItem) => void;
 }
 
-const registerListener = (session: Electron.Session, options: Options, callback: (error: Error | null, item?: Electron.DownloadItem) => void = () => {}): void => {
-    const downloadItems = new Set<Electron.DownloadItem>();
+const registerListener = (session: Session, options: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => {}): void => {
+    const downloadItems = new Set<DownloadItem>();
     let receivedBytes = 0;
     let completedBytes = 0;
     let totalBytes = 0;
@@ -91,7 +82,7 @@ const registerListener = (session: Electron.Session, options: Options, callback:
         ...options,
     };
 
-    const listener = (event: Electron.Event, item: Electron.DownloadItem, webContents: Electron.WebContents): void => {
+    const listener = (event: Event, item: DownloadItem, webContents: WebContents): void => {
         downloadItems.add(item);
         totalBytes += item.getTotalBytes();
 
@@ -153,7 +144,7 @@ const registerListener = (session: Electron.Session, options: Options, callback:
             }
         });
 
-        item.on('done', (event: Electron.Event, state: string) => {
+        item.on('done', (event: Event, state: string) => {
             completedBytes += item.getTotalBytes();
             downloadItems.delete(item);
 
@@ -216,7 +207,7 @@ const registerListener = (session: Electron.Session, options: Options, callback:
 };
 
 export default (options: any = {}): void => {
-    app.on('session-created', (session: Electron.Session) => {
+    app.on('session-created', (session: Session) => {
         registerListener(session, options, (error: Error | null, _) => {
             if (error && !(error instanceof CancelError)) {
                 const errorTitle = options.errorTitle || 'Download Error';
@@ -226,14 +217,14 @@ export default (options: any = {}): void => {
     });
 };
 
-export const download = (window_: Electron.BrowserWindow, url: string, options: Options): Promise<Electron.DownloadItem> => {
+export const download = (window_: BrowserWindow, url: string, options: Options): Promise<DownloadItem> => {
     options = {
         ...options,
         unregisterWhenDone: true,
     };
 
     return new Promise((resolve, reject) => {
-        registerListener(window_.webContents.session, options, (error: Error | null, item?: Electron.DownloadItem) => {
+        registerListener(window_.webContents.session, options, (error: Error | null, item?: DownloadItem) => {
             if (error) {
                 reject(error);
             } else if (item) {
