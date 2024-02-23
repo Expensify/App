@@ -1,12 +1,12 @@
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
-import type {ReactNode} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {usePlaybackContext} from './PlaybackContext';
 import type {VolumeContext} from './types';
 
 const Context = React.createContext<VolumeContext | null>(null);
 
-function VolumeContextProvider({children}: {children: ReactNode}) {
+function VolumeContextProvider({children}: ChildrenProps) {
     const {currentVideoPlayerRef, originalParent} = usePlaybackContext();
     const volume = useSharedValue(0);
 

@@ -1,16 +1,16 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import type {ReactNode} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import fileDownload from '@libs/fileDownload';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {usePlaybackContext} from './PlaybackContext';
 import type {MenuItem, SingularMenuItem, VideoPopoverMenuContext} from './types';
 
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
-function VideoPopoverMenuContextProvider({children}: {children: ReactNode}) {
+function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<number>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);

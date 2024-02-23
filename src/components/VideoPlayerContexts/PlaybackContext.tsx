@@ -1,14 +1,14 @@
 import type {Video} from 'expo-av';
 import PropTypes from 'prop-types';
-import type {ReactNode} from 'react';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext} from './types';
 
 const Context = React.createContext<PlaybackContext | null>(null);
 
-function PlaybackContextProvider({children}: {children: ReactNode}) {
+function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<string | null>(null);
     const [sharedElement, setSharedElement] = useState<View | null>(null);
     const [originalParent, setOriginalParent] = useState<View | null>(null);
