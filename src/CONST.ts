@@ -72,6 +72,11 @@ const CONST = {
         FAILED: 'failed',
     },
 
+    AUTH_TOKEN_TYPES: {
+        ANONYMOUS: 'anonymousAccount',
+        SUPPORT: 'support',
+    },
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
