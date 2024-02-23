@@ -259,25 +259,24 @@ function ReportActionsView(props) {
             return props.reportActions;
         }
 
-        const actions = [...props.reportActions];
+        let actions = [...props.reportActions];
 
         if (!ReportActionsUtils.isCreatedAction(_.last(props.reportActions))) {
             const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(
                 props.report.ownerAccountID,
                 DateUtils.subtractMillisecondsFromDateTime(_.last(props.reportActions).created, 1),
             );
+            optimisticCreatedAction.pendingAction = null;
             actions.push(optimisticCreatedAction);
         }
 
         const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(props.report.chatReportID, props.report.reportID);
+        const moneyRequestActions = _.filter(
+            props.reportActions,
+            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        );
 
-        if (
-            props.report.total &&
-            _.filter(
-                props.reportActions,
-                (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            ).length < reportPreviewAction.childMoneyRequestCount
-        ) {
+        if (props.report.total && moneyRequestActions.length < reportPreviewAction.childMoneyRequestCount) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 0,
@@ -293,11 +292,18 @@ function ReportActionsView(props) {
                 false,
                 DateUtils.subtractMillisecondsFromDateTime(_.last(actions).created, 1),
             );
-
+            moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);
         }
 
-        return actions;
+        // Update pending action of created action if we have some requests that are pending
+        const createdAction = _.last(actions);
+        actions = _.without(actions, createdAction);
+        if (_.filter(moneyRequestActions, (action) => !!action.pendingAction).length > 0) {
+            createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        }
+
+        return [...actions, createdAction];
     }, [props.reportActions, props.report]);
 
     // Comments have not loaded at all yet do nothing
