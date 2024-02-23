@@ -373,7 +373,11 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
+                            }
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             error={getErrorForField('category')}
                         />
@@ -387,7 +391,7 @@ function MoneyRequestView({
                         >
                             <MenuItemWithTopDescription
                                 description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTag(transaction, index)}
+                                title={TransactionUtils.getTagForDisplay(transaction, index)}
                                 interactive={canEdit}
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}

@@ -4,6 +4,7 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type RadioListItem from './RadioListItem';
+import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
 type CommonListItemProps<TItem> = {
@@ -27,6 +28,9 @@ type CommonListItemProps<TItem> = {
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+
+    /** Styles for the pressable component */
+    pressableStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -121,6 +125,8 @@ type UserListItemProps = ListItemProps & {
 
 type RadioListItemProps = ListItemProps;
 
+type TableListItemProps = ListItemProps;
+
 type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
@@ -143,7 +149,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Default renderer for every item in the list */
-    ListItem: typeof RadioListItem | typeof UserListItem;
+    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -155,7 +161,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     onSelectAll?: () => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: () => void;
+    onDismissError?: (item: TItem) => void;
 
     /** Label for the text input */
     textInputLabel?: string;
@@ -246,6 +252,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Fired when the list is displayed with the items */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Custom header to show right above list */
+    customListHeader?: ReactNode;
+
+    /** Styles for the list header wrapper */
+    listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type ItemLayout = {
@@ -272,6 +284,7 @@ export type {
     BaseListItemProps,
     UserListItemProps,
     RadioListItemProps,
+    TableListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,

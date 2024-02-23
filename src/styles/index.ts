@@ -3115,19 +3115,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pb2,
         },
 
-        peopleBadge: {
-            backgroundColor: theme.icon,
-            ...spacing.ph3,
-            ...spacing.ml3,
-        },
-
-        peopleBadgeText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
-            ...whiteSpace.noWrap,
-        },
-
         offlineFeedback: {
             deleted: {
                 textDecorationLine: 'line-through',
@@ -4229,6 +4216,17 @@ const styles = (theme: ThemeColors) =>
             height: StyleSheet.hairlineWidth,
             backgroundColor: theme.border,
             marginHorizontal: 20,
+        },
+
+        selectionListPressableItemWrapper: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            marginHorizontal: 20,
+            marginBottom: 12,
+            backgroundColor: theme.highlightBG,
+            borderRadius: 8,
         },
 
         draggableTopBar: {
