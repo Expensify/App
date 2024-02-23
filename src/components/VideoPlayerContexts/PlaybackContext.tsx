@@ -31,10 +31,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             return;
         }
         currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-            if (status.isLoaded && status.durationMillis === status.positionMillis) {
+           if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: true, positionMillis: 0});
-            } else {
-                currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: true});
+            }
+
+            currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: true});
             }
         });
     }, [currentVideoPlayerRef]);
