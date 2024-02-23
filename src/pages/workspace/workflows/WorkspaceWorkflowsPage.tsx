@@ -128,7 +128,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    
+
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.workflows')}
