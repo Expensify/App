@@ -17,7 +17,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyCategory,
     PolicyTag,
     PolicyTagList,
     Report,
@@ -79,6 +78,7 @@ type CategorySection = {
 type Category = {
     name: string;
     enabled: boolean;
+    isSelected?: boolean;
 };
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
@@ -797,8 +797,8 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategory[] | PolicyTag[]): boolean {
-    return options.some((option) => option.enabled);
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
+    return Object.values(options).some((option) => option.enabled);
 }
 
 /**
@@ -902,6 +902,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText: option.name,
                 tooltipText: option.name,
                 isDisabled: !option.enabled,
+                isSelected: !!option.isSelected,
             });
 
             return;
@@ -922,6 +923,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
+                isSelected: !!option.isSelected,
             });
         });
     });
@@ -974,7 +976,7 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = sortedCategories.filter((category) => category.enabled || selectedOptionNames.includes(category.name));
+    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
     const numberOfVisibleCategories = enabledAndSelectedCategories.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
@@ -1060,7 +1062,8 @@ function getTagsOptions(tags: Category[]): Option[] {
 function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
     const tagSections = [];
     const sortedTags = sortTags(tags);
-    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
     let indexOffset = 0;
 
@@ -1108,7 +1111,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         return tagSections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
             const tagObject = tags.find((tag) => tag.name === recentlyUsedTag);
@@ -1118,13 +1120,11 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
     if (selectedOptions.length) {
-        const selectedTagOptions = selectedOptions.map((option) => {
-            const tagObject = tags.find((tag) => tag.name === option.name);
-            return {
-                name: option.name,
-                enabled: !!tagObject?.enabled,
-            };
-        });
+        const selectedTagOptions = selectedOptions.map((option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to unselect even though the selected category is disabled
+            enabled: true,
+        }));
 
         tagSections.push({
             // "Selected" section
@@ -1496,6 +1496,10 @@ function getOptions(
 
         // In case user needs to add credit bank account, don't allow them to request more money from the workspace.
         if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
+            return;
+        }
+
+        if (!accountIDs || accountIDs.length === 0) {
             return;
         }
 

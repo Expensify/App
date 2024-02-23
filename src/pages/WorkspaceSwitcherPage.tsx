@@ -218,6 +218,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                             accessible={false}
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
+                                Navigation.goBack();
                                 App.createWorkspaceWithPolicyDraftAndNavigateToIt();
                             }}
                         >
@@ -250,7 +251,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         highlightSelectedOptions
                         shouldShowOptions
                         autoFocus={false}
-                        disableFocusOptions={!activeWorkspaceID}
                         canSelectMultipleOptions={false}
                         shouldShowSubscript={false}
                         showTitleTooltip={false}
