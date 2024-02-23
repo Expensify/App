@@ -11,6 +11,7 @@ type Rate = {
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    enabled?: boolean;
 };
 
 type Attributes = {
@@ -22,6 +23,8 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
+    defaultCategory?: string;
+    enabled?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
@@ -102,8 +105,11 @@ type Policy = {
         enabled: boolean;
     };
 
-    /** Whether the self approval or submitting is enabled */
+    /** @deprecated Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
     autoReportingOffset?: AutoReportingOffset;

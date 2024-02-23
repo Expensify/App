@@ -1,8 +1,8 @@
 import type {ParamListBase} from '@react-navigation/routers';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -35,6 +35,7 @@ import type {
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import subRouteOptions from './modalStackNavigatorOptions';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -45,16 +46,15 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  * @param getScreenOptions optional function that returns the screen options, override the default options
  */
 function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions): React.ComponentType {
-    const ModalStackNavigator = createStackNavigator<TStackParams>();
+    const ModalStackNavigator = createPlatformStackNavigator<TStackParams>();
 
     function ModalStack() {
         const styles = useThemeStyles();
 
         const defaultSubRouteOptions = useMemo(
             (): StackNavigationOptions => ({
+                ...subRouteOptions,
                 cardStyle: styles.navigationScreenCardStyle,
-                headerShown: false,
-                cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
             }),
             [styles],
         );
@@ -100,7 +100,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.CONFIRMATION]: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.HOLD]: () => require('../../../pages/iou/HoldReasonPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
@@ -133,6 +132,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../pages/settings/Report/RoomNamePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../pages/settings/Report/NotificationPreferencePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../pages/settings/Report/WriteCapabilityPage').default as React.ComponentType,
+    [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require('../../../pages/settings/Report/VisibilityPage').default as React.ComponentType,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
@@ -248,6 +248,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.NAME]: () => require('../../../pages/workspace/WorkspaceNamePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.DESCRIPTION]: () => require('../../../pages/workspace/WorkspaceProfileDescriptionPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.SHARE]: () => require('../../../pages/workspace/WorkspaceProfileSharePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceProfileCurrencyPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../pages/GetAssistancePage').default as React.ComponentType,

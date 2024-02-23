@@ -150,7 +150,6 @@ const SCREENS = {
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
-        CATEGORY: 'Money_Request_Category',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         DISTANCE: 'Money_Request_Distance',
@@ -168,6 +167,7 @@ const SCREENS = {
         ROOM_NAME: 'Report_Settings_Room_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
+        VISIBILITY: 'Report_Settings_Visibility',
     },
 
     NEW_TASK: {
@@ -208,8 +208,10 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
+        CATEGORIES: 'Workspace_Categories',
         CURRENCY: 'Workspace_Profile_Currency',
         DESCRIPTION: 'Workspace_Profile_Description',
+        SHARE: 'Workspace_Profile_Share',
         NAME: 'Workspace_Profile_Name',
     },
 
