@@ -368,15 +368,47 @@ function getBillable(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Return a colon-delimited tag string as an array, considering escaped colons and double backslashes.
+ */
+function getTagArrayFromName(tagName: string): string[] {
+    // WAIT!!!!!!!!!!!!!!!!!!
+    // You need to keep this in sync with TransactionUtils.php
+
+    // We need to be able to preserve double backslashes in the original string
+    // and not have it interfere with splitting on a colon (:).
+    // So, let's replace it with something absurd to begin with, do our split, and
+    // then replace the double backslashes in the end.
+    const tagWithoutDoubleSlashes = tagName.replace(/\\\\/g, '☠');
+    const tagWithoutEscapedColons = tagWithoutDoubleSlashes.replace(/\\:/g, '☢');
+
+    // Do our split
+    const matches = tagWithoutEscapedColons.split(':');
+    const newMatches: string[] = [];
+
+    for (const item of matches) {
+        const tagWithEscapedColons = item.replace(/☢/g, '\\:');
+        const tagWithDoubleSlashes = tagWithEscapedColons.replace(/☠/g, '\\\\');
+        newMatches.push(tagWithDoubleSlashes);
+    }
+
+    return newMatches;
+}
+
+/**
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
 function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
-        return transaction?.tag?.split(CONST.COLON)[tagIndex] ?? '';
+        const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
+        return tagsArray[tagIndex] ?? '';
     }
 
     return transaction?.tag ?? '';
+}
+
+function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+    return getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':');
 }
 
 /**
@@ -608,6 +640,8 @@ export {
     getCategory,
     getBillable,
     getTag,
+    getTagArrayFromName,
+    getTagForDisplay,
     getTransactionViolations,
     getLinkedTransaction,
     getAllReportTransactions,

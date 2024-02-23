@@ -1,3 +1,4 @@
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -50,73 +51,79 @@ const INPUT_IDS = {
     AMOUNT3: 'amount3',
 } as const;
 
+type InputID = DeepValueOf<typeof INPUT_IDS>;
+
+type BeneficialOwnersStepBaseProps = {
+    [INPUT_IDS.BENEFICIAL_OWNER_INFO_STEP.OWNS_MORE_THAN_25_PERCENT]: boolean;
+    [INPUT_IDS.BENEFICIAL_OWNER_INFO_STEP.HAS_OTHER_BENEFICIAL_OWNERS]: boolean;
+    [INPUT_IDS.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNERS]: string;
+};
+
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
 type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
-type AdditionalDraftData = {selectedPlaidAccountID?: string; bankAccountID?: number};
+type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
 
-type BankAccountStepProps = {
-    [INPUT_IDS.BANK_INFO_STEP.ACCOUNT_NUMBER]?: string;
-    [INPUT_IDS.BANK_INFO_STEP.ROUTING_NUMBER]?: string;
-    [INPUT_IDS.BANK_INFO_STEP.PLAID_ACCOUNT_ID]?: string;
-    [INPUT_IDS.BANK_INFO_STEP.PLAID_MASK]?: string;
-};
-
-type CompanyStepProps = {
-    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_NAME]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.STREET]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.CITY]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.STATE]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.ZIP_CODE]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE]?: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.HAS_NO_CONNECTION_TO_CANNABIS]?: boolean;
-};
-
-type RequestorStepProps = {
-    [INPUT_IDS.PERSONAL_INFO_STEP.FIRST_NAME]?: string;
-    [INPUT_IDS.PERSONAL_INFO_STEP.LAST_NAME]?: string;
-    [INPUT_IDS.PERSONAL_INFO_STEP.STREET]?: string;
-    [INPUT_IDS.PERSONAL_INFO_STEP.CITY]?: string;
-    [INPUT_IDS.PERSONAL_INFO_STEP.STATE]?: string;
-    [INPUT_IDS.PERSONAL_INFO_STEP.ZIP_CODE]?: string;
-    [INPUT_IDS.PERSONAL_INFO_STEP.DOB]?: string;
-    [INPUT_IDS.PERSONAL_INFO_STEP.SSN_LAST_4]?: string;
-};
-
-type BeneficialOwnersStepProps = {
-    [INPUT_IDS.BENEFICIAL_OWNER_INFO_STEP.OWNS_MORE_THAN_25_PERCENT]?: boolean;
-    [INPUT_IDS.BENEFICIAL_OWNER_INFO_STEP.HAS_OTHER_BENEFICIAL_OWNERS]?: boolean;
-    [INPUT_IDS.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNERS]?: string;
+type BeneficialOwnersStepExtraProps = {
     [key: BeneficialOwnerDataKey]: string;
     beneficialOwnerKeys?: string[];
 };
 
+type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
+
+type BankAccountStepProps = {
+    [INPUT_IDS.BANK_INFO_STEP.ACCOUNT_NUMBER]: string;
+    [INPUT_IDS.BANK_INFO_STEP.ROUTING_NUMBER]: string;
+    [INPUT_IDS.BANK_INFO_STEP.PLAID_ACCOUNT_ID]: string;
+    [INPUT_IDS.BANK_INFO_STEP.PLAID_MASK]: string;
+};
+
+type CompanyStepProps = {
+    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_NAME]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.STREET]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.CITY]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.STATE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.ZIP_CODE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.HAS_NO_CONNECTION_TO_CANNABIS]: boolean;
+};
+
+type RequestorStepProps = {
+    [INPUT_IDS.PERSONAL_INFO_STEP.FIRST_NAME]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.LAST_NAME]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.STREET]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.CITY]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.STATE]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.ZIP_CODE]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.DOB]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.SSN_LAST_4]: string;
+};
+
 type ACHContractStepProps = {
-    [INPUT_IDS.COMPLETE_VERIFICATION.ACCEPT_TERMS_AND_CONDITIONS]?: boolean;
-    [INPUT_IDS.COMPLETE_VERIFICATION.CERTIFY_TRUE_INFORMATION]?: boolean;
-    [INPUT_IDS.COMPLETE_VERIFICATION.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]?: boolean;
+    [INPUT_IDS.COMPLETE_VERIFICATION.ACCEPT_TERMS_AND_CONDITIONS]: boolean;
+    [INPUT_IDS.COMPLETE_VERIFICATION.CERTIFY_TRUE_INFORMATION]: boolean;
+    [INPUT_IDS.COMPLETE_VERIFICATION.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: boolean;
 };
 
 type ReimbursementAccountProps = {
-    [INPUT_IDS.BANK_INFO_STEP.IS_SAVINGS]?: boolean;
-    [INPUT_IDS.BANK_INFO_STEP.BANK_NAME]?: string;
-    [INPUT_IDS.BANK_INFO_STEP.PLAID_ACCESS_TOKEN]?: string;
-    [INPUT_IDS.AMOUNT1]?: string;
-    [INPUT_IDS.AMOUNT2]?: string;
-    [INPUT_IDS.AMOUNT3]?: string;
+    [INPUT_IDS.BANK_INFO_STEP.IS_SAVINGS]: boolean;
+    [INPUT_IDS.BANK_INFO_STEP.BANK_NAME]: string;
+    [INPUT_IDS.BANK_INFO_STEP.PLAID_ACCESS_TOKEN]: string;
+    [INPUT_IDS.BANK_INFO_STEP.SELECTED_PLAID_ACCOUNT_ID]: string;
+    [INPUT_IDS.AMOUNT1]: string;
+    [INPUT_IDS.AMOUNT2]: string;
+    [INPUT_IDS.AMOUNT3]: string;
 };
 
-type ReimbursementAccountForm = AdditionalDraftData &
-    BeneficialOwnersStepProps &
-    Form<BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps>;
+type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
+    Form<InputID, BeneficialOwnersStepBaseProps & BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps>;
 
 export type {
     ReimbursementAccountForm,
-    AdditionalDraftData,
     BeneficialOwnerDataKey,
     BankAccountStepProps,
     CompanyStepProps,
