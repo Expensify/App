@@ -9,10 +9,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import TableListItem from '@components/SelectionList/TableListItem';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -42,6 +43,7 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
 
@@ -79,6 +81,13 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         setSelectedCategories(isAllSelected ? {} : Object.fromEntries(categoryList.map((item) => [item.value, true])));
     };
 
+    const getCustomListHeader = () => (
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+            <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
+            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
+        </View>
+    );
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -103,7 +112,9 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
                             onSelectRow={toggleCategory}
                             onSelectAll={toggleAllCategories}
                             showScrollIndicator
-                            ListItem={RadioListItem}
+                            ListItem={TableListItem}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         />
                     ) : (
                         <WorkspaceEmptyStateSection

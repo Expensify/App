@@ -121,6 +121,7 @@ export default {
         no: 'No',
         ok: 'OK',
         buttonConfirm: 'Got it',
+        name: 'Name',
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',

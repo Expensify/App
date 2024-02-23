@@ -111,6 +111,7 @@ export default {
         no: 'No',
         ok: 'OK',
         buttonConfirm: 'Ok, entendido',
+        name: 'Nombre',
         attachment: 'Archivo adjunto',
         to: 'A',
         optional: 'Opcional',
