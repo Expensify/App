@@ -1,11 +1,14 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import Str from 'expensify-common/lib/str';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
@@ -34,7 +37,11 @@ function validateCardNumber(value: string): boolean {
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  */
-function isValidAddress(value: string): boolean {
+function isValidAddress(value: FormValue): boolean {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
     if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }
@@ -72,8 +79,12 @@ function isValidPastDate(date: string | Date): boolean {
 
 /**
  * Used to validate a value that is "required".
+ * @param value - field value
  */
-function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
+function isRequiredFulfilled(value?: FormValue): boolean {
+    if (!value) {
+        return false;
+    }
     if (typeof value === 'string') {
         return !StringUtils.isEmptyString(value);
     }
@@ -89,15 +100,20 @@ function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, u
 
 /**
  * Used to add requiredField error to the fields passed.
+ * @param values - all form values
+ * @param requiredFields - required fields for particular form
  */
-function getFieldRequiredErrors(values: OnyxCommon.Errors, requiredFields: string[]) {
-    const errors: OnyxCommon.Errors = {};
+function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
+    const errors: FormInputErrors<TFormID> = {};
+
     requiredFields.forEach((fieldKey) => {
-        if (isRequiredFulfilled(values[fieldKey])) {
+        if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             return;
         }
+
         errors[fieldKey] = 'common.error.fieldRequired';
     });
+
     return errors;
 }
 
@@ -265,6 +281,12 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     const phone = phoneNumber || '';
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
 
+    // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
+    // so we need to check if it is a valid phone.
+    if (regionCode && !Str.isValidPhone(phone)) {
+        return false;
+    }
+
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
@@ -354,8 +376,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: Record<string, Report>, policyID: string): boolean {
-    return Object.values(reports).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
+    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -392,12 +414,16 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+type DateTimeValidationErrorKeys = {
+    dateValidationErrorKey: string;
+    timeValidationErrorKey: string;
+};
 /**
  * Validates that the date and time are at least one minute in the future.
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidationErrorKey: string; timeValidationErrorKey: string} => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
@@ -413,6 +439,7 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidati
         timeValidationErrorKey,
     };
 };
+
 type ValuesType = Record<string, unknown>;
 
 /**

@@ -1,3 +1,4 @@
+import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
 import type {Request} from '@src/types/onyx';
 import * as ApiUtils from './ApiUtils';
@@ -18,12 +19,12 @@ const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
  * - Unmatched URLs (non expensify) are returned with no modifications
  */
 function tryResolveUrlFromApiRoot(url: string): string;
-function tryResolveUrlFromApiRoot(url: number): number;
-function tryResolveUrlFromApiRoot(url: string | number): string | number;
-function tryResolveUrlFromApiRoot(url: string | number): string | number {
+function tryResolveUrlFromApiRoot(url: ImageSourcePropType): number;
+function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType): string | ImageSourcePropType;
+function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType): string | ImageSourcePropType {
     // in native, when we import an image asset, it will have a number representation which can be used in `source` of Image
     // in this case we can skip the url resolving
-    if (typeof url === 'number') {
+    if (typeof url !== 'string') {
         return url;
     }
     const apiRoot = ApiUtils.getApiRoot({shouldUseSecure: false} as Request);

@@ -9,7 +9,7 @@ import StringUtils from '@libs/StringUtils';
 import type DisplayNamesProps from './types';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
-function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1}: DisplayNamesProps) {
+function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -29,6 +29,7 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
             numberOfLines={numberOfLines}
         >
             {fullTitle || translate('common.hidden')}
+            {renderAdditionalText?.()}
         </Text>
     );
 }

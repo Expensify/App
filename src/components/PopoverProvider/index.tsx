@@ -21,17 +21,15 @@ function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = useState(false);
     const activePopoverRef = useRef<AnchorRef | null>(null);
 
-    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement>) => {
+    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
-            return;
+            return false;
         }
 
         activePopoverRef.current.close();
-        if (activePopoverRef.current.onCloseCallback) {
-            activePopoverRef.current.onCloseCallback();
-        }
         activePopoverRef.current = null;
         setIsOpen(false);
+        return true;
     }, []);
 
     useEffect(() => {
@@ -66,11 +64,13 @@ function PopoverContextProvider(props: PopoverContextProps) {
             if (e.key !== 'Escape') {
                 return;
             }
-            closePopover();
+            if (closePopover()) {
+                e.stopImmediatePropagation();
+            }
         };
-        document.addEventListener('keydown', listener, true);
+        document.addEventListener('keyup', listener, true);
         return () => {
-            document.removeEventListener('keydown', listener, true);
+            document.removeEventListener('keyup', listener, true);
         };
     }, [closePopover]);
 
@@ -95,9 +95,9 @@ function PopoverContextProvider(props: PopoverContextProps) {
 
             closePopover();
         };
-        document.addEventListener('scroll', listener, true);
+        document.addEventListener('wheel', listener, true);
         return () => {
-            document.removeEventListener('scroll', listener, true);
+            document.removeEventListener('wheel', listener, true);
         };
     }, [closePopover]);
 
@@ -107,9 +107,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
-            if (popoverParams?.onOpenCallback) {
-                popoverParams.onOpenCallback();
-            }
             setIsOpen(true);
         },
         [closePopover],

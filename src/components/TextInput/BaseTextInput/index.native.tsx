@@ -1,15 +1,14 @@
 import Str from 'expensify-common/lib/str';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
+import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RNTextInput from '@components/RNTextInput';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
@@ -35,6 +34,7 @@ function BaseTextInput(
         defaultValue = undefined,
         placeholder = '',
         errorText = '',
+        iconLeft = null,
         icon = null,
         textInputContainerStyles,
         touchableInputWrapperStyle,
@@ -50,15 +50,13 @@ function BaseTextInput(
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
-        submitOnEnter = false,
         multiline = false,
-        shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
         ...props
     }: BaseTextInputProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
@@ -81,7 +79,7 @@ function BaseTextInput(
     const [width, setWidth] = useState<number | null>(null);
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
-    const input = useRef<TextInput>(null);
+    const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
@@ -248,6 +246,8 @@ function BaseTextInput(
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles)?.maxHeight;
@@ -262,12 +262,9 @@ function BaseTextInput(
 
     return (
         <>
-            <View
-                style={[styles.pointerEventsNone, containerStyles]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
-            >
+            <View style={[containerStyles]}>
                 <PressableWithoutFeedback
+                    role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
@@ -303,6 +300,16 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                            {iconLeft && (
+                                <View style={styles.textInputLeftIconContainer}>
+                                    <Icon
+                                        src={iconLeft}
+                                        fill={theme.icon}
+                                        height={20}
+                                        width={20}
+                                    />
+                                </View>
+                            )}
                             {!!prefixCharacter && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
@@ -323,7 +330,7 @@ function BaseTextInput(
                                         ref.current = element;
                                     }
 
-                                    (input.current as AnimatedTextInputRef | null) = element;
+                                    input.current = element;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
@@ -363,9 +370,6 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
-                                // FormSubmit Enter key handler does not have access to direct props.
-                                // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                dataSet={{submitOnEnter: isMultiline && submitOnEnter}}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator
@@ -425,6 +429,9 @@ function BaseTextInput(
                         styles.visibilityHidden,
                     ]}
                     onLayout={(e) => {
+                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
+                            return;
+                        }
                         setTextInputWidth(e.nativeEvent.layout.width);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}

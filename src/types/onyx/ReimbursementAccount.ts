@@ -1,14 +1,16 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
-type ACHData = {
+type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps> & {
     /** Step of the setup flow that we are on. Determines which view is presented. */
-    currentStep: BankAccountStep;
+    currentStep?: BankAccountStep;
 
     /** Optional subStep we would like the user to start back on */
     subStep?: BankAccountSubStep;
@@ -18,6 +20,21 @@ type ACHData = {
 
     /** Bank account ID of the VBA that we are validating is required */
     bankAccountID?: number;
+
+    /** Bank account routing number */
+    routingNumber?: string;
+
+    /** Bank account number */
+    accountNumber?: string;
+
+    /** Bank account name */
+    bankName?: BankName;
+
+    /** Bank account owner name */
+    addressName?: string;
+
+    /** Policy ID of the workspace the bank account is being set up on */
+    policyID?: string;
 };
 
 type ReimbursementAccount = {
@@ -46,7 +63,10 @@ type ReimbursementAccount = {
     draftStep?: BankAccountStep;
 
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** Should display modal to reset data */
+    shouldShowResetModal?: boolean;
 };
 
 export default ReimbursementAccount;
-export type {BankAccountStep, BankAccountSubStep};
+export type {BankAccountStep, BankAccountSubStep, ACHData};

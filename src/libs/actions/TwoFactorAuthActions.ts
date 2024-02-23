@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import type {TwoFactorAuthStep} from '@src/types/onyx/Account';
 
 /**
@@ -21,8 +20,7 @@ function setCodesAreCopied() {
 
 function quitAndNavigateBack(backTo?: Route) {
     clearTwoFactorAuthData();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    Navigation.goBack(backTo || ROUTES.SETTINGS_SECURITY);
+    Navigation.goBack(backTo);
 }
 
 export {clearTwoFactorAuthData, setTwoFactorAuthStep, quitAndNavigateBack, setCodesAreCopied};
