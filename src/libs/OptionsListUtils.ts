@@ -1513,6 +1513,10 @@ function getOptions(
             return;
         }
 
+        if (!accountIDs || accountIDs.length === 0) {
+            return;
+        }
+
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
         // policyExpenseChats or chatRooms since those are not people.

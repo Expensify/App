@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SelectionList from './SelectionList';
+import RadioListItem from './SelectionList/RadioListItem';
 import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerOnyxProps = {
@@ -80,6 +81,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            ListItem={RadioListItem}
         />
     );
 }
