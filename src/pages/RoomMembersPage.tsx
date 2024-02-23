@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -226,7 +225,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     isEmptyObject(report) ||
                     !isPolicyMember ||
                     (!ReportUtils.isChatThread(report) && ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) ||
-                    (!ReportUtils.isChatThread(report) && (ReportUtils.isDefaultRoom(report))) ||
+                    (!ReportUtils.isChatThread(report) && ReportUtils.isDefaultRoom(report)) ||
                     ReportUtils.isConciergeChatReport(report)
                 }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
