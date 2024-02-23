@@ -95,6 +95,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                     submitFlexEnabled
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    fixErrorsAlert="BLAblaBLA"
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeroSmall]}>{translate('onboarding.welcome')} </Text>

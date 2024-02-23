@@ -56,6 +56,7 @@ function FormWrapper({
     isSubmitActionDangerous = false,
     formID,
     scrollContextEnabled = false,
+    fixErrorsAlert,
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = true,
 }: FormWrapperProps) {
@@ -108,7 +109,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
-                        message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+                        message={fixErrorsAlert ?? (isEmptyObject(formState?.errorFields) ? errorMessage : undefined)}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
@@ -139,6 +140,7 @@ function FormWrapper({
             submitButtonStyles,
             submitFlexEnabled,
             submitButtonText,
+            fixErrorsAlert,
             shouldHideFixErrorsAlert,
             onFixTheErrorsLinkPressed,
             disablePressOnEnter,
