@@ -1213,6 +1213,10 @@ export default {
     onboarding: {
         welcome: 'Welcome!',
         whatsYourName: "What's your name?",
+        error: {
+            requiredFirstName: 'Please input your first name to continue',
+            requiredLasttName: 'Please input your last name to continue',
+        },
     },
     personalDetails: {
         error: {

@@ -42,6 +42,9 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
         const errors = {};
 
         // First we validate the first name field
+        if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', 'onboarding.error.requiredFirstName');
+        }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
@@ -50,6 +53,9 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
         }
 
         // Then we validate the last name field
+        if (!ValidationUtils.isRequiredFulfilled(values.lastName)) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLasttName');
+        }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
         }
