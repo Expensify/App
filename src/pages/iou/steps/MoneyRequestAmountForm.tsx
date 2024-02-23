@@ -17,7 +17,7 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import type {MaybePhraseKey} from '@libs/Localize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {BaseTextInputProps, BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 
 type MoneyRequestAmountFormProps = {
@@ -43,7 +43,10 @@ type MoneyRequestAmountFormProps = {
     selectedTab?: ValueOf<typeof CONST.TAB_REQUEST>;
 };
 
-type Selection = BaseTextInputProps['selection'];
+type Selection = {
+    start: number;
+    end: number;
+};
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -122,7 +125,6 @@ function MoneyRequestAmountForm(
         setSelection({
             start: frontendAmount.length,
             end: frontendAmount.length,
-            // cursorPosition: {start: {x: 0, y: 0}, end: {x: 0, y: 0}},
         });
     }, []);
 

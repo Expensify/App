@@ -12,7 +12,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
 type AmountFormProps = {
@@ -38,7 +38,10 @@ type AmountFormProps = {
     isCurrencyPressable?: boolean;
 };
 
-type Selection = BaseTextInputProps['selection'];
+type Selection = {
+    start: number;
+    end: number;
+};
 
 /**
  * Returns the new selection object based on the updated amount's length
