@@ -60,7 +60,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
+type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -223,8 +223,7 @@ Onyx.connect({
  * @param reportID to attach the transaction to
  * @param iouRequestType one of manual/scan/distance
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // Disabling this line since currentDate can be an empty string
@@ -257,6 +256,12 @@ function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCr
 
 function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function startMoneyRequest_temporaryForRefactor(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -299,14 +304,8 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Pend
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestCategory_temporaryForRefactor(transactionID: string, category: string) {
+function setMoneyRequestCategory(transactionID: string, category: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function resetMoneyRequestCategory_temporaryForRefactor(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
 function setMoneyRequestTag(transactionID: string, tag: string) {
@@ -789,6 +788,8 @@ function getMoneyRequestInformation(
         receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
         currency,
@@ -804,6 +805,7 @@ function getMoneyRequestInformation(
         category,
         tag,
         billable,
+        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
 
     const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
@@ -814,8 +816,7 @@ function getMoneyRequestInformation(
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
-    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
-    if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+    if (isDistanceRequest) {
         optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
@@ -1003,7 +1004,7 @@ function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTran
         // Subtract the diff from the total if we change the currency from the currency of IOU report to a different currency
         return -updatedAmount;
     }
-    if (updatedCurrency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
+    if (updatedCurrency === iouReport?.currency && updatedAmount !== currentAmount) {
         // Calculate the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
         return updatedAmount - currentAmount;
     }
@@ -1127,32 +1128,32 @@ function getUpdateMoneyRequestParams(
                 },
             },
         });
-
-        // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-        let updatedMoneyRequestReport = {...iouReport};
-        const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
-
-        if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-            // For expense report, the amount is negative so we should subtract total from diff
-            updatedMoneyRequestReport.total -= diff;
-        } else {
-            updatedMoneyRequestReport = iouReport
-                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
-                : {};
-        }
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedMoneyRequestReport,
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: {pendingAction: null},
-        });
     }
+
+    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+    let updatedMoneyRequestReport = {...iouReport};
+    const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+
+    if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
+        // For expense report, the amount is negative so we should subtract total from diff
+        updatedMoneyRequestReport.total -= diff;
+    } else {
+        updatedMoneyRequestReport = iouReport
+            ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
+            : {};
+    }
+    updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+        value: updatedMoneyRequestReport,
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+        value: {pendingAction: null},
+    });
 
     // Optimistically modify the transaction and the transaction thread
     optimisticData.push({
@@ -3293,9 +3294,10 @@ function getSendMoneyParams(
 }
 
 function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
+    const total = iouReport.total ?? 0;
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        -(iouReport.total ?? 0),
+        ReportUtils.isExpenseReport(iouReport) ? -total : total,
         iouReport.currency ?? '',
         '',
         [recipient],
@@ -3869,14 +3871,6 @@ function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
-function setMoneyRequestCategory(category: string) {
-    Onyx.merge(ONYXKEYS.IOU, {category});
-}
-
-function resetMoneyRequestCategory() {
-    Onyx.merge(ONYXKEYS.IOU, {category: ''});
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
@@ -3934,7 +3928,6 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
                 ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
                 : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
-            resetMoneyRequestCategory();
         }
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
@@ -4095,14 +4088,11 @@ export {
     payMoneyRequest,
     sendMoneyWithWallet,
     startMoneyRequest,
+    initMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
-    resetMoneyRequestCategory,
-    resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
-    clearMoneyRequest,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
-    setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated,
     setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestDescription,

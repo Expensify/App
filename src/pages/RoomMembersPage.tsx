@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -189,7 +190,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details.login),
+                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
@@ -276,6 +277,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                            ListItem={UserListItem}
                         />
                     </View>
                 </View>

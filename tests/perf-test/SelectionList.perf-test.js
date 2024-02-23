@@ -2,6 +2,7 @@ import {fireEvent} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionList from '../../src/components/SelectionList';
 import variables from '../../src/styles/variables';
 
@@ -86,6 +87,7 @@ function SelectionListWrapper(args) {
             sections={sections}
             onSelectRow={onSelectRow}
             initiallyFocusedOptionKey="item-0"
+            ListItem={RadioListItem}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
         />
