@@ -296,6 +296,13 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        backTo: Routes | undefined;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        pageIndex: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
