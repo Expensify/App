@@ -600,9 +600,12 @@ const mainWindow = () => {
 
                 const downloadQueue = createDownloadQueue();
 
-                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, async (_, info) => {
-                    info.win = browserWindow;
-                    downloadQueue.pushDownloadItem(info);
+                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
+                    const downloadItem = {
+                        ...downloadData,
+                        win: browserWindow,
+                    };
+                    downloadQueue.pushDownloadItem(downloadItem);
                 });
 
                 return browserWindow;

@@ -1,7 +1,6 @@
 import type { DownloadItem, Session, SaveDialogOptions, WebContents, Event } from 'electron';
 import { app, BrowserWindow, dialog, shell } from 'electron';
 import * as path from 'path';
-import * as _ from 'underscore';
 
 /**
  * This file is a ported version of the `electron-dl` package.
@@ -34,21 +33,21 @@ const getWindowFromBrowserView = (webContents: WebContents): BrowserWindow | und
 };
 
 const getWindowFromWebContents = (webContents: WebContents): BrowserWindow | undefined | null => {
-    let window_: BrowserWindow | undefined | null;
+    let electronWindow: BrowserWindow | undefined | null;
     const webContentsType = webContents.getType();
     switch (webContentsType) {
         case 'webview':
-            window_ = BrowserWindow.fromWebContents(webContents.hostWebContents);
+            electronWindow = BrowserWindow.fromWebContents(webContents.hostWebContents);
             break;
         case 'browserView':
-            window_ = getWindowFromBrowserView(webContents);
+            electronWindow = getWindowFromBrowserView(webContents);
             break;
         default:
-            window_ = BrowserWindow.fromWebContents(webContents);
+            electronWindow = BrowserWindow.fromWebContents(webContents);
             break;
     }
 
-    return window_;
+    return electronWindow;
 };
 
 type Options = {
@@ -69,7 +68,7 @@ type Options = {
     onStarted?: (item: DownloadItem) => void;
 }
 
-const registerListener = (session: Session, options: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => {}): void => {
+const registerListener = (session: Session, prevOptions: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => {}): void => {
     const downloadItems = new Set<DownloadItem>();
     let receivedBytes = 0;
     let completedBytes = 0;
@@ -77,23 +76,23 @@ const registerListener = (session: Session, options: Options, callback: (error: 
     const activeDownloadItems = (): number => downloadItems.size;
     const progressDownloadItems = (): number => receivedBytes / totalBytes;
 
-    options = {
+    const options = {
         showBadge: true,
         showProgressBar: true,
-        ...options,
+        ...prevOptions,
     };
 
     const listener = (event: Event, item: DownloadItem, webContents: WebContents): void => {
         downloadItems.add(item);
         totalBytes += item.getTotalBytes();
 
-        const window_ = majorElectronVersion() >= 12 ? BrowserWindow.fromWebContents(webContents) : getWindowFromWebContents(webContents);
+        const electronWindow = majorElectronVersion() >= 12 ? BrowserWindow.fromWebContents(webContents) : getWindowFromWebContents(webContents);
 
         if (options.directory && !path.isAbsolute(options.directory)) {
             throw new Error('The `directory` option must be an absolute path');
         }
 
-        const directory = options.directory || app.getPath('downloads');
+        const directory = options.directory ?? app.getPath('downloads');
 
         let filePath: string;
         if (options.filename) {
@@ -121,8 +120,8 @@ const registerListener = (session: Session, options: Options, callback: (error: 
                 app.badgeCount = activeDownloadItems();
             }
 
-            if (!window_?.isDestroyed() && options.showProgressBar) {
-                window_?.setProgressBar(progressDownloadItems());
+            if (!electronWindow?.isDestroyed() && options.showProgressBar) {
+                electronWindow?.setProgressBar(progressDownloadItems());
             }
 
             if (typeof options.onProgress === 'function') {
@@ -153,8 +152,8 @@ const registerListener = (session: Session, options: Options, callback: (error: 
                 app.badgeCount = activeDownloadItems();
             }
 
-            if (!window_?.isDestroyed() && !activeDownloadItems()) {
-                window_?.setProgressBar(-1);
+            if (!electronWindow?.isDestroyed() && !activeDownloadItems()) {
+                electronWindow?.setProgressBar(-1);
                 receivedBytes = 0;
                 completedBytes = 0;
                 totalBytes = 0;
@@ -218,14 +217,14 @@ export default (options: any = {}): void => {
     });
 };
 
-export const download = (window_: BrowserWindow, url: string, options: Options): Promise<DownloadItem> => {
+export const download = (electronWindow: BrowserWindow, url: string, options: Options): Promise<DownloadItem> => {
     options = {
         ...options,
         unregisterWhenDone: true,
     };
 
     return new Promise((resolve, reject) => {
-        registerListener(window_.webContents.session, options, (error: Error | null, item?: DownloadItem) => {
+        registerListener(electronWindow.webContents.session, options, (error: Error | null, item?: DownloadItem) => {
             if (error) {
                 reject(error);
             } else if (item) {
@@ -235,7 +234,7 @@ export const download = (window_: BrowserWindow, url: string, options: Options):
             }
         });
 
-        window_.webContents.downloadURL(url);
+        electronWindow.webContents.downloadURL(url);
     });
 };
 
