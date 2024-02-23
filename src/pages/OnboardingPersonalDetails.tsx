@@ -87,7 +87,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                 behavior="padding"
             >
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
                     onSubmit={saveAndNavigate}
