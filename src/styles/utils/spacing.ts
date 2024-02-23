@@ -251,6 +251,10 @@ export default {
         marginTop: -68,
     },
 
+    mtn20: {
+        marginTop: -80,
+    },
+
     mb0: {
         marginBottom: 0,
     },
