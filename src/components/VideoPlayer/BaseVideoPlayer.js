@@ -139,6 +139,10 @@ function BaseVideoPlayer({
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
+    useEffect(() => {
+        currentVideoPlayerRef.current = videoPlayerRef.current;
+    }, [url]);
+
     // update shared video elements
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
