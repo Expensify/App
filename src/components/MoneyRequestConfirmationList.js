@@ -28,7 +28,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import PaymentButtonWithDropdownMenu from './ButtonWithDropdownMenu/PaymentButtonWithDropdownMenu';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
@@ -548,7 +548,7 @@ function MoneyRequestConfirmationList(props) {
                 enterKeyEventListenerPriority={1}
             />
         ) : (
-            <PaymentButtonWithDropdownMenu
+            <ButtonWithDropdownMenu
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}

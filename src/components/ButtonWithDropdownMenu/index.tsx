@@ -10,9 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type {BaseButtonWithDropdownMenuProps} from './types';
+import type {ButtonWithDropdownMenuProps} from './types';
 
-function BaseButtonWithDropdownMenu<IValueType>({
+function ButtonWithDropdownMenu<IValueType>({
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
@@ -28,7 +28,7 @@ function BaseButtonWithDropdownMenu<IValueType>({
     options,
     onOptionSelected,
     enterKeyEventListenerPriority = 0,
-}: BaseButtonWithDropdownMenuProps<IValueType>) {
+}: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -143,4 +143,6 @@ function BaseButtonWithDropdownMenu<IValueType>({
     );
 }
 
-export default BaseButtonWithDropdownMenu;
+ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
+
+export default ButtonWithDropdownMenu;

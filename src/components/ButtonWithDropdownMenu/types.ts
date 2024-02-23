@@ -17,7 +17,7 @@ type DropdownOption<TValueType> = {
     iconDescription?: string;
 };
 
-type BaseButtonWithDropdownMenuProps<TValueType> = {
+type ButtonWithDropdownMenuProps<TValueType> = {
     /** Text to display for the menu header */
     menuHeaderText?: string;
 
@@ -56,4 +56,4 @@ type BaseButtonWithDropdownMenuProps<TValueType> = {
     enterKeyEventListenerPriority?: number;
 };
 
-export type {PaymentType, DropdownOption, BaseButtonWithDropdownMenuProps};
+export type {PaymentType, DropdownOption, ButtonWithDropdownMenuProps};
