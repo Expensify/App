@@ -141,7 +141,7 @@ function BaseVideoPlayer({
 
     useEffect(() => {
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url]);
+    }, [url, currentVideoPlayerRef]);
 
     // update shared video elements
     useEffect(() => {
