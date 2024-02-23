@@ -10,7 +10,7 @@ type InputElement = (TextInput & HTMLElement) | null;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 
-type ModalContainer = View & HTMLElement | undefined | null;
+type ModalContainer = (View & HTMLElement) | undefined | null;
 
 /**
  * So far, modern browsers only support the file cancel event in some newer versions
@@ -137,12 +137,7 @@ function focus(input: InputElement, shouldIgnoreFocused = false) {
 /**
  * Restore the focus state after the modal is dismissed.
  */
-function restoreFocusState(
-    id: ModalId,
-    shouldIgnoreFocused = false,
-    restoreFocusType: RestoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT,
-    isInUploadingContext = false,
-) {
+function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, restoreFocusType: RestoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, isInUploadingContext = false) {
     if (!id || !activeModals.length) {
         return;
     }
