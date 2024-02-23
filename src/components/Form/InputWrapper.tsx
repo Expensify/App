@@ -4,6 +4,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import TextInput from '@components/TextInput';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {State} from '@libs/Navigation/types';
 import FormContext from './FormContext';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
@@ -57,7 +58,7 @@ function computeComponentSpecificRegistrationParams({
 type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey = ValueTypeKey> = ComponentPropsWithoutRef<TInput> &
     InputComponentValueProps<TValue> & {
         InputComponent: TInput;
-        inputID: string;
+        inputID: string | State;
         isFocused?: boolean;
 
         /**
