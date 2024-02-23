@@ -16,7 +16,6 @@ import type SCREENS from '@src/SCREENS';
 import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
 
 type EditSplitBillOnyxProps = {
@@ -40,12 +39,7 @@ type EditSplitBillProps = EditSplitBillOnyxProps & StackScreenProps<SplitDetails
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
     const {field: fieldToEdit, reportID, reportActionID, currency, tagIndex} = route.params;
 
-    const {
-        amount: transactionAmount,
-        currency: transactionCurrency,
-        category: transactionCategory,
-        tag: transactionTag,
-    } = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
+    const {amount: transactionAmount, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
 
     const defaultCurrency = currency ?? transactionCurrency;
     function navigateBackToSplitDetails() {
@@ -75,18 +69,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
-                }}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
-        return (
-            <EditRequestCategoryPage
-                defaultCategory={transactionCategory ?? ''}
-                policyID={report?.policyID ? report.policyID : ''}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({category: transactionChanges.category.trim()});
                 }}
             />
         );

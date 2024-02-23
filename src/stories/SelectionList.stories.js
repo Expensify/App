@@ -1,9 +1,8 @@
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 import _ from 'underscore';
+import Badge from '@components/Badge';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import Text from '@components/Text';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
@@ -232,9 +231,11 @@ function MultipleSelection(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
-                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
-                        </View>
+                        <Badge
+                            text="Admin"
+                            textStyles={defaultStyles.textStrong}
+                            badgeStyles={defaultStyles.badgeBordered}
+                        />
                     ),
                 };
             });
@@ -295,9 +296,11 @@ function WithSectionHeader(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
-                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
-                        </View>
+                        <Badge
+                            text="Admin"
+                            textStyles={defaultStyles.textStrong}
+                            badgeStyles={defaultStyles.badgeBordered}
+                        />
                     ),
                 };
             });
@@ -356,9 +359,11 @@ function WithConfirmButton(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
-                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
-                        </View>
+                        <Badge
+                            text="Admin"
+                            textStyles={defaultStyles.textStrong}
+                            badgeStyles={defaultStyles.badgeBordered}
+                        />
                     ),
                 };
             });
