@@ -1121,6 +1121,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     if (selectedOptions.length) {
         const selectedTagOptions = selectedOptions.map((option) => ({
             name: option.name,
+            // Should be marked as enabled to be able to unselect even though the selected category is disabled
             enabled: true,
         }));
 
