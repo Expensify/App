@@ -34,7 +34,7 @@ function ValidateLoginPage({
         }
         Session.initAutoAuthState(autoAuthState);
 
-        if (isSignedIn || !login) {
+        if (isSignedIn || (!login && !exitTo)) {
             if (exitTo) {
                 Session.handleExitToNavigation(exitTo);
             }
