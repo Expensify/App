@@ -4409,7 +4409,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
-        progressBarContainer: {
+        headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',
         },
