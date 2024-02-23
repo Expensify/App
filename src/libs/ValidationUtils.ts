@@ -5,7 +5,7 @@ import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -78,7 +78,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: string | boolean | Date | unknown[] | Record<string, unknown> | null): boolean {
+function isRequiredFulfilled(value?: FormValue): boolean {
     if (!value) {
         return false;
     }
@@ -104,7 +104,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
     const errors: FormInputErrors<TFormID> = {};
 
     requiredFields.forEach((fieldKey) => {
-        if (isRequiredFulfilled(values[fieldKey] as keyof FormOnyxValues)) {
+        if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             return;
         }
 
