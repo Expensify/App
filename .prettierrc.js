@@ -6,6 +6,7 @@ module.exports = {
     arrowParens: 'always',
     printWidth: 190,
     singleAttributePerLine: true,
+    /** `importOrder` should be defined in an alphabetical order. */
     importOrder: [
         '@assets/(.*)$',
         '@components/(.*)$',
