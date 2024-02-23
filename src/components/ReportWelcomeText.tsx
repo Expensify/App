@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -56,7 +56,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     };
 
     const getWelcomeHeroText = useMemo(() => {
-        if(isChatRoom) {
+        if (isChatRoom) {
             return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
 
@@ -70,9 +70,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>
-                    {getWelcomeHeroText}
-                </Text>
+                <Text style={[styles.textHero]}>{getWelcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
@@ -134,13 +132,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         )}
                     </>
                 )}
-                {
-                    isSelfDM && (
-                        <Text>
-                            <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
-                        </Text>
-                    )
-                }
+                {isSelfDM && (
+                    <Text>
+                        <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
+                    </Text>
+                )}
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>

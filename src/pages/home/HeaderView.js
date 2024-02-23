@@ -96,11 +96,9 @@ function HeaderView(props) {
     const participants = lodashGet(props.report, 'participantAccountIDs', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+    const isSelfDM = ReportUtils.isSelfDM(props.report, props.session.accountID);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
 
-    if(ReportUtils.isSelfDM(props.report)){
-        displayNamesWithTooltips[0].displayName += ` (${translate('common.you')})`
-    }
     const isChatThread = ReportUtils.isChatThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);

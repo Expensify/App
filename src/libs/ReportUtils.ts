@@ -1647,7 +1647,7 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 /**
  * Get the displayName for a single report participant.
  */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string {
+function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
     if (!accountID) {
         return '';
     }
@@ -1662,7 +1662,9 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         return formattedLogin;
     }
 
-    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden);
+    // todo: remove this once we have a better way to handle this
+    const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID !== currentUserAccountID;
+    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === Localize.translateLocal('common.hidden')) {
@@ -1677,6 +1679,7 @@ function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     isMultipleParticipantReport: boolean,
     shouldFallbackToHidden = true,
+    shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
     const personalDetailsListArray = Array.isArray(personalDetailsList) ? personalDetailsList : Object.values(personalDetailsList);
 
@@ -1684,7 +1687,7 @@ function getDisplayNamesWithTooltips(
         .map((user) => {
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user?.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden, shouldAddCurrentUserPostfix) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user?.pronouns ?? undefined;
@@ -4309,7 +4312,11 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
     // Your own workspace chats will have the split bill option.
-    if ((isChatRoom(report) && otherParticipants.length > 0) || (isDM(report) && hasMultipleOtherParticipants) || (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat) && !isSelfDM(report)) {
+    if (
+        (isChatRoom(report) && otherParticipants.length > 0) ||
+        (isDM(report) && hasMultipleOtherParticipants) ||
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && !isSelfDM(report))
+    ) {
         options = [CONST.IOU.TYPE.SPLIT];
     }
 

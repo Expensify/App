@@ -33,7 +33,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report);
+    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
     const notificationPreference =
         report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN

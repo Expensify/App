@@ -98,9 +98,10 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const styles = useThemeStyles();
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
-    const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
+    const isSelfDM = ReportUtils.isSelfDM(props.report);
 
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
+    const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isSelfDM);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const login = lodashGet(details, 'login', '');
@@ -132,7 +133,6 @@ function ProfilePage(props) {
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo');
-    const isSelfDM = ReportUtils.isSelfDM(props.report);
 
     const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && !isSelfDM;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
@@ -238,7 +238,7 @@ function ProfilePage(props) {
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!_.isEmpty(props.report) && (
+                            {!_.isEmpty(props.report) && !isSelfDM && (
                                 <MenuItem
                                     title={`${props.translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}
