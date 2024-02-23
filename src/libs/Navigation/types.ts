@@ -460,22 +460,27 @@ type BottomTabNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: undefined;
 };
 
-type PublicScreensParamList = {
+type SharedScreensParamList = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        email?: string;
-        accountID?: number;
+        email: string;
+        accountID: number;
         error?: string;
-        supportAuthToken?: string;
-        shortLivedAuthToken?: string;
-        shortLivedToken?: string;
+        supportAuthToken: string;
+        shortLivedAuthToken: string;
+        shortLivedToken: string;
         exitTo?: Routes | HybridAppRoute;
+        shouldForceLogin: string;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
         exitTo?: Routes | HybridAppRoute;
     };
+}
+
+type PublicScreensParamList = SharedScreensParamList & {
+
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
         validateCode?: string;
@@ -485,21 +490,7 @@ type PublicScreensParamList = {
     [SCREENS.SAML_SIGN_IN]: undefined;
 };
 
-type AuthScreensParamList = {
-    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
-    [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
-    [SCREENS.VALIDATE_LOGIN]: {
-        accountID: string;
-        validateCode: string;
-    };
-    [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        supportAuthToken: string;
-        accountID: number;
-        exitTo: string;
-    };
+type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
