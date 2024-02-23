@@ -63,7 +63,7 @@ type TaxRatesWithDefault = {
     /** Default value of taxes */
     defaultValue: string;
 
-    /** Default foreign policy tax ID */
+    /** Default foreign policy tax code */
     foreignTaxDefault: string;
 
     /** List of tax names and values */
