@@ -87,7 +87,7 @@ function showCameraPermissionsAlert() {
  *    with underscores.
  */
 function getFileName(url: string): string {
-    const fileName = url.split(/[#?/]/).pop() ?? '';
+    const fileName = url.substring(url.lastIndexOf('/') + 1, url.indexOf('?'));
     if (!fileName) {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
