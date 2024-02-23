@@ -12,7 +12,7 @@ type ReceiptDropUIProps = {
     /** Function to execute when an item is dropped in the drop zone. */
     onDrop: (event: DragEvent) => void;
 
-    receiptImageTopPosition: number;
+    receiptImageTopPosition?: number;
 };
 
 function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
@@ -21,7 +21,7 @@ function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={styles.receiptImageWrapper(receiptImageTopPosition)}>
+                <View style={styles.receiptImageWrapper(receiptImageTopPosition ?? 0)}>
                     <ImageSVG
                         src={ReceiptUpload}
                         contentFit="contain"

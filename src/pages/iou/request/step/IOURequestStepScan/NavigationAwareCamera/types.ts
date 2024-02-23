@@ -2,7 +2,7 @@ import type {CameraDevice} from 'react-native-vision-camera';
 
 type NavigationAwareCameraProps = {
     /** Flag to turn on/off the torch/flashlight - if available */
-    torchOn: boolean;
+    torchOn?: boolean;
 
     /** The index of the tab that contains this camera */
     onTorchAvailability?: (torchAvailable: boolean) => void;

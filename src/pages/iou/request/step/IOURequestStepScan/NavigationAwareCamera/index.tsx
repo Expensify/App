@@ -19,11 +19,11 @@ function NavigationAwareCamera({torchOn, onTorchAvailability, cameraTabIndex, ..
 
         const [track] = stream.getVideoTracks();
         const capabilities = track.getCapabilities();
-        if (capabilities.torch) {
+        if ('torch' in capabilities && capabilities.torch) {
             trackRef.current = track;
         }
         if (onTorchAvailability) {
-            onTorchAvailability(!!capabilities.torch);
+            onTorchAvailability('torch' in capabilities && !!capabilities.torch);
         }
     };
 
