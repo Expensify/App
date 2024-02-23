@@ -1,6 +1,7 @@
 import type {Video} from 'expo-av';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 type PlaybackContext = {
     updateCurrentlyPlayingURL: (url: string) => void;
@@ -14,4 +15,9 @@ type PlaybackContext = {
     checkVideoPlaying: (statusCallback: (isPlaying: boolean) => void) => void;
 };
 
-export default PlaybackContext;
+type VolumeContext = {
+    updateVolume: (newVolume: number) => void;
+    volume: SharedValue<number>;
+};
+
+export type {PlaybackContext, VolumeContext};

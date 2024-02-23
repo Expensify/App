@@ -4,7 +4,7 @@ import type {ReactNode} from 'react';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import type PlaybackContext from './types';
+import type {PlaybackContext} from './types';
 
 const Context = React.createContext<PlaybackContext | null>(null);
 
@@ -112,11 +112,11 @@ function PlaybackContextProvider({children}: {children: ReactNode}) {
 }
 
 function usePlaybackContext() {
-    const context = useContext(Context);
-    if (!context) {
+    const playbackContext = useContext(Context);
+    if (!playbackContext) {
         throw new Error('usePlaybackContext must be used within a PlaybackContextProvider');
     }
-    return context;
+    return playbackContext;
 }
 
 PlaybackContextProvider.displayName = 'PlaybackContextProvider';
