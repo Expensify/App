@@ -12,6 +12,14 @@ import { removeWorkspaceIntegration } from '@libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type { OnyxEntry} from 'react-native-onyx';
 import { withOnyx } from 'react-native-onyx';
+import Section from '@components/Section';
+import useThemeStyles from '@hooks/useThemeStyles';
+import { View } from 'react-native';
+import variables from '@styles/variables';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import useTheme from '@hooks/useTheme';
+import { ActivityIndicator } from 'react-native';
 import type { WithPolicyAndFullscreenLoadingProps } from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import IntegrationSyncProgress from './integrations/IntegrationSyncProgress';
@@ -51,9 +59,11 @@ function WorkspaceAccountingPage({
     policy,
     integrationImportStatus,
 }: WorkspaceAccountingPageProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
-    const [isProgressModalClosed, setIsProgressModalClosed] = useState<boolean>(false);
+    const [triggeredSyncManually, setTriggeredSyncManually] = useState<boolean>(false);
 
     const quickbooksOnlineSyncStatus = integrationImportStatus?.quickbooksOnline ?? null;
     
@@ -77,35 +87,61 @@ function WorkspaceAccountingPage({
             />
             {policy !== null && (
                 <>
-                    {!policy?.connections?.quickbooksOnline &&
-                        <Button
-                            onPress={() => {
-                                setIsProgressModalClosed(false);
-                                Link.openLink(getQuickBooksOnlineSetupLink(`https://dev.new.expensify.com:8082/workspace/${policy.id}/accounting`, policy.id), environmentURL, false);
-                            }}
+                    <Section
+                        subtitle={"Connect to your accounting..."} // translated, of course
+                        title={"Connections"} // translated, of course
+                        containerStyles={[styles.p0, styles.pv5]}
+                        titleStyles={[styles.ph5]}
+                        subtitleStyles={[styles.ph5]}
                         >
-                            <Text>Quickbooks Online Setup</Text>
-                        </Button>
-                    }
-                    {Boolean(policy?.connections?.quickbooksOnline) && (
-                        <>
-                            <Button onPress={() => alert('ahh!')}>
-                                <Text>Import</Text>
+                        <View style={[styles.flexRow]}> 
+                            <Icon 
+                                src={Expensicons.NewExpensify}
+                                width={variables.appModalAppIconSize}
+                                height={variables.appModalAppIconSize}
+                                fill={theme.success}
+                            />
+                            <View>
+                                <Text>QuickBooks online</Text>
+                                <Text style={[styles.textSupporting]}>Syncing connections</Text>
+                            </View>
+                            <ActivityIndicator
+                                color={theme.success}
+                                size="small"
+                            />
+                        </View>
+                    </Section>
+                    <>
+                        {!policy?.connections?.quickbooksOnline &&
+                            <Button
+                                onPress={() => {
+                                    setTriggeredSyncManually(true);
+                                    Link.openLink(getQuickBooksOnlineSetupLink(`https://dev.new.expensify.com:8082/workspace/${policy.id}/accounting`, policy.id), environmentURL, false);
+                                }}
+                            >
+                                <Text>Quickbooks Online Setup</Text>
                             </Button>
-                            <Button onPress={() => alert('ahh!')}>
-                                <Text>Import</Text>
-                            </Button>
-                            <Button onPress={() => removeWorkspaceIntegration(policy.id, 'quickbooksOnline')}>
-                                <Text>Disconnect</Text>
-                            </Button>
-                        </>
-                    )}
+                        }
+                        {Boolean(policy?.connections?.quickbooksOnline) && (
+                            <>
+                                <Button onPress={() => alert('ahh!')}>
+                                    <Text>Import</Text>
+                                </Button>
+                                <Button onPress={() => alert('ahh!')}>
+                                    <Text>Import</Text>
+                                </Button>
+                                <Button onPress={() => removeWorkspaceIntegration(policy.id, 'quickbooksOnline')}>
+                                    <Text>Disconnect</Text>
+                                </Button>
+                            </>
+                        )}
+                    </>
                 </>
             )}
-            {quickbooksOnlineSyncStatus !== null && !isProgressModalClosed && (
+            {quickbooksOnlineSyncStatus !== null && quickbooksOnlineSyncStatus.status !== 'finished' && triggeredSyncManually && (
                 <IntegrationSyncProgress
                     syncStatus={quickbooksOnlineSyncStatus}
-                    onClose={() => setIsProgressModalClosed(true)}
+                    onClose={() => setTriggeredSyncManually(true)}
                 />
             )}
         </ScreenWrapper>
