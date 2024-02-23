@@ -59,6 +59,8 @@ function DisplayNamePage(props) {
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
+        } else if (values.firstName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', ['common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
@@ -67,6 +69,8 @@ function DisplayNamePage(props) {
         // Then we validate the last name field
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
+        } else if (values.lastName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', ['common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
         if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.containsReservedWord');
@@ -107,7 +111,6 @@ function DisplayNamePage(props) {
                             aria-label={props.translate('common.firstName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
@@ -120,7 +123,6 @@ function DisplayNamePage(props) {
                             aria-label={props.translate('common.lastName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
