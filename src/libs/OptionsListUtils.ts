@@ -1363,7 +1363,7 @@ function getOptions(
         transactionViolations = {},
         includePolicyTaxRates,
         policyTaxRates,
-        includeSelfDM = true,
+        includeSelfDM = false,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1810,7 +1810,7 @@ function getFilteredOptions(
     includeSelectedOptions = false,
     includePolicyTaxRates = false,
     policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
-    includeSelfDM = true,
+    includeSelfDM = false,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1866,6 +1866,7 @@ function getShareDestinationOptions(
         excludeLogins,
         includeOwnedWorkspaceChats,
         excludeUnknownUsers,
+        includeSelfDM: true,
     });
 }
 
