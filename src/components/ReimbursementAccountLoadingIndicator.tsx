@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -10,14 +9,15 @@ import LottieAnimations from './LottieAnimations';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
-const propTypes = {
+type ReimbursementAccountLoadingIndicatorProps = {
     /** Method to trigger when pressing back button of the header */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 };
 
-function ReimbursementAccountLoadingIndicator(props) {
+function ReimbursementAccountLoadingIndicator({onBackButtonPress}: ReimbursementAccountLoadingIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
@@ -26,10 +26,10 @@ function ReimbursementAccountLoadingIndicator(props) {
         >
             <HeaderWithBackButton
                 title={translate('reimbursementAccountLoadingAnimation.oneMoment')}
-                onBackButtonPress={props.onBackButtonPress}
+                onBackButtonPress={onBackButtonPress}
             />
             <FullPageOfflineBlockingView>
-                <View style={[styles.pageWrapper]}>
+                <View style={styles.pageWrapper}>
                     <Lottie
                         source={LottieAnimations.ReviewingBankInfo}
                         autoPlay
@@ -37,8 +37,8 @@ function ReimbursementAccountLoadingIndicator(props) {
                         style={styles.loadingVBAAnimation}
                         webStyle={styles.loadingVBAAnimationWeb}
                     />
-                    <View style={[styles.ph6]}>
-                        <Text style={[styles.textAlignCenter]}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
+                    <View style={styles.ph6}>
+                        <Text style={styles.textAlignCenter}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
                     </View>
                 </View>
             </FullPageOfflineBlockingView>
@@ -46,7 +46,6 @@ function ReimbursementAccountLoadingIndicator(props) {
     );
 }
 
-ReimbursementAccountLoadingIndicator.propTypes = propTypes;
 ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
 
 export default ReimbursementAccountLoadingIndicator;
