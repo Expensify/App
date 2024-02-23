@@ -118,14 +118,17 @@ function ReportActionItemFragment({
                     source={source}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
-                    styleAsMuted={(
-                        [
-                            ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
-                            CONST.REPORT.ACTIONS.TYPE.IOU,
-                            CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                            CONST.REPORT.ACTIONS.TYPE.MOVED,
-                        ] as ActionName[]
-                    ).includes(actionName)}
+                    styleAsMuted={
+                        !!actionName &&
+                        (
+                            [
+                                ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+                                CONST.REPORT.ACTIONS.TYPE.IOU,
+                                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                CONST.REPORT.ACTIONS.TYPE.MOVED,
+                            ] as ActionName[]
+                        ).includes(actionName)
+                    }
                     iouMessage={iouMessage}
                     displayAsGroup={displayAsGroup}
                     style={style}
