@@ -54,10 +54,10 @@ const ViolationsUtils = {
 
             // At the moment, we only return violations for tags for workspaces with single-level tags
             if (policyTagKeys.length === 1) {
-                const policyTagListName = Object.keys(policyTagList)[0];
+                const policyTagListName = policyTagKeys[0];
                 const policyTags = policyTagList[policyTagListName]?.tags;
-                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
-                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
+                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
+                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
                 const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
 
                 // Add 'tagOutOfPolicy' violation if tag is not in policy
