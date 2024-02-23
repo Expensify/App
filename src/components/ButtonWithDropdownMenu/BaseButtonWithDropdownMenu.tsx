@@ -1,73 +1,18 @@
-import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import PopoverMenu from './PopoverMenu';
+import type {AnchorPosition} from '@src/styles';
+import type {BaseButtonWithDropdownMenuProps} from './types';
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
-
-type DropdownOption = {
-    value: PaymentType;
-    text: string;
-    icon: IconAsset;
-    iconWidth?: number;
-    iconHeight?: number;
-    iconDescription?: string;
-};
-
-type ButtonWithDropdownMenuProps = {
-    /** Text to display for the menu header */
-    menuHeaderText?: string;
-
-    /** Callback to execute when the main button is pressed */
-    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: PaymentType) => void;
-
-    /** Callback to execute when a dropdown option is selected */
-    onOptionSelected?: (option: DropdownOption) => void;
-
-    /** Call the onPress function on main button when Enter key is pressed */
-    pressOnEnter?: boolean;
-
-    /** Whether we should show a loading state for the main button */
-    isLoading?: boolean;
-
-    /** The size of button size */
-    buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-
-    /** Should the confirmation button be disabled? */
-    isDisabled?: boolean;
-
-    /** Additional styles to add to the component */
-    style?: StyleProp<ViewStyle>;
-
-    /** Menu options to display */
-    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
-    options: DropdownOption[];
-
-    /** The anchor alignment of the popover menu */
-    anchorAlignment?: AnchorAlignment;
-
-    /* ref for the button */
-    buttonRef: RefObject<View>;
-
-    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
-};
-
-function ButtonWithDropdownMenu({
+function BaseButtonWithDropdownMenu<IValueType>({
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
@@ -83,7 +28,7 @@ function ButtonWithDropdownMenu({
     options,
     onOptionSelected,
     enterKeyEventListenerPriority = 0,
-}: ButtonWithDropdownMenuProps) {
+}: BaseButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -198,6 +143,4 @@ function ButtonWithDropdownMenu({
     );
 }
 
-ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
-
-export default React.memo(ButtonWithDropdownMenu);
+export default BaseButtonWithDropdownMenu;

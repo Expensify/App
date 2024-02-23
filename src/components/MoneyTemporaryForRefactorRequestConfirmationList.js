@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import PaymentButtonWithDropdownMenu from './ButtonWithDropdownMenu/PaymentButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
@@ -597,7 +597,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 enterKeyEventListenerPriority={1}
             />
         ) : (
-            <ButtonWithDropdownMenu
+            <PaymentButtonWithDropdownMenu
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}

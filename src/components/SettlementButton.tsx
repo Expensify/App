@@ -18,7 +18,7 @@ import type {LastPaymentMethod, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import PaymentButtonWithDropdownMenu from './ButtonWithDropdownMenu/PaymentButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 
@@ -224,7 +224,7 @@ function SettlementButton({
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
             {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu
+                <PaymentButtonWithDropdownMenu
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
