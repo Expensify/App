@@ -1319,23 +1319,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
-     * Return the height of RenderHtml text container with numberOfLines=1
-     */
-    getHeightOfRenderHtmlText: (text: string, numberOfLines: number): ViewStyle => {
-        if (numberOfLines !== 1) {
-            return {};
-        }
-        let height = styles.webViewStyles.baseFontStyle.lineHeight;
-        if (text.includes('<blockquote>')) {
-            const {marginTop, marginBottom} = styles.webViewStyles.tagStyles.blockquote;
-            height += marginTop + marginBottom;
-        } else if (text.includes('<code>')) {
-            height += codeStyles.codeWrapperOffset;
-        }
-        return {height};
-    },
-
-    /**
      * Return the height of magic code input container
      */
     getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}),
