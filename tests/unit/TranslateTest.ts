@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {AnnotationError} from '@actions/core';
 import _ from 'underscore';
+import * as translations from '@src/languages/translations';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
-import * as translations from '../../src/languages/translations';
+// import * as translations from '../../src/languages/translations';
 import * as Localize from '../../src/libs/Localize';
 
 const originalTranslations = _.clone(translations);
