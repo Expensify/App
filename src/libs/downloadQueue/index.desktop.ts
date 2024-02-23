@@ -1,8 +1,9 @@
+import type { BrowserWindow } from 'electron';
 import type { Options} from './electronDownloadManager';
 import {download as electronDownload} from './electronDownloadManager';
 
 type DownloadItem = {
-    win: any;
+    win: BrowserWindow;
     url: string;
     options: Options;
 }
@@ -12,36 +13,33 @@ type DownloadQueue = DownloadItem[];
 const createDownloadQueue = () => {
     const queue: DownloadQueue = [];
 
+    const processQueue = (): void => {
+        const item = queue.shift();
+        if (!item) {
+            return;
+        }
+
+        const newItem = {
+            ...item,
+            options: {
+                ...item.options,
+                onCompleted: processQueue,
+                onCancel: processQueue,
+            },
+        };
+
+        electronDownload(newItem.win, newItem.url, newItem.options);
+    };
+
     const pushDownloadItem = (item: DownloadItem): number => {
         const len = queue.push(item);
         if (queue.length === 1) {
-            downloadItem(queue[0]);
+            processQueue();
         }
         return len;
     };
 
-    const shiftDownloadItem = (): DownloadItem | undefined => {
-        const item = queue.shift();
-        if (queue.length > 0) {
-            downloadItem(queue[0]);
-        }
-        return item;
-    };
-
-    const downloadItem = (item: DownloadItem): void => {
-        console.log('[wildebug] downloadItem item aosdifasdf', item);
-
-        item.options.onCompleted = () => {
-            shiftDownloadItem();
-        };
-
-        item.options.onCancel = () => {
-            shiftDownloadItem();
-        };
-        electronDownload(item.win, item.url, item.options);
-    };
-
-    return {pushDownloadItem, shiftDownloadItem};
+    return {pushDownloadItem};
 };
 
 export default createDownloadQueue;

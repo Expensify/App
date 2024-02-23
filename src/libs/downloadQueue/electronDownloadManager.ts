@@ -112,8 +112,8 @@ const registerListener = (session: Session, prevOptions: Options, callback: (err
 
         item.on('updated', () => {
             receivedBytes = completedBytes;
-            for (const item of downloadItems) {
-                receivedBytes += item.getReceivedBytes();
+            for (const downloadItem of downloadItems) {
+                receivedBytes += downloadItem.getReceivedBytes();
             }
 
             if (options.showBadge && ['darwin', 'linux'].includes(process.platform)) {
@@ -144,7 +144,7 @@ const registerListener = (session: Session, prevOptions: Options, callback: (err
             }
         });
 
-        item.on('done', (event: Event, state: string) => {
+        item.on('done', (doneEvent: Event, state: string) => {
             completedBytes += item.getTotalBytes();
             downloadItems.delete(item);
 
@@ -206,20 +206,22 @@ const registerListener = (session: Session, prevOptions: Options, callback: (err
     session.on('will-download', listener);
 };
 
-export default (options: any = {}): void => {
+
+export default (options: Options = {}): void => {
     app.on('session-created', (session: Session) => {
-        registerListener(session, options, (error: Error | null, _) => {
-            if (error && !(error instanceof CancelError)) {
-                const errorTitle = options.errorTitle || 'Download Error';
-                dialog.showErrorBox(errorTitle, error.message);
+        registerListener(session, options, (error: Error | null) => {
+            if (!error || error instanceof CancelError) {
+                return;
             }
+
+            const errorTitle = options.errorMessage ?? 'Download Error';
+            dialog.showErrorBox(errorTitle, error.message);
         });
     });
 };
-
-export const download = (electronWindow: BrowserWindow, url: string, options: Options): Promise<DownloadItem> => {
-    options = {
-        ...options,
+const download = (electronWindow: BrowserWindow, url: string, prevOptions: Options): Promise<DownloadItem> => {
+    const options = {
+        ...prevOptions,
         unregisterWhenDone: true,
     };
 
@@ -238,4 +240,5 @@ export const download = (electronWindow: BrowserWindow, url: string, options: Op
     });
 };
 
+export {download};
 export type {CancelError, Options};
