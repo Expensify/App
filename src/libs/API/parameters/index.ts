@@ -145,3 +145,4 @@ export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestPara
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
 export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';
 export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspaceDescriptionParams';
+export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';

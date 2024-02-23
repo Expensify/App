@@ -108,6 +108,7 @@ const WRITE_COMMANDS = {
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
     CREATE_WORKSPACE: 'CreateWorkspace',
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
+    SET_WORKSPACE_REQUIRES_CATEGORY: 'SetWorkspaceRequiresCategory',
     CREATE_TASK: 'CreateTask',
     CANCEL_TASK: 'CancelTask',
     EDIT_TASK_ASSIGNEE: 'EditTaskAssignee',
@@ -252,6 +253,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT_AND_RATE]: Parameters.UpdateWorkspaceCustomUnitAndRateParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
     [WRITE_COMMANDS.CANCEL_TASK]: Parameters.CancelTaskParams;
     [WRITE_COMMANDS.EDIT_TASK_ASSIGNEE]: Parameters.EditTaskAssigneeParams;
