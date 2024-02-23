@@ -10,11 +10,11 @@ import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
 function RoomNameInput(
-    {disabled = false, autoFocus = false, shouldDelayFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps,
+    {disabled = false, autoFocus = false, shouldDelayFocus = false, isFocused, value = '', onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const {translate} = useLocalize();
-    const [selection, setSelection] = useState<Selection>({start: 0, end: 0});
+    const [selection, setSelection] = useState<Selection>({start: value.length - 1, end: value.length - 1});
 
     /**
      * Calls the onChangeText callback with a modified room name
