@@ -520,7 +520,7 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | ReportAction[] | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
