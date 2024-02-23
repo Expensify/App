@@ -132,7 +132,7 @@ function getShortLivedLoginParams() {
 
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
     // We are combining both success and failure data params into one const as they are identical
-    const resolutionData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -149,16 +149,16 @@ function getShortLivedLoginParams() {
         },
     ];
 
-    return {optimisticData, resolutionData};
+    return {optimisticData, finallyData};
 }
 
 /**
  * This method should be used when we are being redirected from oldDot to NewDot on a supportal request
  */
 function signInWithSupportAuthToken(authToken: string) {
-    const {optimisticData, resolutionData} = getShortLivedLoginParams();
+    const {optimisticData, finallyData} = getShortLivedLoginParams();
     const params: SignInWithSupportAuthTokenParams = {authToken};
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, params, {optimisticData, successData: resolutionData, failureData: resolutionData});
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, params, {optimisticData, finallyData});
 }
 
 /**
@@ -401,10 +401,7 @@ function beginGoogleSignIn(token: string | null) {
  * re-authenticating after an authToken expires.
  */
 function signInWithShortLivedAuthToken(email: string, authToken: string) {
-    const {optimisticData, resolutionData} = getShortLivedLoginParams();
-
-    const successData = resolutionData;
-    const failureData = resolutionData;
+    const {optimisticData, finallyData} = getShortLivedLoginParams();
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
@@ -413,7 +410,7 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
 
     const params: SignInWithShortLivedAuthTokenParams = {authToken, oldPartnerUserID, skipReauthentication: true};
 
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, params, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, params, {optimisticData, finallyData});
 }
 
 /**
