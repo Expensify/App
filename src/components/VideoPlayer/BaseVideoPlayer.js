@@ -13,6 +13,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
+import shouldReplayVideo from './shouldReplayVideo';
 import VideoPlayerControls from './VideoPlayerControls';
 
 const isMobileSafari = Browser.isMobileSafari();
@@ -95,6 +96,9 @@ function BaseVideoPlayer({
 
     const handlePlaybackStatusUpdate = useCallback(
         (e) => {
+            if (shouldReplayVideo(e, isPlaying, duration, position)) {
+                videoPlayerRef.current.setStatusAsync({positionMillis: 0, shouldPlay: true});
+            }
             const isVideoPlaying = e.isPlaying || false;
             preventPausingWhenExitingFullscreen(isVideoPlaying);
             setIsPlaying(isVideoPlaying);
@@ -105,7 +109,7 @@ function BaseVideoPlayer({
 
             onPlaybackStatusUpdate(e);
         },
-        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration, isPlaying, duration, position],
     );
 
     const handleFullscreenUpdate = useCallback(
@@ -164,7 +168,12 @@ function BaseVideoPlayer({
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
-        <>
+        // We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
+        // events will bubble up the tree, and it will cause unexpected press behavior.
+        <PressableWithoutFeedback
+            accessibilityRole="button"
+            style={styles.flex1}
+        >
             <View style={style}>
                 <Hoverable>
                     {(isHovered) => (
@@ -243,7 +252,7 @@ function BaseVideoPlayer({
                 hidePopover={hidePopoverMenu}
                 anchorPosition={popoverAnchorPosition}
             />
-        </>
+        </PressableWithoutFeedback>
     );
 }
 

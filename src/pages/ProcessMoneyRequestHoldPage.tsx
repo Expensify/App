@@ -8,13 +8,14 @@ import TextPill from '@components/TextPill';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as IOU from '@userActions/IOU';
 
 function ProcessMoneyRequestHoldPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const onConfirm = useCallback(() => {
-        // Currently only goes back, this will be changed after backends for hold will be merged
+        IOU.setShownHoldUseExplanation();
         Navigation.goBack();
     }, []);
 
@@ -31,15 +32,15 @@ function ProcessMoneyRequestHoldPage() {
 
     return (
         <HeaderPageLayout
-            testID={ProcessMoneyRequestHoldPage.displayName}
             title={translate('common.back')}
             footer={footerComponent}
             onBackButtonPress={() => Navigation.goBack()}
+            testID={ProcessMoneyRequestHoldPage.displayName}
         >
             <View style={[styles.mh5, styles.flex1]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>;
+                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>
                 </View>
                 <HoldMenuSectionList />
             </View>
