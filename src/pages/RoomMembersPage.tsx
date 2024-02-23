@@ -226,7 +226,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     isEmptyObject(report) ||
                     !isPolicyMember ||
                     (!ReportUtils.isChatThread(report) && ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) ||
-                    (!ReportUtils.isChatThread(report) && (ReportUtils.isDefaultRoom(report)))
+                    (!ReportUtils.isChatThread(report) && (ReportUtils.isDefaultRoom(report))) ||
+                    ReportUtils.isConciergeChatReport(report)
                 }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
