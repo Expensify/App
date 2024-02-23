@@ -3439,6 +3439,19 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        emptyCardSectionTitle: {
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+            textAlign: 'center',
+        },
+
+        emptyCardSectionSubtitle: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.textSupporting,
+            textAlign: 'center',
+        },
+
         transferBalance: {
             width: 'auto',
             borderRadius: 0,

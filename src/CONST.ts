@@ -952,6 +952,9 @@ const CONST = {
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
 
+    // Amount of emojis to render ahead at the end of the update cycle
+    EMOJI_DRAW_AMOUNT: 250,
+
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
     UNICODE: {
