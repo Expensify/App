@@ -45,6 +45,23 @@ type AppProps = {
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
     window.Onyx = Onyx;
+
+    // We intentionally do not offer an Onyx.get API because we believe it will lead to code patterns we don't want to use in this repo, but we can offer a workaround for the sake of debugging
+    // @ts-expect-error TS233 - injecting additional utility for use in runtime debugging, should not be used in any compiled code
+    window.Onyx.get = function (key) {
+        return new Promise((resolve) => {
+            // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+            const connectionID = Onyx.connect({
+                key,
+                callback: (value) => {
+                    Onyx.disconnect(connectionID);
+                    resolve(value);
+                },
+                waitForCollectionCallback: true,
+            });
+        });
+    };
+
     window.setSupportToken = Session.setSupportAuthToken;
 }
 
