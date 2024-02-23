@@ -16,7 +16,6 @@ import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
-import codeStyles from './codeStyles';
 import containerComposeStyles from './containerComposeStyles';
 import cursor from './cursor';
 import FontUtils from './FontUtils';
