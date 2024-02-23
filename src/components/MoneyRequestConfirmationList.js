@@ -196,6 +196,7 @@ const defaultProps = {
     receiptPath: '',
     receiptFilename: '',
     listStyles: [],
+    policy: {},
     policyCategories: {},
     policyTags: {},
     transactionID: '',
