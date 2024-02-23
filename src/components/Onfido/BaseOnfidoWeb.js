@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import * as OnfidoSDK from 'onfido-sdk-ui';
+import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
 import React, {forwardRef, useEffect} from 'react';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
