@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
 type OnboardingPersonalDetailsProps = WithCurrentUserPersonalDetailsProps;
@@ -27,6 +28,12 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const currentUserDetails = currentUserPersonalDetails || {};
 
+    const saveAndNavigate = useCallback(() => {
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
+    }, []);
+
+    // TODO: To be deleted - dismissing the modal
+    // won't be possible in final version
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
         Navigation.goBack();
@@ -49,7 +56,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                     style={[styles.flexGrow1, styles.mv5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     // validate={validate}
-                    // onSubmit={updateDisplayName}
+                    onSubmit={saveAndNavigate}
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
                     submitFlexEnabled
