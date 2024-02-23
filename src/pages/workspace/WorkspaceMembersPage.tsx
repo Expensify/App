@@ -8,6 +8,8 @@ import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -83,6 +85,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const dropdownButtonRef = useRef(null);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -382,18 +385,66 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         </View>
     );
 
+    const getBulkActionsButtonOptions = () => {
+        const iconSettings = {
+            iconWidth: 40,
+            iconHeight: 40,
+        };
+        const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
+            {
+                text: translate('workspace.people.removeMembersTitle'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+                icon: Expensicons.RemoveMembers,
+                ...iconSettings,
+            },
+        ];
+
+        if (selectedEmployees.find((employee) => policyMembers?.[employee].role === CONST.POLICY.ROLE.ADMIN)) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.MakeMember,
+                ...iconSettings,
+            });
+        } else if (selectedEmployees.find((employee) => policyMembers?.[employee].role === CONST.POLICY.ROLE.USER)) {
+            options.push({
+                text: translate('workspace.people.makeAdmin'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                icon: Expensicons.MakeAdmin,
+                ...iconSettings,
+            });
+        }
+
+        return options;
+    };
+
+    const handleBulkAction = (action: WorkspaceMemberBulkActionType) => {
+        // eslint-disable-next-line no-console
+        console.log(action);
+    };
+
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            <Button
-                medium
-                success
-                onPress={inviteUser}
-                text={translate('workspace.invite.member')}
-                icon={Expensicons.Plus}
-                iconStyles={{transform: [{scale: 0.6}]}}
-                innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                style={[isSmallScreenWidth && styles.flexGrow1]}
-            />
+            {selectedEmployees.length > 0 ? (
+                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    pressOnEnter
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    onPress={(event, value) => handleBulkAction(value)}
+                    options={getBulkActionsButtonOptions()}
+                    buttonRef={dropdownButtonRef}
+                />
+            ) : (
+                <Button
+                    medium
+                    success
+                    onPress={inviteUser}
+                    text={translate('workspace.invite.member')}
+                    icon={Expensicons.Plus}
+                    iconStyles={{transform: [{scale: 0.6}]}}
+                    innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
+                    style={[isSmallScreenWidth && styles.flexGrow1]}
+                />
+            )}
             <Button
                 medium
                 danger

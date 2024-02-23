@@ -8,6 +8,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
+type WorkspaceMemberBulkActionType = DeepValueOf<
+    typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE | typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER | typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN
+>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
@@ -56,4 +60,4 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     enterKeyEventListenerPriority?: number;
 };
 
-export type {PaymentType, DropdownOption, ButtonWithDropdownMenuProps};
+export type {PaymentType, WorkspaceMemberBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};

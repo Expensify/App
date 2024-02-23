@@ -90,6 +90,8 @@ import Lock from '@assets/images/lock.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
+import MakeAdmin from '@assets/images/make-admin.svg';
+import MakeMember from '@assets/images/make-member.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
@@ -116,6 +118,7 @@ import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
+import RemoveMembers from '@assets/images/remove-members.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
@@ -238,6 +241,8 @@ export {
     Luggage,
     MagnifyingGlass,
     Mail,
+    MakeAdmin,
+    MakeMember,
     Menu,
     Meter,
     Megaphone,
@@ -265,6 +270,7 @@ export {
     QrCode,
     QuestionMark,
     Receipt,
+    RemoveMembers,
     ReceiptSearch,
     Rotate,
     RotateLeft,
