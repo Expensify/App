@@ -11,7 +11,7 @@ import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+import type {ActionName, DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
@@ -59,11 +59,15 @@ type ReportActionItemFragmentProps = {
     /** The pending action for the report action */
     pendingAction?: OnyxCommon.PendingAction;
 
+    /** The report action name */
+    actionName: ActionName;
+
     moderationDecision?: DecisionName;
 };
 
 function ReportActionItemFragment({
     pendingAction,
+    actionName,
     fragment,
     accountID,
     iouMessage = '',
@@ -114,6 +118,14 @@ function ReportActionItemFragment({
                     source={source}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
+                    styleAsMuted={(
+                        [
+                            ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+                            CONST.REPORT.ACTIONS.TYPE.IOU,
+                            CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                            CONST.REPORT.ACTIONS.TYPE.MOVED,
+                        ] as ActionName[]
+                    ).includes(actionName)}
                     iouMessage={iouMessage}
                     displayAsGroup={displayAsGroup}
                     style={style}

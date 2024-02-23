@@ -48,6 +48,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     style={style}
                     source=""
                     styleAsDeleted={false}
+                    styleAsMuted={false}
                 />
             </View>
         );
@@ -80,6 +81,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 iouMessage={iouMessage}
                 isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
                 pendingAction={action.pendingAction}
+                actionName={action.actionName}
                 source={(action.originalMessage as OriginalMessageAddComment['originalMessage'])?.source}
                 accountID={action.actorAccountID ?? 0}
                 style={style}
