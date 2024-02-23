@@ -720,10 +720,6 @@ const CONST = {
             RIGHT: 'right',
         },
         POPOVER_MENU_PADDING: 8,
-        BUSINESS_TYPE: {
-            DEFAULT: 'default',
-            ATTACHMENT: 'attachment',
-        },
         RESTORE_FOCUS_TYPE: {
             DEFAULT: 'default',
             DELETE: 'delete',

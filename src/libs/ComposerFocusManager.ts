@@ -8,20 +8,18 @@ type ModalId = number | undefined;
 
 type InputElement = (TextInput & HTMLElement) | null;
 
-/**
- * So far, modern browsers only support the file cancel event in some newer versions
- * (i.e., Chrome: 113+ / Firefox: 91+ / Safari 16.4+), and there is no standard feature detection method available.
- * We will introduce this prop to isolate the impact of the file upload modal on the focus stack.
- */
-type BusinessType = ValueOf<typeof CONST.MODAL.BUSINESS_TYPE> | undefined;
-
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 
 type ModalContainer = View & HTMLElement | undefined | null;
 
+/**
+ * So far, modern browsers only support the file cancel event in some newer versions
+ * (i.e., Chrome: 113+ / Firefox: 91+ / Safari 16.4+), and there is no standard feature detection method available.
+ * We will introduce the isInUploadingContext field to isolate the impact of the upload modal on the other modals.
+ */
 type FocusMapValue = {
     input: InputElement;
-    businessType?: BusinessType;
+    isInUploadingContext?: boolean;
 };
 
 type PromiseMapValue = {
@@ -91,7 +89,7 @@ function getId() {
 /**
  * Save the focus state when opening the modal.
  */
-function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, shouldClearFocusWithType = false, container: ModalContainer = undefined) {
+function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFocusWithType = false, container: ModalContainer = undefined) {
     const activeInput = getActiveInput();
 
     // For popoverWithoutOverlay, react calls autofocus before useEffect.
@@ -103,7 +101,7 @@ function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BU
 
     if (shouldClearFocusWithType) {
         focusMap.forEach((value, key) => {
-            if (value.businessType !== businessType) {
+            if (value.isInUploadingContext !== isInUploadingContext) {
                 return;
             }
             focusMap.delete(key);
@@ -113,7 +111,7 @@ function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BU
     if (container?.contains(input)) {
         return;
     }
-    focusMap.set(id, {input, businessType});
+    focusMap.set(id, {input, isInUploadingContext});
     input?.blur();
 }
 
@@ -143,7 +141,7 @@ function restoreFocusState(
     id: ModalId,
     shouldIgnoreFocused = false,
     restoreFocusType: RestoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT,
-    businessType: BusinessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT,
+    isInUploadingContext = false,
 ) {
     if (!id || !activeModals.length) {
         return;
@@ -179,7 +177,7 @@ function restoreFocusState(
     }
 
     // Try to find the topmost one and restore it
-    const stack = [...focusMap].filter(([, v]) => v.input && v.businessType === businessType);
+    const stack = [...focusMap].filter(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext);
     if (stack.length < 1) {
         return;
     }
@@ -233,15 +231,15 @@ function isReadyToFocus(id?: ModalId) {
     return promise.ready;
 }
 
-function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType, businessType?: BusinessType) {
-    isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, businessType));
+function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType, isInUploadingContext?: boolean) {
+    isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, isInUploadingContext));
 }
 
 /**
  * So far, this will only be called in file canceled event handler.
  */
-function tryRestoreFocusByExternal(businessType: BusinessType) {
-    const stack = [...focusMap].filter(([, value]) => value.businessType === businessType && value.input);
+function tryRestoreFocusByExternal(isInUploadingContext = false) {
+    const stack = [...focusMap].filter(([, value]) => value.isInUploadingContext === isInUploadingContext && value.input);
     if (stack.length < 1) {
         return;
     }
