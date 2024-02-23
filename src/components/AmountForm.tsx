@@ -12,7 +12,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
 type AmountFormProps = {
@@ -38,11 +38,14 @@ type AmountFormProps = {
     isCurrencyPressable?: boolean;
 };
 
+type Selection = BaseTextInputProps['selection'];
+
 /**
  * Returns the new selection object based on the updated amount's length
  */
-const getNewSelection = (oldSelection: {start: number; end: number}, prevLength: number, newLength: number) => {
-    const cursorPosition = oldSelection.end + (newLength - prevLength);
+const getNewSelection = (oldSelection: Selection, prevLength: number, newLength: number) => {
+    const oldEnd = oldSelection?.end ?? 0;
+    const cursorPosition = oldEnd + (newLength - prevLength);
     return {start: cursorPosition, end: cursorPosition};
 };
 
@@ -100,13 +103,13 @@ function AmountForm(
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
             if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals)) {
-                setSelection((prevSelection) => ({...prevSelection}));
+                setSelection((prevSelection: Selection) => ({...prevSelection}));
                 return;
             }
 
             const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
             const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+            setSelection((prevSelection: Selection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
             onInputChange?.(strippedAmount);
         },
         [currentAmount, decimals, onInputChange],

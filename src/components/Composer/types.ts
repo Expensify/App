@@ -5,7 +5,7 @@ type TextSelection = {
     end?: number;
 
     // selection position for mobile
-    cursorPosition: {start: {x: number; y: number}; end: {x: number; y: number}};
+    cursorPosition?: {start: {x: number; y: number}; end: {x: number; y: number}};
 
     // selection position for web
     positionX?: number;
