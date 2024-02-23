@@ -67,7 +67,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 title: translate('workflowsPage.addApprovalsTitle'),
                 subtitle: translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? 'BASIC' : 'OPTIONAL');
+                    Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.BASIC);
                 },
                 subMenuItems: (
                     <MenuItem
