@@ -6,8 +6,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
+import withCurrentReportID from '@components/withCurrentReportID';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -58,20 +59,39 @@ type PickedReport = Pick<
 >;
 
 type SidebarLinksDataOnyxProps = {
+    /** List of reports */
     chatReports: OnyxCollection<PickedReport & {isUnreadWithMention: boolean}>;
+
+    /** Wheather the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: OnyxEntry<boolean>;
+
+    /** The chat priority mode */
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+
+    /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** All report actions for all reports */
     allReportActions: OnyxEntry<Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message'>>>;
+
+    /** The policies which the user has access to */
     policies: OnyxCollection<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>;
-    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
+
+    /** All of the transaction violations */
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+
+    /** All policy members */
+    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
-type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
-    onLinkClick: () => void;
-    insets: EdgeInsets | undefined;
-};
+type SidebarLinksDataProps = CurrentReportIDContextValue &
+    SidebarLinksDataOnyxProps & {
+        /** Toggles the navigation menu open and closed */
+        onLinkClick: () => void;
+
+        /** Safe area insets required for mobile devices margins */
+        insets: EdgeInsets | undefined;
+    };
 
 function SidebarLinksData({
     allReportActions,
@@ -84,8 +104,8 @@ function SidebarLinksData({
     priorityMode = CONST.PRIORITY_MODE.DEFAULT,
     policyMembers,
     transactionViolations,
+    currentReportID,
 }: SidebarLinksDataProps) {
-    const {currentReportID} = useCurrentReportID() ?? {};
     const {accountID} = useCurrentUserPersonalDetails();
     const network = useNetwork();
     const isFocused = useIsFocused();
@@ -245,38 +265,40 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
         avatar: policy.avatar,
     };
 
-export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
-    chatReports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-        selector: chatReportSelector as unknown as (report: OnyxEntry<OnyxTypes.Report>) => OnyxCollection<PickedReport & {isUnreadWithMention: boolean}>,
-        initialValue: {},
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-        initialValue: CONST.PRIORITY_MODE.DEFAULT,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-        initialValue: [],
-    },
-    allReportActions: {
-        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        selector: reportActionsSelector,
-        initialValue: {},
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-        selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>,
-        initialValue: {},
-    },
-    policyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        initialValue: {},
-    },
-})(SidebarLinksData);
+export default withCurrentReportID(
+    withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
+        chatReports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+            selector: chatReportSelector as unknown as (report: OnyxEntry<OnyxTypes.Report>) => OnyxCollection<PickedReport & {isUnreadWithMention: boolean}>,
+            initialValue: {},
+        },
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
+        },
+        priorityMode: {
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+            initialValue: CONST.PRIORITY_MODE.DEFAULT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+            initialValue: [],
+        },
+        allReportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            selector: reportActionsSelector,
+            initialValue: {},
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+            selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>>,
+            initialValue: {},
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+            initialValue: {},
+        },
+    })(SidebarLinksData),
+);
