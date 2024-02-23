@@ -1,20 +1,20 @@
 import {getUnixTime} from 'date-fns';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
-import Emoji from '../../assets/emojis';
-import CONST from '../../src/CONST';
-import * as User from '../../src/libs/actions/User';
-import * as EmojiUtils from '../../src/libs/EmojiUtils';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import Emojis from '@assets/emojis';
+import type {Emoji} from '@assets/emojis/types';
+import * as User from '@libs/actions/User';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
         // Given the set of Emojis available in the application
-        const emojiMatched = _.every(Emoji, (emoji) => {
-            if (emoji.header === true || emoji.spacer) {
+        const emojiMatched = Emojis.every((emoji) => {
+            if (('header' in emoji && emoji.header) || ('spacer' in emoji && emoji.spacer)) {
                 return true;
             }
 
@@ -22,9 +22,9 @@ describe('EmojiTest', () => {
             const isEmojiMatched = EmojiUtils.containsOnlyEmojis(emoji.code);
 
             let skinToneMatched = true;
-            if (emoji.types) {
+            if ('types' in emoji && emoji.types) {
                 // and every skin tone variant of the Emoji code
-                skinToneMatched = _.every(emoji.types, (emojiWithSkinTone) => EmojiUtils.containsOnlyEmojis(emojiWithSkinTone));
+                skinToneMatched = emoji.types.every((emojiWithSkinTone) => EmojiUtils.containsOnlyEmojis(emojiWithSkinTone));
             }
             return skinToneMatched && isEmojiMatched;
         });
@@ -103,42 +103,42 @@ describe('EmojiTest', () => {
 
     it('replaces an emoji code with an emoji and a space', () => {
         const text = 'Hi :smile:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄 ');
+        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄 ');
     });
 
     it('will add a space after the last emoji', () => {
         const text = 'Hi :smile::wave:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 ');
+        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 ');
     });
 
     it('will add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
+        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 space after last emoji');
     });
 
     it('will add a space after the last emoji if there is invalid emoji after it', () => {
         const text = 'Hi :smile::wave:space when :invalidemoji: present';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space when :invalidemoji: present');
+        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 space when :invalidemoji: present');
     });
 
     it('will not add a space after the last emoji if there if last emoji is immediately followed by a space', () => {
         const text = 'Hi :smile::wave: space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
+        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 space after last emoji');
     });
 
     it('will return correct cursor position', () => {
         const text = 'Hi :smile: there :wave:!';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(15);
+        expect(EmojiUtils.replaceEmojis(text).cursorPosition).toBe(15);
     });
 
     it('will return correct cursor position when space is not added by space follows last emoji', () => {
         const text = 'Hi :smile: there!';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(6);
+        expect(EmojiUtils.replaceEmojis(text).cursorPosition).toBe(6);
     });
 
     it('will return undefined cursor position when no emoji is replaced', () => {
         const text = 'Hi there!';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'cursorPosition')).toBe(undefined);
+        expect(EmojiUtils.replaceEmojis(text).cursorPosition).toBe(undefined);
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
@@ -149,11 +149,11 @@ describe('EmojiTest', () => {
     it('suggests a limited number of matching emojis', () => {
         const text = 'Hi :face';
         const limit = 3;
-        expect(EmojiUtils.suggestEmojis(text, 'en', limit).length).toBe(limit);
+        expect(EmojiUtils.suggestEmojis(text, 'en', limit)?.length).toBe(limit);
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        const thumbEmojis = [
+        const thumbEmojis: Emoji[] = [
             {
                 code: '👍',
                 name: '+1',
@@ -190,10 +190,11 @@ describe('EmojiTest', () => {
     });
 
     describe('update frequently used emojis', () => {
-        let spy;
+        let spy: jest.SpyInstance;
 
         beforeAll(() => {
             Onyx.init({keys: ONYXKEYS});
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             global.fetch = TestHelper.getGlobalFetchMock();
             spy = jest.spyOn(User, 'updateFrequentlyUsedEmojis');
         });
@@ -205,7 +206,7 @@ describe('EmojiTest', () => {
 
         it('should put a less frequent and recent used emoji behind', () => {
             // Given an existing frequently used emojis list with count > 1
-            const frequentlyEmojisList = [
+            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
                 {
                     code: '👋',
                     name: 'wave',
@@ -237,12 +238,12 @@ describe('EmojiTest', () => {
             return waitForBatchedUpdates().then(() => {
                 // When add a new emoji
                 const currentTime = getUnixTime(new Date());
-                const smileEmoji = {code: '😄', name: 'smile'};
+                const smileEmoji: Emoji = {code: '😄', name: 'smile'};
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the new emoji should be at the last item of the list
-                const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
+                const expectedSmileEmoji: FrequentlyUsedEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
 
                 const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
@@ -251,8 +252,8 @@ describe('EmojiTest', () => {
 
         it('should put more frequent and recent used emoji to the front', () => {
             // Given an existing frequently used emojis list
-            const smileEmoji = {code: '😄', name: 'smile'};
-            const frequentlyEmojisList = [
+            const smileEmoji: Emoji = {code: '😄', name: 'smile'};
+            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
                 {
                     code: '😠',
                     name: 'angry',
@@ -296,10 +297,10 @@ describe('EmojiTest', () => {
 
         it('should sorted descending by count and lastUpdatedAt for multiple emoji added', () => {
             // Given an existing frequently used emojis list
-            const smileEmoji = {code: '😄', name: 'smile'};
-            const zzzEmoji = {code: '💤', name: 'zzz'};
-            const impEmoji = {code: '👿', name: 'imp'};
-            const frequentlyEmojisList = [
+            const smileEmoji: Emoji = {code: '😄', name: 'smile'};
+            const zzzEmoji: Emoji = {code: '💤', name: 'zzz'};
+            const impEmoji: Emoji = {code: '👿', name: 'imp'};
+            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
                 {
                     code: '😠',
                     name: 'angry',
@@ -345,11 +346,11 @@ describe('EmojiTest', () => {
 
         it('make sure the most recent new emoji is added to the list even it is full with count > 1', () => {
             // Given an existing full (24 items) frequently used emojis list
-            const smileEmoji = {code: '😄', name: 'smile'};
-            const zzzEmoji = {code: '💤', name: 'zzz'};
-            const impEmoji = {code: '👿', name: 'imp'};
-            const bookEmoji = {code: '📚', name: 'books'};
-            const frequentlyEmojisList = [
+            const smileEmoji: Emoji = {code: '😄', name: 'smile'};
+            const zzzEmoji: Emoji = {code: '💤', name: 'zzz'};
+            const impEmoji: Emoji = {code: '👿', name: 'imp'};
+            const bookEmoji: Emoji = {code: '📚', name: 'books'};
+            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
                 {
                     code: '😠',
                     name: 'angry',

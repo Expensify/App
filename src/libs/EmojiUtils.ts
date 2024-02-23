@@ -384,7 +384,7 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: number = CONST
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang: keyof SupportedLanguage, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+function suggestEmojis(text: string, lang: SupportedLanguage, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
