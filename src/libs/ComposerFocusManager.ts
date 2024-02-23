@@ -17,7 +17,7 @@ type BusinessType = ValueOf<typeof CONST.MODAL.BUSINESS_TYPE> | undefined;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 
-type ModalContainer = View | HTMLElement | undefined | null;
+type ModalContainer = View & HTMLElement | undefined | null;
 
 type FocusMapValue = {
     input: InputElement;
@@ -36,7 +36,7 @@ const activeModals: ModalId[] = [];
 const promiseMap = new Map<ModalId, PromiseMapValue>();
 
 /**
- * Returns the ref of the currently focused text field, if one exists
+ * Returns the ref of the currently focused text field, if one exists.
  * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible by using `currentlyFocusedField` instead.
  */
 function getActiveInput() {
@@ -59,7 +59,9 @@ function clearFocusedInput() {
         return;
     }
 
-    // we have to use timeout because of measureLayout
+    // For the PopoverWithMeasuredContent component, Modal is only mounted after onLayout event is triggered,
+    // this event is placed within a setTimeout in react-native-web,
+    // so we can safely clear the cached value only after this event.
     setTimeout(() => (focusedInput = null), CONST.ANIMATION_IN_TIMING);
 }
 
@@ -108,7 +110,7 @@ function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BU
         });
     }
 
-    if (container && 'contains' in container && container.contains(input)) {
+    if (container?.contains(input)) {
         return;
     }
     focusMap.set(id, {input, businessType});
@@ -237,7 +239,7 @@ function isReadyToFocus(id?: ModalId) {
     return promise.ready;
 }
 
-function tryRestoreFocusAfterClosedCompletely(id: ModalId, restoreType: RestoreFocusType, businessType?: BusinessType) {
+function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType, businessType?: BusinessType) {
     isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, businessType));
 }
 
@@ -269,6 +271,6 @@ export default {
     resetReadyToFocus,
     setReadyToFocus,
     isReadyToFocus,
-    tryRestoreFocusAfterClosedCompletely,
+    refocusAfterModalFullyClosed,
     tryRestoreFocusByExternal,
 };

@@ -80,7 +80,7 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, restoreFocusType);
+            ComposerFocusManager.refocusAfterModalFullyClosed(modalId, restoreFocusType);
         },
         [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
     );

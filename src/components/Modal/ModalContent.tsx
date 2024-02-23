@@ -5,7 +5,11 @@ type ModalContentProps = {
     /** Modal contents */
     children: ReactNode;
 
-    /** called after modal content is dismissed */
+    /**
+     * Callback method fired after modal content is unmounted.
+     * isVisible is not enough to cover all modal close cases,
+     * such as closing the attachment modal through the browser's back button.
+     * */
     onDismiss: () => void;
 };
 
