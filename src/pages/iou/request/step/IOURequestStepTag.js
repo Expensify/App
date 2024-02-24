@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import categoryPropTypes from '@components/categoryPropTypes';
 import TagPicker from '@components/TagPicker';
 import tagPropTypes from '@components/tagPropTypes';
@@ -10,8 +9,10 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
@@ -57,16 +58,17 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, transactionID, backTo, iouType},
+        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType},
     },
-    transaction: {tag},
+    transaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // Fetches the first tag list of the policy
-    const tagListKey = _.first(_.keys(policyTags));
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
+    const tagIndex = Number(rawTagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const transactionTag = TransactionUtils.getTag(transaction);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
 
@@ -80,9 +82,9 @@ function IOURequestStepTag({
      */
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
-        const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
+        const updatedTag = IOUUtils.insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagIndex);
         if (isSplitBill && isEditing) {
-            IOU.setDraftSplitTransaction(transactionID, {tag: selectedTag.searchText});
+            IOU.setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;
         }
@@ -105,12 +107,14 @@ function IOURequestStepTag({
             {({insets}) => (
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+
                     <TagPicker
                         policyID={report.policyID}
-                        tag={tagListKey}
-                        selectedTag={tag || ''}
-                        onSubmit={updateTag}
+                        tag={policyTagListName}
+                        tagIndex={tagIndex}
+                        selectedTag={tag}
                         insets={insets}
+                        onSubmit={updateTag}
                     />
                 </>
             )}

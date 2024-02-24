@@ -7,6 +7,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -100,6 +101,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
                         textInputPlaceholder={translate('pronounsPage.placeholderText')}
                         textInputValue={searchValue}
                         sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                        ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
                         onChangeText={setSearchValue}
                         initiallyFocusedOptionKey={currentPronounsKey}
