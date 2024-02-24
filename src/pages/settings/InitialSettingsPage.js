@@ -243,7 +243,7 @@ function InitialSettingsPage(props) {
                 },
             ],
         }),
-        [styles.pt4],
+        [styles.pt4, waitForNavigate],
     );
 
     /**
