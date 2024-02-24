@@ -67,7 +67,7 @@ function BaseListItem<TItem extends ListItem>({
                         <View style={wrapperStyle}>
                             {canSelectMultiple && (
                                 <View
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     style={StyleUtils.getCheckboxPressableStyle()}
                                 >
                                     <View style={selectMultipleStyle}>

@@ -130,7 +130,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             IOU.updateMoneyRequestTag(
                 transaction.transactionID,
                 report.reportID,
-                IOUUtils.insertTagIntoReportTagsString(transactionTag, updatedTag, tagIndex),
+                IOUUtils.insertTagIntoTransactionTagsString(transactionTag, updatedTag, tagIndex),
                 policy,
                 policyTags,
                 policyCategories,

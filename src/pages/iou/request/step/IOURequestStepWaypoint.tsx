@@ -1,91 +1,69 @@
 import {useNavigation} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {TextInput} from 'react-native';
+import type {Place} from 'react-native-google-places-autocomplete';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route as Routes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Waypoint} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
+type IOURequestStepWaypointOnyxProps = {
+    /** List of recent waypoints */
+    recentWaypoints: OnyxEntry<Place[]>;
 
-    /* Onyx props */
-    /** The optimistic transaction for this request */
-    transaction: transactionPropTypes,
-
-    /* Current location coordinates of the user */
-    userLocation: PropTypes.shape({
-        /** Latitude of the location */
-        latitude: PropTypes.number,
-
-        /** Longitude of the location */
-        longitude: PropTypes.number,
-    }),
-
-    /** Recent waypoints that the user has selected */
-    recentWaypoints: PropTypes.arrayOf(
-        PropTypes.shape({
-            /** The name of the location */
-            name: PropTypes.string,
-
-            /** A description of the location (usually the address) */
-            description: PropTypes.string,
-
-            /** Data required by the google auto complete plugin to know where to put the markers on the map */
-            geometry: PropTypes.shape({
-                /** Data about the location */
-                location: PropTypes.shape({
-                    /** Latitude of the location */
-                    lat: PropTypes.number,
-
-                    /** Longitude of the location */
-                    lng: PropTypes.number,
-                }),
-            }),
-        }),
-    ),
+    userLocation: OnyxEntry<OnyxTypes.UserLocation>;
 };
 
-const defaultProps = {
-    recentWaypoints: [],
-    transaction: {},
-    userLocation: undefined,
-};
+type IOURequestStepWaypointProps = {
+    route: {
+        params: {
+            iouType: ValueOf<typeof CONST.IOU.TYPE>;
+            transactionID: string;
+            reportID: string;
+            backTo: Routes | undefined;
+            action: ValueOf<typeof CONST.IOU.ACTION>;
+            pageIndex: string;
+        };
+    };
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+} & IOURequestStepWaypointOnyxProps;
 
 function IOURequestStepWaypoint({
-    recentWaypoints,
     route: {
         params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
+    recentWaypoints = [],
     userLocation,
-}) {
+}: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
@@ -94,12 +72,12 @@ function IOURequestStepWaypoint({
     const isCreatingRequest = action === CONST.IOU.ACTION.CREATE;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef(null);
+    const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
-    const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
-    const waypointCount = _.size(allWaypoints);
-    const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+    const allWaypoints = transaction?.comment.waypoints ?? {};
+    const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
+    const waypointCount = Object.keys(allWaypoints).length;
+    const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -113,16 +91,16 @@ function IOURequestStepWaypoint({
     }, [parsedWaypointIndex, waypointCount]);
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
-    const waypointAddress = lodashGet(currentWaypoint, 'address', '');
-    // Hide the menu when there is only start and finish waypoint or the current waypoint is empty
-    const shouldShowThreeDotsButton = waypointCount > 2 && waypointAddress;
+    const waypointAddress = currentWaypoint.address ?? '';
+    // Hide the menu when there is only start and finish waypoint
+    const shouldShowThreeDotsButton = waypointCount > 2 && !!waypointAddress;
     const shouldDisableEditor =
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
-    const validate = (values) => {
+    const validate = (values: FormOnyxValues<'waypointForm'>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
-        const waypointValue = values[`waypoint${pageIndex}`] || '';
+        const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
             ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'bankAccount.error.address');
         }
@@ -136,11 +114,10 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, isCreatingRequest);
+    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
 
-    const submit = (values) => {
-        const waypointValue = values[`waypoint${pageIndex}`] || '';
-
+    const submit = (values: FormOnyxValues<'waypointForm'>) => {
+        const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
             Transaction.removeWaypoint(transaction, pageIndex, isCreatingRequest);
@@ -150,10 +127,8 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                lat: null,
-                lng: null,
                 address: waypointValue,
-                name: values.name || null,
+                name: values.name,
             };
             saveWaypoint(waypoint);
         }
@@ -168,20 +143,15 @@ function IOURequestStepWaypoint({
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
-    /**
-     * @param {Object} values
-     * @param {String} values.lat
-     * @param {String} values.lng
-     * @param {String} values.address
-     */
-    const selectWaypoint = (values) => {
+    const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
             address: values.address,
-            name: values.name || null,
+            name: values.name,
         };
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, isCreatingRequest);
+
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -192,7 +162,7 @@ function IOURequestStepWaypoint({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
+            onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
         >
@@ -241,7 +211,9 @@ function IOURequestStepWaypoint({
                             locationBias={locationBias}
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
-                            ref={(e) => (textInput.current = e)}
+                            ref={(e: HTMLElement | null) => {
+                                textInput.current = e as unknown as TextInput;
+                            }}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
@@ -250,14 +222,14 @@ function IOURequestStepWaypoint({
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
                                 address: `waypoint${pageIndex}`,
-                                city: null,
-                                country: null,
-                                street: null,
-                                street2: null,
-                                zipCode: null,
-                                lat: null,
-                                lng: null,
-                                state: null,
+                                city: '',
+                                country: '',
+                                street: '',
+                                street2: '',
+                                zipCode: '',
+                                lat: '',
+                                lng: '',
+                                state: '',
                             }}
                             predefinedPlaces={recentWaypoints}
                             resultTypes=""
@@ -270,32 +242,32 @@ function IOURequestStepWaypoint({
 }
 
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
-IOURequestStepWaypoint.propTypes = propTypes;
-IOURequestStepWaypoint.defaultProps = defaultProps;
 
-export default compose(
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-    withOnyx({
-        userLocation: {
-            key: ONYXKEYS.USER_LOCATION,
-        },
-        recentWaypoints: {
-            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepWaypointWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepWaypoint);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepWaypointWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepWaypointWithWritableReportOrNotFound);
 
-            // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-            // that the google autocomplete component expects for it's "predefined places" feature.
-            selector: (waypoints) =>
-                _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
-                    name: waypoint.name,
-                    description: waypoint.address,
-                    geometry: {
-                        location: {
-                            lat: waypoint.lat,
-                            lng: waypoint.lng,
-                        },
+export default withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
+    recentWaypoints: {
+        key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+        // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+        // that the google autocomplete component expects for it's "predefined places" feature.
+        selector: (waypoints) =>
+            (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
+                name: waypoint.name,
+                description: waypoint.address ?? '',
+                geometry: {
+                    location: {
+                        lat: waypoint.lat ?? 0,
+                        lng: waypoint.lng ?? 0,
                     },
-                })),
-        },
-    }),
-)(IOURequestStepWaypoint);
+                },
+            })),
+    },
+    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
+})(IOURequestStepWaypointWithFullTransactionOrNotFound);
