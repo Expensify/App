@@ -466,9 +466,9 @@ type SharedScreensParamList = {
         email: string;
         accountID: number;
         error?: string;
-        supportAuthToken: string;
-        shortLivedAuthToken: string;
-        shortLivedToken: string;
+        supportAuthToken?: string;
+        shortLivedAuthToken?: string;
+        shortLivedToken?: string;
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
     };
@@ -490,6 +490,7 @@ type PublicScreensParamList = SharedScreensParamList & {
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
+    [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
