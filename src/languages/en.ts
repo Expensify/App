@@ -1030,6 +1030,25 @@ export default {
         },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
     },
+    workflowsPage: {
+        workflowTitle: 'Spend',
+        workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
+        delaySubmissionTitle: 'Delay submissions',
+        delaySubmissionDescription: 'Expenses are shared right away for better spend visibility. Set a slower cadence if needed.',
+        submissionFrequency: 'Submission frequency',
+        weeklyFrequency: 'Weekly',
+        monthlyFrequency: 'Monthly',
+        twiceAMonthFrequency: 'Twice a month',
+        byTripFrequency: 'By trip',
+        manuallyFrequency: 'Manually',
+        dailyFrequency: 'Daily',
+        addApprovalsTitle: 'Add approvals',
+        approver: 'Approver',
+        connectBankAccount: 'Connect bank account',
+        addApprovalsDescription: 'Require additional approval before authorizing a payment.',
+        makeOrTrackPaymentsTitle: 'Make or track payments',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+    },
     reportFraudPage: {
         title: 'Report virtual card fraud',
         description: 'If your virtual card details have been stolen or compromised, we’ll permanently deactivate your existing card and provide you with a new virtual card and number.',
@@ -1683,6 +1702,7 @@ export default {
     workspace: {
         common: {
             card: 'Cards',
+            workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
             enabled: 'Enabled',

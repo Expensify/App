@@ -196,7 +196,7 @@ export default {
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
         admin: 'Administrador',
-        owner: 'Poseedor',
+        owner: 'Dueño',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
@@ -1026,6 +1026,25 @@ export default {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
     },
+    workflowsPage: {
+        workflowTitle: 'Gasto',
+        workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago',
+        delaySubmissionTitle: 'Retrasar envíos',
+        delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
+        submissionFrequency: 'Frecuencia de envíos',
+        weeklyFrequency: 'Semanal',
+        monthlyFrequency: 'Mensual',
+        twiceAMonthFrequency: 'Dos veces al mes',
+        byTripFrequency: 'Por viaje',
+        manuallyFrequency: 'Manual',
+        dailyFrequency: 'Diaria',
+        addApprovalsTitle: 'Requerir aprobaciones',
+        approver: 'Aprobador',
+        connectBankAccount: 'Conectar cuenta bancaria',
+        addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
+        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+    },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
         description:
@@ -1707,6 +1726,7 @@ export default {
     workspace: {
         common: {
             card: 'Tarjetas',
+            workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',

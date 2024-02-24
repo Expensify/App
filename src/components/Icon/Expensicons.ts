@@ -145,6 +145,7 @@ import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
 import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
+import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
@@ -289,6 +290,7 @@ export {
     VolumeHigh,
     VolumeLow,
     Wallet,
+    Workflows,
     Workspace,
     Zoom,
     Twitter,
