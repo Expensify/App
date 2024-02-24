@@ -143,6 +143,7 @@ function getReportID(route) {
  * so we can't check using isEmpty.
  *
  * @param {Object} report
+ * @returns {Boolean}
  */
 function isDeletedReport(report) {
     return _.every(report, _.isUndefined);
