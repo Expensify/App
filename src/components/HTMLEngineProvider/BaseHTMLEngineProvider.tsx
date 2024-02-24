@@ -60,6 +60,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'thread-title': HTMLElementModel.fromCustomModel({
                 tagName: 'thread-title',
                 contentModel: HTMLContentModel.textual,
+                mixedUAStyles: {...styles.headerText},
                 reactNativeProps: {
                     text: {numberOfLines: 1},
                 },
