@@ -20,7 +20,7 @@ function ImTeacherUpdateEmailPage() {
         <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SAVE_THE_WORLD)}
             />
             <BlockingView
                 shouldShowLink
