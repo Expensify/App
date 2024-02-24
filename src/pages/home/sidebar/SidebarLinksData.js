@@ -9,7 +9,7 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -57,11 +57,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     policyMembers: PropTypes.object,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
     /** All of the transaction violations */
     transactionViolations: PropTypes.shape({
         violations: PropTypes.arrayOf(
@@ -86,6 +81,8 @@ const propTypes = {
             }),
         ),
     }),
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -95,11 +92,9 @@ const defaultProps = {
     betas: [],
     policies: {},
     policyMembers: {},
-    session: {
-        accountID: '',
-    },
     transactionViolations: {},
     allReportActions: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function SidebarLinksData({
@@ -115,15 +110,15 @@ function SidebarLinksData({
     priorityMode,
     network,
     policyMembers,
-    session: {accountID},
     transactionViolations,
+    currentUserPersonalDetails,
 }) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
 
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
@@ -309,7 +304,7 @@ const chatReportSelector = (report) =>
 const reportActionsSelector = (reportActions) =>
     reportActions &&
     lodashMapValues(reportActions, (reportAction) => {
-        const {reportActionID, parentReportActionID, actionName, originalMessage, errors = []} = reportAction;
+        const {reportActionID, parentReportActionID, actionName, errors = [], originalMessage} = reportAction;
         const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
         return {
@@ -323,6 +318,7 @@ const reportActionsSelector = (reportActions) =>
                     moderationDecision: {decision},
                 },
             ],
+            originalMessage,
         };
     });
 
