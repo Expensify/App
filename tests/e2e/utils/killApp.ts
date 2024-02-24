@@ -1,5 +1,6 @@
 import config from '../config';
-import execAsync, {PromiseWithAbort} from './execAsync';
+import execAsync from './execAsync';
+import type {PromiseWithAbort} from './execAsync';
 
 const killApp = function (platform = 'android', packageName = config.MAIN_APP_PACKAGE): PromiseWithAbort {
     if (platform !== 'android') {
