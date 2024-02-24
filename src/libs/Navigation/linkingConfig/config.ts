@@ -538,6 +538,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ABOUT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.SAVE_THE_WORLD]: {
+                            path: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                            exact: true,
+                        },
                     },
                 },
             },

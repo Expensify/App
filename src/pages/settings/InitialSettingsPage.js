@@ -25,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -227,6 +228,18 @@ function InitialSettingsPage(props) {
                     translationKey: 'initialSettingsPage.about',
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
+                },
+                {
+                    translationKey: 'sidebarScreen.saveTheWorld',
+                    icon: Expensicons.Heart,
+                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                    action: () => {
+                        interceptAnonymousUser(
+                            waitForNavigate(() => {
+                                Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD);
+                            }),
+                        );
+                    },
                 },
             ],
         }),
