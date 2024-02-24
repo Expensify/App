@@ -8,6 +8,8 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
+    SET_WORKSPACE_AUTO_REPORTING: 'SetWorkspaceAutoReporting',
+    SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
     DISMISS_REFERRAL_BANNER: 'DismissReferralBanner',
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
     RECONNECT_APP: 'ReconnectApp',
@@ -292,6 +294,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CANCEL_PAYMENT]: Parameters.CancelPaymentParams;
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING]: Parameters.SetWorkspaceAutoReportingParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
 };
 
 const READ_COMMANDS = {

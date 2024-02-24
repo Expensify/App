@@ -62,6 +62,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
             onSubmit={onNext}
             submitButtonText={translate('common.saveAndContinue')}
             style={[styles.mh5, styles.flexGrow1]}
+            enabledWhenOffline={false}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
             <InputWrapper
