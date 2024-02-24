@@ -3,8 +3,10 @@ import React from 'react';
 import type {ReactElement} from 'react';
 import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -13,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
@@ -21,19 +24,25 @@ type ReportActionItemImageProps = {
     thumbnail?: string | ImageSourcePropType | null;
 
     /** URI for the image or local numeric reference for the image  */
-    image: string | ImageSourcePropType;
+    image?: string | ImageSourcePropType;
 
-    /** whether or not to enable the image preview modal */
+    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
-    transaction?: Transaction;
+    transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
     isLocalFile?: boolean;
 
     /** whether the receipt can be replaced */
     canEditReceipt?: boolean;
+
+    /** Filename of attachment */
+    filename?: string;
+
+    /** Whether there are other images displayed in the same parent container */
+    isSingleImage?: boolean;
 };
 
 /**
@@ -42,7 +51,16 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false}: ReportActionItemImageProps) {
+function ReportActionItemImage({
+    thumbnail,
+    image,
+    enablePreviewModal = false,
+    transaction,
+    canEditReceipt = false,
+    isLocalFile = false,
+    filename,
+    isSingleImage = true,
+}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
@@ -54,7 +72,10 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
     if (isEReceipt) {
         receiptImageComponent = (
             <View style={[styles.w100, styles.h100]}>
-                <EReceiptThumbnail transactionID={transaction.transactionID} />
+                <EReceiptThumbnail
+                    transactionID={transaction.transactionID}
+                    iconSize={isSingleImage ? 'medium' : 'small'}
+                />
             </View>
         );
     } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
@@ -63,6 +84,8 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                 previewSourceURL={thumbnailSource}
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired
+                fallbackIcon={Expensicons.Receipt}
+                fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
                 shouldDynamicallyResize={false}
             />
         );
@@ -85,8 +108,8 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                         report={report}
                         isReceiptAttachment
                         canEditReceipt={canEditReceipt}
-                        allowDownload
-                        originalFileName={transaction?.filename}
+                        allowDownload={!isEReceipt}
+                        originalFileName={filename}
                     >
                         {({show}) => (
                             <PressableWithoutFocus
