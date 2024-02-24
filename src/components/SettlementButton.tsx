@@ -9,6 +9,8 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Policy from '@userActions/Policy';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -147,6 +149,21 @@ function SettlementButton({
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
+            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+                text: translate('iou.settlePersonalBank', {formattedAmount}),
+                icon: Expensicons.Bank,
+                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+                text: translate('iou.settleBusinessBank', {formattedAmount}),
+                icon: Expensicons.Bank,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.DEBIT_CARD]: {
+                text: translate('iou.settleDebitCard', {formattedAmount}),
+                icon: Expensicons.CreditCard,
+                value: CONST.PAYMENT_METHODS.DEBIT_CARD,
+            },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount}),
                 icon: Expensicons.Cash,
@@ -169,12 +186,22 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some request or expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
-        if (canUseWallet) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
-        }
-        if (isExpenseReport) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
-        }
+
+        // no longer want to show these options based on https://github.com/Expensify/App/issues/33967
+        // PR issue: https://github.com/Expensify/App/issues/36301
+        // what needs to happen to backend to support? 
+
+        // if (canUseWallet) {
+        //     buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
+        // }
+        // if (isExpenseReport) {
+        //     buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
+        // }
+
+        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
+        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
+
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
         if (shouldShowApproveButton) {
@@ -190,16 +217,34 @@ function SettlementButton({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
-    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-            triggerKYCFlow(event, iouPaymentType);
-            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
-            return;
-        }
-
-        if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            IOU.approveMoneyRequest(iouReport ?? {});
-            return;
+    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType , triggerKYCFlow: TriggerKYCFlow) => {
+        switch (iouPaymentType){
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                // this case i no longer supported as we removed these options per https://github.com/Expensify/App/issues/33967
+                // PR issue: https://github.com/Expensify/App/issues/36301
+                // is this safe to remove? 
+                triggerKYCFlow(event, iouPaymentType);
+                BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+                return;
+            case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+                if (iouReport && ReportUtils.isIOUReport(iouReport)) {
+                    const policyID = Policy.createWorkspaceFromIOUPayment(iouReport);
+                    // Navigate to the bank account set up flow for this specific policy
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
+                    return;
+                }
+                Navigation.navigate(addBankAccountRoute);
+                return;
+            case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+                BankAccounts.openPersonalBankAccountSetupView();
+                return;
+            case CONST.PAYMENT_METHODS.DEBIT_CARD:
+                Navigation.navigate(addDebitCardRoute);
+                return;
+            case CONST.IOU.REPORT_ACTION_TYPE.APPROVE:
+                IOU.approveMoneyRequest(iouReport ?? {});
+                return;
         }
 
         playSound(SOUNDS.DONE);
