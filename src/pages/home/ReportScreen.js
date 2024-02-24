@@ -648,7 +648,7 @@ export default compose(
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
                 selector: (parentReportActions, props) => {
                     const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
-                    if (!parentReportActionID || !parentReportActions) {
+                    if (!parentReportActionID) {
                         return {};
                     }
                     return lodashGet(parentReportActions, parentReportActionID, {});
