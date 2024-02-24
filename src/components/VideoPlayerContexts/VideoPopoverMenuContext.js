@@ -5,7 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
-import * as Url from '@libs/Url';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import {usePlaybackContext} from './PlaybackContext';
 
@@ -27,7 +27,7 @@ function VideoPopoverMenuContextProvider({children}) {
 
     const downloadAttachment = useCallback(() => {
         currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-            const sourceURI = `/${Url.getPathFromURL(status.uri)}`;
+            const sourceURI = tryResolveUrlFromApiRoot(status.uri);
             fileDownload(sourceURI);
         });
     }, [currentVideoPlayerRef]);
