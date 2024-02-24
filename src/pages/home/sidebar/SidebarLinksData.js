@@ -312,7 +312,6 @@ const reportActionsSelector = (reportActions) =>
             parentReportActionID,
             actionName,
             errors,
-            originalMessage,
             message: [
                 {
                     moderationDecision: {decision},
