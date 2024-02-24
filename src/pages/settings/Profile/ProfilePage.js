@@ -179,17 +179,19 @@ function ProfilePage(props) {
                         childrenStyles={styles.pt5}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
-                        {_.map(publicOptions, (detail, index) => (
-                            <MenuItemWithTopDescription
-                                key={`${detail.title}_${index}`}
-                                shouldShowRightIcon
-                                title={detail.title}
-                                description={detail.description}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={() => Navigation.navigate(detail.pageRoute)}
-                                brickRoadIndicator={detail.brickRoadIndicator}
-                            />
-                        ))}
+                        <MenuItemGroup>
+                            {_.map(publicOptions, (detail, index) => (
+                                <MenuItemWithTopDescription
+                                    key={`${detail.title}_${index}`}
+                                    shouldShowRightIcon
+                                    title={detail.title}
+                                    description={detail.description}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    brickRoadIndicator={detail.brickRoadIndicator}
+                                />
+                            ))}
+                        </MenuItemGroup>
                     </Section>
                     <Section
                         title={props.translate('profilePage.privateSection.title')}
