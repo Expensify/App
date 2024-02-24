@@ -170,16 +170,16 @@ function ProfilePage(props) {
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={props.translate('profilePage.publicSection.title')}
-                        subtitle={props.translate('profilePage.publicSection.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        childrenStyles={styles.pt5}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                    >
-                        <MenuItemGroup>
+                <MenuItemGroup>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={props.translate('profilePage.publicSection.title')}
+                            subtitle={props.translate('profilePage.publicSection.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt5}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
                             {_.map(publicOptions, (detail, index) => (
                                 <MenuItemWithTopDescription
                                     key={`${detail.title}_${index}`}
@@ -191,34 +191,34 @@ function ProfilePage(props) {
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
-                        </MenuItemGroup>
-                    </Section>
-                    <Section
-                        title={props.translate('profilePage.privateSection.title')}
-                        subtitle={props.translate('profilePage.privateSection.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        childrenStyles={styles.pt3}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                    >
-                        {isLoadingPersonalDetails ? (
-                            <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
-                        ) : (
-                            <MenuItemGroup>
-                                {_.map(privateOptions, (detail, index) => (
-                                    <MenuItemWithTopDescription
-                                        key={`${detail.title}_${index}`}
-                                        shouldShowRightIcon
-                                        title={detail.title}
-                                        description={detail.description}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={() => Navigation.navigate(detail.pageRoute)}
-                                    />
-                                ))}
-                            </MenuItemGroup>
-                        )}
-                    </Section>
-                </View>
+                        </Section>
+                        <Section
+                            title={props.translate('profilePage.privateSection.title')}
+                            subtitle={props.translate('profilePage.privateSection.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt3}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {isLoadingPersonalDetails ? (
+                                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                            ) : (
+                                <>
+                                    {_.map(privateOptions, (detail, index) => (
+                                        <MenuItemWithTopDescription
+                                            key={`${detail.title}_${index}`}
+                                            shouldShowRightIcon
+                                            title={detail.title}
+                                            description={detail.description}
+                                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                                            onPress={() => Navigation.navigate(detail.pageRoute)}
+                                        />
+                                    ))}
+                                </>
+                            )}
+                        </Section>
+                    </View>
+                </MenuItemGroup>
             </ScrollView>
         </ScreenWrapper>
     );
