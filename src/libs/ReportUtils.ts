@@ -956,7 +956,7 @@ function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Returns true if the policy is of `instant` submit type and if the report is still being processed (i.e. submitted)
+ * Returns true if the policy has `instant` reporting frequency and if the report is still being processed (i.e. submitted state)
  */
 function isInstantSubmittedState(report: OnyxEntry<Report> | EmptyObject): boolean {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
