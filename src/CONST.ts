@@ -895,6 +895,7 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
+    DEFAULT_NETWORK_DATA: {isOffline: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -950,6 +951,9 @@ const CONST = {
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
+
+    // Amount of emojis to render ahead at the end of the update cycle
+    EMOJI_DRAW_AMOUNT: 250,
 
     INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
@@ -1554,7 +1558,9 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
+        WORKSPACE_SETTINGS: 'WorkspaceSettings',
     },
     get EXPENSIFY_EMAILS() {
         return [
@@ -3105,6 +3111,8 @@ const CONST = {
      * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
      */
     ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    VALIDATION_REIMBURSEMENT_INPUT_LIMIT: 20,
 
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {

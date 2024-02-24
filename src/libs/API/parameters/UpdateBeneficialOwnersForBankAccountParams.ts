@@ -1,5 +1,5 @@
-import type {BeneficialOwnersStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {ACHContractStepProps} from '@src/types/form/ReimbursementAccountForm';
 
-type UpdateBeneficialOwnersForBankAccountParams = BeneficialOwnersStepProps & {bankAccountID: number; policyID: string; canUseNewVbbaFlow?: boolean};
+type UpdateBeneficialOwnersForBankAccountParams = Partial<ACHContractStepProps> & {bankAccountID: number; policyID: string; canUseNewVbbaFlow?: boolean};
 
 export default UpdateBeneficialOwnersForBankAccountParams;
