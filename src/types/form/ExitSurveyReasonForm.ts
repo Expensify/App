@@ -8,9 +8,12 @@ const INPUT_IDS = {
     REASON: 'reason',
 } as const;
 
-type ExitSurveyReasonForm = Form<{
-    [INPUT_IDS.REASON]: ExitReason;
-}>;
+type ExitSurveyReasonForm = Form<
+    ValueOf<typeof INPUT_IDS>,
+    {
+        [INPUT_IDS.REASON]: ExitReason;
+    }
+>;
 
 export type {ExitSurveyReasonForm, ExitReason};
 export default INPUT_IDS;
