@@ -1,7 +1,7 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
@@ -70,14 +70,16 @@ function createCentralPaneNavigator(route: NavigationPartialRoute<CentralPaneNam
     };
 }
 
-function createFullScreenNavigator(route: NavigationPartialRoute<FullScreenName>): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
+function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName>): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
     const routes = [];
 
     routes.push({name: SCREENS.SETTINGS.ROOT});
-    routes.push({
-        name: SCREENS.SETTINGS_CENTRAL_PANE,
-        state: getRoutesWithIndex([route]),
-    });
+    if (route) {
+        routes.push({
+            name: SCREENS.SETTINGS_CENTRAL_PANE,
+            state: getRoutesWithIndex([route]),
+        });
+    }
 
     return {
         name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,
@@ -129,10 +131,15 @@ function getMatchingRootRouteForRHPRoute(
             return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
         }
     }
+
+    // This screen is opened from the LHN of the FullStackNavigator, so in this case we shouldn't push any CentralPane screen
+    if (route.name === SCREENS.SETTINGS.SHARE_CODE) {
+        return createFullScreenNavigator();
+    }
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
-    const isSmallScreenWidth = getIsSmallScreenWidth();
+    const isNarrowLayout = getIsNarrowLayout();
     const metainfo = {
         isCentralPaneAndBottomTabMandatory: true,
         isFullScreenNavigatorMandatory: true,
@@ -194,7 +201,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 policyID,
             ),
         );
-        if (!isSmallScreenWidth) {
+        if (!isNarrowLayout) {
             routes.push(
                 createCentralPaneNavigator({
                     name: SCREENS.REPORT,
@@ -226,7 +233,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 policyID,
             ),
         );
-        if (!isSmallScreenWidth) {
+        if (!isNarrowLayout) {
             routes.push(createCentralPaneNavigator({name: SCREENS.REPORT}));
         }
         routes.push(fullScreenNavigator);
@@ -254,7 +261,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // Routes
         // - found bottom tab
         // - matching central pane on desktop layout
-        if (isSmallScreenWidth) {
+        if (isNarrowLayout) {
             return {
                 adaptedState: state,
                 metainfo,

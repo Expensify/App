@@ -25,7 +25,7 @@ import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
 
 type ChildrenProps = {
-    insets?: EdgeInsets;
+    insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
         paddingBottom?: DimensionValue;
     };
@@ -127,7 +127,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldEnableMaxHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -201,7 +201,17 @@ function ScreenWrapper(
 
     return (
         <SafeAreaConsumer>
-            {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
+            {({
+                insets = {
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                },
+                paddingTop,
+                paddingBottom,
+                safeAreaPaddingBottomStyle,
+            }) => {
                 const paddingStyle: StyleProp<ViewStyle> = {};
 
                 if (includePaddingTop) {
