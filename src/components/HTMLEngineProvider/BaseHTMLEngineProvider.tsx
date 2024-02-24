@@ -60,7 +60,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'thread-title': HTMLElementModel.fromCustomModel({
                 tagName: 'thread-title',
                 contentModel: HTMLContentModel.textual,
-                mixedUAStyles: {...styles.headerText},
+                mixedUAStyles: {...styles.headerText, whiteSpace: 'pre'},
                 reactNativeProps: {
                     text: {numberOfLines: 1},
                 },
@@ -79,7 +79,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
             }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
+        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16, styles.headerText],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
