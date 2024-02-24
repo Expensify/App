@@ -52,6 +52,7 @@ import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import linkingConfig from './Navigation/linkingConfig';
@@ -722,12 +723,10 @@ function hasParticipantInArray(report: Report, policyMemberAccountIDs: number[])
 /**
  * Whether the Money Request report is settled
  */
-function isSettled(reportOrID: Report | OnyxEntry<Report> | string | undefined): boolean {
-    if (!allReports || !reportOrID) {
+function isSettled(reportID: string | undefined): boolean {
+    if (!allReports || !reportID) {
         return false;
     }
-    const reportID = typeof reportOrID === 'string' ? reportOrID : reportOrID?.reportID;
-
     const report: Report | EmptyObject = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
     if (isEmptyObject(report) || report.isWaitingOnBankAccount) {
         return false;
@@ -1443,7 +1442,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxCo
 
     const sortedParticipantDetails = participantDetails.sort((first, second) => {
         // First sort by displayName/login
-        const displayNameLoginOrder = first[1].localeCompare(second[1]);
+        const displayNameLoginOrder = localeCompare(first[1], second[1]);
         if (displayNameLoginOrder !== 0) {
             return displayNameLoginOrder;
         }
@@ -1701,7 +1700,7 @@ function getDisplayNamesWithTooltips(
         })
         .sort((first, second) => {
             // First sort by displayName/login
-            const displayNameLoginOrder = first.displayName.localeCompare(second.displayName);
+            const displayNameLoginOrder = localeCompare(first.displayName, second.displayName);
             if (displayNameLoginOrder !== 0) {
                 return displayNameLoginOrder;
             }

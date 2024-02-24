@@ -59,6 +59,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CARD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };

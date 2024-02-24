@@ -400,6 +400,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        textNormalThemeText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textLarge: {
             fontSize: variables.fontSizeLarge,
         },
@@ -485,6 +490,10 @@ const styles = (theme: ThemeColors) =>
 
         opacity0: {
             opacity: 0,
+        },
+
+        opacitySemiTransparent: {
+            opacity: 0.5,
         },
 
         opacity1: {
@@ -1233,6 +1242,13 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
+        },
+
+        textLabelSupportingNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            color: theme.textSupporting,
+            fontWeight: FontUtils.fontWeight.normal,
         },
 
         textLabelError: {
@@ -4602,6 +4618,10 @@ const styles = (theme: ThemeColors) =>
 
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
+        },
+
+        widthAuto: {
+            width: 'auto',
         },
 
         workspaceTitleStyle: {
