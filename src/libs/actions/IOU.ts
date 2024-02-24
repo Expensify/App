@@ -814,7 +814,7 @@ function getMoneyRequestInformation(
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
             if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we substract the total from the amount
+                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 iouReport.total -= amount;
             }
         } else {
