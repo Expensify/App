@@ -28,6 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {translatableTextPropTypes} from '@libs/Localize';
 import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -228,9 +229,21 @@ function InitialSettingsPage(props) {
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
+                {
+                    translationKey: 'sidebarScreen.saveTheWorld',
+                    icon: Expensicons.Heart,
+                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                    action: () => {
+                        interceptAnonymousUser(
+                            waitForNavigate(() => {
+                                Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD);
+                            }),
+                        );
+                    },
+                },
             ],
         }),
-        [styles.pt4],
+        [styles.pt4, waitForNavigate],
     );
 
     /**
