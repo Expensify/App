@@ -86,7 +86,6 @@ type ThemeColors = {
     skeletonLHNOut: Color;
     QRLogo: Color;
     starDefaultBG: Color;
-    loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
     videoPlayerBG: Color;
