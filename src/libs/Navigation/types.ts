@@ -59,6 +59,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.CARD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };
@@ -72,6 +75,9 @@ type CentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
 };
@@ -289,6 +295,13 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        backTo: Routes | undefined;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        pageIndex: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;

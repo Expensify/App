@@ -1,7 +1,7 @@
 import lodashCompact from 'lodash/compact';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, View} from 'react-native';
+import {Alert, Image as RNImage, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -57,11 +57,22 @@ const getImagePickerOptions = (type) => {
 };
 
 /**
- * See https://github.com/rnmods/react-native-document-picker#options for DocumentPicker configuration options
+ * Return documentPickerOptions based on the type
+ * @param {String} type
+ * @returns {Object}
  */
-const documentPickerOptions = {
-    type: [RNDocumentPicker.types.allFiles],
-    copyTo: 'cachesDirectory',
+
+const getDocumentPickerOptions = (type) => {
+    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        return {
+            type: [RNDocumentPicker.types.images],
+            copyTo: 'cachesDirectory',
+        };
+    }
+    return {
+        type: [RNDocumentPicker.types.allFiles],
+        copyTo: 'cachesDirectory',
+    };
 };
 
 /**
@@ -158,7 +169,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
      */
     const showDocumentPicker = useCallback(
         () =>
-            RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
                 }
@@ -166,7 +177,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 showGeneralAlert(error.message);
                 throw error;
             }),
-        [showGeneralAlert],
+        [showGeneralAlert, type],
     );
 
     const menuItemData = useMemo(() => {
@@ -181,7 +192,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             },
-            type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE && {
+            {
                 icon: Expensicons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
@@ -189,7 +200,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
         ]);
 
         return data;
-    }, [showDocumentPicker, showImagePicker, type, shouldHideCameraOption]);
+    }, [showDocumentPicker, showImagePicker, shouldHideCameraOption]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -232,22 +243,23 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 onCanceled.current();
                 return Promise.resolve();
             }
-
             const fileData = _.first(attachments);
-
-            if (fileData.width === -1 || fileData.height === -1) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current(result);
-                })
-                .catch((error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
-                });
+            RNImage.getSize(fileData.uri, (width, height) => {
+                fileData.width = width;
+                fileData.height = height;
+                if (fileData.width === -1 || fileData.height === -1) {
+                    showImageCorruptionAlert();
+                    return Promise.resolve();
+                }
+                return getDataForUpload(fileData)
+                    .then((result) => {
+                        completeAttachmentSelection.current(result);
+                    })
+                    .catch((error) => {
+                        showGeneralAlert(error.message);
+                        throw error;
+                    });
+            });
         },
         [showGeneralAlert, showImageCorruptionAlert],
     );

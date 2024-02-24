@@ -47,6 +47,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,
                 },
+                [SCREENS.WORKSPACE.WORKFLOWS]: {
+                    path: ROUTES.WORKSPACE_WORKFLOWS.route,
+                },
                 [SCREENS.WORKSPACE.REIMBURSE]: {
                     path: ROUTES.WORKSPACE_REIMBURSE.route,
                 },
@@ -61,6 +64,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.MEMBERS]: {
                     path: ROUTES.WORKSPACE_MEMBERS.route,
+                },
+                [SCREENS.WORKSPACE.CATEGORIES]: {
+                    path: ROUTES.WORKSPACE_CATEGORIES.route,
                 },
             },
         },
