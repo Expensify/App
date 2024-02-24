@@ -112,7 +112,7 @@ const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boo
 
 const isPolicyPayer = (policy: OnyxEntry<Policy> | EmptyObject, session: OnyxEntry<Session>, isApproved: boolean, isManager: boolean, isAdmin: boolean): boolean => {
     if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-        const isReimburser = session?.email === policy?.reimbursersEmail;
+        const isReimburser = session?.email === policy?.reimburserEmail;
         return isReimburser && (isApproved || isManager);
     }
     if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {

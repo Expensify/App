@@ -172,7 +172,7 @@ type Policy = {
     };
 
     /** Email of the reimburser when reimbursement is set direct */
-    reimbursersEmail?: string;
+    reimburserEmail?: string;
 
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
