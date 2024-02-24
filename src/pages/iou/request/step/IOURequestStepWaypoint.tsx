@@ -114,7 +114,7 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, isCreatingRequest);
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
@@ -151,7 +151,7 @@ function IOURequestStepWaypoint({
             name: values.name,
         };
 
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, isCreatingRequest);
         if (backTo) {
             Navigation.goBack(backTo);
             return;
