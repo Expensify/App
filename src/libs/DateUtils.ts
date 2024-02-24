@@ -729,7 +729,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
  * @returns
  */
 
-function formatUTCToLocal(dateString: string, dateFormat = CONST.DATE.ISO_LOCAL_DATE_TIME) {
+function formatUTCToLocal(dateString: string, useSelectedTimezone = true, dateFormat = CONST.DATE.ISO_LOCAL_DATE_TIME) {
     if (dateString === '' || !dateString) {
         return dateString;
     }
@@ -739,11 +739,11 @@ function formatUTCToLocal(dateString: string, dateFormat = CONST.DATE.ISO_LOCAL_
     if (!isValid(date)) {
         return '';
     }
+    const currentTimezone = useSelectedTimezone ? timezone.selected : Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const utcDate = zonedTimeToUtc(date, 'UTC');
-    const localDate = zonedTimeToUtc(utcDate, localTimezone);
-    return tzFormat(localDate, dateFormat, {timeZone: localTimezone});
+    const localDate = zonedTimeToUtc(utcDate, currentTimezone);
+    return tzFormat(localDate, dateFormat, {timeZone: currentTimezone});
 }
 
 /**
