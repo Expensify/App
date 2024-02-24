@@ -4,6 +4,7 @@ import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
@@ -85,7 +86,7 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const hasViolations = TransactionUtils.hasViolation(transaction, transactionViolations);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -113,6 +114,9 @@ function MoneyRequestPreviewContent({
     }
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(transaction)] : [];
+
+    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
+    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
 
     const getSettledMessage = (): string => {
         if (isCardTransaction) {
@@ -148,13 +152,13 @@ function MoneyRequestPreviewContent({
 
         let message = translate('iou.cash');
         if (hasViolations && transaction) {
-            const violations = TransactionUtils.getTransactionViolations(transaction, transactionViolations);
+            const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
                 const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
                 message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
             }
-        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport)) {
+        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
@@ -206,7 +210,12 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {hasReceipt && (
+                    {showMapAsImage && (
+                        <View style={styles.reportActionItemImages}>
+                            <ConfirmedRoute transaction={transaction} />
+                        </View>
+                    )}
+                    {!showMapAsImage && hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
                             isHovered={isHovered || isScanning}
@@ -266,7 +275,11 @@ function MoneyRequestPreviewContent({
                                     {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription && <RenderHTML html={`<muted-text>${parser.replace(merchantOrDescription)}</muted-text>`} />}
+                                    {shouldShowDescription && (
+                                        <View style={[styles.breakWord, styles.preWrap]}>
+                                            <RenderHTML html={`<muted-text>${parser.replace(merchantOrDescription)}</muted-text>`} />
+                                        </View>
+                                    )}
                                     {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
                                 {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
