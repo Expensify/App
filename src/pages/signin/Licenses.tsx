@@ -6,10 +6,16 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import {Account} from '@src/types/onyx';
 
 const currentYear = new Date().getFullYear();
 
-function Licenses() {
+type LicensesProps = {
+    /** The details about the account that the user is signing in with */
+    account: Account;
+};
+
+function Licenses({account}: LicensesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
@@ -27,7 +33,10 @@ function Licenses() {
                 .
             </Text>
             <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
-                <LocalePicker size="small" />
+                <LocalePicker
+                    account={account}
+                    size="small"
+                />
             </View>
         </>
     );
