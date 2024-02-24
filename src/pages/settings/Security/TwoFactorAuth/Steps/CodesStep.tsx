@@ -32,7 +32,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
-    const [error, setError] = useState('');
+    const [error, setError] = useState<TranslationPaths | ''>('');
 
     const {setStep} = useTwoFactorAuthContext();
 
@@ -125,7 +125,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     {Boolean(error) && (
                         <FormHelpMessage
                             isError
-                            message={translate(error as TranslationPaths)}
+                            message={error ? translate(error) : ''}
                             style={[styles.mb3]}
                         />
                     )}

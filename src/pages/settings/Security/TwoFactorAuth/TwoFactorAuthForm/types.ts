@@ -8,4 +8,9 @@ type TwoFactorAuthFormNativeProps = {
     innerRef: () => void;
 };
 
-export type {TwoFactorAuthFormProps, TwoFactorAuthFormNativeProps};
+type BaseTwoFactorAuthFormRef = {
+    validateAndSubmitForm: () => void;
+    focus: () => void;
+};
+
+export type {TwoFactorAuthFormProps, TwoFactorAuthFormNativeProps, BaseTwoFactorAuthFormRef};
