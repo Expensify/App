@@ -1,5 +1,5 @@
 import type React from 'react';
-import {Account} from '@src/types/onyx';
+import type {Account} from '@src/types/onyx';
 
 type SignInPageLayoutProps = {
     /** The children to show inside the layout */

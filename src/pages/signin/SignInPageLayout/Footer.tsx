@@ -19,7 +19,7 @@ import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import {Account} from '@src/types/onyx';
+import type {Account} from '@src/types/onyx';
 import type {SignInPageLayoutProps} from './types';
 
 type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'> & {
