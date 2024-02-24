@@ -186,11 +186,6 @@ function FloatingActionButtonAndPopover(props) {
                             onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                         },
                     ],
-                    {
-                        icon: Expensicons.Heart,
-                        text: translate('sidebarScreen.saveTheWorld'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
-                    },
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
