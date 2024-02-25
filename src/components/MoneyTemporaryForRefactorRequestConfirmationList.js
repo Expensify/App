@@ -251,7 +251,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
-    const displayDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
@@ -286,6 +285,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
+    const formattedDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const defaultTaxKey = policyTaxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
@@ -681,7 +681,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                    title={displayDistance}
+                    title={formattedDistance}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}

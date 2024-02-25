@@ -132,7 +132,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
+    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest, canUseP2PDistanceRequests]);
 
     /**
      * Returns the sections needed for the OptionsSelector

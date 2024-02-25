@@ -227,7 +227,6 @@ function MoneyRequestConfirmationList(props) {
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
-    const displayDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
 
     // A flag for showing the categories field
@@ -262,6 +261,7 @@ function MoneyRequestConfirmationList(props) {
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
+    const formattedDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const defaultTaxKey = props.policyTaxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${props.policyTaxRates.taxes[defaultTaxKey].name} (${props.policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
@@ -721,7 +721,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={displayDistance}
+                            title={formattedDistance}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
