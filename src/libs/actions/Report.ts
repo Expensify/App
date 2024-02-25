@@ -1712,7 +1712,7 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     ];
 
     const parameters = {
-        fieldID: reportField.fieldID,
+        fieldID: `expensify_${reportField.fieldID}`,
     };
 
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
