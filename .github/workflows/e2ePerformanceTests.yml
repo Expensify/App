@@ -178,6 +178,21 @@ jobs:
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
 
+      # Note: we can't reuse the apps tsconfig, as it depends on modules that aren't available in the AWS Device Farm environment
+      - name: Write tsconfig.json to zip folder
+        run: |
+          echo '{
+            "compilerOptions": {
+              "target": "ESNext",
+              "module": "commonjs",
+              "strict": true,
+              "esModuleInterop": true,
+              "skipLibCheck": true,
+              "forceConsistentCasingInFileNames": true,
+              "allowJs": true,
+            }
+          }' > zip/tsconfig.json
+
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip
 
