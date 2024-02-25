@@ -4,7 +4,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
-const GitUtils = require('../../../libs/GitUtils');
+const GitUtils = require('../../../libs/GitUtils').default;
 
 async function run() {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time

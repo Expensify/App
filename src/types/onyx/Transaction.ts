@@ -16,12 +16,31 @@ type Waypoint = {
 
     /** The longitude of the waypoint */
     lng?: number;
+
+    /** Address city */
+    city?: string;
+
+    /** Address state */
+    state?: string;
+
+    /** Address zip code */
+    zipCode?: string;
+
+    /** Address country */
+    country?: string;
+
+    /** Address street line 1 */
+    street?: string;
+
+    /** Address street line 2 */
+    street2?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 type Comment = {
     comment?: string;
+    hold?: string;
     waypoints?: WaypointCollection;
     isLoading?: boolean;
     type?: string;
@@ -163,7 +182,7 @@ type Transaction = {
     taxAmount?: number;
 
     /** Pending fields for the transaction */
-    pendingFields?: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    pendingFields?: Partial<{[K in keyof Transaction | keyof Comment]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
 
     /** Card Transactions */
 

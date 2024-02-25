@@ -12,6 +12,8 @@ type CreateDistanceRequestParams = {
     category?: string;
     tag?: string;
     billable?: boolean;
+    transactionThreadReportID: string;
+    createdReportActionIDForThread: string;
 };
 
 export default CreateDistanceRequestParams;

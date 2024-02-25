@@ -13,7 +13,7 @@ Onyx.connect({
  * Returns a locally converted phone number for numbers from the same region
  * and an internationally converted phone number with the country code for numbers from other regions
  */
-function formatPhoneNumber(number: string | undefined): string {
+function formatPhoneNumber(number: string): string {
     if (!number) {
         return '';
     }
