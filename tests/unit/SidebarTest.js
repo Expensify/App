@@ -132,7 +132,7 @@ describe('Sidebar', () => {
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                         const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
                         expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe(
-                            'This workspace chat is no longer active because Vikings Policy is no longer an active workspace.',
+                            'This chat is no longer active because Vikings Policy is no longer an active workspace.',
                         );
                     })
             );
