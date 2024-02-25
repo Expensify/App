@@ -21,7 +21,7 @@ function appleSignInRequest(): Promise<string | null | undefined> {
             appleAuth.getCredentialStateForUser(response.user).then((credentialState) => {
                 if (credentialState !== appleAuth.State.AUTHORIZED) {
                     Log.alert('[Apple Sign In] Authentication failed. Original response: ', {response});
-                    throw new Error('Authentication failed');
+                    throw new Error('Authenticationd failed');
                 }
                 return response.identityToken;
             }),

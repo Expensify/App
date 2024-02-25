@@ -5,6 +5,8 @@ import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
+import Lightbox from '@components/Lightbox';
+import {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +17,7 @@ import type {ImageLoadNativeEventData, ImageViewProps} from './types';
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
-function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
+function ImageView({isAuthTokenRequired = false, url, fileName, onError, zoomRange = DEFAULT_ZOOM_RANGE, style}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
@@ -197,19 +199,14 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 style={[styles.imageViewContainer, styles.overflowHidden]}
                 onLayout={onContainerLayoutChanged}
             >
-                <Image
-                    source={{uri: url}}
+                <Lightbox
+                    uri={url}
+                    zoomRange={zoomRange}
                     isAuthTokenRequired={isAuthTokenRequired}
-                    // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                    style={isLoading || zoomScale === 0 ? undefined : [styles.w100, styles.h100]}
-                    // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
-                    // Both `center` and `contain` keeps the image centered on both x and y axis.
-                    resizeMode={zoomScale > 1 ? RESIZE_MODES.center : RESIZE_MODES.contain}
-                    onLoadStart={imageLoadingStart}
-                    onLoad={imageLoad}
                     onError={onError}
+                    style={style}
                 />
-                {(isLoading || zoomScale === 0) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                {/* {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />} */}
             </View>
         );
     }
@@ -232,7 +229,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 accessibilityLabel={fileName}
             >
                 <Image
-                    source={{uri: url}}
+                    source={''}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}
                     resizeMode={RESIZE_MODES.contain}
