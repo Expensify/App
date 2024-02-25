@@ -85,6 +85,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             scrollContextEnabled
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
+            isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
         >
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once AddPlaidBankAccount (https://github.com/Expensify/App/issues/25119) is migrated to TypeScript

@@ -367,6 +367,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
+                } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
+                    const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
+                    setClipboardMessage(mentionWhisperMessage);
                 } else if (content) {
                     setClipboardMessage(content);
                 } else if (messageText) {
