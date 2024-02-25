@@ -26,6 +26,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -218,12 +219,27 @@ Onyx.connect({
     },
 });
 
+let lastSelectedDistanceRates: OnyxEntry<OnyxTypes.LastSelectedDistanceRates> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+    callback: (value) => {
+        lastSelectedDistanceRates = value;
+    },
+});
+
 /**
  * Initialize money request info
- * @param reportID to attach the transaction to
+ * @param report to attach the transaction to
+ * @param policy
+ * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
  */
-function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(
+    report: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isFromGlobalCreate: boolean,
+    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // Disabling this line since currentDate can be an empty string
@@ -237,6 +253,11 @@ function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequ
             waypoint0: {},
             waypoint1: {},
         };
+        let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+        if (report?.isPolicyExpenseChat) {
+            customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? '']?.customUnitRateID ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.rateID ?? '';
+        }
+        comment.customUnit = {customUnitRateID};
     }
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -247,7 +268,7 @@ function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequ
         created,
         currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         iouRequestType,
-        reportID,
+        reportID: report?.reportID ?? '',
         transactionID: newTransactionID,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,

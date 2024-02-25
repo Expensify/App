@@ -98,8 +98,8 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.initMoneyRequest(reportID, isFromGlobalCreate, transactionRequestType.current);
-    }, [transaction, reportID, iouType, isFromGlobalCreate]);
+        IOU.initMoneyRequest(report, policy, isFromGlobalCreate, transactionRequestType.current);
+    }, [transaction, reportID, report, policy, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);

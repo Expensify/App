@@ -217,7 +217,7 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.transaction;
-    const {canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
@@ -227,6 +227,7 @@ function MoneyRequestConfirmationList(props) {
 
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
+    const displayDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
 
     // A flag for showing the categories field
@@ -720,12 +721,12 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={props.iouMerchant}
+                            title={displayDistance}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
-                            disabled={didConfirm || !isTypeRequest}
+                            disabled={didConfirm || canUseP2PDistanceRequests || !isTypeRequest}
                             interactive={!props.isReadOnly}
                         />
                     )}

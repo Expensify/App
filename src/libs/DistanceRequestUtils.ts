@@ -7,6 +7,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
 type DefaultMileageRate = {
+    rateID?: string;
     rate?: number;
     currency?: string;
     unit: Unit;
@@ -38,6 +39,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): DefaultMileageRate | 
     }
 
     return {
+        rateID: distanceRate.customUnitRateID,
         rate: distanceRate.rate,
         currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
@@ -74,6 +76,27 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
 function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
     return convertedDistance.toFixed(2);
+}
+
+/**
+ * @param hasRoute Whether the route exists for the distance request
+ * @param distanceInMeters Distance traveled
+ * @param unit Unit that should be used to display the distance
+ * @param rate Expensable amount allowed per unit
+ * @param translate Translate function
+ * @returns A string that describes the distance traveled
+ */
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, rate: number, translate: LocaleContextProps['translate']): string {
+    if (!hasRoute || !rate) {
+        return translate('iou.routePending');
+    }
+
+    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
+    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
+
+    return `${distanceInUnits} ${unitString}`;
 }
 
 /**
@@ -124,4 +147,4 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
     return Math.round(roundedDistance * rate);
 }
 
-export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
+export default {getDefaultMileageRate, getDistanceForDisplay, getDistanceMerchant, getDistanceRequestAmount};
