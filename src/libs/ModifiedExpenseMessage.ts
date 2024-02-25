@@ -9,6 +9,7 @@ import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 import type {ExpenseOriginalMessage} from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
@@ -189,8 +190,8 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
-        const splittedTag = transactionTag.split(CONST.COLON);
-        const splittedOldTag = oldTransactionTag.split(CONST.COLON);
+        const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
+        const splittedOldTag = TransactionUtils.getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = Localize.translateLocal('common.tag');
 
         Object.keys(policyTags).forEach((policyTagKey, index) => {

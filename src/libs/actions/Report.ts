@@ -67,6 +67,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
@@ -86,12 +87,14 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
+let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, val is undefined
         if (!value?.accountID) {
+            conciergeChatReportID = undefined;
             return;
         }
 
@@ -168,7 +171,6 @@ Onyx.connect({
 });
 
 const allReports: OnyxCollection<Report> = {};
-let conciergeChatReportID: string | undefined;
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -1716,24 +1718,29 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 
 /**
  * Navigates to the 1:1 report with Concierge
- *
- * @param ignoreConciergeReportID - Flag to ignore conciergeChatReportID during navigation. The default behavior is to not ignore.
  */
-function navigateToConciergeChat(ignoreConciergeReportID = false, shouldDismissModal = false) {
+function navigateToConciergeChat(shouldDismissModal = false, shouldPopCurrentScreen = false, checkIfCurrentPageActive = () => true) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
-    // Now, when user performs sign-out and a sign-in again, conciergeChatReportID may contain a stale value.
-    // In order to prevent navigation to a stale value, we use ignoreConciergeReportID to forcefully find and navigate to concierge chat.
-    if (!conciergeChatReportID || ignoreConciergeReportID) {
+    if (!conciergeChatReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
             // If we don't have a chat with Concierge then create it
+            if (!checkIfCurrentPageActive()) {
+                return;
+            }
+            if (shouldPopCurrentScreen && !shouldDismissModal) {
+                Navigation.goBack();
+            }
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);
     } else {
+        if (shouldPopCurrentScreen) {
+            Navigation.goBack();
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
@@ -2213,10 +2220,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
         Session.waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
                 const route = ReportUtils.getRouteFromLink(url);
-                if (route === ROUTES.CONCIERGE) {
-                    navigateToConciergeChat(true);
-                    return;
-                }
+
                 if (route && Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
@@ -2838,6 +2842,11 @@ function clearNewRoomFormError() {
         isLoading: false,
         errorFields: null,
         errors: null,
+        [INPUT_IDS.ROOM_NAME]: '',
+        [INPUT_IDS.REPORT_DESCRIPTION]: '',
+        [INPUT_IDS.POLICY_ID]: '',
+        [INPUT_IDS.WRITE_CAPABILITY]: '',
+        [INPUT_IDS.VISIBILITY]: '',
     });
 }
 
