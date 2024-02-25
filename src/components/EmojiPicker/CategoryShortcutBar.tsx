@@ -1,33 +1,26 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
+import type {HeaderIndice} from '@libs/EmojiUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CategoryShortcutButton from './CategoryShortcutButton';
 
-const propTypes = {
+type CategoryShortcutBarProps = {
     /** The function to call when an emoji is selected */
-    onPress: PropTypes.func.isRequired,
+    onPress: (index: number) => void,
 
     /** The emojis consisting emoji code and indices that the icons should link to */
-    headerEmojis: PropTypes.arrayOf(
-        PropTypes.shape({
-            code: PropTypes.string.isRequired,
-            index: PropTypes.number.isRequired,
-            icon: sourcePropTypes.isRequired,
-        }),
-    ).isRequired,
-};
+    headerEmojis: HeaderIndice[]
+}
 
-function CategoryShortcutBar(props) {
+function CategoryShortcutBar(props: CategoryShortcutBarProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.ph4, styles.flexRow]}>
-            {_.map(props.headerEmojis, (headerEmoji, i) => (
+            {props.headerEmojis.map((headerEmoji, i) => (
                 <CategoryShortcutButton
                     icon={headerEmoji.icon}
                     onPress={() => props.onPress(headerEmoji.index)}
+                    // eslint-disable-next-line react/no-array-index-key
                     key={`categoryShortcut${i}`}
                     code={headerEmoji.code}
                 />
@@ -36,7 +29,6 @@ function CategoryShortcutBar(props) {
     );
 }
 
-CategoryShortcutBar.propTypes = propTypes;
 CategoryShortcutBar.displayName = 'CategoryShortcutBar';
 
 export default CategoryShortcutBar;
