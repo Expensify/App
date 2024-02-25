@@ -748,7 +748,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     title={iouCategory}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
@@ -764,7 +768,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItemWithTopDescription
                     key={name}
                     shouldShowRightIcon={!isReadOnly}
-                    title={TransactionUtils.getTag(transaction, index)}
+                    title={TransactionUtils.getTagForDisplay(transaction, index)}
                     description={name}
                     numberOfLinesTitle={2}
                     onPress={() =>

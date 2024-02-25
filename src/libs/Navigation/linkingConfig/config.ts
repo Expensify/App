@@ -46,6 +46,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,
                 },
+                [SCREENS.WORKSPACE.WORKFLOWS]: {
+                    path: ROUTES.WORKSPACE_WORKFLOWS.route,
+                },
                 [SCREENS.WORKSPACE.REIMBURSE]: {
                     path: ROUTES.WORKSPACE_REIMBURSE.route,
                 },
@@ -60,6 +63,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.MEMBERS]: {
                     path: ROUTES.WORKSPACE_MEMBERS.route,
+                },
+                [SCREENS.WORKSPACE.CATEGORIES]: {
+                    path: ROUTES.WORKSPACE_CATEGORIES.route,
                 },
             },
         },
@@ -267,6 +273,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -431,7 +446,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
-                        [SCREENS.MONEY_REQUEST.CATEGORY]: ROUTES.MONEY_REQUEST_CATEGORY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
                         [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
