@@ -6,6 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -54,7 +55,7 @@ type AvatarWithImagePickerProps = {
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Executed once an image has been selected */
-    onImageSelected?: () => void;
+    onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
 
     /** Execute when the user taps "remove" */
     onImageRemoved?: () => void;

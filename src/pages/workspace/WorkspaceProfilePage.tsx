@@ -102,7 +102,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[styles.mb3, isSmallScreenWidth ? styles.mtn17 : styles.mtn20, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
-                                onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
+                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                                 editorMaskImage={Expensicons.ImageCropSquareMask}
                                 pendingAction={policy?.pendingFields?.avatar ?? null}
