@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
-import * as App from '../../src/libs/actions/App';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as PersonalDetails from '../../src/libs/actions/PersonalDetails';
@@ -102,8 +101,7 @@ describe('NetworkTests', () => {
                 );
 
             // This should first trigger re-authentication and then a Failed to fetch
-            App.confirmReadyToOpenApp();
-            App.openApp();
+            PersonalDetails.openPersonalDetails();
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
@@ -114,11 +112,11 @@ describe('NetworkTests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then we will eventually have 3 calls to chatList and 2 calls to Authenticate
-                    const callsToOpenApp = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenApp');
+                    // Then we will eventually have 1 call to OpenPersonalDetailsPage and 1 calls to Authenticate
+                    const callsToOpenPersonalDetails = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenPersonalDetailsPage');
                     const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
 
-                    expect(callsToOpenApp.length).toBe(1);
+                    expect(callsToOpenPersonalDetails.length).toBe(1);
                     expect(callsToAuthenticate.length).toBe(1);
                 });
         });
@@ -177,9 +175,9 @@ describe('NetworkTests', () => {
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToAReadCommand = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenPersonalDetailsPage');
+                const callsToOpenPersonalDetails = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'OpenPersonalDetailsPage');
                 const callsToAuthenticate = _.filter(HttpUtils.xhr.mock.calls, ([command]) => command === 'Authenticate');
-                expect(callsToAReadCommand.length).toBe(3);
+                expect(callsToOpenPersonalDetails.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });
