@@ -1,5 +1,12 @@
+import type CameraPermissionModule from './types';
+
 function requestCameraPermission() {}
 
 function getCameraPermissionStatus() {}
 
-export {requestCameraPermission, getCameraPermissionStatus};
+const CameraPermission: CameraPermissionModule = {
+    requestCameraPermission,
+    getCameraPermissionStatus,
+};
+
+export default CameraPermission;

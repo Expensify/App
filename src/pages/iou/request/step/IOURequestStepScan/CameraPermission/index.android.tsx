@@ -1,4 +1,5 @@
 import {check, PERMISSIONS, request} from 'react-native-permissions';
+import type CameraPermissionModule from './types';
 
 function requestCameraPermission() {
     return request(PERMISSIONS.ANDROID.CAMERA);
@@ -9,4 +10,9 @@ function getCameraPermissionStatus() {
     return check(PERMISSIONS.ANDROID.CAMERA);
 }
 
-export {requestCameraPermission, getCameraPermissionStatus};
+const CameraPermission: CameraPermissionModule = {
+    requestCameraPermission,
+    getCameraPermissionStatus,
+};
+
+export default CameraPermission;
