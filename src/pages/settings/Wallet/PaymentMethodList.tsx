@@ -302,7 +302,7 @@ function PaymentMethodList({
                     hoverAndPressStyle={styles.hoveredComponentBG}
                     shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
-                    isSelected={selectedMethodID === item.methodID}
+                    isSelected={selectedMethodID.toString() === item.methodID?.toString()}
                     interactive={item.interactive}
                     brickRoadIndicator={item.brickRoadIndicator}
                     success={item.isMethodActive}

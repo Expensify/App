@@ -79,7 +79,9 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
         const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
 
         const defaultAccount = paymentMethods.find((method) => method.isDefault);
-        const selectedAccount = paymentMethods.find((method) => method.accountType === walletTransfer?.selectedAccountType && method.methodID === walletTransfer?.selectedAccountID);
+        const selectedAccount = paymentMethods.find(
+            (method) => method.accountType === walletTransfer?.selectedAccountType && method.methodID?.toString() === walletTransfer?.selectedAccountID?.toString(),
+        );
         return selectedAccount ?? defaultAccount;
     }
 
