@@ -379,7 +379,10 @@ function ReportActionItem(props) {
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-            if (ReportUtils.isClosedExpenseReportWithNoExpenses(ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)))) {
+            const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action);
+            const iouReport = ReportUtils.getReport(iouReportID);
+            const isClosedReport = ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport);
+            if (!isClosedReport) {
                 children = (
                     <ReportPreview
                         iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
