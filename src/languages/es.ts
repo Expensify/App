@@ -514,7 +514,7 @@ export default {
             `Este chat esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}.`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
             shouldUseYou
-                ? `Este chat esta desactivado porque <strong>tú</strong> ha dejado de ser miembro del espacio de trabajo ${policyName}.`
+                ? `Este chat ya no está activo porque ya no eres miembro del espacio de trabajo ${policyName}.`
                 : `Este chat esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
             `Este chat esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
