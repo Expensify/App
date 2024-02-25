@@ -1,16 +1,20 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import type {PersonalDetails, Policy, PolicyCategories, PolicyTags, Session, Transaction} from '@src/types/onyx';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type { PolicyTaxRate } from '@src/types/onyx/PolicyTaxRates';
+import type { Participant } from '@src/types/onyx/IOU';
+import type { ValueOf } from 'type-fest';
 import _ from 'underscore';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -27,6 +31,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type Route from '@src/ROUTES'
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
@@ -45,6 +50,7 @@ import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
+
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -204,6 +210,110 @@ const defaultProps = {
     policyTaxRates: {},
 };
 
+
+type DropdownOption = {
+    value: PaymentType;
+    text: string;
+    icon: IconAsset;
+    iconWidth?: number;
+    iconHeight?: number;
+    iconDescription?: string;
+};
+
+type MoneyTemporaryForRefactorRequestConfirmationListProps = {
+    bankAccountRoute?: Route,
+
+    canModifyParticipants: boolean,
+
+    currentUserPersonalDetails: OnyxEntry<PersonalDetails>,
+
+
+    hasMultipleParticipants: boolean,
+
+    hasSmartScanFailed: boolean,
+
+    iouAmount: number,
+
+    iouCategory: string,
+
+    iouComment: string,
+
+    iouCreated: string,
+
+    iouCurrencyCode: string,
+
+    iouIsBillable: boolean,
+
+    iouMerchant: string,
+
+    iouTag: string,
+
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+
+    isDistanceRequest: boolean,
+
+    isEditingSplitBill: boolean,
+
+    isPolicyExpenseChat: boolean,
+
+    isReadOnly: boolean,
+
+    isScanRequest: boolean,
+
+    listStyles: Record<string, unknown> | Array<Record<string, unknown>>,
+
+    mileageRate: {
+        /** Unit used to represent distance */
+        unit: typeof CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES | typeof CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+    
+        /** Rate used to calculate the distance request amount */
+        rate: number;
+    
+        /** The currency of the rate */
+        currency: string;
+    };
+
+    onConfirm: () => void,
+
+    onSelectParticipant: (option: string) => void,
+
+    onSendMoney: (paymentMethod: string) => void,
+
+    onToggleBillable: () => void,
+
+    policyCategories: OnyxEntry<PolicyCategories>,
+
+    policyID: string,
+
+    policyTags: OnyxEntry<PolicyTags>,
+
+    receiptFilename: string,
+
+    receiptPath: string,
+
+    reportID: string,
+
+    session: Session,
+
+    shouldShowSmartScanFields: boolean,
+
+    transaction: Transaction,
+
+    policyTaxRates: PolicyTaxRate,
+
+    reportActionID: string,
+
+    policy:  OnyxEntry<Policy>
+
+
+
+
+
+
+
+}
+
+
 function MoneyTemporaryForRefactorRequestConfirmationList({
     bankAccountRoute,
     canModifyParticipants,
@@ -244,7 +354,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     shouldShowSmartScanFields,
     transaction,
     policyTaxRates,
-}) {
+}: MoneyTemporaryForRefactorRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -255,12 +365,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
 
     const {unit, rate, currency} = mileageRate;
-    const distance = lodashGet(transaction, 'routes.route0.distance', 0);
+    const distance = transaction?.routes?.route0?.distance ?? 0;
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
-
+    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || (policyCategories && OptionsListUtils.hasEnabledOptions(Object.values(policyCategories))));
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
@@ -272,17 +381,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
+    const policyTagList = policyTags?.tags ?? {};
+
+    const policyTagListName = policyTag?.name ?? translate('common.tag');
 
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = isPolicyExpenseChat && (policyTagList && OptionsListUtils.hasEnabledOptions(Object.values(policyTagList)));
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
+    const shouldShowTax = isPolicyExpenseChat && policy?.isTaxTrackingEnabled;
 
     // A flag for showing the billable field
-    const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
+    const shouldShowBillable = !(policy?.disabledFields?.defaultBillable ?? true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate);
@@ -294,9 +404,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
-    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
+    const defaultTaxKey = policyTaxRates?.defaultExternalID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const defaultTaxName = (defaultTaxKey && `${policyTaxRates?.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const taxRateTitle = (transaction?.taxRate?.text) || defaultTaxName;
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -317,8 +429,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && lodashGet(policy, 'requiresCategory', false);
-    const isTagRequired = canUseViolations && lodashGet(policy, 'requiresTag', false);
+    const isCategoryRequired = canUseViolations && (policy?.requiresCategory ?? false);
+    const isTagRequired = canUseViolations && (policy?.requiresTag ?? false);
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
@@ -364,7 +476,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      * @returns {Array}
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList) => {
+        (participantsList: Participant[]) => {
             const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode);
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
         },
@@ -383,7 +495,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
             if (iouAmount !== 0) {
-                text = translate('iou.requestAmount', {amount: formattedAmount});
+                text = translate('iou.requestAmount', {amount: Number(formattedAmount)});
             }
         } else {
             const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.requestAmount';
@@ -397,7 +509,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         ];
     }, [isTypeSplit, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
-    const selectedParticipants = useMemo(() => _.filter(pickedParticipants, (participant) => participant.selected), [pickedParticipants]);
+    const selectedParticipants = useMemo(() => pickedParticipants.filter(participant => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails || currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
     const userCanModifyParticipants = useRef(!isReadOnly && canModifyParticipants && hasMultipleParticipants);
     useEffect(() => {
@@ -407,17 +519,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(pickedParticipants, (participant) => !participant.selected);
+        const unselectedParticipants = pickedParticipants.filter(participant => !participant.selected);
         if (hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
 
             if (!userCanModifyParticipants.current) {
-                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
+                formattedParticipantsList = formattedParticipantsList.map(participant => ({
                     ...participant,
                     isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
                 }));
             }
+            
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
@@ -441,10 +554,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 },
             );
         } else {
-            const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
+            const formattedSelectedParticipants = selectedParticipants.map(participant => ({
                 ...participant,
                 isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
-            }));
+            }));            
             sections.push({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
@@ -493,7 +606,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      * @param {Object} option
      */
     const selectParticipant = useCallback(
-        (option) => {
+        (option: string) => {
             // Return early if selected option is currently logged in user.
             if (option.accountID === accountID) {
                 return;
@@ -517,11 +630,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
     };
 
-    /**
-     * @param {String} paymentMethod
-     */
+
     const confirm = useCallback(
-        (paymentMethod) => {
+        (paymentMethod?: PaymentMethodType) => {
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
@@ -608,7 +719,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             <ButtonWithDropdownMenu
                 pressOnEnter
                 isDisabled={shouldDisableButton}
-                onPress={(_event, value) => confirm(value)}
+                onPress={(event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
@@ -790,7 +901,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${taxRateTitle}`}
+                    key={`${policyTaxRates?.name}${taxRateTitle}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={taxRateTitle}
                     description={policyTaxRates.name}
@@ -807,10 +918,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${policyTaxRates.name}${formattedTaxAmount}`}
+                    key={`${policyTaxRates?.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={policyTaxRates.name}
+                    description={policyTaxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
@@ -837,15 +948,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
     ];
 
-    const primaryFields = _.map(
-        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary),
-        (primaryField) => primaryField.item,
-    );
+    const primaryFields = classifiedFields
+    .filter(classifiedField => classifiedField.shouldShow && !classifiedField.isSupplementary)
+    .map(primaryField => primaryField.item);
 
-    const supplementaryFields = _.map(
-        _.filter(classifiedFields, (classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary),
-        (supplementaryField) => supplementaryField.item,
-    );
+const supplementaryFields = classifiedFields
+    .filter(classifiedField => classifiedField.shouldShow && classifiedField.isSupplementary)
+    .map(supplementaryField => supplementaryField.item);
+
 
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
     return (
@@ -916,13 +1026,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     );
 }
 
-MoneyTemporaryForRefactorRequestConfirmationList.propTypes = propTypes;
-MoneyTemporaryForRefactorRequestConfirmationList.defaultProps = defaultProps;
 MoneyTemporaryForRefactorRequestConfirmationList.displayName = 'MoneyTemporaryForRefactorRequestConfirmationList';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
+export default withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
         },
@@ -942,5 +1048,4 @@ export default compose(
         policyTaxRates: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
-    }),
-)(MoneyTemporaryForRefactorRequestConfirmationList);
+    })(MoneyTemporaryForRefactorRequestConfirmationList);
