@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -121,6 +122,7 @@ function WorkspacePageWithSections({
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -163,7 +165,7 @@ function WorkspacePageWithSections({
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                     icon={icon ?? undefined}
                 />
-                {(isLoading || firstRender.current) && shouldShowLoading ? (
+                {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <>
