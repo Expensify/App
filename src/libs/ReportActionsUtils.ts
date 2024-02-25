@@ -884,6 +884,21 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
     return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
 }
 
+function isSystemMessgage(reportAction: OnyxEntry<ReportAction>): boolean {
+    const systemMessageActionNames: string[] = [
+        ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+        CONST.REPORT.ACTIONS.TYPE.IOU,
+        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        CONST.REPORT.ACTIONS.TYPE.MOVED,
+        CONST.REPORT.ACTIONS.TYPE.HOLD,
+        CONST.REPORT.ACTIONS.TYPE.UNHOLD,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
+        CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+    ];
+
+    return systemMessageActionNames.includes(reportAction?.actionName ?? '');
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -918,6 +933,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
+    isSystemMessgage,
     doesReportHaveVisibleActions,
     isThreadParentMessage,
     isTransactionThread,
