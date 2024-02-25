@@ -98,8 +98,8 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.initMoneyRequest(reportID, isFromGlobalCreate, transactionRequestType.current);
-    }, [transaction, reportID, iouType, isFromGlobalCreate]);
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
+    }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
@@ -117,10 +117,10 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate],
+        [policy, previousIOURequestType, reportID, isFromGlobalCreate],
     );
 
     if (!transaction.transactionID) {

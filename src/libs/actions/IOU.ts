@@ -232,10 +232,11 @@ Onyx.connect({
 /**
  * Initialize money request info
  * @param reportID to attach the transaction to
+ * @param policy
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
  */
-function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // Disabling this line since currentDate can be an empty string
@@ -252,7 +253,7 @@ function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequ
         const report = allReports?.[reportID];
         let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         if (report?.isPolicyExpenseChat) {
-            customUnitRateID = lastSelectedDistanceRates?.[report?.policyID ?? '']?.customUnitRateID ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.rateID ?? '';
+            customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? '']?.customUnitRateID ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.rateID ?? '';
         }
         comment.customUnit = {customUnitRateID};
     }
