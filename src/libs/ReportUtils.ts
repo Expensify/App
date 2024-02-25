@@ -2522,7 +2522,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             formattedName = getTransactionReportName(parentReportAction);
             if (isArchivedRoom(report)) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
-            }        
+            }
             return formattedName;
         }
 
@@ -2547,7 +2547,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
         if (parentReportActionMessage && isArchivedRoom(report)) {
             return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
-        }      
+        }
         return parentReportActionMessage;
     }
 
