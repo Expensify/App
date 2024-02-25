@@ -34,6 +34,7 @@ import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
+import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
@@ -874,9 +875,9 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
     let sortedTags;
 
     if (Array.isArray(tags)) {
-        sortedTags = tags.sort((a, b) => a.name.localeCompare(b.name));
+        sortedTags = tags.sort((a, b) => localeCompare(a.name, b.name));
     } else {
-        sortedTags = Object.values(tags).sort((a, b) => a.name.localeCompare(b.name));
+        sortedTags = Object.values(tags).sort((a, b) => localeCompare(a.name, b.name));
     }
 
     return sortedTags;
