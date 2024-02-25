@@ -149,22 +149,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     };
 
     if (canModifyRequest) {
-        if (!TransactionUtils.hasReceipt(transaction)) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Receipt,
-                text: translate('receipt.addReceipt'),
-                onSelected: () =>
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.REQUEST,
-                            transaction?.transactionID ?? '',
-                            report.reportID,
-                            Navigation.getActiveRouteWithoutParams(),
-                        ),
-                    ),
-            });
-        }
         if (canDeleteRequest) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Trashcan,
