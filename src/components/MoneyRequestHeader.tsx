@@ -148,7 +148,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         IOU.setShownHoldUseExplanation();
     };
 
-    if (canModifyRequest && canDeleteRequest) {
+    if (canDeleteRequest) {
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
