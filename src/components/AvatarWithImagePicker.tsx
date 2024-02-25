@@ -88,7 +88,7 @@ type AvatarWithImagePickerProps = {
     pendingAction?: OnyxCommon.PendingAction;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | null;
 
     /** Title for avatar preview modal */
     headerTitle?: string;
