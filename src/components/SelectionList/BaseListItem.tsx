@@ -44,67 +44,66 @@ function BaseListItem<TItem extends ListItem>({
     };
 
     return (
-        <OfflineWithFeedback
-            onClose={() => onDismissError(item)}
-            pendingAction={pendingAction}
-            errors={errors}
-            errorRowStyles={styles.ph5}
+        <PressableWithFeedback
+            onPress={() => onSelectRow(item)}
+            disabled={isDisabled}
+            accessibilityLabel={item.text}
+            role={CONST.ROLE.BUTTON}
+            hoverDimmingValue={1}
+            hoverStyle={styles.hoveredComponentBG}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+            nativeID={keyForList}
+            style={pressableStyle}
         >
-            <PressableWithFeedback
-                onPress={() => onSelectRow(item)}
-                disabled={isDisabled}
-                accessibilityLabel={item.text}
-                role={CONST.ROLE.BUTTON}
-                hoverDimmingValue={1}
-                hoverStyle={styles.hoveredComponentBG}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList}
-                style={pressableStyle}
-            >
-                {({hovered}) => (
-                    <>
-                        <View style={wrapperStyle}>
-                            {canSelectMultiple && (
-                                <View
-                                    role={CONST.ROLE.BUTTON}
-                                    style={StyleUtils.getCheckboxPressableStyle()}
-                                >
-                                    <View style={selectMultipleStyle}>
-                                        {item.isSelected && (
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={theme.textLight}
-                                                height={14}
-                                                width={14}
-                                            />
-                                        )}
-                                    </View>
-                                </View>
-                            )}
-
-                            {typeof children === 'function' ? children(hovered) : children}
-
-                            {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
-                                <View
-                                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
-                                    accessible={false}
-                                >
-                                    <View>
+            {({hovered}) => (
+                <OfflineWithFeedback
+                    onClose={() => onDismissError(item)}
+                    pendingAction={pendingAction}
+                    errors={errors}
+                    errorRowStyles={styles.ph5}
+                    style={[styles.w100]}
+                >
+                    <View style={wrapperStyle}>
+                        {canSelectMultiple && (
+                            <View
+                                role={CONST.ROLE.BUTTON}
+                                style={StyleUtils.getCheckboxPressableStyle()}
+                            >
+                                <View style={selectMultipleStyle}>
+                                    {item.isSelected && (
                                         <Icon
                                             src={Expensicons.Checkmark}
-                                            fill={theme.success}
+                                            fill={theme.textLight}
+                                            height={14}
+                                            width={14}
                                         />
-                                    </View>
+                                    )}
                                 </View>
-                            )}
-                            {rightHandSideComponentRender()}
-                        </View>
-                        {FooterComponent}
-                    </>
-                )}
-            </PressableWithFeedback>
-        </OfflineWithFeedback>
+                            </View>
+                        )}
+
+                        {typeof children === 'function' ? children(hovered) : children}
+
+                        {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                            <View
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                                accessible={false}
+                            >
+                                <View>
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.success}
+                                    />
+                                </View>
+                            </View>
+                        )}
+                        {rightHandSideComponentRender()}
+                    </View>
+                    {FooterComponent}
+                </OfflineWithFeedback>
+            )}
+        </PressableWithFeedback>
     );
 }
 

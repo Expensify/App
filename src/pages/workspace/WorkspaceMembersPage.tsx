@@ -386,14 +386,13 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     );
 
     const handleBulkAction = (action: WorkspaceMemberBulkActionType) => {
+        // TODO: implement make member and make admin
         switch (action) {
             case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE:
                 askForConfirmationToRemove();
                 break;
             case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER:
-                // TODO: Implement make member
             case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN:
-                // TODO: Implement make admin
             default:
                 break;
         }
