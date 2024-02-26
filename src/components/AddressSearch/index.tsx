@@ -304,7 +304,7 @@ function AddressSearch(
 
     const renderHeaderComponent = () => (
         <>
-            {predefinedPlaces.length > 0 && (
+            {(predefinedPlaces?.length ?? 0) > 0 && (
                 <>
                     {/* This will show current location button in list if there are some recent destinations */}
                     {shouldShowCurrentLocationButton && (
@@ -371,7 +371,7 @@ function AddressSearch(
                         fetchDetails
                         suppressDefaultStyles
                         enablePoweredByContainer={false}
-                        predefinedPlaces={predefinedPlaces}
+                        predefinedPlaces={predefinedPlaces ?? undefined}
                         listEmptyComponent={listEmptyComponent}
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
@@ -382,7 +382,7 @@ function AddressSearch(
                                 <Hoverable>
                                     {(isHovered) => (
                                         <View style={[styles.pv4, styles.ph3, StyleUtils.getBackgroundAndBorderStyle(isHovered || focusedIndex === index ? theme.border : theme.appBG)]}>
-                                            {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                            {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
                                             <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
                                         </View>
                                     )}
@@ -440,10 +440,10 @@ function AddressSearch(
                                 if (inputID) {
                                     onInputChange?.(text);
                                 } else {
-                                    onInputChange({street: text});
+                                    onInputChange?.({street: text});
                                 }
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
-                                if (!text && !predefinedPlaces.length) {
+                                if (!text && !predefinedPlaces?.length) {
                                     setDisplayListViewBorder(false);
                                 }
                             },

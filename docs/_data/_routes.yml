@@ -19,8 +19,8 @@ platforms:
         icon: /assets/images/accounting.svg
         description: From setting up your account to ensuring you get the most out of Expensify’s suite of features, click here to get started on streamlining your expense management journey.
 
-      - href: account-settings
-        title: Account Settings
+      - href: settings
+        title: Settings
         icon: /assets/images/gears.svg
         description: Discover how to personalize your profile, add secondary logins, and grant delegated access to employees with our comprehensive guide on Account Settings.
 
