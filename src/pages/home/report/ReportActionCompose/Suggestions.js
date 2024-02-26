@@ -44,6 +44,7 @@ function Suggestions({
     measureParentContainer,
     isAutoSuggestionPickerLarge,
     isComposerFocused,
+    reportID,
 }) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
@@ -145,6 +146,7 @@ function Suggestions({
             />
             <SuggestionMention
                 ref={suggestionMentionRef}
+                reportID={reportID}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />

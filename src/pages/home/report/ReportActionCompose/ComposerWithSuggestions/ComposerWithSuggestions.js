@@ -635,6 +635,7 @@ function ComposerWithSuggestions({
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                reportID={reportID}
                 // Input
                 value={value}
                 setValue={setValue}

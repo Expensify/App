@@ -1056,6 +1056,14 @@ function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void> 
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
+/**
+ * Saves the last chosen mention from mention suggestion list for the report.
+ * This is used to determine if the mention suggestion list should be opened/remain opened.
+ */
+function saveReportDraftLastMention(reportID: string, comment: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_LAST_MENTION}${reportID}`, comment);
+}
+
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -2969,4 +2977,5 @@ export {
     updateReportName,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
+    saveReportDraftLastMention
 };

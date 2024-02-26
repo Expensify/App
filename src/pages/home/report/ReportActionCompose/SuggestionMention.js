@@ -1,17 +1,21 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MentionSuggestions from '@components/MentionSuggestions';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import { usePersonalDetails } from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import * as Report from '@libs/actions/Report';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as SuggestionProps from './suggestionProps';
+
 
 /**
  * Check if this piece of string looks like a mention
@@ -30,6 +34,8 @@ const defaultSuggestionsValues = {
 const propTypes = {
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
+
+    reportDraftLastMentionCollection: PropTypes.object.isRequired,
 
     ...SuggestionProps.implementationBaseProps,
 };
@@ -50,6 +56,8 @@ function SuggestionMention({
     isAutoSuggestionPickerLarge,
     measureParentContainer,
     isComposerFocused,
+    reportID,
+    reportDraftLastMentionCollection = {},
 }) {
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
@@ -63,6 +71,8 @@ function SuggestionMention({
         maxIndex: suggestionValues.suggestedMentions.length - 1,
         shouldExcludeTextAreaNodes: false,
     });
+
+    const reportDraftLastMention = reportDraftLastMentionCollection[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_LAST_MENTION}${reportID}`] || '';
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
@@ -87,8 +97,9 @@ function SuggestionMention({
                 ...prevState,
                 suggestedMentions: [],
             }));
+            Report.saveReportDraftLastMention(reportID, mentionCode);
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection, reportID],
     );
 
     /**
@@ -213,6 +224,11 @@ function SuggestionMention({
             let suggestionWord;
             let prefix;
 
+            if (reportDraftLastMention && (lastWord === reportDraftLastMention || !lastWord && secondToLastWord === reportDraftLastMention)) {
+                resetSuggestions();
+                return;
+            }
+
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
                 atSignIndex = leftString.lastIndexOf(lastWord);
@@ -249,10 +265,13 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
+        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused, reportDraftLastMention],
     );
 
     useEffect(() => {
+        if (!value && reportDraftLastMention || !value.includes(reportDraftLastMention)) {
+            Report.saveReportDraftLastMention(reportID, '');
+        }
         if (value.length < previousValue.length) {
             // A workaround to not show the suggestions list when the user deletes a character before the mention.
             // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
@@ -261,7 +280,7 @@ function SuggestionMention({
         }
 
         calculateMentionSuggestion(selection.end);
-    }, [selection, value, previousValue, calculateMentionSuggestion]);
+    }, [selection, value, previousValue, calculateMentionSuggestion, reportDraftLastMention]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -333,4 +352,8 @@ const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
 
 SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
 
-export default SuggestionMentionWithRef;
+export default withOnyx({
+    reportDraftLastMentionCollection: {
+        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_LAST_MENTION,
+    },
+})(SuggestionMentionWithRef);
