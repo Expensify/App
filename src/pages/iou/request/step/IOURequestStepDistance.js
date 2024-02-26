@@ -86,7 +86,6 @@ function IOURequestStepDistance({
         if (isOffline || !shouldFetchRoute) {
             return;
         }
-
         Transaction.getRouteForDraft(transactionID, validatedWaypoints);
     }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline]);
 
