@@ -123,6 +123,9 @@ type ReportActionBase = {
 
     actorAccountID?: number;
 
+    /** The account of the last message's actor */
+    actor?: string;
+
     /** Person who created the action */
     person?: Person[];
 
