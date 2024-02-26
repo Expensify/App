@@ -90,14 +90,24 @@ function IOURequestStepScan({
             return;
         }
 
-        navigator.mediaDevices.getUserMedia({video: true}).then((stream) => {
-            _.forEach(stream.getTracks(), (videoStream) => videoStream.stop());
-
+        navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}}).then((stream) => {
+            // Only Safari 17+ supports zoom constraint
+            if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                const deviceId = _.chain(stream.getTracks())
+                    .map((track) => track.getSettings())
+                    .find((setting) => setting.zoom === 1)
+                    .get('deviceId')
+                    .value();
+                if (deviceId) {
+                    setVideoConstraints({deviceId});
+                    return;
+                }
+            }
+            _.forEach(stream.getTracks(), (track) => track.stop());
             if (!navigator.mediaDevices.enumerateDevices) {
                 setVideoConstraints({facingMode: {exact: 'environment'}});
                 return;
             }
-
             navigator.mediaDevices.enumerateDevices().then((devices) => {
                 const lastBackDeviceId = _.chain(devices)
                     .filter((item) => item.kind === 'videoinput')
