@@ -220,7 +220,7 @@ function AvatarWithImagePicker({
             setError(null, {});
             setIsMenuVisible(false);
             setImageData({
-                uri: image.uri,
+                uri: image.uri ?? '',
                 name: image.name,
                 type: image.type,
             });
