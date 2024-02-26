@@ -1031,6 +1031,7 @@ export default {
         delaySubmissionTitle: 'Retrasar envíos',
         delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
         submissionFrequency: 'Frecuencia de envíos',
+        submissionFrequencyDateOfMonth: 'Fecha del mes',
         weeklyFrequency: 'Semanal',
         monthlyFrequency: 'Mensual',
         twiceAMonthFrequency: 'Dos veces al mes',
@@ -1043,6 +1044,9 @@ export default {
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        editor: {
+            submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
+        },
     },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
