@@ -781,6 +781,13 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                primaryLogin: newDefaultContactMethod,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
                 email: newDefaultContactMethod,
@@ -825,6 +832,13 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         },
     ];
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                primaryLogin: oldDefaultContactMethod,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,

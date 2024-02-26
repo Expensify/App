@@ -142,6 +142,11 @@ function InitialSettingsPage(props) {
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
                 {
+                    translationKey: 'exitSurvey.goToExpensifyClassic',
+                    icon: Expensicons.ExpensifyLogoNew,
+                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                },
+                {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
                     routeName: ROUTES.SETTINGS_PROFILE,
@@ -165,16 +170,6 @@ function InitialSettingsPage(props) {
                     translationKey: 'initialSettingsPage.security',
                     icon: Expensicons.Lock,
                     routeName: ROUTES.SETTINGS_SECURITY,
-                },
-                {
-                    translationKey: 'initialSettingsPage.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    action: () => {
-                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                    },
-                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',
@@ -211,7 +206,7 @@ function InitialSettingsPage(props) {
      * Retuns a list of menu items data for general section
      * @returns {Object} object with translationKey, style and items for the general section
      */
-    const generaltMenuItemsData = useMemo(
+    const generalMenuItemsData = useMemo(
         () => ({
             sectionStyle: {
                 ...styles.pt4,
@@ -320,7 +315,7 @@ function InitialSettingsPage(props) {
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
-    const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
+    const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
 
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
