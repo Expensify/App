@@ -20,7 +20,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import {useReports} from '@hooks/useReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -73,6 +72,9 @@ type WorkspaceListPageOnyxProps = {
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: OnyxCollection<PolicyMembers>;
+
+    /** All reports shared with the user (coming from Onyx) */
+    reports: OnyxCollection<Report>;
 };
 
 type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
@@ -110,8 +112,7 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
 
 const stickyHeaderIndices = [0];
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount}: WorkspaceListPageProps) {
-    const reports = useReports();
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -408,6 +409,9 @@ export default withPolicyAndFullscreenLoading(
         // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     })(WorkspacesListPage),
 );
