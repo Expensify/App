@@ -5,6 +5,7 @@ import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import { Platform } from 'react-native';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
+import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
 
 type ScreenOptions = Record<string, StackNavigationOptions>;
 
@@ -26,25 +27,12 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
     return {
         rightModalNavigator: {
             ...commonScreenOptions,
+            ...getRightModalNavigatorOptions(isSmallScreenWidth),
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            // TODO: change it back to 'transparentModal' once it works correctly on Android
-            presentation: Platform.OS === 'android' ? 'modal' : 'transparentModal',
-
-            // We want pop in RHP since there are some flows that would work weird otherwise
-            animationTypeForReplace: 'pop',
-            cardStyle: {
-                ...StyleUtils.getNavigationModalCardStyle(),
-
-                // This is necessary to cover translated sidebar with overlay.
-                width: isSmallScreenWidth ? '100%' : '200%',
-                // Excess space should be on the left so we need to position from right.
-                right: 0,
-            },
         },
         leftModalNavigator: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
-            // TODO: change it back to 'transparentModal' once it works correctly on Android
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
             presentation: Platform.OS === 'android' ? 'modal' : 'transparentModal',
 
             // We want pop in LHP since there are some flows that would work weird otherwise
@@ -62,8 +50,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         homeScreen: {
             title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
+            // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -76,6 +64,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
         fullScreen: {
             ...commonScreenOptions,
+
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
@@ -90,7 +79,9 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             animationEnabled: isSmallScreenWidth,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
-
+            // temporary solution - better to hide a keyboard than see keyboard flickering
+            // see https://github.com/software-mansion/react-native-screens/issues/2021 for more details
+            keyboardHandlingEnabled: true,
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,

@@ -303,11 +303,11 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (27.4.0)
-  - onfido-react-native-sdk (7.4.0):
+  - Onfido (29.7.1)
+  - onfido-react-native-sdk (10.7.0):
     - glog
     - hermes-engine
-    - Onfido (= 27.4.0)
+    - Onfido (~> 29.7.0)
     - RCT-Folly (= 2022.05.16.00)
     - RCTRequired
     - RCTTypeSafety
@@ -2517,8 +2517,8 @@ SPEC CHECKSUMS:
   MapboxMaps: cbb38845a9bf49b124f0e937975d560a4e01894e
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
-  onfido-react-native-sdk: e7c706cf1c1897437dbbc95132e7928ce43a3a59
+  Onfido: 342cbecd7a4383e98dfe7f9c35e98aaece599062
+  onfido-react-native-sdk: 48a5defe0977d0fa3704e612c29ad49726a3a230
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Plaid: 08a150ee90948c5103ce4425353f9d73e12db3f4
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
