@@ -122,6 +122,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                         pressDimmingValue={1}
                         onPress={toggleFabAction}
                         onLongPress={() => {}}
+                        shouldUseHapticsOnLongPress={false}
                         style={[styles.floatingActionButton, animatedStyle]}
                     >
                         <Svg
