@@ -58,7 +58,6 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    // const shouldShowDeleteButton = PolicyUtils.isPolicyAdmin(policy);
     const confirmDeleteAndHideModal = () => {
         if (!policy?.id || !policyName) {
             return;
@@ -171,17 +170,15 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 </View>
                             </OfflineWithFeedback>
                             {!readOnly && (
-                                <View style={[styles.flexRow, styles.mnw120]}>
+                                <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                     <Button
                                         accessibilityLabel={translate('common.share')}
-                                        style={styles.mt6}
                                         text={translate('common.share')}
                                         onPress={onPressShare}
                                         medium
                                     />
                                     <Button
                                         accessibilityLabel={translate('common.delete')}
-                                        style={[styles.mt6, styles.ml1]}
                                         text={translate('common.delete')}
                                         onPress={() => setIsDeleteModalOpen(true)}
                                         medium
