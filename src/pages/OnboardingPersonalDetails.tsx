@@ -42,7 +42,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
         const errors = {};
 
         // First we validate the first name field
-        if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
+        if (values.firstName.length === 0) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'onboarding.error.requiredFirstName');
         }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
@@ -53,7 +53,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
         }
 
         // Then we validate the last name field
-        if (!ValidationUtils.isRequiredFulfilled(values.lastName)) {
+        if (values.lastName.length === 0) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLasttName');
         }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
@@ -95,6 +95,7 @@ function OnboardingPersonalDetails({currentUserPersonalDetails}: OnboardingPerso
                     submitFlexEnabled
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    shouldTrimValues={false}
                     fixErrorsAlert="BLAblaBLA"
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
