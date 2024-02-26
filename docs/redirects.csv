@@ -25,16 +25,16 @@ https://community.expensify.com/discussion/5194/how-to-assign-a-vacation-delegat
 https://community.expensify.com/discussion/5190/how-to-individually-assign-a-vacation-delegate-from-account-settings,https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Vacation-Delegate
 https://community.expensify.com/discussion/5274/how-to-set-up-an-adp-indirect-integration-with-expensify,https://help.expensify.com/articles/expensify-classic/integrations/HR-integrations/ADP
 https://community.expensify.com/discussion/5776/how-to-create-mileage-expenses-in-expensify,https://help.expensify.com/articles/expensify-classic/get-paid-back/Distance-Tracking
-https://community.expensify.com/discussion/7385/how-to-enable-two-factor-authentication-in-your-account,https://help.expensify.com/articles/expensify-classic/account-settings/Account-Details
-https://community.expensify.com/discussion/5124/how-to-add-your-name-and-photo-to-your-account,https://help.expensify.com/articles/expensify-classic/account-settings/Account-Details
-https://community.expensify.com/discussion/5149/how-to-manage-your-devices-in-expensify,https://help.expensify.com/articles/expensify-classic/account-settings/Account-Details
-https://community.expensify.com/discussion/4432/how-to-add-a-secondary-login,https://help.expensify.com/articles/expensify-classic/account-settings/Account-Details
-https://community.expensify.com/discussion/6794/how-to-change-your-email-in-expensify,https://help.expensify.com/articles/expensify-classic/account-settings/Account-Details
+https://community.expensify.com/discussion/7385/how-to-enable-two-factor-authentication-in-your-account,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
+https://community.expensify.com/discussion/5124/how-to-add-your-name-and-photo-to-your-account,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
+https://community.expensify.com/discussion/5149/how-to-manage-your-devices-in-expensify,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
+https://community.expensify.com/discussion/4432/how-to-add-a-secondary-login,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
+https://community.expensify.com/discussion/6794/how-to-change-your-email-in-expensify,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
 https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Perks.html,https://use.expensify.com/company-credit-card
 https://help.expensify.com/articles/expensify-classic/expensify-partner-program/How-to-Join-the-ExpensifyApproved!-Partner-Program.html,https://use.expensify.com/accountants-program
 https://help.expensify.com/articles/expensify-classic/getting-started/approved-accountants/Card-Revenue-Share-For-Expensify-Approved-Partners, https://use.expensify.com/blog/maximizing-rewards-expensifyapproved-accounting-partners-now-earn-0-5-revenue-share
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/International-Reimbursements,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/Global-Reimbursements
-https://community.expensify.com/discussion/4452/how-to-merge-accounts,https://help.expensify.com/articles/expensify-classic/account-settings/Merge-Accounts
+https://community.expensify.com/discussion/4452/how-to-merge-accounts,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts
 https://community.expensify.com/discussion/4783/how-to-add-or-remove-a-copilot,https://help.expensify.com/articles/expensify-classic/account-settings/Copilot
 https://community.expensify.com/discussion/4343/expensify-anz-partnership-announcement,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Connect-ANZ
 https://community.expensify.com/discussion/7318/deep-dive-company-credit-card-import-options,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards
@@ -54,3 +54,9 @@ https://help.expensify.com/articles/expensify-classic/getting-started/Employees,
 https://help.expensify.com/articles/expensify-classic/getting-started/Using-The-App,https://help.expensify.com/articles/expensify-classic/getting-started/Join-your-company's-workspace
 https://help.expensify.com/articles/expensify-classic/getting-started/support/Expensify-Support,https://use.expensify.com/support
 https://help.expensify.com/articles/expensify-classic/getting-started/Plan-Types,https://use.expensify.com/
+https://help.expensify.com/articles/new-expensify/payments/Referral-Program,https://help.expensify.com/articles/expensify-classic/get-paid-back/Referral-Program
+https://help.expensify.com/articles/expensify-classic/account-settings/Account-Details,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
+https://help.expensify.com/articles/expensify-classic/account-settings/Preferences,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
+https://help.expensify.com/articles/expensify-classic/account-settings/Merge-Accounts,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts
+https://help.expensify.com/articles/expensify-classic/getting-started/Individual-Users,https://help.expensify.com/articles/expensify-classic/getting-started/Create-a-workspace-for-yourself
+https://help.expensify.com/articles/expensify-classic/getting-started/Invite-Members,https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Invite-Members

@@ -100,7 +100,7 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
-    const isVideo = Str.isVideo(source);
+    const isVideo = typeof source === 'string' && Str.isVideo(source);
 
     useEffect(() => {
         if (!isFocused) {
