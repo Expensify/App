@@ -55,7 +55,7 @@ function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = fal
                     accessible={false}
                     onPress={onPress}
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
-                    wrapperStyle={[styles.ml3, styles.pr2, styles.w100]}
+                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2]}
                     // disable hover style when disabled
                     hoverDimmingValue={0.8}
                     pressDimmingValue={0.5}
