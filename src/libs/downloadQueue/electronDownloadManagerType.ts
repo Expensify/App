@@ -1,15 +1,30 @@
 import type {DownloadItem, SaveDialogOptions} from 'electron';
 
 type Progress = {
+    // The percentage of the download that has been completed
     percent: number;
+
+    // The number of bytes that have been downloaded so far
     transferredBytes: number;
+
+    // The total number of bytes in the file being downloaded
     totalBytes: number;
 };
+
 type File = {
+    // The name of the file being downloaded
     filename: string;
+
+    // The path where the file is being downloaded to
     path: string;
+
+    // The size of the file being downloaded, in bytes
     fileSize: number;
+
+    // The MIME type of the file being downloaded
     mimeType: string;
+
+    // The URL of the file being downloaded
     url: string;
 };
 type Options = {
