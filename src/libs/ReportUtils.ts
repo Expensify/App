@@ -175,6 +175,7 @@ type OptimisticIOUReportAction = Pick<
     | 'pendingAction'
     | 'receipt'
     | 'whisperedToAccountIDs'
+    | 'childReportID'
 >;
 
 type ReportRouteParams = {

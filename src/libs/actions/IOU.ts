@@ -892,6 +892,7 @@ function getMoneyRequestInformation(
         currentTime,
     );
     const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+    iouAction.childReportID = optimisticTransactionThread.reportID;
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -1890,6 +1891,7 @@ function createSplitsAndOnyxData(
 
         // Create optimistic transactionThread
         const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        oneOnOneIOUAction.childReportID = optimisticTransactionThread.reportID;
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
         // STEP 5: Build Onyx Data
@@ -2494,6 +2496,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         }
 
         const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        oneOnOneIOUAction.childReportID = optimisticTransactionThread.reportID;
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -3213,6 +3216,7 @@ function getSendMoneyParams(
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
     const optimisticTransactionThread = ReportUtils.buildTransactionThread(optimisticIOUReportAction, optimisticIOUReport.reportID);
+    optimisticIOUReportAction.childReportID = optimisticTransactionThread.reportID;
     const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
