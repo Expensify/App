@@ -5,12 +5,15 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import type {Comment, Receipt, TransactionChanges, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
+import type {OptimisticIOUReportAction} from './ReportUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -94,6 +97,7 @@ function buildOptimisticTransaction(
     category = '',
     tag = '',
     billable = false,
+    pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -108,6 +112,7 @@ function buildOptimisticTransaction(
     }
 
     return {
+        ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
         amount,
         currency,
@@ -365,15 +370,47 @@ function getBillable(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Return a colon-delimited tag string as an array, considering escaped colons and double backslashes.
+ */
+function getTagArrayFromName(tagName: string): string[] {
+    // WAIT!!!!!!!!!!!!!!!!!!
+    // You need to keep this in sync with TransactionUtils.php
+
+    // We need to be able to preserve double backslashes in the original string
+    // and not have it interfere with splitting on a colon (:).
+    // So, let's replace it with something absurd to begin with, do our split, and
+    // then replace the double backslashes in the end.
+    const tagWithoutDoubleSlashes = tagName.replace(/\\\\/g, '☠');
+    const tagWithoutEscapedColons = tagWithoutDoubleSlashes.replace(/\\:/g, '☢');
+
+    // Do our split
+    const matches = tagWithoutEscapedColons.split(':');
+    const newMatches: string[] = [];
+
+    for (const item of matches) {
+        const tagWithEscapedColons = item.replace(/☢/g, '\\:');
+        const tagWithDoubleSlashes = tagWithEscapedColons.replace(/☠/g, '\\\\');
+        newMatches.push(tagWithDoubleSlashes);
+    }
+
+    return newMatches;
+}
+
+/**
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
 function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
-        return transaction?.tag?.split(CONST.COLON)[tagIndex] ?? '';
+        const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
+        return tagsArray[tagIndex] ?? '';
     }
 
     return transaction?.tag ?? '';
+}
+
+function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+    return getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':');
 }
 
 /**
@@ -460,11 +497,11 @@ function hasRoute(transaction: Transaction): boolean {
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction>): Transaction | EmptyObject {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): Transaction | EmptyObject {
     let transactionID = '';
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        transactionID = reportAction.originalMessage?.IOUTransactionID ?? '';
+        transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
     }
 
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
@@ -537,10 +574,25 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction is on hold
+ */
+function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    return !!transaction.comment?.hold;
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+}
+
+function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
 /**
@@ -581,6 +633,9 @@ export {
     getCategory,
     getBillable,
     getTag,
+    getTagArrayFromName,
+    getTagForDisplay,
+    getTransactionViolations,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
@@ -594,6 +649,7 @@ export {
     isCardTransaction,
     isPending,
     isPosted,
+    isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
