@@ -679,7 +679,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={!isReadOnly && (canUseP2PDistanceRequests || isTypeRequest)}
                     title={iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
