@@ -1,5 +1,5 @@
 /**
- * This file is a ported version of the `electron-dl` package.
+ * This file is a replicated version of the `electron-dl` package.
  * It provides a download manager for Electron applications.
  * The package simplifies the process of downloading files in Electron apps
  * by providing a high-level API and handling various download-related tasks.
