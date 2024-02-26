@@ -15,6 +15,7 @@ function UserListItem({
     item,
     isFocused,
     showTooltip,
+    style,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
@@ -89,13 +90,14 @@ function UserListItem({
                                 styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
+                                style,
                             ]}
                         />
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
                                 text={item.alternateText}
-                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre, style]}
                             />
                         )}
                     </View>
