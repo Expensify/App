@@ -11,6 +11,7 @@ type Rate = {
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    enabled?: boolean;
 };
 
 type Attributes = {
@@ -22,6 +23,8 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
+    defaultCategory?: string;
+    enabled?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
@@ -29,6 +32,42 @@ type CustomUnit = {
 type DisabledFields = {
     defaultBillable?: boolean;
     reimbursable?: boolean;
+};
+
+type TaxRate = {
+    /** Name of the a tax rate. */
+    name: string;
+
+    /** The value of the tax rate as percentage. */
+    value: string;
+
+    /** The code associated with the tax rate. */
+    code: string;
+
+    /** This contains the tax name and tax value as one name */
+    modifiedName: string;
+
+    /** Indicates if the tax rate is disabled. */
+    isDisabled?: boolean;
+};
+
+type TaxRates = Record<string, TaxRate>;
+
+type TaxRatesWithDefault = {
+    /** Name of the tax */
+    name: string;
+
+    /** Default policy tax code */
+    defaultExternalID: string;
+
+    /** Default value of taxes */
+    defaultValue: string;
+
+    /** Default foreign policy tax code */
+    foreignTaxDefault: string;
+
+    /** List of tax names and values */
+    taxes: TaxRates;
 };
 
 // These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
@@ -102,8 +141,11 @@ type Policy = {
         enabled: boolean;
     };
 
-    /** Whether the self approval or submitting is enabled */
+    /** @deprecated Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
     autoReportingOffset?: AutoReportingOffset;
@@ -124,7 +166,7 @@ type Policy = {
     makeMeAdmin?: boolean;
 
     /** Pending fields for the policy */
-    pendingFields?: Record<string, unknown>;
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
     /** Original file name which is used for the policy avatar */
     originalFileName?: string;
@@ -138,8 +180,14 @@ type Policy = {
     /** Whether policy is updating */
     isPolicyUpdating?: boolean;
 
+    /** The approver of the policy */
+    approver?: string;
+
     /** The approval mode set up on this policy */
     approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Whether the auto approval is enabled */
+    isAutoApprovalEnabled?: boolean;
 
     /** Whether transactions should be billable by default */
     defaultBillable?: boolean;
@@ -171,6 +219,9 @@ type Policy = {
         trackingEnabled: boolean;
     };
 
+    /** Collection of tax rates attached to a policy */
+    taxRates?: TaxRatesWithDefault;
+
     /** ReportID of the admins room for this workspace */
     chatReportIDAdmins?: number;
 
@@ -183,4 +234,4 @@ type Policy = {
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault};

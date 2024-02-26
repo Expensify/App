@@ -46,6 +46,8 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('../../src/components/ConfirmedRoute.tsx');
+
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
