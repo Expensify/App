@@ -60,14 +60,14 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
     return {
         /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         // we do not need to use nullish coalescing here because we want to allow empty strings
-        legalFirstName: draftValues?.legalFirstName || legalFirstName,
-        legalLastName: draftValues?.legalLastName || legalLastName,
-        addressLine1: draftValues?.addressLine1 || address?.street.split('\n')[0],
+        legalFirstName: draftValues?.legalFirstName || legalFirstName || '',
+        legalLastName: draftValues?.legalLastName || legalLastName || '',
+        addressLine1: draftValues?.addressLine1 || address?.street.split('\n')[0] || '',
         addressLine2: draftValues?.addressLine2 || address?.street.split('\n')[1] || '',
-        city: draftValues?.city || address?.city,
-        country: draftValues?.country || address?.country,
+        city: draftValues?.city || address?.city || '',
+        country: draftValues?.country || address?.country || '',
         phoneNumber: draftValues?.phoneNumber || phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList) || '',
-        state: draftValues?.state || address?.state,
+        state: draftValues?.state || address?.state || '',
         zipPostCode: draftValues?.zipPostCode || address?.zip || '',
         /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     };
