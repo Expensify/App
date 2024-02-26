@@ -245,6 +245,8 @@ type MoneyTemporaryForRefactorRequestConfirmationListProps = {
 
     canModifyParticipants: boolean;
 
+    hasSmartScanFailed: boolean;
+
     isReadOnly: boolean;
 
     isScanRequest: boolean;
@@ -284,6 +286,10 @@ type MoneyTemporaryForRefactorRequestConfirmationListProps = {
     transaction: OnyxTypes.Transaction;
 
     policyID: string;
+
+    reportID: string;
+
+    reportActionID: string;
 };
 
 type MoneyTemporaryForRefactorRequestConfirmationList = MoneyTemporaryForRefactorRequestConfirmationListOnyxProps & MoneyTemporaryForRefactorRequestConfirmationListProps;
