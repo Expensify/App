@@ -60,17 +60,22 @@ function StateSelectionPage() {
         (option: CountryData) => {
             const backTo = params?.backTo ?? '';
 
-            // Check the navigation state and "backTo" parameter to decide navigation behavior
-            if (navigation.getState().routes.length === 1 && _.isEmpty(backTo)) {
-                // If there is only one route and "backTo" is empty, go back in navigation
-                Navigation.goBack();
-            } else if (!_.isEmpty(backTo) && navigation.getState().routes.length === 1) {
-                // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                Navigation.goBack(appendParam(backTo, 'state', option.value) as Route);
+            // Determine navigation action based on "backTo" presence and route stack length.
+            if (navigation.getState().routes.length === 1) {
+                // If this is the only page in the navigation stack (examples include direct navigation to this page via URL or page reload).
+                if (_.isEmpty(backTo)) {
+                    // No "backTo": default back navigation.
+                    Navigation.goBack();
+                } else {
+                    // "backTo" provided: navigate back to "backTo" with state parameter.
+                    Navigation.goBack(appendParam(backTo, 'state', option.value) as Route);
+                }
             } else if (!_.isEmpty(backTo)) {
-                // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
+                // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
                 Navigation.navigate(appendParam(backTo, 'state', option.value) as Route);
             } else {
+                // This is a fallback block and should never execute if StateSelector is correctly appending the "backTo" route.
+                // Navigation stack has multiple routes but no "backTo" defined: default back navigation.
                 Navigation.goBack();
             }
         },
