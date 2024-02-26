@@ -295,7 +295,7 @@ type MoneyTemporaryForRefactorRequestConfirmationListProps = {
 
     transaction: Transaction,
 
-    policyTaxRates: PolicyTaxRate,
+    policyTaxRates: Policy,
 
     reportActionID: string,
 
@@ -380,7 +380,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
+    const shouldShowTax = isPolicyExpenseChat && policy && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled);
 
     // A flag for showing the billable field
     const shouldShowBillable = !(policy?.disabledFields?.defaultBillable ?? true);
@@ -755,7 +755,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             ),
@@ -818,7 +818,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     error={merchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired ? translate('common.required') : ''}
                 />
@@ -842,7 +842,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                 />
             ),
@@ -872,7 +872,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        ..._.map(policyTagLists, ({name}, index) => ({
+        ...policyTagLists.map(({ name }, index) => ({
             item: (
                 <MenuItemWithTopDescription
                     key={name}
