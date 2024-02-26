@@ -90,7 +90,7 @@ function PurposeForUsingExpensifyModal() {
         }
 
         Report.completeEngagementModal(message, choice);
-        Report.navigateToConciergeChat(false, true);
+        Report.navigateToConciergeChat(true);
     }, []);
 
     const menuItems: MenuItemProps[] = useMemo(
