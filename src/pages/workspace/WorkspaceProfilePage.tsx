@@ -7,6 +7,7 @@ import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -28,7 +29,6 @@ import ROUTES from '@src/ROUTES';
 import type {CurrencyList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
-import ConfirmModal from '@components/ConfirmModal';
 import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
@@ -184,8 +184,8 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         style={[styles.mt6, styles.ml1]}
                                         text={translate('common.delete')}
                                         onPress={() => setIsDeleteModalOpen(true)}
-                                        small
-                                    />  
+                                        medium
+                                    />
                                 </View>
                             )}
                         </Section>
@@ -198,7 +198,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             confirmText={translate('common.delete')}
                             cancelText={translate('common.cancel')}
                             danger
-                        />                        
+                        />
                     </View>
                 </ScrollView>
             )}
