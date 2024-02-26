@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, ScrollView, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {CurrencyList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
+import ConfirmModal from '@components/ConfirmModal';
 import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
@@ -56,7 +57,17 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const policyDescription = policy?.description ?? '';
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    // const shouldShowDeleteButton = PolicyUtils.isPolicyAdmin(policy);
+    const confirmDeleteAndHideModal = () => {
+        if (!policy?.id || !policyName) {
+            return;
+        }
 
+        Policy.deleteWorkspace(policy?.id, policyName);
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        setIsDeleteModalOpen(false);
+    };
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -168,9 +179,26 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         onPress={onPressShare}
                                         medium
                                     />
+                                    <Button
+                                        accessibilityLabel={translate('common.delete')}
+                                        style={[styles.mt6, styles.ml1]}
+                                        text={translate('common.delete')}
+                                        onPress={() => setIsDeleteModalOpen(true)}
+                                        small
+                                    />  
                                 </View>
                             )}
                         </Section>
+                        <ConfirmModal
+                            title={translate('common.delete')}
+                            isVisible={isDeleteModalOpen}
+                            onConfirm={confirmDeleteAndHideModal}
+                            onCancel={() => setIsDeleteModalOpen(false)}
+                            prompt={translate('workspace.common.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />                        
                     </View>
                 </ScrollView>
             )}
