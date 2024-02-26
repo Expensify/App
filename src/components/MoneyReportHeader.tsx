@@ -76,10 +76,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
     const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable],
-    );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {
             return false;
@@ -89,6 +85,18 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         }
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy]);
+    const shouldShowPayButton = useMemo(
+        () =>
+            isPayer &&
+            !isDraft &&
+            !isSettled &&
+            !shouldShowApproveButton &&
+            !moneyRequestReport.isWaitingOnBankAccount &&
+            reimbursableSpend !== 0 &&
+            !ReportUtils.isArchivedRoom(chatReport) &&
+            !isAutoReimbursable,
+        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable, shouldShowApproveButton],
+    );
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
