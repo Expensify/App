@@ -173,77 +173,11 @@ function InitialSettingsPage(props) {
                     icon: Expensicons.Lock,
                     routeName: ROUTES.SETTINGS_SECURITY,
                 },
-                {
-                    translationKey: 'initialSettingsPage.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    action: () => {
-                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                    },
-                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
-                },
-                {
-                    translationKey: 'initialSettingsPage.signOut',
-                    icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
-                },
             ],
         };
 
-        if (NativeModules.HybridAppModule) {
-            const hybridAppMenuItems = _.filter(
-                [
-                    {
-                        translationKey: 'initialSettingsPage.returnToClassic',
-                        icon: Expensicons.RotateLeft,
-                        shouldShowRightIcon: true,
-                        iconRight: Expensicons.NewWindow,
-                        action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
-                    },
-                    ...defaultMenu.items,
-                ],
-                (item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic',
-            );
-
-            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
-        }
-
         return defaultMenu;
-    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer]);
-
-    /**
-     * Retuns a list of menu items data for general section
-     * @returns {Object} object with translationKey, style and items for the general section
-     */
-    const generalMenuItemsData = useMemo(
-        () => ({
-            sectionStyle: {
-                ...styles.pt4,
-            },
-            sectionTranslationKey: 'initialSettingsPage.general',
-            items: [
-                {
-                    translationKey: 'initialSettingsPage.help',
-                    icon: Expensicons.QuestionMark,
-                    action: () => {
-                        Link.openExternalLink(CONST.NEWHELP_URL);
-                    },
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
-                    link: CONST.NEWHELP_URL,
-                },
-                {
-                    translationKey: 'initialSettingsPage.about',
-                    icon: Expensicons.Info,
-                    routeName: ROUTES.SETTINGS_ABOUT,
-                },
-            ],
-        }),
-        [styles.pt4],
-    );
+    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, styles.accountSettingsSectionContainer]);
 
     const workspaceMenuItemsData = useMemo(
         () => ({
@@ -286,6 +220,73 @@ function InitialSettingsPage(props) {
         }),
         [props.policies, props.policyMembers, styles.pt4],
     );
+
+    /**
+     * Retuns a list of menu items data for general section
+     * @returns {Object} object with translationKey, style and items for the general section
+     */
+    const generalMenuItemsData = useMemo(() => {
+        const defaultMenu = [
+            {
+                translationKey: 'initialSettingsPage.goToExpensifyClassic',
+                icon: Expensicons.ExpensifyLogoNew,
+                action: () => {
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                },
+                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
+                iconRight: Expensicons.NewWindow,
+                shouldShowRightIcon: true,
+            },
+            {
+                translationKey: 'initialSettingsPage.help',
+                icon: Expensicons.QuestionMark,
+                action: () => {
+                    Link.openExternalLink(CONST.NEWHELP_URL);
+                },
+                iconRight: Expensicons.NewWindow,
+                shouldShowRightIcon: true,
+                link: CONST.NEWHELP_URL,
+            },
+            {
+                translationKey: 'initialSettingsPage.about',
+                icon: Expensicons.Info,
+                routeName: ROUTES.SETTINGS_ABOUT,
+            },
+            {
+                translationKey: 'initialSettingsPage.signOut',
+                icon: Expensicons.Exit,
+                action: () => {
+                    signOut(false);
+                },
+            },
+        ];
+
+        if (NativeModules.HybridAppModule) {
+            const hybridAppMenuItems = _.filter(
+                [
+                    {
+                        translationKey: 'initialSettingsPage.returnToClassic',
+                        icon: Expensicons.RotateLeft,
+                        shouldShowRightIcon: true,
+                        iconRight: Expensicons.NewWindow,
+                        action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
+                    },
+                    ...defaultMenu.items,
+                ],
+                (item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic',
+            );
+
+            return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.general', items: hybridAppMenuItems};
+        }
+
+        return {
+            sectionStyle: {
+                ...styles.pt4,
+            },
+            sectionTranslationKey: 'initialSettingsPage.general',
+            items: defaultMenu,
+        };
+    }, [styles.pt4, styles.accountSettingsSectionContainer, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -469,8 +470,8 @@ function InitialSettingsPage(props) {
             <ScrollView>
                 {headerContent}
                 {accountMenuItems}
-                {generalMenuItems}
                 {workspaceMenuItems}
+                {generalMenuItems}
                 <ConfirmModal
                     danger
                     title={translate('common.areYouSure')}
