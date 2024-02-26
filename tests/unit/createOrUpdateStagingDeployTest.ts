@@ -52,8 +52,8 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
-    };
+        paginate: jest.fn().mockImplementation((objectMethod: () => Promise<{data: unknown}>) => objectMethod().then(({data}) => data)),
+    } as typeof GithubUtils.octokit;
     GithubUtils.internalOctokit = moctokit;
 
     // Mock GitUtils

@@ -2,6 +2,7 @@
 import {AnnotationError} from '@actions/core';
 import _ from 'underscore';
 import * as translations from '@src/languages/translations';
+import {TranslationPaths} from '@src/languages/types';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
 // import * as translations from '../../src/languages/translations';
