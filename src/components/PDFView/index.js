@@ -82,7 +82,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, ...
         } else if (isKeyboardOpen && windowHeight > prevWindowHeight) {
             toggleKeyboardOnSmallScreens(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to run this effect when toggleKeyboardOnSmallScreens changes
     }, [isKeyboardOpen, windowHeight, prevWindowHeight]);
 
     /**
@@ -184,7 +184,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, ...
 
             return actualHeight;
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- use numPages instead of pageViewports for avoiding infinite re-render
         [numPages, calculatePageWidth],
     );
 
