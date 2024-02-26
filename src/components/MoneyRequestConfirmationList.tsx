@@ -345,11 +345,11 @@ function MoneyRequestConfirmationList({
         } else if (!!(receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
             if (iouAmount !== 0) {
-                text = translate('iou.requestAmount', {amount: Number(formattedAmount)});
+                text = translate('iou.requestAmount', {amount: formattedAmount});
             }
         } else {
             const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
-            text = translate(translationKey, {amount: Number(formattedAmount)});
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
@@ -785,11 +785,15 @@ function MoneyRequestConfirmationList({
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
                             onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.CATEGORY));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(iouType, reportID));
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID ?? '',
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                );
                             }}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
