@@ -133,7 +133,7 @@ index 0000000..16da117
 +//# sourceMappingURL=findFocusedRouteKey.js.map
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
-index 6f0ac51..a77b608 100644
+index 6688c62..95a0e32 100644
 --- a/node_modules/@react-navigation/native/lib/module/useLinking.js
 +++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
 @@ -2,6 +2,7 @@ import { findFocusedRoute, getActionFromState as getActionFromStateDefault, getP
@@ -189,17 +189,17 @@ index 6f0ac51..a77b608 100644
  export default function useLinking(ref, _ref) {
    let {
      independent,
-@@ -231,6 +270,9 @@ export default function useLinking(ref, _ref) {
+@@ -234,6 +273,9 @@ export default function useLinking(ref, _ref) {
        // Otherwise it's likely a change triggered by `popstate`
        path !== pendingPath) {
          const historyDelta = (focusedState.history ? focusedState.history.length : focusedState.routes.length) - (previousFocusedState.history ? previousFocusedState.history.length : previousFocusedState.routes.length);
-+
++        
 +        // The historyDelta and historyDeltaByKeys may differ if the new state has an entry that didn't exist in previous state
 +        const historyDeltaByKeys = getHistoryDeltaByKeys(focusedState, previousFocusedState);
          if (historyDelta > 0) {
            // If history length is increased, we should pushState
            // Note that path might not actually change here, for example, drawer open should pushState
-@@ -242,34 +284,55 @@ export default function useLinking(ref, _ref) {
+@@ -245,7 +287,8 @@ export default function useLinking(ref, _ref) {
            // If history length is decreased, i.e. entries were removed, we want to go back
  
            const nextIndex = history.backIndex({
@@ -209,7 +209,8 @@ index 6f0ac51..a77b608 100644
            });
            const currentIndex = history.index;
            try {
-             if (nextIndex !== -1 && nextIndex < currentIndex) {
+@@ -254,27 +297,47 @@ export default function useLinking(ref, _ref) {
+             history.get(nextIndex - currentIndex)) {
                // An existing entry for this path exists and it's less than current index, go back to that
                await history.go(nextIndex - currentIndex);
 +              history.replace({
@@ -263,7 +264,7 @@ index 6f0ac51..a77b608 100644
 +              path,
 +              state
 +            });
-+          }
++          }          
          }
        } else {
          // If no common navigation state was found, assume it's a replace
