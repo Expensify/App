@@ -805,7 +805,7 @@ function getMoneyRequestInformation(
         needsToBeManuallySubmitted = isFromPaidPolicy && !policy?.harvesting?.enabled;
 
         // If the linked expense report on paid policy is not draft and not instantly submitted, we need to create a new draft expense report
-        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isInstantSubmittedState(iouReport)) {
+        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isExpenseReportWithInstantSubmittedState(iouReport)) {
             iouReport = null;
         }
     }
