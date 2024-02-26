@@ -11,9 +11,7 @@ const CONFIG = require('../src/CONFIG').default;
 const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 const createDownloadQueue = require('../src/libs/downloadQueue').default;
-const electronDownloadManager = require('../src/libs/downloadQueue/electronDownloadManager').default;
 
-electronDownloadManager();
 const port = process.env.PORT || 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
@@ -600,15 +598,15 @@ const mainWindow = () => {
                     }
                 });
 
-                // const downloadQueue = createDownloadQueue();
+                const downloadQueue = createDownloadQueue();
 
-                // ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
-                //     const downloadItem = {
-                //         ...downloadData,
-                //         win: browserWindow,
-                //     };
-                //     downloadQueue.pushDownloadItem(downloadItem);
-                // });
+                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
+                    const downloadItem = {
+                        ...downloadData,
+                        win: browserWindow,
+                    };
+                    downloadQueue.pushDownloadItem(downloadItem);
+                });
 
                 return browserWindow;
             })

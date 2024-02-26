@@ -1,20 +1,20 @@
 /**
  * This file is a ported version of the `electron-dl` package.
  * It provides a download manager for Electron applications.
- * The `electron-dl` package simplifies the process of downloading files in Electron apps
+ * The package simplifies the process of downloading files in Electron apps
  * by providing a high-level API and handling various download-related tasks.
- * This file contains the implementation of the Electron Download Manager.
+ * We decided to replicate the functionality of the `electron-dl` package for easier maintenance.
+ * More context: https://github.com/Expensify/App/issues/35189#issuecomment-1959681109
  */
-
-import type { DownloadItem, Event, Session, WebContents, BrowserView } from 'electron';
-import { app, BrowserWindow, dialog, shell } from 'electron';
+import type {BrowserView, DownloadItem, Event, Session, WebContents} from 'electron';
+import {app, BrowserWindow, dialog, shell} from 'electron';
 import * as path from 'path';
-import { Options } from './electronDownloadManagerType';
+import type {Options} from './electronDownloadManagerType';
 
 /**
 Error thrown if `item.cancel()` was called.
 */
-declare class CancelError extends Error { }
+declare class CancelError extends Error {}
 
 /**
  * Returns the filename with extension based on the given name and MIME type.
@@ -76,12 +76,12 @@ const getWindowFromWebContents = (webContents: WebContents): BrowserWindow | und
 
 /**
  * Registers a listener for download events in Electron session.
- * 
+ *
  * @param session - The Electron session to register the listener on.
  * @param prevOptions - The previous options for the download manager.
  * @param callback - The callback function to be called when a download event occurs.
  */
-const registerListener = (session: Session, prevOptions: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => { }): void => {
+const registerListener = (session: Session, prevOptions: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => {}): void => {
     const downloadItems = new Set<DownloadItem>();
     let receivedBytes = 0;
     let completedBytes = 0;
@@ -118,7 +118,7 @@ const registerListener = (session: Session, prevOptions: Options, callback: (err
         }
 
         if (options.saveAs) {
-            item.setSaveDialogOptions({ defaultPath: filePath, ...options.dialogOptions });
+            item.setSaveDialogOptions({defaultPath: filePath, ...options.dialogOptions});
         } else {
             item.setSavePath(filePath);
         }
@@ -268,12 +268,7 @@ ipcMain.on('download-button', async (event, {url}) => {
 });
 ```
 */
-
-const download = (
-    electronWindow: BrowserWindow | BrowserView,
-    url: string,
-    prevOptions?: Options
-): Promise<DownloadItem> => {
+const download = (electronWindow: BrowserWindow | BrowserView, url: string, prevOptions?: Options): Promise<DownloadItem> => {
     const options = {
         ...prevOptions,
         unregisterWhenDone: true,
@@ -294,5 +289,5 @@ const download = (
     });
 };
 
-export { download };
-export type { CancelError, Options };
+export {download};
+export type {CancelError, Options};

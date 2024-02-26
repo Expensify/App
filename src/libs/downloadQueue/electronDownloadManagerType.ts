@@ -1,4 +1,4 @@
-import type { DownloadItem, SaveDialogOptions } from 'electron';
+import type {DownloadItem, SaveDialogOptions} from 'electron';
 
 type Progress = {
     percent: number;
@@ -129,5 +129,4 @@ type Options = {
     readonly unregisterWhenDone?: boolean;
 };
 
-export type { Options, File, Progress };
-
+export type {Options, File, Progress};
