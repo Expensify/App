@@ -15,11 +15,11 @@ Onyx.connect({
     },
 });
 
-const add: Add = (reportActionID: string, path: string) => {
-    if (pdfPaths[reportActionID]) {
+const add: Add = (id: string, path: string) => {
+    if (pdfPaths[id]) {
         return Promise.resolve();
     }
-    return Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {[reportActionID]: path});
+    return Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {[id]: path});
 };
 
 const clear: Clear = (path: string) => {
@@ -36,8 +36,8 @@ const clear: Clear = (path: string) => {
     });
 };
 
-const clearByKey: ClearByKey = (reportActionID: string) => {
-    clear(pdfPaths[reportActionID] ?? '').then(() => Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {[reportActionID]: null}));
+const clearByKey: ClearByKey = (id: string) => {
+    clear(pdfPaths[id] ?? '').then(() => Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {[id]: null}));
 };
 
 const clearAll: ClearAll = () => {
