@@ -47,6 +47,8 @@ function ProfilePage({
             state: '',
             zip: '',
             country: '',
+            zipPostCode: '',
+            addressLine1: '',
         },
     },
     currentUserPersonalDetails,
