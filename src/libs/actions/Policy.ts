@@ -22,6 +22,7 @@ import type {
     OpenWorkspaceReimburseViewParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingParams,
+    SetWorkspaceAutoReportingFrequencyParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
@@ -453,7 +454,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
         },
     ];
 
-    const params = {policyID, frequency};
+    const params: SetWorkspaceAutoReportingFrequencyParams = {policyID, frequency};
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
 }
 
