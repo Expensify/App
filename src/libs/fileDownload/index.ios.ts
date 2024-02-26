@@ -1,4 +1,5 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
 import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
@@ -35,10 +36,10 @@ function downloadImage(fileUrl: string) {
 /**
  * Download the video to photo lib in iOS
  */
-function downloadVideo(fileUrl: string, fileName: string): Promise<string> {
+function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifier> {
     return new Promise((resolve, reject) => {
         let documentPathUri: string | null = null;
-        let cameraRollUri: string | null = null;
+        let cameraRollAsset: PhotoIdentifier;
 
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName)
@@ -50,19 +51,18 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<string> {
                 return CameraRoll.saveAsset(documentPathUri);
             })
             .then((attachment) => {
-                cameraRollUri = attachment;
+                cameraRollAsset = attachment;
                 if (!documentPathUri) {
                     throw new Error('Error downloading video');
                 }
                 return RNFetchBlob.fs.unlink(documentPathUri);
             })
             .then(() => {
-                if (!cameraRollUri) {
-                    throw new Error('Error downloading video');
-                }
-                resolve(cameraRollUri);
+                resolve(cameraRollAsset);
             })
-            .catch((err) => reject(err));
+            .catch((err) => {
+                reject(err)
+            });
     });
 }
 
