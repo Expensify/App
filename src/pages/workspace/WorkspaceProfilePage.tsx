@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CurrencyList} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -50,6 +50,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '')), [policy?.id]);
+    const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? '';
@@ -100,11 +101,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[styles.mb3, isSmallScreenWidth ? styles.mtn17 : styles.mtn20, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
-                                onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
+                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                                 editorMaskImage={Expensicons.ImageCropSquareMask}
-                                pendingAction={policy?.pendingFields?.avatar ?? null}
-                                errors={policy?.errorFields?.avatar ?? null}
+                                pendingAction={policy?.pendingFields?.avatar}
+                                errors={policy?.errorFields?.avatar}
                                 onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
                                 previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
                                 headerTitle={translate('workspace.common.workspaceAvatar')}
@@ -113,7 +114,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 disabledStyle={styles.cursorDefault}
                                 errorRowStyles={undefined}
                             />
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <MenuItemWithTopDescription
                                     title={policyName}
                                     titleStyle={styles.workspaceTitleStyle}
@@ -127,7 +128,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 />
                             </OfflineWithFeedback>
                             {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
-                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description as OnyxCommon.PendingAction}>
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
                                         description={translate('workspace.editor.descriptionInputLabel')}
@@ -141,7 +142,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedCurrency}
@@ -158,6 +159,17 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     </Text>
                                 </View>
                             </OfflineWithFeedback>
+                            {!readOnly && (
+                                <View style={[styles.flexRow, styles.mnw120]}>
+                                    <Button
+                                        accessibilityLabel={translate('common.share')}
+                                        style={styles.mt6}
+                                        text={translate('common.share')}
+                                        onPress={onPressShare}
+                                        medium
+                                    />
+                                </View>
+                            )}
                         </Section>
                     </View>
                 </ScrollView>
