@@ -3267,6 +3267,14 @@ const CONST = {
         MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
     },
 
+    ONBOARDING_CHOICES: {
+        TRACK: 'newDotTrack',
+        EMPLOYER: 'newDotEmployer',
+        MANAGE_TEAM: 'newDotManageTeam',
+        CHAT_SPLIT: 'newDotSplitChat',
+        LOOKING_AROUND: 'newDotLookingAround',
+    },
+
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
     DEBUG_CONSOLE: {

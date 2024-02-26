@@ -63,6 +63,11 @@ import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustrati
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
+import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
+import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
+import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__company-card.svg';
+import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
+import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
 
 export {
     Abracadabra,
@@ -130,4 +135,9 @@ export {
     Gears,
     QRCode,
     House,
+    Abacus,
+    Binoculars,
+    CompanyCard,
+    ReceiptUpload,
+    SplitBill,
 };
