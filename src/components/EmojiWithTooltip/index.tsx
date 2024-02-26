@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type EmojiWithTooltipProps from './types';
 
-function EmojiWithTooltip({emojiCode, style = undefined}: EmojiWithTooltipProps) {
+function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
     const styles = useThemeStyles();
     const emoji = EmojiUtils.findEmojiByCode(emojiCode);
     const emojiName = EmojiUtils.getEmojiName(emoji);
