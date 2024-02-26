@@ -6,6 +6,7 @@ import * as Device from '@userActions/Device';
 import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import addUtilsToWindow from './addUtilsToWindow';
 import initializeLastVisitedPath from './initializeLastVisitedPath';
 import platformSetup from './platformSetup';
 
@@ -59,4 +60,6 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
+
+    addUtilsToWindow();
 }
