@@ -475,7 +475,7 @@ function ReimbursementAccountPage({
         return (
             <ContinueBankAccountSetup
                 reimbursementAccount={reimbursementAccount}
-                continue={continueFunction}
+                continueFunction={continueFunction}
                 policyName={policyName}
                 onBackButtonPress={() => {
                     Navigation.goBack();
