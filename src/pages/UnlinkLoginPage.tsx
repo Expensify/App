@@ -8,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 
