@@ -156,7 +156,7 @@ function ReportPreview({
         });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
-    const shouldDisableSubmitButton = !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
+    const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -239,6 +239,7 @@ function ReportPreview({
         [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport, shouldShowApproveButton],
     );
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldDisableSettlementButton = shouldShowSettlementButton && shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
@@ -330,7 +331,7 @@ function ReportPreview({
                                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                     }}
-                                    isDisabled={!canAllowSettlement}
+                                    isDisabled={!canAllowSettlement || shouldDisableSettlementButton}
                                 />
                             )}
                             {shouldShowSubmitButton && (
