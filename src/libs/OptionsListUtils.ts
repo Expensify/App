@@ -2048,4 +2048,4 @@ export {
     getShareLogOptions,
 };
 
-export type {MemberForList, CategorySection, GetOptions};
+export type {MemberForList, CategorySection, GetOptions, PolicyTaxRateWithDefault, Tag};

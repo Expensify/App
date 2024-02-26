@@ -1,11 +1,4 @@
-type Entries = number[];
-
-type Stats = {
-    mean: number;
-    stdev: number;
-    runs: number;
-    entries: Entries;
-};
+import type {Entries, PerformanceEntry} from '../compare/types';
 
 const filterOutliersViaIQR = (data: Entries): Entries => {
     let q1;
@@ -35,7 +28,7 @@ const std = (arr: Entries): number => {
     return Math.sqrt(arr.map((i) => (i - avg) ** 2).reduce((a, b) => a + b) / arr.length);
 };
 
-const getStats = (entries: Entries): Stats => {
+const getStats = (entries: Entries): PerformanceEntry => {
     const cleanedEntries = filterOutliersViaIQR(entries);
     const meanDuration = mean(cleanedEntries);
     const stdevDuration = std(cleanedEntries);
