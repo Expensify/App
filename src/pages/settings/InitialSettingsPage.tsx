@@ -135,6 +135,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
                 {
+                    translationKey: 'exitSurvey.goToExpensifyClassic',
+                    icon: Expensicons.ExpensifyLogoNew,
+                    routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                },
+                {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
                     routeName: ROUTES.SETTINGS_PROFILE,
@@ -160,16 +165,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     routeName: ROUTES.SETTINGS_SECURITY,
                 },
                 {
-                    translationKey: 'initialSettingsPage.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    action: () => {
-                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                    },
-                    link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
-                },
-                {
                     translationKey: 'initialSettingsPage.signOut',
                     icon: Expensicons.Exit,
                     action: () => {
@@ -191,7 +186,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     },
                 },
                 ...defaultMenu.items,
-            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic');
+            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'exitSurvey.goToExpensifyClassic');
 
             return {sectionStyle: styles.accountSettingsSectionContainer, sectionTranslationKey: 'initialSettingsPage.account', items: hybridAppMenuItems};
         }
@@ -203,7 +198,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
      * Retuns a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
-    const generaltMenuItemsData: Menu = useMemo(
+    const generalMenuItemsData: Menu = useMemo(
         () => ({
             sectionStyle: {
                 ...styles.pt4,
@@ -312,7 +307,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
-    const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
+    const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
 
     const currentUserDetails = currentUserPersonalDetails;
     const avatarURL = currentUserDetails?.avatar ?? '';
@@ -368,7 +363,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                         pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                         style={[styles.mb3, styles.w100]}
                     >
-                        {/* @ts-expect-error TODO: Remove this once AvatarWithImagePicker (https://github.com/Expensify/App/issues/25122) is migrated to TypeScript. */}
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
                             source={UserUtils.getAvatar(avatarURL, accountID)}
@@ -376,7 +370,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             size={CONST.AVATAR_SIZE.XLARGE}
                             avatarStyle={styles.avatarXLarge}
-                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? null}
+                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                             errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
                             errorRowStyles={styles.mt6}
                             onErrorClose={PersonalDetails.clearAvatarErrors}

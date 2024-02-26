@@ -16,6 +16,24 @@ type Waypoint = {
 
     /** The longitude of the waypoint */
     lng?: number;
+
+    /** Address city */
+    city?: string;
+
+    /** Address state */
+    state?: string;
+
+    /** Address zip code */
+    zipCode?: string;
+
+    /** Address country */
+    country?: string;
+
+    /** Address street line 1 */
+    street?: string;
+
+    /** Address street line 2 */
+    street2?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
