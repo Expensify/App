@@ -7,6 +7,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -33,6 +34,7 @@ const BANK_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.BANK_AC
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const setupType = reimbursementAccount?.achData?.subStep ?? '';
@@ -86,7 +88,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 )}
                 <Button
                     isLoading={isLoading}
-                    isDisabled={isLoading}
+                    isDisabled={isLoading || isOffline}
                     success
                     style={[styles.w100]}
                     onPress={onNext}
