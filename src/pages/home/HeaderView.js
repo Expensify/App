@@ -234,7 +234,7 @@ function HeaderView(props) {
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
+                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                     ) : (
@@ -329,7 +329,7 @@ function HeaderView(props) {
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     if (ReportUtils.canEditPolicyDescription(props.policy)) {
-                                                        Navigation.navigate(ROUTES.WORKSPACE_DESCRIPTION.getRoute(props.report.policyID));
+                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(props.report.policyID));
                                                         return;
                                                     }
                                                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));

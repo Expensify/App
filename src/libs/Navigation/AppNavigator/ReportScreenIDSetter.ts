@@ -6,7 +6,6 @@ import usePermissions from '@hooks/usePermissions';
 import {useReports} from '@hooks/useReports';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, Report, ReportMetadata} from '@src/types/onyx';
 import type {ReportScreenWrapperProps} from './ReportScreenWrapper';
@@ -70,7 +69,6 @@ function ReportScreenIDSetter({route, policies, policyMembers = {}, navigation, 
             if (reportActionID && !regexValidReportActionID.test(reportActionID)) {
                 navigation.setParams({reportActionID: ''});
             }
-            App.confirmReadyToOpenApp();
             return;
         }
 
@@ -92,8 +90,6 @@ function ReportScreenIDSetter({route, policies, policyMembers = {}, navigation, 
         // in that case the reportID is undefined
         if (reportID) {
             navigation.setParams({reportID: String(reportID)});
-        } else {
-            App.confirmReadyToOpenApp();
         }
     }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reportMetadata, activeWorkspaceID, policyMembers, accountID]);
 

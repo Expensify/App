@@ -31,6 +31,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
+import * as ComposerActions from '@userActions/Composer';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -210,6 +211,9 @@ function ReportActionItemMessageEdit(
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
     }, [action.reportActionID]);
+
+    // show the composer after editing is complete for devices that hide the composer during editing.
+    useEffect(() => () => ComposerActions.setShouldShowComposeInput(true), []);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft

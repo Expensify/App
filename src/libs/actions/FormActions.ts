@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import type {NullishDeep} from 'react-native-onyx';
-import FormUtils from '@libs/FormUtils';
 import type {OnyxFormDraftKey, OnyxFormKey, OnyxValue} from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -25,11 +24,11 @@ function clearErrorFields(formID: OnyxFormKey) {
 }
 
 function setDraftValues(formID: OnyxFormKey, draftValues: NullishDeep<OnyxValue<OnyxFormDraftKey>>) {
-    Onyx.merge(FormUtils.getDraftKey(formID), draftValues);
+    Onyx.merge(`${formID}Draft`, draftValues);
 }
 
 function clearDraftValues(formID: OnyxFormKey) {
-    Onyx.set(FormUtils.getDraftKey(formID), null);
+    Onyx.set(`${formID}Draft`, null);
 }
 
 export {setDraftValues, setErrorFields, setErrors, clearErrors, clearErrorFields, setIsLoading, clearDraftValues};

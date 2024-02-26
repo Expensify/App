@@ -30,6 +30,7 @@ jest.setTimeout(30000);
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
+jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
@@ -228,6 +229,7 @@ function signInAndGetAppWithUnreadChat() {
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participantAccountIDs: [USER_B_ACCOUNT_ID],
+                lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
             const createdReportActionID = NumberUtils.rand64();
@@ -387,6 +389,7 @@ describe('Unread Indicators', () => {
                                     lastReadTime: '',
                                     lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                                     lastMessageText: 'Comment 1',
+                                    lastActorAccountID: USER_C_ACCOUNT_ID,
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
                                     type: CONST.REPORT.TYPE.CHAT,
                                 },

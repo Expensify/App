@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -31,28 +31,22 @@ const propTypes = {
 
     network: networkPropTypes.isRequired,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    session: {
-        accountID: '',
-    },
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onLinkClick, priorityMode, network, policyMembers, session: {accountID}}) {    
+function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onLinkClick, priorityMode, network, policyMembers, currentUserPersonalDetails}) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
 
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
