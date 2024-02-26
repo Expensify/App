@@ -65,6 +65,7 @@ describe('Translation Keys', () => {
         const keyPath = path ? `${path}.` : '';
         Object.keys(source).forEach((key) => {
             if (typeof source[key as keyof TranslationFlatObject] === 'object' && typeof source[key as keyof TranslationFlatObject] !== 'function') {
+                // @ts-expect-error - We are modifying the translations object for testing purposes
                 traverseKeyPath(source[key], keyPath + key, pathArray);
             } else {
                 pathArray.push(keyPath + key);
