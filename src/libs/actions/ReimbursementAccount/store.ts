@@ -52,7 +52,7 @@ function hasCreditBankAccount() {
         return false;
     }
 
-    Object.entries(bankAccountList).some(([, bankAccountJSON]) => {
+    Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccount(bankAccountJSON);
         return bankAccount.isDefaultCredit();
     });
