@@ -243,7 +243,7 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>) =>
 const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
     reportActions &&
     Object.values(reportActions).map((reportAction) => {
-        const {reportActionID, actionName, errors} = reportAction;
+        const {reportActionID, actionName, errors, originalMessage} = reportAction;
         const decision = reportAction.message?.[0].moderationDecision?.decision;
 
         return {
@@ -253,8 +253,9 @@ const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>
             message: [
                 {
                     moderationDecision: {decision},
-                },
-            ] as Message[],
+                } as Message,
+            ],
+            originalMessage,
         };
     });
 
