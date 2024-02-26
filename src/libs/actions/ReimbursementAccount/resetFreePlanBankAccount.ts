@@ -96,6 +96,7 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
                         [INPUT_IDS.PERSONAL_INFO_STEP.CITY]: '',
                         [INPUT_IDS.PERSONAL_INFO_STEP.STATE]: '',
                         [INPUT_IDS.PERSONAL_INFO_STEP.ZIP_CODE]: '',
+                        [INPUT_IDS.PERSONAL_INFO_STEP.IS_ONFIDO_SETUP_COMPLETE]: false,
                         [INPUT_IDS.PERSONAL_INFO_STEP.DOB]: '',
                         [INPUT_IDS.PERSONAL_INFO_STEP.SSN_LAST_4]: '',
                         [INPUT_IDS.COMPLETE_VERIFICATION.ACCEPT_TERMS_AND_CONDITIONS]: false,
