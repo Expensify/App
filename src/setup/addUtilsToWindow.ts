@@ -34,6 +34,15 @@ export default function addUtilsToWindow() {
             });
         };
 
+        // @ts-expect-error TS233 - injecting additional utility for use in runtime debugging, should not be used in any compiled code
+        window.Onyx.log = function (key) {
+            // @ts-expect-error TS2339 - using additional utility injected above
+            window.Onyx.get(key).then((value) => {
+                /* eslint-disable-next-line no-console */
+                console.log(value);
+            });
+        };
+
         window.setSupportToken = Session.setSupportAuthToken;
     });
 }
