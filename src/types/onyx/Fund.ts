@@ -39,4 +39,4 @@ type Fund = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type FundList = Record<string, Fund>;
 
 export default Fund;
-export type {FundList};
+export type {AccountData, FundList};
