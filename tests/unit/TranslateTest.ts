@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {AnnotationError} from '@actions/core';
-import _ from 'underscore';
 import * as translations from '@src/languages/translations';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject} from '@src/languages/types';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
-// import * as translations from '../../src/languages/translations';
 import * as Localize from '../../src/libs/Localize';
 
-const originalTranslations = _.clone(translations);
+const originalTranslations = {...translations};
 translations.default = {
     [CONST.LOCALES.EN]: translations.flattenObject({
         testKey1: 'English',
@@ -58,28 +56,32 @@ describe('translate', () => {
 });
 
 describe('Translation Keys', () => {
-    function traverseKeyPath(source, path, keyPaths) {
-        const pathArray = keyPaths || [];
+    function traverseKeyPath(source: TranslationFlatObject, path?: string, keyPaths?: string[]): string[] {
+        const pathArray = keyPaths ?? [];
         const keyPath = path ? `${path}.` : '';
-        _.each(_.keys(source), (key) => {
-            if (_.isObject(source[key]) && !_.isFunction(source[key])) {
+        Object.keys(source).forEach((key) => {
+            if (typeof source[key] === 'object' && typeof source[key] !== 'function') {
                 traverseKeyPath(source[key], keyPath + key, pathArray);
             } else {
                 pathArray.push(keyPath + key);
             }
         });
+
         return pathArray;
     }
-    const excludeLanguages = [CONST.LOCALES.EN, CONST.LOCALES.ES_ES];
-    const languages = _.without(_.keys(originalTranslations.default), ...excludeLanguages);
+    function arrayDifference(array1: string[], array2: string[]): string[] {
+        return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
+    }
+    const excludeLanguages: Array<'en' | 'es-ES'> = [CONST.LOCALES.EN, CONST.LOCALES.ES_ES];
+    const languages = Object.keys(originalTranslations.default).filter((ln) => !(excludeLanguages as string[]).includes(ln));
     const mainLanguage = originalTranslations.default.en;
     const mainLanguageKeys = traverseKeyPath(mainLanguage);
 
-    _.each(languages, (ln) => {
+    languages.forEach((ln) => {
         const languageKeys = traverseKeyPath(originalTranslations.default[ln]);
 
         it(`Does ${ln} locale have all the keys`, () => {
-            const hasAllKeys = _.difference(mainLanguageKeys, languageKeys);
+            const hasAllKeys = arrayDifference(mainLanguageKeys, languageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
                 AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
@@ -88,7 +90,7 @@ describe('Translation Keys', () => {
         });
 
         it(`Does ${ln} locale have unused keys`, () => {
-            const hasAllKeys = _.difference(languageKeys, mainLanguageKeys);
+            const hasAllKeys = arrayDifference(languageKeys, mainLanguageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
                 AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
