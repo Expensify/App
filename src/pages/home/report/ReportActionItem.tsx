@@ -492,7 +492,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message[1].text ?? ''})} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message?.[1].text ?? ''})} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
@@ -884,36 +884,36 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
-        const prevParentReportAction = prevparentReportActions?.[prevreport.parentReportActionID ?? ''];
-        const nextParentReportAction = nextparentReportActions?.[nextreport.parentReportActionID ?? ''];
+        const prevParentReportAction = prevProps.parentReportActions?.[prevProps.report.parentReportActionID ?? ''];
+        const nextParentReportAction = nextProps.parentReportActions?.[nextProps.report.parentReportActionID ?? ''];
         return (
-            prevdisplayAsGroup === nextdisplayAsGroup &&
-            previsMostRecentIOUReportAction === nextisMostRecentIOUReportAction &&
-            prevshouldDisplayNewMarker === nextshouldDisplayNewMarker &&
-            lodashIsEqual(prevemojiReactions, nextemojiReactions) &&
-            lodashIsEqual(prevaction, nextaction) &&
-            lodashIsEqual(previouReport, nextiouReport) &&
-            lodashIsEqual(prevreport.pendingFields, nextreport.pendingFields) &&
-            lodashIsEqual(prevreport.isDeletedParentAction, nextreport.isDeletedParentAction) &&
-            lodashIsEqual(prevreport.errorFields, nextreport.errorFields) &&
-            prevreport?.statusNum === nextreport?.statusNum &&
-            prevreport?.stateNum === nextreport?.stateNum &&
-            prevreport?.parentReportID === nextreport?.parentReportID &&
-            prevreport?.parentReportActionID === nextreport?.parentReportActionID &&
+            prevProps.displayAsGroup === nextProps.displayAsGroup &&
+            prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
+            prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
+            lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
+            lodashIsEqual(prevProps.action, nextProps.action) &&
+            lodashIsEqual(prevProps.iouReport, nextProps.iouReport) &&
+            lodashIsEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            lodashIsEqual(prevProps.report.isDeletedParentAction, nextProps.report.isDeletedParentAction) &&
+            lodashIsEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
+            prevProps.report?.statusNum === nextProps.report?.statusNum &&
+            prevProps.report?.stateNum === nextProps.report?.stateNum &&
+            prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
+            prevProps.report?.parentReportActionID === nextProps.report?.parentReportActionID &&
             // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
-            ReportUtils.isTaskReport(prevreport) === ReportUtils.isTaskReport(nextreport) &&
-            prevaction.actionName === nextaction.actionName &&
-            prevreport.reportName === nextreport.reportName &&
-            prevreport.description === nextreport.description &&
-            ReportUtils.isCompletedTaskReport(prevreport) === ReportUtils.isCompletedTaskReport(nextreport) &&
-            prevreport.managerID === nextreport.managerID &&
-            prevshouldHideThreadDividerLine === nextshouldHideThreadDividerLine &&
-            prevreport?.total === nextreport?.total &&
-            prevreport?.nonReimbursableTotal === nextreport?.nonReimbursableTotal &&
-            prevlinkedReportActionID === nextlinkedReportActionID &&
-            lodashIsEqual(prevpolicyReportFields, nextpolicyReportFields) &&
-            lodashIsEqual(prevreport.reportFields, nextreport.reportFields) &&
-            lodashIsEqual(prevpolicy, nextpolicy) &&
+            ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
+            prevProps.action.actionName === nextProps.action.actionName &&
+            prevProps.report.reportName === nextProps.report.reportName &&
+            prevProps.report.description === nextProps.report.description &&
+            ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
+            prevProps.report.managerID === nextProps.report.managerID &&
+            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
+            prevProps.report?.total === nextProps.report?.total &&
+            prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
+            prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+            lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
+            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            lodashIsEqual(prevProps.policy, nextProps.policy) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),
