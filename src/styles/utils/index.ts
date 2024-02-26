@@ -14,8 +14,10 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
+import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
+import cursor from './cursor';
 import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
@@ -790,6 +792,8 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
     };
 }
 
+const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
+
 /**
  * Gets the correct position for auto complete suggestion container
  */
@@ -797,13 +801,13 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     'worklet';
 
     const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + borderWidth),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + (shouldPreventScroll ? 0 : borderWidth)),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
@@ -925,6 +929,7 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
         alignItems: 'center',
         // eslint-disable-next-line object-shorthand
         borderRadius: borderRadius,
+        ...cursor.cursorPointer,
     };
 }
 
@@ -1224,7 +1229,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns link styles based on whether the link is disabled or not
      */
-    getDisabledLinkStyles: (isDisabled = false): ViewStyle => {
+    getDisabledLinkStyles: (isDisabled = false): TextStyle => {
         const disabledLinkStyles = {
             color: theme.textSupporting,
             ...styles.cursorDisabled,
@@ -1481,6 +1486,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isSelected && styles.borderColorFocus),
         ...(isDisabled && styles.cursorDisabled),
         ...(isDisabled && styles.buttonOpacityDisabled),
+    }),
+
+    // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
+    getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
+        ...StyleSheet.flatten(descriptionTextStyle),
+        opacity: styles.opacitySemiTransparent.opacity,
     }),
 });
 

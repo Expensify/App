@@ -84,6 +84,7 @@ export type {default as DeleteCommentParams} from './DeleteCommentParams';
 export type {default as UpdateCommentParams} from './UpdateCommentParams';
 export type {default as UpdateReportNotificationPreferenceParams} from './UpdateReportNotificationPreferenceParams';
 export type {default as UpdateRoomDescriptionParams} from './UpdateRoomDescriptionParams';
+export type {default as UpdateRoomVisibilityParams} from './UpdateRoomVisibilityParams';
 export type {default as UpdateReportWriteCapabilityParams} from './UpdateReportWriteCapabilityParams';
 export type {default as AddWorkspaceRoomParams} from './AddWorkspaceRoomParams';
 export type {default as UpdatePolicyRoomNameParams} from './UpdatePolicyRoomNameParams';
@@ -144,3 +145,6 @@ export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestPara
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
 export type {default as AcceptACHContractForBankAccount} from './AcceptACHContractForBankAccount';
 export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspaceDescriptionParams';
+export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAutoReportingParams';
+export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
+export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
