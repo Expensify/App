@@ -1754,6 +1754,7 @@ export default {
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',

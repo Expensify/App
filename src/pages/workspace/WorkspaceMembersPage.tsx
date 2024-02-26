@@ -428,6 +428,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             {selectedEmployees.length > 0 ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                     pressOnEnter
+                    customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={(event, value) => handleBulkAction(value)}
                     options={getBulkActionsButtonOptions()}

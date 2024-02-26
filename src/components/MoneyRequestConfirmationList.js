@@ -549,6 +549,7 @@ function MoneyRequestConfirmationList(props) {
             />
         ) : (
             <ButtonWithDropdownMenu
+                success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}

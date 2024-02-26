@@ -19,9 +19,13 @@ type DropdownOption<TValueType> = {
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
+    onSelected?: () => void;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
+    /** The custom text to display on the main button instead of selected option */
+    customText?: string;
+
     /** Text to display for the menu header */
     menuHeaderText?: string;
 
@@ -58,6 +62,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
+
+    /** Whether the button should use success style or not */
+    success?: boolean;
 };
 
 export type {PaymentType, WorkspaceMemberBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};

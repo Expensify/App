@@ -226,6 +226,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
+                    success
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}

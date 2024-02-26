@@ -13,10 +13,12 @@ import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
+    success = false,
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
     menuHeaderText = '',
+    customText,
     style,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
@@ -66,11 +68,11 @@ function ButtonWithDropdownMenu<IValueType>({
             {options.length > 1 ? (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
-                        success
+                        success={success}
                         pressOnEnter={pressOnEnter}
                         ref={buttonRef}
                         onPress={(event) => onPress(event, selectedItem.value)}
-                        text={selectedItem.text}
+                        text={customText ?? selectedItem.text}
                         isDisabled={isDisabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
@@ -83,7 +85,7 @@ function ButtonWithDropdownMenu<IValueType>({
 
                     <Button
                         ref={caretButton}
-                        success
+                        success={success}
                         isDisabled={isDisabled}
                         style={[styles.pl0]}
                         onPress={() => setIsMenuVisible(!isMenuVisible)}
@@ -106,7 +108,7 @@ function ButtonWithDropdownMenu<IValueType>({
                 </View>
             ) : (
                 <Button
-                    success
+                    success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
                     isDisabled={isDisabled}

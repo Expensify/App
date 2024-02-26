@@ -1778,6 +1778,7 @@ export default {
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
+            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
