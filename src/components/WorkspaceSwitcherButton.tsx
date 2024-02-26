@@ -17,14 +17,14 @@ type WorkspaceSwitcherButtonOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type WorkspaceSwitcherButtonProps = {activeWorkspaceID?: string} & WorkspaceSwitcherButtonOnyxProps;
+type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps;
 
-function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherButtonProps) {
+function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
-
+    
     const {source, name, type} = useMemo(() => {
-        if (!activeWorkspaceID) {
+        if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
@@ -34,7 +34,7 @@ function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherB
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
         };
-    }, [policy, activeWorkspaceID]);
+    }, [policy]);
 
     return (
         <Tooltip text={translate('workspace.switcher.headerTitle')}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import useTheme from '@hooks/useTheme';
@@ -30,9 +30,11 @@ type BreadcrumbsProps = {
 
     /** Styles to apply to the container */
     style?: StyleProp<ViewStyle>;
+
+    secondaryBreadcrumbStyle?: StyleProp<TextStyle>;
 };
 
-function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
+function Breadcrumbs({breadcrumbs, style, secondaryBreadcrumbStyle}: BreadcrumbsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [primaryBreadcrumb, secondaryBreadcrumb] = breadcrumbs;
@@ -68,7 +70,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                     <Text style={[styles.breadcrumbSeparator]}>/</Text>
                     <Text
                         numberOfLines={1}
-                        style={[styles.mw75, styles.flexShrink0, styles.breadcrumb]}
+                        style={[styles.mw75, styles.flexShrink0, styles.breadcrumb, secondaryBreadcrumbStyle]}
                     >
                         {secondaryBreadcrumb.text}
                     </Text>

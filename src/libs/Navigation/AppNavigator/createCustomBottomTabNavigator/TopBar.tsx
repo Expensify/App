@@ -35,23 +35,27 @@ function TopBar({policy}: TopBarProps) {
     return (
         <View style={styles.w100}>
             <View
-                style={[styles.gap4, styles.flexRow, styles.m5, styles.alignItemsCenter]}
+                style={[styles.flexRow, styles.gap4, styles.ml5, styles.mv5, styles.alignItemsCenter, {justifyContent: 'space-between'}]}
                 dataSet={{dragArea: true}}
             >
-                <WorkspaceSwitcherButton policy={policy} />
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <WorkspaceSwitcherButton policy={policy} />
 
-                <View style={styles.flexGrow1}>
-                    <Breadcrumbs
-                        breadcrumbs={[
-                            {
-                                type: CONST.BREADCRUMB_TYPE.ROOT,
-                            },
-                            {
-                                text: title,
-                            },
-                        ]}
-                    />
+                    <View style={[styles.ml3, styles.flex1]}>
+                        <Breadcrumbs
+                            secondaryBreadcrumbStyle={styles.flexShrink1}
+                            breadcrumbs={[
+                                {
+                                    type: CONST.BREADCRUMB_TYPE.ROOT,
+                                },
+                                {
+                                    text: title,
+                                },
+                            ]}
+                        />
+                    </View>
                 </View>
+
                 <Tooltip text={translate('common.search')}>
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('sidebarScreen.buttonSearch')}

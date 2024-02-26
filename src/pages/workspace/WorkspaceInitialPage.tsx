@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Breadcrumbs from '@components/Breadcrumbs';
 import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
@@ -186,6 +188,19 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
+    // const policyAvatar = useMemo(() => {
+    //     if (!policy) {
+    //         return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
+    //     }
+
+    //     const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+    //     return {
+    //         source: avatar,
+    //         name: policy?.name ?? '',
+    //         type: CONST.ICON_TYPE_WORKSPACE,
+    //     };
+    // }, [policy]);
+
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
@@ -198,18 +213,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            type: CONST.BREADCRUMB_TYPE.STRONG,
-                            text: policyName,
-                        },
-                        {
-                            text: translate('common.settings'),
-                        },
-                    ]}
-                    style={[styles.ph5, styles.mb5]}
+                <HeaderWithBackButton
+                    // style={[styles.ph5, styles.mb5]}
+                    title={policyName}
+                    onBackButtonPress={Navigation.closeFullScreen}
                 />
+
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
