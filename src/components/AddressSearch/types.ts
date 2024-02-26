@@ -1,5 +1,6 @@
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
+import type {Place} from 'react-native-google-places-autocomplete';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type Locale from '@src/types/onyx/Locale';
 
@@ -19,6 +20,8 @@ type RenamedInputKeysProps = {
     lat: string;
     lng: string;
     zipCode: string;
+    address?: string;
+    country?: string;
 };
 
 type OnPressProps = {
@@ -32,15 +35,8 @@ type StreetValue = {
     street: string;
 };
 
-type PredefinedPlace = {
+type PredefinedPlace = Place & {
     name?: string;
-    description: string;
-    geometry: {
-        location: {
-            lat: number;
-            lng: number;
-        };
-    };
 };
 
 type AddressSearchProps = {
@@ -69,7 +65,7 @@ type AddressSearchProps = {
     defaultValue?: string;
 
     /** A callback function when the value of this field has changed */
-    onInputChange: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
+    onInputChange?: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
     onPress?: (props: OnPressProps) => void;
@@ -84,10 +80,10 @@ type AddressSearchProps = {
     canUseCurrentLocation?: boolean;
 
     /** A list of predefined places that can be shown when the user isn't searching for something */
-    predefinedPlaces?: PredefinedPlace[];
+    predefinedPlaces?: PredefinedPlace[] | null;
 
     /** A map of inputID key names */
-    renamedInputKeys: RenamedInputKeysProps;
+    renamedInputKeys?: RenamedInputKeysProps;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;
