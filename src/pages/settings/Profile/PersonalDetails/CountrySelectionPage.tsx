@@ -1,46 +1,31 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {CountryData} from '@libs/searchCountryOptions';
 import searchCountryOptions from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type {Route} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-const propTypes = {
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** Currently selected country */
-            country: PropTypes.string,
+type CountrySelectionPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY>;
 
-            /** Route to navigate back after selecting a currency */
-            backTo: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** Navigation from react-navigation */
-    navigation: PropTypes.shape({
-        /** getState function retrieves the current navigation state from react-navigation's navigation property */
-        getState: PropTypes.func.isRequired,
-    }).isRequired,
-};
-
-function CountrySelectionPage({route, navigation}) {
+function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
-    const currentCountry = lodashGet(route, 'params.country');
+    const currentCountry = route.params.country;
 
     const countries = useMemo(
         () =>
-            _.map(_.keys(CONST.ALL_COUNTRIES), (countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}`);
+            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
+                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
                 return {
                     value: countryISO,
                     keyForList: countryISO,
@@ -56,19 +41,18 @@ function CountrySelectionPage({route, navigation}) {
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
-        (option) => {
-            const backTo = lodashGet(route, 'params.backTo', '');
-
+        (option: CountryData) => {
+            const backTo = route.params.backTo ?? '';
             // Check the navigation state and "backTo" parameter to decide navigation behavior
-            if (navigation.getState().routes.length === 1 && _.isEmpty(backTo)) {
+            if (navigation.getState().routes.length === 1 && !backTo) {
                 // If there is only one route and "backTo" is empty, go back in navigation
                 Navigation.goBack();
-            } else if (!_.isEmpty(backTo) && navigation.getState().routes.length === 1) {
+            } else if (!!backTo && navigation.getState().routes.length === 1) {
                 // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                Navigation.goBack(`${route.params.backTo}?country=${option.value}`);
+                Navigation.goBack(`${route.params.backTo}?country=${option.value}` as Route);
             } else {
                 // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                Navigation.navigate(`${route.params.backTo}?country=${option.value}`);
+                Navigation.navigate(`${route.params.backTo}?country=${option.value}` as Route);
             }
         },
         [route, navigation],
@@ -83,9 +67,9 @@ function CountrySelectionPage({route, navigation}) {
                 title={translate('common.country')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    const backTo = lodashGet(route, 'params.backTo', '');
-                    const backToRoute = backTo ? `${backTo}?country=${currentCountry}` : '';
-                    Navigation.goBack(backToRoute);
+                    const backTo = route.params.backTo ?? '';
+                    const backToRoute = backTo ? (`${backTo}?country=${currentCountry}` as const) : '';
+                    Navigation.goBack(backToRoute as Route);
                 }}
             />
 
@@ -105,6 +89,5 @@ function CountrySelectionPage({route, navigation}) {
 }
 
 CountrySelectionPage.displayName = 'CountrySelectionPage';
-CountrySelectionPage.propTypes = propTypes;
 
 export default CountrySelectionPage;
