@@ -2,10 +2,10 @@ import React from 'react';
 import Text from '@components/Text';
 import type TextWithTooltipProps from './types';
 
-function TextWithTooltip({text, textStyles}: TextWithTooltipProps) {
+function TextWithTooltip({text, style}: TextWithTooltipProps) {
     return (
         <Text
-            style={textStyles}
+            style={style}
             numberOfLines={1}
         >
             {text}

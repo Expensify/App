@@ -12,7 +12,6 @@ function TableListItem({
     item,
     isFocused,
     showTooltip,
-    style,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
@@ -62,21 +61,20 @@ function TableListItem({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.text}
-                            textStyles={[
+                            style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                 styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                                 styles.justifyContentCenter,
-                                style,
                             ]}
                         />
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
                                 text={item.alternateText}
-                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre, style]}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>
