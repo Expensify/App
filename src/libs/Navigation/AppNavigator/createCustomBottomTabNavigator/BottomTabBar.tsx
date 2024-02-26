@@ -75,7 +75,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.chats')}
-                    wrapperStyle={styles.flexGrow1}
+                    wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
                     <View>
@@ -92,8 +92,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 </PressableWithFeedback>
             </Tooltip>
             <BottomTabBarFloatingActionButton />
-            <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <SignInOrAvatarWithOptionalStatus />
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <SignInOrAvatarWithOptionalStatus isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
             </View>
         </View>
     );

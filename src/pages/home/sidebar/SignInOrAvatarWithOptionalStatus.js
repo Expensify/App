@@ -11,13 +11,16 @@ import SignInButton from './SignInButton';
 const propTypes = {
     /** Whether the create menu is open or not */
     isCreateMenuOpen: PropTypes.bool,
+
+    isSelected: PropTypes.bool,
 };
 
 const defaultProps = {
     isCreateMenuOpen: false,
+    isSelected: false,
 };
 
-function SignInOrAvatarWithOptionalStatus({isCreateMenuOpen}) {
+function SignInOrAvatarWithOptionalStatus({isCreateMenuOpen, isSelected}) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
 
@@ -29,10 +32,16 @@ function SignInOrAvatarWithOptionalStatus({isCreateMenuOpen}) {
             <AvatarWithOptionalStatus
                 emojiStatus={emojiStatus}
                 isCreateMenuOpen={isCreateMenuOpen}
+                isSelected={isSelected}
             />
         );
     }
-    return <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />;
+    return (
+        <PressableAvatarWithIndicator
+            isCreateMenuOpen={isCreateMenuOpen}
+            isSelected={isSelected}
+        />
+    );
 }
 
 SignInOrAvatarWithOptionalStatus.propTypes = propTypes;

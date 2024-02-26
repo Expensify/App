@@ -18,14 +18,17 @@ const propTypes = {
 
     /** Emoji status */
     emojiStatus: PropTypes.string,
+
+    isSelected: PropTypes.bool,
 };
 
 const defaultProps = {
     isCreateMenuOpen: false,
     emojiStatus: '',
+    isSelected: false,
 };
 
-function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
+function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen, isSelected}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -41,7 +44,10 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
 
     return (
         <View style={styles.sidebarStatusAvatarContainer}>
-            <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
+            <PressableAvatarWithIndicator
+                isCreateMenuOpen={isCreateMenuOpen}
+                isSelected={isSelected}
+            />
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 role={CONST.ROLE.BUTTON}
