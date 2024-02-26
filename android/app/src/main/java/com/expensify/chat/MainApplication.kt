@@ -1,7 +1,9 @@
 package com.expensify.chat
 
+import android.app.ActivityManager
 import android.content.res.Configuration
 import android.database.CursorWindow
+import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
 import com.facebook.react.PackageList
@@ -40,6 +42,10 @@ class MainApplication : MultiDexApplication(), ReactApplication {
     override fun onCreate() {
         super.onCreate()
 
+        if (isOnfidoProcess()) {
+            return
+        }
+
         SoLoader.init(this,  /* native exopackage */false)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
@@ -72,5 +78,14 @@ class MainApplication : MultiDexApplication(), ReactApplication {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
+    }
+
+    private fun isOnfidoProcess(): Boolean {
+        val pid = Process.myPid()
+        val manager = this.getSystemService(ACTIVITY_SERVICE) as ActivityManager
+
+        return manager.runningAppProcesses.any {
+            it.pid == pid && it.processName.endsWith(":onfido_process")
+        }
     }
 }

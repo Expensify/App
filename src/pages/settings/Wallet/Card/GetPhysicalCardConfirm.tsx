@@ -83,6 +83,8 @@ function GetPhysicalCardConfirm({
                         state,
                         zip: zipPostCode,
                         country,
+                        addressLine1: addressLine1 ?? '',
+                        zipPostCode: zipPostCode ?? '',
                     },
                 })}
             />
