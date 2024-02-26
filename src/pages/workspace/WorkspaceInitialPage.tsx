@@ -50,7 +50,7 @@ type WorkspaceInitialPageOnyxProps = {
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<BottomTabNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 function dismissError(policyID: string) {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+    PolicyUtils.goBackFromInvalidPolicy();
     Policy.removeWorkspace(policyID);
 }
 
@@ -96,7 +96,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
-
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
@@ -152,11 +151,23 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [
         {
+            translationKey: 'workspace.common.workflows',
+            icon: Expensicons.Workflows,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.WORKFLOWS,
+        },
+        {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.MEMBERS,
+        },
+        {
+            translationKey: 'workspace.common.categories',
+            icon: Expensicons.Folder,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.CATEGORIES,
         },
     ];
 
@@ -188,7 +199,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             style={[styles.pb0]}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >

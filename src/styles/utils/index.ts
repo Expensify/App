@@ -17,6 +17,7 @@ import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
+import cursor from './cursor';
 import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
@@ -928,6 +929,7 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
         alignItems: 'center',
         // eslint-disable-next-line object-shorthand
         borderRadius: borderRadius,
+        ...cursor.cursorPointer,
     };
 }
 
@@ -1484,6 +1486,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isSelected && styles.borderColorFocus),
         ...(isDisabled && styles.cursorDisabled),
         ...(isDisabled && styles.buttonOpacityDisabled),
+    }),
+
+    // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
+    getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
+        ...StyleSheet.flatten(descriptionTextStyle),
+        opacity: styles.opacitySemiTransparent.opacity,
     }),
 });
 
