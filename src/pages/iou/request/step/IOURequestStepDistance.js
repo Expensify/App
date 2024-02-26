@@ -73,6 +73,7 @@ function IOURequestStepDistance({
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
+
     useEffect(() => {
         MapboxToken.init();
         return MapboxToken.stop;
@@ -96,6 +97,7 @@ function IOURequestStepDistance({
     const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
+
     useEffect(() => {
         if (nonEmptyWaypointsCount >= 2 && (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading)) {
             return;
@@ -141,16 +143,14 @@ function IOURequestStepDistance({
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return ErrorUtils.getLatestErrorField(transaction, 'route');
-        }
-        
+        }        
         if (duplicateWaypointsError) {
             return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
         }
-
         if (atLeastTwoDifferentWaypointsError) {
             return {0: 'iou.error.atLeastTwoDifferentWaypoints'};
         }
-    }
+    };
 
     const updateWaypoints = useCallback(
         ({data}) => {
@@ -173,16 +173,13 @@ function IOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
-        console.log("EERRRR: ", 
-            atLeastTwoDifferentWaypointsError,
-            duplicateWaypointsError
-        )
+        // If there is any error or loading state, don't let user go to next page.
         if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
         navigateToNextStep();
-    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
+    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoadingRoute, isLoading, navigateToNextStep]);
 
     return (
         <StepScreenWrapper
