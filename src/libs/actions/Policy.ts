@@ -28,6 +28,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -43,6 +44,8 @@ import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
+    PolicyCategory,
     PolicyMember,
     PolicyTagList,
     RecentlyUsedCategories,
@@ -54,6 +57,7 @@ import type {
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -197,6 +201,18 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedTags = val),
+});
+
+const allCategoryPolicies: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    callback: (val, key) => {
+        if (!key) {
+            return;
+        }
+        const policyID = CollectionUtils.extractCollectionItemID(key);
+        allCategoryPolicies[policyID] = val;
+    },
 });
 
 /**
@@ -2178,6 +2194,42 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     return policyID;
 }
 
+function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
+    const policyCategories = allCategoryPolicies?.[policyID] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(categoriesToUpdate).reduce<Record<string, PolicyCategory>>((acc, key) => {
+                        acc[key] = {...policyCategories[key], ...categoriesToUpdate[key]};
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...policyCategories,
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key]),
+    };
+
+    API.write('SetWorkspaceCategoriesEnabled', parameters, onyxData);
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -2221,4 +2273,5 @@ export {
     setWorkspaceAutoReporting,
     setWorkspaceApprovalMode,
     updateWorkspaceDescription,
+    setWorkspaceCategoryEnabled,
 };

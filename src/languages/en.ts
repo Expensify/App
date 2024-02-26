@@ -1739,6 +1739,8 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            categoryName: 'Category name',
+            enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",

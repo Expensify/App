@@ -16,10 +16,12 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -67,11 +69,18 @@ function WorkspaceCategoriesPage({policyCategories, route}: WorkspaceCategoriesP
         [policyCategories, selectedCategories, styles.alignSelfCenter, styles.disabledText, styles.flexRow, styles.p1, styles.pl2, theme.icon, translate],
     );
 
+    const navigateToCategorySettings = (categoryName: string) => {
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName));
+    };
+
     const toggleCategory = (category: PolicyForList) => {
         setSelectedCategories((prev) => ({
             ...prev,
             [category.value]: !prev[category.value],
         }));
+
+        // FIXME: This is a temporary solution to navigate to category settings page
+        navigateToCategorySettings(category.text);
     };
 
     const toggleAllCategories = () => {

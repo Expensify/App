@@ -1763,6 +1763,8 @@ export default {
             collect: 'Recolectar',
         },
         categories: {
+            categoryName: 'Nombre de la categoría',
+            enableCategory: 'Activar categoría',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
