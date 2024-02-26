@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,7 +7,6 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +26,8 @@ const defaultProps = {
 };
 
 function NewChatSelectorPage(props) {
+    const navigation = useNavigation();
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -36,14 +38,14 @@ function NewChatSelectorPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('sidebarScreen.fabNewChat')}
-                onBackButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={navigation.goBack}
             />
             <OnyxTabNavigator
                 id={CONST.TAB.NEW_CHAT_TAB_ID}
-                tabBar={({state, navigation, position}) => (
+                tabBar={({state, navigation: tabNavigation, position}) => (
                     <TabSelector
                         state={state}
-                        navigation={navigation}
+                        navigation={tabNavigation}
                         position={position}
                     />
                 )}
