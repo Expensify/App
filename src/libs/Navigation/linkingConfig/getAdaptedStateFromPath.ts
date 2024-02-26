@@ -70,10 +70,10 @@ function createCentralPaneNavigator(route: NavigationPartialRoute<CentralPaneNam
     };
 }
 
-function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName>): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
+function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName>, policyID?: string): NavigationPartialRoute<typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
     const routes = [];
 
-    routes.push({name: SCREENS.WORKSPACE.INITIAL});
+    routes.push({name: SCREENS.WORKSPACE.INITIAL, params: {policyID}});
     if (route) {
         routes.push({
             name: SCREENS.WORKSPACES_CENTRAL_PANE,
@@ -89,6 +89,7 @@ function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName
 // This function will return CentralPaneNavigator route or FullScreenNavigator route.
 function getMatchingRootRouteForRHPRoute(
     route: NavigationPartialRoute,
+    policyID?: string,
 ): NavigationPartialRoute<typeof NAVIGATORS.CENTRAL_PANE_NAVIGATOR | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
@@ -127,13 +128,8 @@ function getMatchingRootRouteForRHPRoute(
     // Check for FullScreenNavigator
     for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
         if (RHPNames && RHPNames.includes(route.name)) {
-            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
+            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params}, policyID);
         }
-    }
-
-    // This screen is opened from the LHN of the FullStackNavigator, so in this case we shouldn't push any CentralPane screen
-    if (route.name === SCREENS.SETTINGS.SHARE_CODE) {
-        return createFullScreenNavigator();
     }
 }
 
@@ -161,7 +157,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         const routes = [];
 
         if (topmostNestedRHPRoute) {
-            let matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
+            let matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute, policyID);
 
             // This may happen if this RHP doens't have a route that should be under the overlay defined.
             if (!matchingRootRoute) {

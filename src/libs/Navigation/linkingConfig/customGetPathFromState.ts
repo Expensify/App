@@ -16,7 +16,6 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
     const stateWithoutPolicyID = removePolicyIDParamFromState(state as State<RootStackParamList>);
-
     // For the Home page we should remove policyID from the params,
     const path = getPathFromState(stateWithoutPolicyID, options);
     const policyIDFromState = getPolicyIDFromState(state as State<RootStackParamList>);

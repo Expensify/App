@@ -1,6 +1,5 @@
 import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
-import routes from 'tests/e2e/server/routes';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
@@ -11,6 +10,7 @@ const isAtLeastOneInState = (state: StackState, screenName: string): boolean => 
 
 function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
+    const topmostWorkspaceCentralPaneRoute = state.routes.at(-1)?.state?.routes[0];
 
     // There should always be SETTINGS.ROOT screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
     if (!isAtLeastOneInState(state, SCREENS.WORKSPACE.INITIAL)) {
@@ -23,6 +23,7 @@ function adaptStateIfNecessary(state: StackState) {
             // Unshift the root screen to fill left pane.
             state.routes.unshift({
                 name: SCREENS.WORKSPACE.INITIAL,
+                params: topmostWorkspaceCentralPaneRoute?.params,
             });
         }
     }

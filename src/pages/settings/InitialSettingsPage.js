@@ -271,7 +271,7 @@ function InitialSettingsPage(props) {
                         iconRight: Expensicons.NewWindow,
                         action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
                     },
-                    ...defaultMenu.items,
+                    ...defaultMenu,
                 ],
                 (item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic',
             );

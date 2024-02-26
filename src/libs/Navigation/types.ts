@@ -479,7 +479,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
 };
 
 type FullScreenNavigatorParamList = {
-    [SCREENS.WORKSPACE.INITIAL]: undefined;
+    [SCREENS.WORKSPACE.INITIAL]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACES_CENTRAL_PANE]: NavigatorScreenParams<WorkspacesCentralPaneNavigatorParamList>;
 };
 
