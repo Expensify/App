@@ -401,9 +401,12 @@ function ReportActionItemMessageEdit(
 
     return (
         <>
-            <View style={[styles.chatItemMessage, styles.flexRow]}>
+            <View
+                ref={containerRef}
+                style={[styles.chatItemMessage, styles.flexRow]}
+            >
+                <PortalHost name="suggestions" />
                 <View
-                    ref={containerRef}
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         styles.flexRow,
@@ -412,7 +415,6 @@ function ReportActionItemMessageEdit(
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
-                    <PortalHost name="suggestions" />
                     <View style={[styles.justifyContentEnd, styles.mb1]}>
                         <Tooltip text={translate('common.cancel')}>
                             <PressableWithFeedback
