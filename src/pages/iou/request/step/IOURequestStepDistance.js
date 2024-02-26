@@ -73,6 +73,9 @@ function IOURequestStepDistance({
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
+    const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
+    const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
+    const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
 
     useEffect(() => {
         MapboxToken.init();
@@ -94,9 +97,6 @@ function IOURequestStepDistance({
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
-    const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
-    const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
-    const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
 
     useEffect(() => {
         if (nonEmptyWaypointsCount >= 2 && (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading)) {
