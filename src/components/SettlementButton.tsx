@@ -136,7 +136,8 @@ function SettlementButton({
 
     const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
-    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email;
+    const shouldShowPaywithExpensifyOption =
+        !shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email;
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
