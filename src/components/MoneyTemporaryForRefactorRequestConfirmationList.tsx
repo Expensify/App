@@ -270,7 +270,7 @@ type MoneyTemporaryForRefactorRequestConfirmationListProps = {
     transactionID: string;
 
     mileageRate: {
-        unit: string;
+        unit: typeof CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES | typeof CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
         rate: number;
         currency: string;
     };
@@ -292,7 +292,7 @@ type MoneyTemporaryForRefactorRequestConfirmationListProps = {
     reportActionID: string;
 };
 
-type MoneyTemporaryForRefactorRequestConfirmationList = MoneyTemporaryForRefactorRequestConfirmationListOnyxProps & MoneyTemporaryForRefactorRequestConfirmationListProps;
+type MoneyTemporaryForRefactorRequestConfirmation = MoneyTemporaryForRefactorRequestConfirmationListOnyxProps & MoneyTemporaryForRefactorRequestConfirmationListProps;
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
     bankAccountRoute,
@@ -332,7 +332,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
-}: MoneyTemporaryForRefactorRequestConfirmationList) {
+}: MoneyTemporaryForRefactorRequestConfirmation) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -345,10 +345,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
-    const taxRates = lodashGet(policy, 'taxRates', {});
+    const taxRates = policy?.taxRates ?? {};
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || (OptionsListUtils.hasEnabledOptions(Object.values(policyCategories))));
+
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -1007,8 +1008,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     );
 }
 
-MoneyTemporaryForRefactorRequestConfirmationList.propTypes = propTypes;
-MoneyTemporaryForRefactorRequestConfirmationList.defaultProps = defaultProps;
+
 MoneyTemporaryForRefactorRequestConfirmationList.displayName = 'MoneyTemporaryForRefactorRequestConfirmationList';
 
 export default withOnyx<MoneyTemporaryForRefactorRequestConfirmationListProps, MoneyTemporaryForRefactorRequestConfirmationListOnyxProps>({
