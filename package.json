@@ -74,7 +74,7 @@
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#5cdae3d4455b03a04c57f50be3863e2fe6c92c52",
     "@onfido/react-native-sdk": "10.6.0",
     "@react-native-async-storage/async-storage": "1.21.0",
-    "@react-native-camera-roll/camera-roll": "7.4.0",
+    "@react-native-camera-roll/camera-roll": "5.4.0",
     "@react-native-clipboard/clipboard": "^1.13.2",
     "@react-native-community/geolocation": "^3.0.6",
     "@react-native-community/netinfo": "11.2.1",
