@@ -1,5 +1,5 @@
-import type CONST from "@src/CONST";
-import type { ValueOf } from "type-fest";
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 
 type SetWorkspaceAutoReportingFrequencyParams = {
     policyID: string;
