@@ -15,3 +15,4 @@ index 2d68ca6..c3fa3c5 100644
  
  def reactNativeArchitectures() {
      def value = project.getProperties().get("reactNativeArchitectures")
+ 
