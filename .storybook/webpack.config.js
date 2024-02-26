@@ -25,7 +25,7 @@ module.exports = ({config}) => {
     config.resolve.alias = {
         'react-native-config': 'react-web-config',
         'react-native$': 'react-native-web',
-        '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.js'),
+        '@react-native-community/netinfo': path.resolve(__dirname, '../__mocks__/@react-native-community/netinfo.ts'),
         '@react-navigation/native': path.resolve(__dirname, '../__mocks__/@react-navigation/native'),
 
         // Module alias support for storybook files, coping from `webpack.common.js`

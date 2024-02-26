@@ -14,12 +14,12 @@ type ShowContextMenuContextProps = {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
     checkIfContextMenuActive: () => void;
-    onShowContextMenu: () => void;
+    onShowContextMenu: (callback: () => void) => void;
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
-    onShowContextMenu: () => undefined,
+    onShowContextMenu: (callback) => callback(),
     report: null,
     action: null,
     checkIfContextMenuActive: () => {},
