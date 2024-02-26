@@ -3,15 +3,19 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+<<<<<<< HEAD
+=======
+import useNetwork from '@hooks/useNetwork';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+>>>>>>> 2509631b (Merge pull request #37163 from Krishna2323/krishna2323/issue/37092)
 import fileDownload from '@libs/fileDownload';
-import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
 import {usePlaybackContext} from './PlaybackContext';
 
 const VideoPopoverMenuContext = React.createContext(null);
 
 function VideoPopoverMenuContextProvider({children}) {
-    const {currentVideoPlayerRef} = usePlaybackContext();
+    const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
 
@@ -24,11 +28,9 @@ function VideoPopoverMenuContextProvider({children}) {
     );
 
     const downloadAttachment = useCallback(() => {
-        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-            const sourceURI = `/${Url.getPathFromURL(status.uri)}`;
-            fileDownload(sourceURI);
-        });
-    }, [currentVideoPlayerRef]);
+        const sourceURI = currentlyPlayingURL.startsWith('blob:') || currentlyPlayingURL.startsWith('file:') ? currentlyPlayingURL : addEncryptedAuthTokenToURL(currentlyPlayingURL);
+        fileDownload(sourceURI);
+    }, [currentlyPlayingURL]);
 
     const menuItems = useMemo(
         () => [
