@@ -285,7 +285,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
-    const formattedDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const defaultTaxKey = policyTaxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
@@ -680,13 +679,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                    title={formattedDistance}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm || canUseP2PDistanceRequests || !isTypeRequest}
+                    disabled={didConfirm || !(canUseP2PDistanceRequests || isTypeRequest)}
                     interactive={!isReadOnly}
                 />
             ),

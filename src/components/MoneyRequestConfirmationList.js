@@ -261,7 +261,6 @@ function MoneyRequestConfirmationList(props) {
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
-    const formattedDistance = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const defaultTaxKey = props.policyTaxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${props.policyTaxRates.taxes[defaultTaxKey].name} (${props.policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
@@ -720,13 +719,13 @@ function MoneyRequestConfirmationList(props) {
                     )}
                     {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={formattedDistance}
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={iouMerchant}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
-                            disabled={didConfirm || canUseP2PDistanceRequests || !isTypeRequest}
+                            disabled={didConfirm || !(canUseP2PDistanceRequests || isTypeRequest)}
                             interactive={!props.isReadOnly}
                         />
                     )}
