@@ -91,6 +91,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
+    const shouldDisableSubmitButton = !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
@@ -157,6 +158,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
+                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 )}
@@ -188,6 +190,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             text={translate('common.submit')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
+                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 )}

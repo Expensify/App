@@ -5011,6 +5011,15 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {submitsTo, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled} = policy;
+
+    const isSelfApproval = currentUserAccountID === submitsTo;
+
+    return !((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5211,6 +5220,7 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    isAllowedToSubmitDraftExpenseReport,
 };
 
 export type {

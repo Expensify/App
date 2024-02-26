@@ -156,6 +156,7 @@ function ReportPreview({
         });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
+    const shouldDisableSubmitButton = !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -331,6 +332,7 @@ function ReportPreview({
                                     text={translate('common.submit')}
                                     style={styles.mt3}
                                     onPress={() => iouReport && IOU.submitReport(iouReport)}
+                                    isDisabled={shouldDisableSubmitButton}
                                 />
                             )}
                         </View>
