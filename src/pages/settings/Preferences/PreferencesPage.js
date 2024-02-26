@@ -10,9 +10,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
-import TestToolMenu from '@components/TestToolMenu';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -44,7 +42,6 @@ const defaultProps = {
 
 function PreferencesPage(props) {
     const styles = useThemeStyles();
-    const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -125,19 +122,6 @@ function PreferencesPage(props) {
                             />
                         </View>
                     </Section>
-                    {!isProduction && (
-                        <Section
-                            title={translate('preferencesPage.testSection.title')}
-                            subtitle={translate('preferencesPage.testSection.subtitle')}
-                            isCentralPane
-                            subtitleMuted
-                            titleStyles={styles.accountSettingsSectionTitle}
-                        >
-                            <View style={styles.mt5}>
-                                <TestToolMenu />
-                            </View>
-                        </Section>
-                    )}
                 </View>
             </ScrollView>
         </ScreenWrapper>

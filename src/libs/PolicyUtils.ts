@@ -3,9 +3,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
@@ -93,7 +95,7 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
     );
 }
 
-function isExpensifyTeam(email: string): boolean {
+function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
@@ -107,6 +109,11 @@ function isExpensifyGuideTeam(email: string): boolean {
  * Checks if the current user is an admin of the policy.
  */
 const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+/**
+ * Checks if the policy is a free group policy.
+ */
+const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
 
 const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
@@ -153,49 +160,57 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 }
 
 /**
- * Gets the tag from policy tags, defaults to the first if no key is provided.
+ * Gets a tag name of policy tags based on a tag index.
  */
-function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTag | undefined | EmptyObject {
-    if (isEmptyObject(policyTags)) {
-        return {};
-    }
-
-    const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-
-    return policyTags?.[policyTagKey] ?? {};
-}
-
-/**
- * Gets the first tag name from policy tags.
- */
-function getTagListName(policyTags: OnyxEntry<PolicyTags>) {
-    if (Object.keys(policyTags ?? {})?.length === 0) {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): string {
+    if (isEmptyObject(policyTagList)) {
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTags ?? {})[0] ?? [];
+    const policyTagKeys = Object.keys(policyTagList ?? {});
+    const policyTagKey = policyTagKeys[tagIndex] ?? '';
 
-    return policyTags?.[policyTagKeys]?.name ?? '';
+    return policyTagList?.[policyTagKey]?.name ?? '';
 }
 
 /**
- * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
+ * Gets all tag lists of a policy
  */
-function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
-    if (Object.keys(policyTags ?? {})?.length === 0) {
-        return {};
+function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagList[keyof PolicyTagList]> {
+    if (isEmptyObject(policyTagList)) {
+        return [];
     }
 
-    const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
+    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
+}
 
-    return policyTags?.[policyTagKey]?.tags ?? {};
+/**
+ * Gets a tag list of a policy by a tag index
+ */
+function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): PolicyTagList[keyof PolicyTagList] {
+    const tagLists = getTagLists(policyTagList);
+
+    return (
+        tagLists[tagIndex] ?? {
+            name: '',
+            required: false,
+            tags: {},
+        }
+    );
 }
 
 /**
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replace(/\\{1,2}:/g, ':');
+    return tag?.replace(/\\{1,2}:/g, CONST.COLON);
+}
+
+/**
+ * Gets a count of enabled tags of a policy
+ */
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
+    return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
 }
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
@@ -237,6 +252,13 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
         : [];
 }
 
+function goBackFromInvalidPolicy() {
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+    // Needed when workspace with given policyID does not exist
+    Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -250,20 +272,23 @@ export {
     isExpensifyTeam,
     isExpensifyGuideTeam,
     isInstantSubmitEnabled,
+    isFreeGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
-    getTag,
+    getTagLists,
     getTagListName,
     getTagList,
     getCleanedTagName,
+    getCountOfEnabledTagsOfList,
     isPendingDeletePolicy,
     isPolicyMember,
     isPaidGroupPolicy,
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
+    goBackFromInvalidPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};
