@@ -1,7 +1,8 @@
+import DomUtils from '@libs/DomUtils';
 import type DoInteractionTask from './types';
 
 const doInteractionTask: DoInteractionTask = (callback) => {
-    callback();
+    DomUtils.requestAnimationFrame(callback);
     return null;
 };
 
