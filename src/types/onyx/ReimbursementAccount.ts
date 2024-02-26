@@ -37,7 +37,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     policyID?: string;
 };
 
-type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
+type ReimbursementAccount = {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
@@ -62,9 +62,11 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Draft step of the setup flow from Onyx */
     draftStep?: BankAccountStep;
 
+    pendingAction?: OnyxCommon.PendingAction;
+
     /** Should display modal to reset data */
     shouldShowResetModal?: boolean;
-}>;
+};
 
 export default ReimbursementAccount;
 export type {BankAccountStep, BankAccountSubStep, ACHData};

@@ -1,69 +1,15 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import type {Writable} from 'type-fest';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 
-type DeployBlockers = {
-    url: string;
-    number: number;
-    isResolved: boolean;
-};
-
-type PullRequest = {
-    url: string;
-    number: number;
-    isVerified: boolean;
-};
-
-type Label = {
-    id: number;
-    number?: number;
-    isVerified?: boolean;
-    node_id: string;
-    url: string;
-    name: string;
-    color: string;
-    default: boolean;
-    description: string;
-};
-
-type ExpectedReponse = {
-    PRList: PullRequest[];
-    labels: Label[];
-    tag: string;
-    title: string;
-    url: string;
-    number: number;
-    deployBlockers: DeployBlockers[];
-    internalQAPRList: string[];
-    isTimingDashboardChecked: boolean;
-    isFirebaseChecked: boolean;
-    isGHStatusChecked: boolean;
-};
-
-type Issue = {
-    url: string;
-    title: string;
-    labels: Label[];
-    body: string;
-};
-
-type ObjectMethodData<T> = {
-    data: T;
-};
-
-const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
-
 beforeAll(() => {
     // Mock core module
-    asMutable(core).getInput = mockGetInput;
+    core.getInput = mockGetInput;
 
     // Mock octokit module
     const moctokit = {
@@ -80,10 +26,8 @@ beforeAll(() => {
                 listForRepo: mockListIssues,
             },
         },
-        paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
+        paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
     };
-
-    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
 });
 
@@ -94,7 +38,7 @@ afterEach(() => {
 
 describe('GithubUtils', () => {
     describe('getStagingDeployCash', () => {
-        const baseIssue: Issue = {
+        const baseIssue = {
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             title: 'Andrew Test Issue',
             labels: [
@@ -116,7 +60,7 @@ describe('GithubUtils', () => {
         issueWithDeployBlockers.body +=
             '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/issues/1\r\n- [x] https://github.com/Expensify/App/issues/2\r\n- [ ] https://github.com/Expensify/App/pull/1234\r\n';
 
-        const baseExpectedResponse: ExpectedReponse = {
+        const baseExpectedResponse = {
             PRList: [
                 {
                     url: 'https://github.com/Expensify/App/pull/21',
@@ -175,13 +119,13 @@ describe('GithubUtils', () => {
         ];
 
         test('Test finding an open issue with no PRs successfully', () => {
-            const bareIssue: Issue = {
+            const bareIssue = {
                 ...baseIssue,
                 // eslint-disable-next-line max-len
                 body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
             };
 
-            const bareExpectedResponse: ExpectedReponse = {
+            const bareExpectedResponse = {
                 ...baseExpectedResponse,
                 PRList: [],
             };
@@ -249,9 +193,7 @@ describe('GithubUtils', () => {
                 ['https://github.com/Expensify/Expensify/issues/156481'],
                 ['https://docs.google.com/document/d/1mMFh-m1seOES48r3zNqcvfuTvr3qOAsY6n5rP4ejdXE/edit?ts=602420d2#'],
             ])('getPullRequestNumberFromURL("%s")', (input) => {
-                expect(() => {
-                    GithubUtils.getPullRequestNumberFromURL(input);
-                }).toThrow(new Error(`Provided URL ${input} is not a Github Pull Request!`));
+                expect(() => GithubUtils.getPullRequestNumberFromURL(input)).toThrow(new Error(`Provided URL ${input} is not a Github Pull Request!`));
             });
         });
     });
@@ -276,9 +218,7 @@ describe('GithubUtils', () => {
                 ['https://github.com/Expensify/Expensify/pull/156481'],
                 ['https://docs.google.com/document/d/1mMFh-m1seOES48r3zNqcvfuTvr3qOAsY6n5rP4ejdXE/edit?ts=602420d2#'],
             ])('getIssueNumberFromURL("%s")', (input) => {
-                expect(() => {
-                    GithubUtils.getIssueNumberFromURL(input);
-                }).toThrow(new Error(`Provided URL ${input} is not a Github Issue!`));
+                expect(() => GithubUtils.getIssueNumberFromURL(input)).toThrow(new Error(`Provided URL ${input} is not a Github Issue!`));
             });
         });
     });
@@ -307,9 +247,7 @@ describe('GithubUtils', () => {
             test.each([['https://www.google.com/'], ['https://docs.google.com/document/d/1mMFh-m1seOES48r3zNqcvfuTvr3qOAsY6n5rP4ejdXE/edit?ts=602420d2#']])(
                 'getIssueOrPullRequestNumberFromURL("%s")',
                 (input) => {
-                    expect(() => {
-                        GithubUtils.getIssueOrPullRequestNumberFromURL(input);
-                    }).toThrow(new Error(`Provided URL ${input} is not a valid Github Issue or Pull Request!`));
+                    expect(() => GithubUtils.getIssueOrPullRequestNumberFromURL(input)).toThrow(new Error(`Provided URL ${input} is not a valid Github Issue or Pull Request!`));
                 },
             );
         });
@@ -412,13 +350,12 @@ describe('GithubUtils', () => {
                         list: jest.fn().mockResolvedValue({data: mockPRs}),
                     },
                 },
-                paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
+                paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
             }),
         }));
 
         const octokit = mockGithub().getOctokit();
         const githubUtils = class extends GithubUtils {};
-        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
         githubUtils.internalOctokit = octokit;
         const tag = '1.0.2-12';
         const basePRList = [
@@ -467,8 +404,8 @@ describe('GithubUtils', () => {
             `${lineBreak}${closedCheckbox}${basePRList[5]}` +
             `${lineBreak}`;
 
-        test('Test no verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList).then((issueBody: string) => {
+        test('Test no verified PRs', () =>
+            githubUtils.generateStagingDeployCashBody(tag, basePRList).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -482,11 +419,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
 
-        test('Test some verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]]).then((issueBody: string) => {
+        test('Test some verified PRs', () =>
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]]).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -500,11 +436,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
 
-        test('Test all verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList).then((issueBody: string) => {
+        test('Test all verified PRs', () =>
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployerVerificationsHeader}` +
@@ -513,11 +448,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
 
-        test('Test no resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList).then((issueBody: string) => {
+        test('Test no resolved deploy blockers', () =>
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
@@ -529,11 +463,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}${lineBreak}` +
                         `${lineBreak}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
 
-        test('Test some resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]]).then((issueBody: string) => {
+        test('Test some resolved deploy blockers', () =>
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]]).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
@@ -545,11 +478,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
 
-        test('Test all resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issueBody: string) => {
+        test('Test all resolved deploy blockers', () =>
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${closedCheckbox}${basePRList[2]}` +
@@ -566,11 +498,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
 
-        test('Test internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList]).then((issueBody: string) => {
+        test('Test internalQA PRs', () =>
+            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList]).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -587,11 +518,10 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
 
-        test('Test some verified internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issueBody: string) => {
+        test('Test some verified internalQA PRs', () =>
+            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issueBody) => {
                 expect(issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -608,8 +538,7 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-            });
-        });
+            }));
     });
 
     describe('getPullRequestURLFromNumber', () => {

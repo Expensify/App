@@ -85,15 +85,13 @@ function BlockingView({
                 width={iconWidth}
                 height={iconHeight}
             />
-            <View>
-                <Text style={[styles.notFoundTextHeader]}>{title}</Text>
+            <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-                {shouldEmbedLinkWithSubtitle ? (
-                    <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
-                ) : (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
-                )}
-            </View>
+            {shouldEmbedLinkWithSubtitle ? (
+                <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
+            ) : (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
+            )}
         </View>
     );
 }
