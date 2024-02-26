@@ -8,6 +8,7 @@ import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountrySelector from '@components/CountrySelector';
 import type DatePicker from '@components/DatePicker';
 import type Picker from '@components/Picker';
+import type RadioButtons from '@components/RadioButtons';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type StatePicker from '@components/StatePicker';
 import type TextInput from '@components/TextInput';
@@ -36,7 +37,8 @@ type ValidInputs =
     | typeof BusinessTypePicker
     | typeof StatePicker
     | typeof DatePicker
-    | typeof ValuePicker;
+    | typeof ValuePicker
+    | typeof RadioButtons;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 type ValueTypeMap = {
