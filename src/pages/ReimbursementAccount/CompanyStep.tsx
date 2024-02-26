@@ -1,17 +1,14 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 
-const propTypes = {
+type CompanyStepProps = {
     /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 };
-
-function CompanyStep({onBackButtonPress}) {
+function CompanyStep({onBackButtonPress}: CompanyStepProps) {
     return <BusinessInfo onBackButtonPress={onBackButtonPress} />;
 }
 
-CompanyStep.propTypes = propTypes;
 CompanyStep.displayName = 'CompanyStep';
 
 export default CompanyStep;
