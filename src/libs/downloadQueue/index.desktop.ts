@@ -1,4 +1,3 @@
-
 import type {BrowserWindow} from 'electron';
 import {download as electronDownload} from './electronDownloadManager';
 import type {Options} from './electronDownloadManagerType';
@@ -6,10 +5,10 @@ import type {Options} from './electronDownloadManagerType';
 type DownloadItem = {
     // The window where the download will be initiated
     win: BrowserWindow;
-    
+
     // The URL of the file to be downloaded
     url: string;
-    
+
     // The options for the download, such as save path, file name, etc.
     options: Options;
 };
