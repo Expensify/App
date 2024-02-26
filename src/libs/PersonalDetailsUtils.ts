@@ -24,9 +24,14 @@ Onyx.connect({
     },
 });
 
+const hiddenText = Localize.translateLocal('common.hidden');
+const substringStartIndex = 8;
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
-    const displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
-    const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
+    let displayName = passedPersonalDetails?.displayName ?? '';
+    if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
+        displayName = displayName.substring(substringStartIndex);
+    }
+    const fallbackValue = shouldFallbackToHidden ? hiddenText : '';
     return displayName || defaultValue || fallbackValue;
 }
 
