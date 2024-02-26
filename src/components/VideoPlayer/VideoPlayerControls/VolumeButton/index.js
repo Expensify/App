@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {memo, useState} from 'react';
+import React, {memo, useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
@@ -9,6 +9,7 @@ import IconButton from '@components/VideoPlayer/IconButton';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as NumberUtils from '@libs/NumberUtils';
 import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
@@ -38,22 +39,25 @@ function VolumeButton({style, small}) {
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.value)});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
 
-    const onSliderLayout = (e) => {
+    const onSliderLayout = useCallback((e) => {
         setSliderHeight(e.nativeEvent.layout.height);
-    };
+    }, []);
 
-    const gestureEventHandler = (event) => {
-        const val = Math.floor((1 - event.y / sliderHeight) * 100) / 100;
-        volume.value = Math.min(Math.max(val, 0), 1);
-    };
+    const changeVolumeOnPan = useCallback(
+        (event) => {
+            const val = NumberUtils.roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
+            volume.value = NumberUtils.clamp(val, 0, 1);
+        },
+        [sliderHeight, volume],
+    );
 
     const pan = Gesture.Pan()
         .onBegin((event) => {
             runOnJS(setIsSliderBeingUsed)(true);
-            gestureEventHandler(event);
+            changeVolumeOnPan(event);
         })
         .onChange((event) => {
-            gestureEventHandler(event);
+            changeVolumeOnPan(event);
         })
         .onFinalize(() => {
             runOnJS(setIsSliderBeingUsed)(false);
@@ -61,9 +65,9 @@ function VolumeButton({style, small}) {
 
     const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.value * 100}%`}));
 
-    const updateIcon = (vol) => {
+    const updateIcon = useCallback((vol) => {
         setVolumeIcon({icon: getVolumeIcon(vol)});
-    };
+    }, []);
 
     useDerivedValue(() => {
         runOnJS(updateVolume)(volume.value);
