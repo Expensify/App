@@ -66,12 +66,4 @@ const error = (...args) => {
     log(...lines);
 };
 
-module.exports = {
-    log,
-    info,
-    warn,
-    note,
-    error,
-    success,
-    writeToLogFile,
-};
+export {log, info, warn, note, error, success, writeToLogFile};
