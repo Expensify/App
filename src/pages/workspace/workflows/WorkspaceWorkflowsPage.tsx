@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -19,11 +20,12 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import {autoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -55,7 +57,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         titleStyle={styles.textLabelSupportingNormal}
                         descriptionTextStyle={styles.textNormalThemeText}
                         onPress={onPressAutoReportingFrequency}
-                        description={translate('workflowsPage.weeklyFrequency')}
+                        description={autoReportingFrequencyDisplayNames[(policy?.autoReportingFrequency as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
                         hoverAndPressStyle={[styles.mr0, styles.br2]}
@@ -111,7 +113,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 isActive: false, // TODO will be done in https://github.com/Expensify/Expensify/issues/368335
             },
         ],
-        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle, isOffline, StyleUtils],
+        [policy, route.params.policyID, styles, translate, policyOwnerDisplayName, containerStyle, isOffline, StyleUtils, onPressAutoReportingFrequency],
     );
 
     const renderItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
