@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FlatList, View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
@@ -22,6 +22,8 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -35,6 +37,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const ownerPersonalDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([policy?.ownerAccountID ?? 0], CONST.EMPTY_OBJECT), false);
     const policyOwnerDisplayName = ownerPersonalDetails[0]?.displayName;
     const containerStyle = useMemo(() => [styles.ph8, styles.mhn8, styles.ml11, styles.pv3, styles.pr0, styles.pl4, styles.mr0, styles.widthAuto, styles.mt4], [styles]);
+
+    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
     const items: ToggleSettingOptionRowProps[] = useMemo(
         () => [
@@ -50,8 +54,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         title={translate('workflowsPage.submissionFrequency')}
                         titleStyle={styles.textLabelSupportingNormal}
                         descriptionTextStyle={styles.textNormalThemeText}
-                        // onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY).getRoute(route.params.policyID))}
-                        // TODO will be done in https://github.com/Expensify/Expensify/issues/368332
+                        onPress={onPressAutoReportingFrequency}
                         description={translate('workflowsPage.weeklyFrequency')}
                         shouldShowRightIcon
                         wrapperStyle={containerStyle}
