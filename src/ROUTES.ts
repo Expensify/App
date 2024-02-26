@@ -486,6 +486,10 @@ const ROUTES = {
         route: 'workspace/:policyID/workflows',
         getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
     },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
+        route: 'workspace/:policyID/workflows/autoreporting/frequency',
+        getRoute: (policyID: string) => `workspace/${policyID}/workflows/autoreporting/frequency` as const,
+    },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
         getRoute: (policyID: string) => `workspace/${policyID}/card` as const,
