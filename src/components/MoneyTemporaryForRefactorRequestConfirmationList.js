@@ -1,10 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
-import {format} from 'date-fns';
+import { useIsFocused } from '@react-navigation/native';
+import { format } from 'date-fns';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import React, { Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -21,9 +21,9 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
+import playSound, { SOUNDS } from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {policyPropTypes} from '@pages/workspace/withPolicy';
+import { policyPropTypes } from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +44,8 @@ import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes } from './withCurrentUserPersonalDetails';
+
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -701,9 +702,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    // TODO: Add the onPress function
-                    onPress={() => {}}
-                    // onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
                     disabled={didConfirm || !isTypeRequest}
                     interactive={!isReadOnly}
                 />

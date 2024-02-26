@@ -143,6 +143,7 @@ const SCREENS = {
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
         STEP_DISTANCE: 'Money_Request_Step_Distance',
+        STEP_RATE: 'Money_Request_Step_Rate',
         STEP_MERCHANT: 'Money_Request_Step_Merchant',
         STEP_PARTICIPANTS: 'Money_Request_Step_Participants',
         STEP_SCAN: 'Money_Request_Step_Scan',
