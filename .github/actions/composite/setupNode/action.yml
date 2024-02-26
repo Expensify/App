@@ -1,6 +1,11 @@
 name: Set up Node
 description: Set up Node
 
+outputs:
+  cache-hit:
+    description: Was there a cache hit on the main node_modules?
+    value: ${{ steps.cache-node-modules.outputs.cache-hit }}
+
 runs:
   using: composite
   steps:
