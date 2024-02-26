@@ -5,6 +5,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -112,6 +113,7 @@ function StateSelectionPage() {
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentState}
                 shouldUseDynamicMaxToRenderPerBatch
+                ListItem={RadioListItem}
             />
         </ScreenWrapper>
     );
