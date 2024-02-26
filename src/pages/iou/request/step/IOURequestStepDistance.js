@@ -72,7 +72,7 @@ function IOURequestStepDistance({
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
-
+    const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     useEffect(() => {
         MapboxToken.init();
         return MapboxToken.stop;
@@ -93,22 +93,15 @@ function IOURequestStepDistance({
         scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
     
-    const nonEmptyWaypointsCount = useMemo(() => {
-        return _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length;
-    }, [waypoints]);
-
-    const duplicateWaypointsError = useMemo(() => {
-        return nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount;
-    }, [waypoints]);
-
-
-    const atLeastTwoDifferentWaypointsError = useMemo(() => {
-        return nonEmptyWaypointsCount > 1 && _.size(validatedWaypoints) < 2;
-    }, [waypoints]);
-
-    // const hasError = useMemo(() => {
-    //     return (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading);
-    // }, [waypoints]);
+    const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
+    const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
+    const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
+    useEffect(() => {
+        if (nonEmptyWaypointsCount >= 2 && (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading)) {
+            return;
+        }
+        setShouldShowAtLeastTwoDifferentWaypointsError(false);
+    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -180,8 +173,16 @@ function IOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
+        console.log("EERRRR: ", 
+            atLeastTwoDifferentWaypointsError,
+            duplicateWaypointsError
+        )
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+            setShouldShowAtLeastTwoDifferentWaypointsError(true);
+            return;
+        }
         navigateToNextStep();
-    }, [waypoints, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
+    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
 
     return (
         <StepScreenWrapper
@@ -222,7 +223,7 @@ function IOURequestStepDistance({
                 </View>
                 <View style={[styles.w100, styles.pt2]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                    {(duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) && (
+                    {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
                         <DotIndicatorMessage
                             style={[styles.mh4, styles.mv3]}
                             messages={getError()}
@@ -237,7 +238,6 @@ function IOURequestStepDistance({
                         onPress={submitWaypoints}
                         text={translate('common.next')}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
-                        isDisabled={nonEmptyWaypointsCount<2}
                     />
                 </View>
             </>
