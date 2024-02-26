@@ -239,8 +239,10 @@ function AttachmentView({
 
 AttachmentView.displayName = 'AttachmentView';
 
-export default withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
-})(memo(AttachmentView));
+export default memo(
+    withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
+        transaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+    })(AttachmentView),
+);
