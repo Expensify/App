@@ -189,18 +189,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
-    // const policyAvatar = useMemo(() => {
-    //     if (!policy) {
-    //         return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
-    //     }
+    const policyAvatar = useMemo(() => {
+        if (!policy) {
+            return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
+        }
 
-    //     const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
-    //     return {
-    //         source: avatar,
-    //         name: policy?.name ?? '',
-    //         type: CONST.ICON_TYPE_WORKSPACE,
-    //     };
-    // }, [policy]);
+        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        return {
+            source: avatar,
+            name: policy?.name ?? '',
+            type: CONST.ICON_TYPE_WORKSPACE,
+        };
+    }, [policy]);
 
     return (
         <ScreenWrapper
@@ -218,6 +218,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                     // style={[styles.ph5, styles.mb5]}
                     title={policyName}
                     onBackButtonPress={Navigation.closeFullScreen}
+                    policyAvatar={policyAvatar}
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>

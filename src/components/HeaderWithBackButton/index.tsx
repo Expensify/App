@@ -1,5 +1,6 @@
 import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
+import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -32,6 +33,7 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
+    policyAvatar,
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
@@ -116,6 +118,14 @@ function HeaderWithBackButton({
                         width={variables.iconHeader}
                         height={variables.iconHeader}
                         additionalStyles={[styles.mr2]}
+                    />
+                )}
+                {policyAvatar && (
+                    <Avatar
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        source={policyAvatar?.source}
+                        name={policyAvatar?.name}
+                        type={policyAvatar?.type}
                     />
                 )}
                 {shouldShowAvatarWithDisplay ? (
