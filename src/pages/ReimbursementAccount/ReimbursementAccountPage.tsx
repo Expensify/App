@@ -436,7 +436,8 @@ function ReimbursementAccountPage({
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 />
             </ScreenWrapper>

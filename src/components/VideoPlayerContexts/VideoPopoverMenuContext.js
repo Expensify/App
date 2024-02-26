@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
@@ -14,6 +15,7 @@ function VideoPopoverMenuContextProvider({children}) {
     const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
+    const {isOffline} = useNetwork();
 
     const updatePlaybackSpeed = useCallback(
         (speed) => {
@@ -30,32 +32,36 @@ function VideoPopoverMenuContextProvider({children}) {
         });
     }, [currentVideoPlayerRef]);
 
-    const menuItems = useMemo(
-        () => [
-            {
+    const menuItems = useMemo(() => {
+        const items = [];
+
+        if (!isOffline) {
+            items.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
                 onSelected: () => {
                     downloadAttachment();
                 },
-            },
-            {
-                icon: Expensicons.Meter,
-                text: translate('videoPlayer.playbackSpeed'),
-                subMenuItems: [
-                    ..._.map(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, (speed) => ({
-                        icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
-                        text: speed.toString(),
-                        onSelected: () => {
-                            updatePlaybackSpeed(speed);
-                        },
-                        shouldPutLeftPaddingWhenNoIcon: true,
-                    })),
-                ],
-            },
-        ],
-        [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed],
-    );
+            });
+        }
+
+        items.push({
+            icon: Expensicons.Meter,
+            text: translate('videoPlayer.playbackSpeed'),
+            subMenuItems: [
+                ..._.map(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, (speed) => ({
+                    icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
+                    text: speed.toString(),
+                    onSelected: () => {
+                        updatePlaybackSpeed(speed);
+                    },
+                    shouldPutLeftPaddingWhenNoIcon: true,
+                })),
+            ],
+        });
+
+        return items;
+    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline]);
 
     const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
     return <VideoPopoverMenuContext.Provider value={contextValue}>{children}</VideoPopoverMenuContext.Provider>;

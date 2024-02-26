@@ -135,7 +135,6 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
             testID={BankInfo.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 shouldShowBackButton
