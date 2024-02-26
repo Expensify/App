@@ -386,8 +386,17 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     );
 
     const handleBulkAction = (action: WorkspaceMemberBulkActionType) => {
-        // eslint-disable-next-line no-console
-        console.log(action);
+        switch (action) {
+            case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE:
+                askForConfirmationToRemove();
+                break;
+            case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER:
+                // TODO: Implement make member
+            case CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN:
+                // TODO: Implement make admin
+            default:
+                break;
+        }
     };
 
     const getBulkActionsButtonOptions = () => {
@@ -427,15 +436,17 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     };
 
     const getHeaderButtons = () => (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+        <View style={[styles.w100]}>
             {selectedEmployees.length > 0 ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    alwaysShowDropdownMenu
                     pressOnEnter
                     customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={(event, value) => handleBulkAction(value)}
                     options={getBulkActionsButtonOptions()}
                     buttonRef={dropdownButtonRef}
+                    style={[isSmallScreenWidth && styles.flexGrow1]}
                 />
             ) : (
                 <Button
@@ -449,14 +460,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     style={[isSmallScreenWidth && styles.flexGrow1]}
                 />
             )}
-            <Button
-                medium
-                danger
-                style={[styles.ml2, isSmallScreenWidth && styles.w50]}
-                isDisabled={selectedEmployees.length === 0}
-                text={translate('common.remove')}
-                onPress={askForConfirmationToRemove}
-            />
         </View>
     );
 

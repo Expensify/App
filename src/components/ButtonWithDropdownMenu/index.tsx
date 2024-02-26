@@ -17,6 +17,7 @@ function ButtonWithDropdownMenu<IValueType>({
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
+    alwaysShowDropdownMenu = false,
     menuHeaderText = '',
     customText,
     style,
@@ -65,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
 
     return (
         <View>
-            {options.length > 1 ? (
+            {alwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
                         success={success}

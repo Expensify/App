@@ -65,6 +65,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether the button should use success style or not */
     success?: boolean;
+
+    /** Whether the dropdown menu should be shown even if it has only one option */
+    alwaysShowDropdownMenu?: boolean;
 };
 
 export type {PaymentType, WorkspaceMemberBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};
