@@ -367,6 +367,7 @@ type ReimbursementAccountNavigatorParamList = {
     [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
         stepToOpen?: string;
         policyID?: string;
+        backTo?: Routes;
     };
 };
 

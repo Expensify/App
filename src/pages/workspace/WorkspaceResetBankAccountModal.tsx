@@ -17,7 +17,7 @@ type WorkspaceResetBankAccountModalOnyxProps = {
 
 type WorkspaceResetBankAccountModalProps = WorkspaceResetBankAccountModalOnyxProps & {
     /** Reimbursement account data */
-    reimbursementAccount: OnyxTypes.ReimbursementAccount;
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 };
 
 function WorkspaceResetBankAccountModal({reimbursementAccount, session}: WorkspaceResetBankAccountModalProps) {

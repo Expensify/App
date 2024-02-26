@@ -1,10 +1,9 @@
-import {RouteProp} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import Str from 'expensify-common/lib/str';
 import lodashPick from 'lodash/pick';
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -16,22 +15,21 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
+import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
-import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {ACHData} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
@@ -40,7 +38,6 @@ import CompanyStep from './CompanyStep';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
 
@@ -181,7 +178,6 @@ function ReimbursementAccountPage({
     session,
     plaidLinkToken = '',
     plaidCurrentEvent = '',
-    reimbursementAccountDraft,
 }: ReimbursementAccountPageProps) {
     /**
         The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -255,14 +251,14 @@ function ReimbursementAccountPage({
         which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(
-        reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount.achData && 'currentStep' in reimbursementAccount.achData,
+        reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount?.achData && 'currentStep' in reimbursementAccount?.achData,
     );
 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
 
     const currentStep = achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = policy?.name ?? '';
-    const policyID = route.params.policyID ?? '';
+    const policyID = route.params?.policyID ?? '';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -305,7 +301,7 @@ function ReimbursementAccountPage({
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount.isLoading === false) {
+                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount?.isLoading === false) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
@@ -348,9 +344,7 @@ function ReimbursementAccountPage({
                 BankAccounts.hideBankAccountErrors();
             }
 
-            const backTo = route.params.backTo;
-            // eslint-disable-next-line no-shadow
-            const policyID = route.params.policyID;
+            const backTo = route.params?.backTo;
 
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
         },
@@ -364,8 +358,6 @@ function ReimbursementAccountPage({
         });
         fetchData(true);
     };
-
-    const getDefaultStateForField = (fieldName: keyof ACHData, defaultValue = ''): string | number | boolean | string[] => reimbursementAccount?.achData?.[fieldName] ?? defaultValue;
 
     const goBack = () => {
         const subStep = achData?.subStep;
@@ -439,7 +431,7 @@ function ReimbursementAccountPage({
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
-    if (!isLoading && (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
+    if (!isLoading && (isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
@@ -496,11 +488,9 @@ function ReimbursementAccountPage({
         return (
             <BankAccountStep
                 reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 plaidLinkOAuthToken={plaidLinkToken}
-                getDefaultStateForField={getDefaultStateForField}
                 policyName={policyName}
                 policyID={policyID}
             />
@@ -574,3 +564,5 @@ export default withPolicy(
         },
     })(ReimbursementAccountPage),
 );
+
+export type {ReimbursementAccountDraft};
