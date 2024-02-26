@@ -111,6 +111,7 @@ export default {
         no: 'No',
         ok: 'OK',
         buttonConfirm: 'Ok, entendido',
+        name: 'Nombre',
         attachment: 'Archivo adjunto',
         to: 'A',
         optional: 'Opcional',
@@ -195,6 +196,7 @@ export default {
         iAcceptThe: 'Acepto los ',
         remove: 'Eliminar',
         admin: 'Administrador',
+        owner: 'Dueño',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
@@ -298,6 +300,8 @@ export default {
         of: 'de',
         default: 'Predeterminado',
         update: 'Actualizar',
+        member: 'Miembro',
+        role: 'Role',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -1022,6 +1026,25 @@ export default {
         },
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
     },
+    workflowsPage: {
+        workflowTitle: 'Gasto',
+        workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago',
+        delaySubmissionTitle: 'Retrasar envíos',
+        delaySubmissionDescription: 'Los gastos se comparten de inmediato para una mejor visibilidad del gasto. Establece una cadencia más lenta si es necesario.',
+        submissionFrequency: 'Frecuencia de envíos',
+        weeklyFrequency: 'Semanal',
+        monthlyFrequency: 'Mensual',
+        twiceAMonthFrequency: 'Dos veces al mes',
+        byTripFrequency: 'Por viaje',
+        manuallyFrequency: 'Manual',
+        dailyFrequency: 'Diaria',
+        addApprovalsTitle: 'Requerir aprobaciones',
+        approver: 'Aprobador',
+        connectBankAccount: 'Conectar cuenta bancaria',
+        addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
+        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+    },
     reportFraudPage: {
         title: 'Reportar fraude con la tarjeta virtual',
         description:
@@ -1703,11 +1726,15 @@ export default {
     workspace: {
         common: {
             card: 'Tarjetas',
+            workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
+            enabled: 'Activada',
+            disabled: 'Desactivada',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
             reimburse: 'Reembolsos',
+            categories: 'Categorías',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
@@ -1735,6 +1762,13 @@ export default {
             free: 'Gratis',
             control: 'Control',
             collect: 'Recolectar',
+        },
+        categories: {
+            subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
+            emptyCategories: {
+                title: 'No has creado ninguna categoría',
+                subtitle: 'Añade una categoría para organizar tu gasto.',
+            },
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -1769,6 +1803,7 @@ export default {
             },
             addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
+            membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
