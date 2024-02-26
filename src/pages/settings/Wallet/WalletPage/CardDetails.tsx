@@ -23,6 +23,8 @@ const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
         state: '',
         zip: '',
         country: '',
+        addressLine1: '',
+        zipPostCode: '',
     },
 };
 
