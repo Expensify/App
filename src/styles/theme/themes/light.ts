@@ -1,15 +1,13 @@
-import getPlatform from '@libs/getPlatform';
+import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-const platform = getPlatform();
-
 const lightTheme = {
     // Figma keys
     appBG: colors.productLight100,
-    splashBG: platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP ? colors.productDark100 : colors.green400,
+    splashBG: getSplashBackgroundColor(),
     highlightBG: colors.productLight200,
     border: colors.productLight400,
     borderLighter: colors.productLight400,
