@@ -73,7 +73,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={buttonRef}
                         onPress={(event) => onPress(event, selectedItem.value)}
                         text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled}
+                        isDisabled={isDisabled || customText !== undefined}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
@@ -134,10 +134,10 @@ function ButtonWithDropdownMenu<IValueType>({
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
-                        onSelected: () => {
+                        onSelected: item.onSelected ?? (() => {
                             onOptionSelected?.(item);
                             setSelectedItemIndex(index);
-                        },
+                        }),
                     }))}
                 />
             )}

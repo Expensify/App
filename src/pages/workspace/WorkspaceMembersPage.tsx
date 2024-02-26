@@ -385,6 +385,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         </View>
     );
 
+    const handleBulkAction = (action: WorkspaceMemberBulkActionType) => {
+        // eslint-disable-next-line no-console
+        console.log(action);
+    };
+
     const getBulkActionsButtonOptions = () => {
         const iconSettings = {
             iconWidth: 40,
@@ -395,6 +400,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.removeMembersTitle'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: Expensicons.RemoveMembers,
+                onSelected: () => handleBulkAction(CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE),
                 ...iconSettings,
             },
         ];
@@ -404,6 +410,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: Expensicons.MakeMember,
+                onSelected: () => handleBulkAction(CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER),
                 ...iconSettings,
             });
         } else if (selectedEmployees.find((employee) => policyMembers?.[employee].role === CONST.POLICY.ROLE.USER)) {
@@ -411,16 +418,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 text: translate('workspace.people.makeAdmin'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
+                onSelected: () => handleBulkAction(CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN),
                 ...iconSettings,
             });
         }
 
         return options;
-    };
-
-    const handleBulkAction = (action: WorkspaceMemberBulkActionType) => {
-        // eslint-disable-next-line no-console
-        console.log(action);
     };
 
     const getHeaderButtons = () => (
