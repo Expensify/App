@@ -58,15 +58,20 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const confirmDeleteAndHideModal = () => {
+
+    const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
             return;
         }
 
         Policy.deleteWorkspace(policy?.id, policyName);
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+
         setIsDeleteModalOpen(false);
-    };
+    }, [policy?.id, policyName]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
