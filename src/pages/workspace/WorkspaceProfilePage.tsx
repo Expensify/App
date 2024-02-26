@@ -26,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -38,23 +37,6 @@ type WorkSpaceProfilePageOnyxProps = {
 };
 
 type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
-
-function DefaultAvatar(policy: OnyxEntry<OnyxTypes.Policy>) {
-    const styles = useThemeStyles();
-    const policyName = policy?.name ?? '';
-
-    return (
-        <Avatar
-            containerStyles={styles.avatarXLarge}
-            imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-            source={policy?.avatar ?? ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-            size={CONST.AVATAR_SIZE.XLARGE}
-            name={policyName}
-            type={CONST.ICON_TYPE_WORKSPACE}
-        />
-    );
-}
 
 function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
     const styles = useThemeStyles();
@@ -74,6 +56,21 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const policyDescription = policy?.description ?? '';
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
+
+    const DefaultAvatar = useCallback(
+        () => (
+            <Avatar
+                containerStyles={styles.avatarXLarge}
+                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                source={policy?.avatar ?? ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                size={CONST.AVATAR_SIZE.XLARGE}
+                name={policyName}
+                type={CONST.ICON_TYPE_WORKSPACE}
+            />
+        ),
+        [policy?.avatar, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+    );
 
     return (
         <WorkspacePageWithSections
@@ -109,11 +106,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[styles.mb3, isSmallScreenWidth ? styles.mtn17 : styles.mtn20, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
-                                onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
+                                onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                                 editorMaskImage={Expensicons.ImageCropSquareMask}
-                                pendingAction={policy?.pendingFields?.avatar ?? null}
-                                errors={policy?.errorFields?.avatar ?? null}
+                                pendingAction={policy?.pendingFields?.avatar}
+                                errors={policy?.errorFields?.avatar}
                                 onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
                                 previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
                                 headerTitle={translate('workspace.common.workspaceAvatar')}
@@ -122,7 +119,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 disabledStyle={styles.cursorDefault}
                                 errorRowStyles={undefined}
                             />
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <MenuItemWithTopDescription
                                     title={policyName}
                                     titleStyle={styles.workspaceTitleStyle}
@@ -136,7 +133,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 />
                             </OfflineWithFeedback>
                             {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (
-                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description as OnyxCommon.PendingAction}>
+                                <OfflineWithFeedback pendingAction={policy?.pendingFields?.description}>
                                     <MenuItemWithTopDescription
                                         title={policyDescription}
                                         description={translate('workspace.editor.descriptionInputLabel')}
@@ -150,7 +147,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedCurrency}
