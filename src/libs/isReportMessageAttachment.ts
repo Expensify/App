@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
@@ -17,5 +18,5 @@ export default function isReportMessageAttachment(message: Message | undefined):
     }
 
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
-    return message.text === CONST.ATTACHMENT_MESSAGE_TEXT && (!!message.html.match(regex) || message.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
+    return (message.text === CONST.ATTACHMENT_MESSAGE_TEXT || !!Str.isVideo(message.text)) && (!!message.html.match(regex) || message.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
 }
