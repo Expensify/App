@@ -61,6 +61,8 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
+    onComposerFocus: () => void;
+    onComposerBlur: () => void;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -85,6 +87,9 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** Whether the report is ready for display */
         isReportReadyForDisplay?: boolean;
+    } & {
+        onComposerFocus: () => {};
+        onComposerBlur: () => {};
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -107,6 +112,8 @@ function ReportActionCompose({
     isReportReadyForDisplay = true,
     isEmptyChat,
     lastReportAction,
+    onComposerFocus,
+    onComposerBlur,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -296,6 +303,7 @@ function ReportActionCompose({
     const onBlur = useCallback((event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         const webEvent = event as unknown as FocusEvent;
         setIsFocused(false);
+        onComposerBlur();
         if (suggestionsRef.current) {
             suggestionsRef.current.resetSuggestions();
         }
@@ -304,8 +312,14 @@ function ReportActionCompose({
         }
     }, []);
 
-    const onFocus = useCallback(() => {
+    const handleFocus = useCallback(() => {
         setIsFocused(true);
+        onComposerFocus();
+    }, []);
+
+    const handleBlur = useCallback(() => {
+        setIsFocused(false);
+        onComposerBlur();
     }, []);
 
     // resets the composer to normal size when
@@ -436,8 +450,8 @@ function ReportActionCompose({
                                         setIsCommentEmpty={setIsCommentEmpty}
                                         handleSendMessage={handleSendMessage}
                                         shouldShowComposeInput={shouldShowComposeInput}
-                                        onFocus={onFocus}
-                                        onBlur={onBlur}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
                                         onValueChange={(value) => {

@@ -51,6 +51,11 @@ type ReportFooterProps = ReportFooterOnyxProps & {
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
+
+    onComposerFocus: () => void;
+
+    /** A method to call when the input is blue */
+    onComposerBlur: () => void;
 };
 
 function ReportFooter({
@@ -63,6 +68,8 @@ function ReportFooter({
     isReportReadyForDisplay = true,
     listHeight = 0,
     isComposerFullSize = false,
+    onComposerBlur,
+    onComposerFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -137,6 +144,8 @@ function ReportFooter({
                         <ReportActionCompose
                             // @ts-expect-error TODO: Remove this once ReportActionCompose (https://github.com/Expensify/App/issues/31984) is migrated to TypeScript.
                             onSubmit={onSubmitComment}
+                            onComposerFocus={onComposerFocus}
+                            onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
                             report={report}
                             isEmptyChat={isEmptyChat}

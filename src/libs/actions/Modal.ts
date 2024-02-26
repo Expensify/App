@@ -60,6 +60,7 @@ function onModalDidClose() {
     onModalClose();
     onModalClose = null;
     isNavigate = undefined;
+    setModalVisibility(false);
 }
 
 /**

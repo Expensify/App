@@ -22,9 +22,9 @@ const useEmojiPickerMenu = () => {
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
     const {preferredLocale} = useLocalize();
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions(true);
     const StyleUtils = useStyleUtils();
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight);
+    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95);
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
