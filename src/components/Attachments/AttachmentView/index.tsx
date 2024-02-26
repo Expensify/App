@@ -32,39 +32,39 @@ type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type AttachmentViewProps = {
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentSource;
-
-    /** Flag to show/hide download icon */
-    shouldShowDownloadIcon?: boolean;
-
-    /** Flag to show the loading indicator */
-    shouldShowLoadingSpinnerIcon?: boolean;
-
-    /** Notify parent that the UI should be modified to accommodate keyboard */
-    onToggleKeyboard?: () => void;
-
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: Array<StyleProp<ViewStyle>>;
-
-    /** Denotes whether it is a workspace avatar or not */
-    isWorkspaceAvatar?: boolean;
-
-    /** Denotes whether it is an icon (ex: SVG) */
-    maybeIcon?: boolean;
-
-    /** The id of the transaction related to the attachment */
-    transactionID?: string;
-
-    fallbackSource?: string | number;
-
-    isHovered?: boolean;
-
-    optionalVideoDuration?: number;
-} & AttachmentViewOnyxProps &
+type AttachmentViewProps = AttachmentViewOnyxProps &
     AttachmentViewBaseProps &
-    Attachment;
+    Attachment & {
+        /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
+        source: AttachmentSource;
+
+        /** Flag to show/hide download icon */
+        shouldShowDownloadIcon?: boolean;
+
+        /** Flag to show the loading indicator */
+        shouldShowLoadingSpinnerIcon?: boolean;
+
+        /** Notify parent that the UI should be modified to accommodate keyboard */
+        onToggleKeyboard?: () => void;
+
+        /** Extra styles to pass to View wrapper */
+        containerStyles?: Array<StyleProp<ViewStyle>>;
+
+        /** Denotes whether it is a workspace avatar or not */
+        isWorkspaceAvatar?: boolean;
+
+        /** Denotes whether it is an icon (ex: SVG) */
+        maybeIcon?: boolean;
+
+        /** The id of the transaction related to the attachment */
+        transactionID?: string;
+
+        fallbackSource?: string | number;
+
+        isHovered?: boolean;
+
+        optionalVideoDuration?: number;
+    };
 
 function AttachmentView({
     source,
@@ -86,8 +86,8 @@ function AttachmentView({
     optionalVideoDuration,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
-    // ts-expect-error Wait for usePlaybackContext TS migration https://github.com/Expensify/App/issues/36625
-    const {updateCurrentlyPlayingURL} = usePlaybackContext() as unknown as {updateCurrentlyPlayingURL: (source: AttachmentSource | null) => void};
+    // @ts-expect-error Wait for usePlaybackContext TS migration https://github.com/Expensify/App/issues/36724
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

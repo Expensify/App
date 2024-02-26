@@ -32,7 +32,7 @@ function useCarouselArrows() {
     }, [canUseTouchScreen, cancelAutoHideArrows]);
 
     const setShouldShowArrows = useCallback(
-        (show = true) => {
+        (show: boolean | ((oldState: boolean) => boolean) = true) => {
             setShouldShowArrowsInternal(show);
             autoHideArrows();
         },

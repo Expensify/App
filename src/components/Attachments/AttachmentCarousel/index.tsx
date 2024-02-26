@@ -30,7 +30,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const scrollRef = useRef<FlatList | null>(null);
+    const scrollRef = useRef<FlatList>(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
@@ -76,7 +76,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
-            const entry = viewableItems.length > 0 ? viewableItems[0] : undefined;
+            const entry = viewableItems?.[0];
             if (!entry) {
                 return;
             }
@@ -124,13 +124,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onPress={
                     canUseTouchScreen
                         ? () => {
-                              setShouldShowArrows(!shouldShowArrows);
+                              setShouldShowArrows((oldState: boolean) => !oldState);
                           }
                         : undefined
                 }
             />
         ),
-        [attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [attachments.length, canUseTouchScreen, setShouldShowArrows],
     );
 
     return (

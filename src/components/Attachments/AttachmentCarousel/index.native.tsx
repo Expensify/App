@@ -19,7 +19,7 @@ import useCarouselArrows from './useCarouselArrows';
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate = () => {}, setDownloadButtonVisibility = () => {}}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const pagerRef = useRef<AttachmentCarouselPagerHandle | null>(null);
+    const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
@@ -133,7 +133,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                                 ref={pagerRef}
-                                initialPage={0}
+                                initialPage={page}
                             />
                         </>
                     )}

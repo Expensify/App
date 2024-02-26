@@ -4,10 +4,10 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import PDFView from '@components/PDFView';
 import type AttachmentViewPdfProps from './types';
 
-type BaseAttachmentViewPdfProps = {
+type BaseAttachmentViewPdfProps = AttachmentViewPdfProps & {
     /** Triggered when the PDF's onScaleChanged event is triggered */
     onScaleChanged: (scale: number) => void;
-} & AttachmentViewPdfProps;
+};
 
 function BaseAttachmentViewPdf({
     file,
