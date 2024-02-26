@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     // The app calls this endpoint to know which test to run
     testConfig: '/test_config',
 
