@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +24,7 @@ function NewChatSelectorPage() {
                 <HeaderWithBackButton
                     title={translate('sidebarScreen.fabNewChat')}
                     onBackButtonPress={Navigation.dismissModal}
+                />
                 <OnyxTabNavigator
                     id={CONST.TAB.NEW_CHAT_TAB_ID}
                     tabBar={({state, navigation, position}) => (
