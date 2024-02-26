@@ -8,7 +8,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -41,7 +40,6 @@ function BaseVideoPlayer({
     isVideoHovered,
 }) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
         usePlaybackContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
@@ -96,20 +94,24 @@ function BaseVideoPlayer({
 
     const handlePlaybackStatusUpdate = useCallback(
         (e) => {
-            if (shouldReplayVideo(e, isPlaying, duration, position)) {
+            const isVideoPlaying = e.isPlaying || false;
+            const currentDuration = e.durationMillis || videoDuration * 1000;
+            const currentPositon = e.positionMillis || 0;
+
+            if (shouldReplayVideo(e, isVideoPlaying, currentDuration, currentPositon)) {
                 videoPlayerRef.current.setStatusAsync({positionMillis: 0, shouldPlay: true});
             }
-            const isVideoPlaying = e.isPlaying || false;
+
             preventPausingWhenExitingFullscreen(isVideoPlaying);
             setIsPlaying(isVideoPlaying);
             setIsLoading(!e.isLoaded || Number.isNaN(e.durationMillis)); // when video is ready to display duration is not NaN
             setIsBuffering(e.isBuffering || false);
-            setDuration(e.durationMillis || videoDuration * 1000);
-            setPosition(e.positionMillis || 0);
+            setDuration(currentDuration);
+            setPosition(currentPositon);
 
             onPlaybackStatusUpdate(e);
         },
-        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration, isPlaying, duration, position],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
     );
 
     const handleFullscreenUpdate = useCallback(
@@ -165,7 +167,7 @@ function BaseVideoPlayer({
             }
             originalParent.appendChild(sharedElement);
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
         <>
