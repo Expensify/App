@@ -3,17 +3,18 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type CalendarPickerRadioItem from './types';
+import type CalendarPickerListItem from './types';
 
 type YearPickerModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
     /** The list of years to render */
-    years: CalendarPickerRadioItem[];
+    years: CalendarPickerListItem[];
 
     /** Currently selected year */
     currentYear?: number;
@@ -33,7 +34,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
         const yearsList = searchText === '' ? years : years.filter((year) => year.text.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
-            sections: [{data: yearsList, indexOffset: 0}],
+            sections: [{data: yearsList.sort((a, b) => b.value - a.value), indexOffset: 0}],
         };
     }, [years, searchText, translate]);
 
@@ -72,12 +73,14 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
-                    onSelectRow={(option: CalendarPickerRadioItem) => {
+                    onSelectRow={(option) => {
                         onYearChange?.(option.value);
                     }}
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
+                    shouldUseDynamicMaxToRenderPerBatch
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>
