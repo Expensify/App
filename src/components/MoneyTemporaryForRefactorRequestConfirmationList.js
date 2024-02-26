@@ -695,6 +695,26 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         {
             item: (
                 <MenuItemWithTopDescription
+                    key={translate('common.rate')}
+                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    title={DistanceRequestUtils.getRateForDisplay(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit)}
+                    description={translate('common.rate')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    // TODO: Add the onPress function
+                    onPress={() => {}}
+                    // onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm || !isTypeRequest}
+                    interactive={!isReadOnly}
+                />
+            ),
+            // TODO: hide when betas ready
+            shouldShow: isDistanceRequest,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
                     key={translate('common.merchant')}
                     shouldShowRightIcon={!isReadOnly}
                     title={isMerchantEmpty ? '' : iouMerchant}

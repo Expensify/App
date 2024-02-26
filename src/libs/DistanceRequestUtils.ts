@@ -77,6 +77,37 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
 }
 
 /**
+* @param hasRoute Whether the route exists for the distance request
+* @param distanceInMeters Distance traveled
+* @param unit Unit that should be used to display the distance
+* @param rate Expensable amount allowed per unit
+* @param currency The currency associated with the rate
+* @param translate Translate function
+* @param toLocaleDigit Function to convert to localized digit
+* @returns A string that describes the distance traveled and the rate used for expense calculation
+*/
+function getRateForDisplay(
+    hasRoute: boolean,
+    distanceInMeters: number,
+    unit: Unit,
+    rate: number,
+    currency: string,
+    translate: LocaleContextProps['translate'],
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+): string {
+    if (!hasRoute || !rate) {
+        return translate('iou.routePending');
+    }
+
+    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+    const ratePerUnit = PolicyUtils.getUnitRateValue({rate}, toLocaleDigit);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
+
+    return `${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+}
+
+/**
  * @param hasRoute Whether the route exists for the distance request
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
@@ -103,11 +134,9 @@ function getDistanceMerchant(
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
-    const ratePerUnit = PolicyUtils.getUnitRateValue({rate}, toLocaleDigit);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
+    const ratePerUnit = getRateForDisplay(hasRoute, distanceInMeters, unit, rate, currency, translate, toLocaleDigit);
 
-    return `${distanceInUnits} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${distanceInUnits} ${unitString} @ ${ratePerUnit}`;
 }
 
 /**
@@ -124,4 +153,4 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
     return Math.round(roundedDistance * rate);
 }
 
-export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
+export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount, getRateForDisplay};

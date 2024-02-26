@@ -730,6 +730,18 @@ function MoneyRequestConfirmationList(props) {
                             interactive={!props.isReadOnly}
                         />
                     )}
+                    {props.isDistanceRequest && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            title={props.iouMerchant}
+                            description={translate('common.rate')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm || !isTypeRequest}
+                            interactive={!props.isReadOnly}
+                        />
+                    )}
                     {shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}

@@ -312,6 +312,7 @@ export default {
         update: 'Update',
         member: 'Member',
         role: 'Role',
+        rate: 'Rate',
     },
     location: {
         useCurrent: 'Use current location',

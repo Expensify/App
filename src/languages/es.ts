@@ -302,6 +302,7 @@ export default {
         update: 'Actualizar',
         member: 'Miembro',
         role: 'Role',
+        rate: 'Tarifa',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
