@@ -30,6 +30,7 @@ const propTypes = {
     /** The report attached to the transaction */
     report: reportPropTypes,
 
+    /* Onyx Props */
     /** The policy of the report */
     policy: PropTypes.shape({
         /** Collection of tax rates attached to a policy */
