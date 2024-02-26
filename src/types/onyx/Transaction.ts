@@ -1,5 +1,4 @@
-import type {ValueOf} from 'type-fest';
-import type {KeysOfUnion} from 'type-fest/source/internal';
+import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
