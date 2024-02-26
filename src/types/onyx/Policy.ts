@@ -111,8 +111,11 @@ type Policy = {
         enabled: boolean;
     };
 
-    /** Whether the self approval or submitting is enabled */
+    /** @deprecated Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
     autoReportingOffset?: AutoReportingOffset;
@@ -133,7 +136,7 @@ type Policy = {
     makeMeAdmin?: boolean;
 
     /** Pending fields for the policy */
-    pendingFields?: Record<string, unknown>;
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
     /** Original file name which is used for the policy avatar */
     originalFileName?: string;
@@ -147,8 +150,14 @@ type Policy = {
     /** Whether policy is updating */
     isPolicyUpdating?: boolean;
 
+    /** The approver of the policy */
+    approver?: string;
+
     /** The approval mode set up on this policy */
     approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Whether the auto approval is enabled */
+    isAutoApprovalEnabled?: boolean;
 
     /** Whether transactions should be billable by default */
     defaultBillable?: boolean;

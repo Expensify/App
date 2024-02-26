@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -21,7 +20,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
@@ -77,7 +75,7 @@ const defaultProps = {
 function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
-    const {amount: transactionAmount, currency: transactionCurrency, category: transactionCategory, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
@@ -89,9 +87,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
-
-    // A flag for showing the categories page
-    const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
@@ -135,7 +130,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             IOU.updateMoneyRequestTag(
                 transaction.transactionID,
                 report.reportID,
-                IOUUtils.insertTagIntoReportTagsString(transactionTag, updatedTag, tagIndex),
+                IOUUtils.insertTagIntoTransactionTagsString(transactionTag, updatedTag, tagIndex),
                 policy,
                 policyTags,
                 policyCategories,
@@ -143,16 +138,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             Navigation.dismissModal();
         },
         [tag, transaction.transactionID, report.reportID, transactionTag, tagIndex, policy, policyTags, policyCategories],
-    );
-
-    const saveCategory = useCallback(
-        ({category: newCategory}) => {
-            // In case the same category has been selected, reset the category.
-            const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
-            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
-            Navigation.dismissModal();
-        },
-        [transactionCategory, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
     );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
@@ -166,16 +151,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY && shouldShowCategories) {
-        return (
-            <EditRequestCategoryPage
-                defaultCategory={transactionCategory}
-                policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={saveCategory}
             />
         );
     }

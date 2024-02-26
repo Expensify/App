@@ -113,6 +113,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 1`}
+                    maxLength={CONST.VALIDATION_REIMBURSEMENT_INPUT_LIMIT}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -121,6 +122,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 2`}
+                    maxLength={CONST.VALIDATION_REIMBURSEMENT_INPUT_LIMIT}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -129,6 +131,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 3`}
+                    maxLength={CONST.VALIDATION_REIMBURSEMENT_INPUT_LIMIT}
                 />
             </View>
             {!requiresTwoFactorAuth && (

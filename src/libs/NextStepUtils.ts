@@ -72,10 +72,11 @@ function buildNextStep(
         return null;
     }
 
-    const policy = ReportUtils.getPolicy(report?.policyID);
-    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
-    const isOwner = currentUserAccountID === report?.ownerAccountID;
-    const isManager = currentUserAccountID === report?.managerID;
+    const {policyID = '', ownerAccountID = -1, managerID = -1} = report ?? {};
+    const policy = ReportUtils.getPolicy(policyID);
+    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const isOwner = currentUserAccountID === ownerAccountID;
+    const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([report?.ownerAccountID ?? -1])[0] ?? '';
     const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo) ?? '';
@@ -164,7 +165,7 @@ function buildNextStep(
             }
 
             // Prevented self submitting
-            if (isPreventSelfApprovalEnabled && isSelfApproval) {
+            if ((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",
