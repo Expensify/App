@@ -34,6 +34,42 @@ type DisabledFields = {
     reimbursable?: boolean;
 };
 
+type TaxRate = {
+    /** Name of the a tax rate. */
+    name: string;
+
+    /** The value of the tax rate as percentage. */
+    value: string;
+
+    /** The code associated with the tax rate. */
+    code: string;
+
+    /** This contains the tax name and tax value as one name */
+    modifiedName: string;
+
+    /** Indicates if the tax rate is disabled. */
+    isDisabled?: boolean;
+};
+
+type TaxRates = Record<string, TaxRate>;
+
+type TaxRatesWithDefault = {
+    /** Name of the tax */
+    name: string;
+
+    /** Default policy tax code */
+    defaultExternalID: string;
+
+    /** Default value of taxes */
+    defaultValue: string;
+
+    /** Default foreign policy tax code */
+    foreignTaxDefault: string;
+
+    /** List of tax names and values */
+    taxes: TaxRates;
+};
+
 // These types are for the Integration connections for a policy (eg. Quickbooks, Xero, etc).
 // This data is not yet used in the codebase which is why it is given a very generic type, but the data is being put into Onyx for future use.
 // Once the data is being used, these types should be defined appropriately.
@@ -130,7 +166,7 @@ type Policy = {
     makeMeAdmin?: boolean;
 
     /** Pending fields for the policy */
-    pendingFields?: Record<string, unknown>;
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
     /** Original file name which is used for the policy avatar */
     originalFileName?: string;
@@ -183,6 +219,9 @@ type Policy = {
         trackingEnabled: boolean;
     };
 
+    /** Collection of tax rates attached to a policy */
+    taxRates?: TaxRatesWithDefault;
+
     /** Email of the reimburser when reimbursement is set direct */
     reimburserEmail?: string;
 
@@ -198,4 +237,4 @@ type Policy = {
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault};
