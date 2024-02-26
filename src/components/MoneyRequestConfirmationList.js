@@ -720,7 +720,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={iouMerchant}
+                            title={props.iouMerchant}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
