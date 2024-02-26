@@ -73,6 +73,8 @@ function ReportCardLostPage({
             state: '',
             zip: '',
             country: '',
+            addressLine1: '',
+            zipPostCode: '',
         },
     },
     cardList = {},
