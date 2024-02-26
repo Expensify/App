@@ -29,7 +29,7 @@ function downloadFile(fileUrl: string, fileName: string) {
  * Download the image to photo lib in iOS
  */
 function downloadImage(fileUrl: string) {
-    return CameraRoll.save(fileUrl);
+    return CameraRoll.saveAsset(fileUrl);
 }
 
 /**
@@ -47,7 +47,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<string> {
                 if (!documentPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return CameraRoll.save(documentPathUri);
+                return CameraRoll.saveAsset(documentPathUri);
             })
             .then((attachment) => {
                 cameraRollUri = attachment;
