@@ -3,11 +3,7 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
-<<<<<<< HEAD
-=======
-import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
->>>>>>> 2509631b (Merge pull request #37163 from Krishna2323/krishna2323/issue/37092)
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import {usePlaybackContext} from './PlaybackContext';
