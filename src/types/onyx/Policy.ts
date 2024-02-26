@@ -130,7 +130,7 @@ type Policy = {
     makeMeAdmin?: boolean;
 
     /** Pending fields for the policy */
-    pendingFields?: Record<string, unknown>;
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
     /** Original file name which is used for the policy avatar */
     originalFileName?: string;
