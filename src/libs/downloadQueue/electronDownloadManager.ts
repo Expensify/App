@@ -224,7 +224,7 @@ Register the helper for all windows.
 @example
 ```
 import {app, BrowserWindow} from 'electron';
-import electronDownloadManager = require('electron-dl');
+import electronDownloadManager = require('./electronDownloadManager');
 
 electronDownloadManager();
 
@@ -260,7 +260,7 @@ This can be useful if you need download functionality in a reusable module.
 @example
 ```
 import {BrowserWindow, ipcMain} from 'electron';
-import electronDownloadManager = require('electron-dl');
+import electronDownloadManager = require('./electronDownloadManager');
 
 ipcMain.on('download-button', async (event, {url}) => {
     const win = BrowserWindow.getFocusedWindow();
