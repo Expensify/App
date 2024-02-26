@@ -10,12 +10,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import type {User} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -107,7 +109,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     /** Toggle user from the selectedMembers list */
     const toggleUser = useCallback(
-        ({accountID, pendingAction}: User) => {
+        ({accountID, pendingAction}: ListItem) => {
             if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !accountID) {
                 return;
             }
@@ -123,7 +125,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     );
 
     /** Add or remove all users passed from the selectedMembers list */
-    const toggleAllUsers = (memberList: User[]) => {
+    const toggleAllUsers = (memberList: ListItem[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled);
         const everyoneSelected = enabledAccounts.every((member) => {
             if (!member.accountID) {
@@ -147,8 +149,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         setRemoveMembersConfirmModalVisible(true);
     };
 
-    const getMemberOptions = (): User[] => {
-        let result: User[] = [];
+    const getMemberOptions = (): ListItem[] => {
+        let result: ListItem[] = [];
 
         report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
             const details = personalDetails[accountID];
@@ -188,7 +190,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details.login),
+                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
@@ -200,7 +202,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             });
         });
 
-        result = result.sort((value1, value2) => value1.text.localeCompare(value2.text.toLowerCase()));
+        result = result.sort((value1, value2) => localeCompare(value1.text, value2.text));
 
         return result;
     };
@@ -275,6 +277,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                            ListItem={UserListItem}
                         />
                     </View>
                 </View>

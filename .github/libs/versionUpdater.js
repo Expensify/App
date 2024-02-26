@@ -127,7 +127,7 @@ function getPreviousVersion(currentVersion, level) {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 
-module.exports = {
+export {
     getVersionNumberFromString,
     getVersionStringFromNumber,
     incrementVersion,

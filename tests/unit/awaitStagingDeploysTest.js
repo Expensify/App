@@ -1,10 +1,10 @@
 /**
  * @jest-environment node
  */
-const core = require('@actions/core');
-const _ = require('underscore');
-const run = require('../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys');
-const GithubUtils = require('../../.github/libs/GithubUtils');
+import * as core from '@actions/core';
+import _ from 'underscore';
+import run from '../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
+import GithubUtils from '../../.github/libs/GithubUtils';
 
 // Lower poll rate to speed up tests
 const TEST_POLL_RATE = 1;
