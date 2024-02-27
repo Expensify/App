@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import * as translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
-import CONFIG from '../../src/CONFIG';
-import CONST from '../../src/CONST';
-import * as Localize from '../../src/libs/Localize';
+import * as Localize from '@src/libs/Localize';
+import asMutable from '@src/types/utils/asMutable';
+import arrayDifference from '../utils/arrayDifference';
 
 const originalTranslations = {...translations};
 
-// @ts-expect-error - We are modifying the translations object for testing purposes
-translations.default = {
+asMutable(translations).default = {
     [CONST.LOCALES.EN]: translations.flattenObject({
         testKey1: 'English',
         testKey2: 'Test Word 2',
@@ -44,17 +45,15 @@ describe('translate', () => {
 
     test('Test when key is not found in default (Production Mode)', () => {
         const ORIGINAL_IS_IN_PRODUCTION = CONFIG.IS_IN_PRODUCTION;
-        // @ts-expect-error - We are modifying the CONFIG object for testing purposes
-        CONFIG.IS_IN_PRODUCTION = true;
+        asMutable(CONFIG).IS_IN_PRODUCTION = true;
         expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toBe('testKey4');
-        // @ts-expect-error - We are modifying the CONFIG object for testing purposes
-        CONFIG.IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
+        asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
     it('Test when translation value is a function', () => {
         const expectedValue = 'With variable Test Variable';
         const testVariable = 'Test Variable';
-        // @ts-expect-error - We are modifying the translations object for testing purposes
+        // @ts-expect-error - TranslationPaths doesn't include testKeyGroup.testFunction as a valid key
         expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
     });
 });
@@ -63,8 +62,8 @@ describe('Translation Keys', () => {
     function traverseKeyPath(source: TranslationFlatObject, path?: string, keyPaths?: string[]): string[] {
         const pathArray = keyPaths ?? [];
         const keyPath = path ? `${path}.` : '';
-        Object.keys(source).forEach((key) => {
-            if (typeof source[key as keyof TranslationFlatObject] === 'object' && typeof source[key as keyof TranslationFlatObject] !== 'function') {
+        (Object.keys(source) as Array<keyof TranslationFlatObject>).forEach((key) => {
+            if (typeof source[key] === 'object' && typeof source[key] !== 'function') {
                 // @ts-expect-error - We are modifying the translations object for testing purposes
                 traverseKeyPath(source[key], keyPath + key, pathArray);
             } else {
@@ -74,11 +73,9 @@ describe('Translation Keys', () => {
 
         return pathArray;
     }
-    function arrayDifference(array1: string[], array2: string[]): string[] {
-        return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-    }
-    const excludeLanguages: Array<'en' | 'es-ES'> = [CONST.LOCALES.EN, CONST.LOCALES.ES_ES];
-    const languages = Object.keys(originalTranslations.default).filter((ln) => !(excludeLanguages as string[]).includes(ln));
+
+    const excludeLanguages = [CONST.LOCALES.EN, CONST.LOCALES.ES_ES];
+    const languages = Object.keys(originalTranslations.default).filter((ln) => !excludeLanguages.some((excludeLanguage) => excludeLanguage === ln));
     const mainLanguage = originalTranslations.default.en;
     const mainLanguageKeys = traverseKeyPath(mainLanguage);
 
@@ -105,9 +102,11 @@ describe('Translation Keys', () => {
     });
 });
 
+type ReportContentArgs = {content: string};
+
 describe('flattenObject', () => {
     it('It should work correctly', () => {
-        const func = ({content}: {content: string}) => `This is the content: ${content}`;
+        const func = ({content}: ReportContentArgs) => `This is the content: ${content}`;
         const simpleObject = {
             common: {
                 yes: 'Yes',
