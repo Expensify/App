@@ -49,7 +49,6 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                     testID={CategorySettingsPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
                         title={route.params.categoryName}
