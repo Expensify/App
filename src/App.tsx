@@ -2,7 +2,6 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -31,8 +30,6 @@ import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import * as Session from './libs/actions/Session';
-import * as Environment from './libs/Environment/Environment';
 import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -41,12 +38,6 @@ type AppProps = {
     /** If we have an authToken this is true */
     url?: Route;
 };
-
-// For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
-if (window && Environment.isDevelopment()) {
-    window.Onyx = Onyx;
-    window.setSupportToken = Session.setSupportAuthToken;
-}
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,

@@ -29,5 +29,5 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
-    return {isOffline};
+    return {isOffline: isOffline ?? false};
 }

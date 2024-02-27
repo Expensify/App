@@ -9,7 +9,7 @@ type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
     isKeyboardShown: boolean;
 
-    /** Height of the keyboard */
+    /** Height of the keyboard in pixels */
     keyboardHeight: number;
 };
 
@@ -17,6 +17,9 @@ type KeyboardStateContextValue = {
 const keyboardStatePropTypes = {
     /** Whether the keyboard is open */
     isKeyboardShown: PropTypes.bool.isRequired,
+
+    /** Height of the keyboard in pixels */
+    keyboardHeight: PropTypes.number.isRequired,
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({
@@ -25,16 +28,13 @@ const KeyboardStateContext = createContext<KeyboardStateContextValue>({
 });
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
-    const [isKeyboardShown, setIsKeyboardShown] = useState(false);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
-            setIsKeyboardShown(true);
             setKeyboardHeight(e.endCoordinates.height);
         });
         const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-            setIsKeyboardShown(false);
             setKeyboardHeight(0);
         });
 
@@ -46,10 +46,10 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
 
     const contextValue = useMemo(
         () => ({
-            isKeyboardShown,
             keyboardHeight,
+            isKeyboardShown: keyboardHeight !== 0,
         }),
-        [isKeyboardShown, keyboardHeight],
+        [keyboardHeight],
     );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
