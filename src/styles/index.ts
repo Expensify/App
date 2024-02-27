@@ -4407,7 +4407,18 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatItemDateIndicator: {
-            backgroundColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+            backgroundColor:theme.componentBG,
+            paddingHorizontal:12,
+        },
+
+        chatItemDateIndicatorText: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 14,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: theme.text,
         },
 
         interactiveStepHeaderContainer: {

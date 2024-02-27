@@ -15,8 +15,8 @@ function ReportDateIndicator({style = {}, created}: ReportDateIndicatorProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, style]}>
-            <View style={[styles.pv2, styles.ph6, styles.border, styles.chatItemDateIndicator]}>
-                <Text style={[styles.textLabelSupporting, styles.lh16]}>{datetimeToCalendarTime(created, false)}</Text>
+            <View style={[styles.pv2, styles.chatItemDateIndicator]}>
+                <Text style={styles.chatItemDateIndicatorText}>{datetimeToCalendarTime(created, false)}</Text>
             </View>
         </View>
     );

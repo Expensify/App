@@ -201,18 +201,18 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
     }
 
     if (isToday(date, currentSelectedTimezone)) {
-        return `${today}`;
+        return today;
     }
     if (isTomorrow(date, currentSelectedTimezone)) {
-        return `${tomorrow}`;
+        return tomorrow;
     }
     if (isYesterday(date, currentSelectedTimezone)) {
-        return `${yesterday}`;
+        return yesterday;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT)}`;
+        return format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     }
-    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT)}`;
+    return format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 }
 
 /**
@@ -779,6 +779,7 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
 
     return getDate(currentDate);
 }
+
 /**
  * Formats datetime to selected format type
  *
@@ -786,10 +787,9 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  *
  * Dec 14, 2023
  */
-
 function formatDate(datetime: Date, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
     const date = new Date(datetime);
-    return `${format(date, formatString)}`;
+    return format(date, formatString);
 }
 
 const DateUtils = {

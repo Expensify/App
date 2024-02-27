@@ -215,9 +215,7 @@ function ReportActionsList({
                 return null;
             }
 
-            const firstVisibleItem = viewableItems[viewableItems.length - 1];
-            const {index, isViewable} = firstVisibleItem;
-
+            const {index, isViewable} = viewableItems[viewableItems.length - 1];
             if (isViewable) {
                 setVisibleItemIndex(index);
             }
@@ -559,9 +557,6 @@ function ReportActionsList({
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                     onViewableItemsChanged={onViewableItemsChanged}
-                    viewabilityConfig={{
-                        itemVisiblePercentThreshold: 100,
-                    }}
                 />
             </Animated.View>
         </>
