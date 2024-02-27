@@ -84,37 +84,34 @@ function BaseOptionsSelector(props) {
     useImperativeHandle(props.forwardedRef, () => textInputRef.current);
 
     /**
-     * Flattens the sections into a single array of options.
+     * Flatten the sections into a single array of options.
      * Each object in this array is enhanced to have:
      *
      *   1. A `sectionIndex`, which represents the index of the section it came from
      *   2. An `index`, which represents the index of the option within the section it came from.
-     *
-     * @returns {Array<Object>}
      */
-    const flattenSections = useCallback(() => {
-        const calcAllOptions = [];
-        const calcDisabledOptionsIndexes = [];
+    const allOptions = useMemo(() => {
+        const options = [];
+        const calcDisabledOptionIndexes = [];
         let index = 0;
         _.each(props.sections, (section, sectionIndex) => {
             _.each(section.data, (option, optionIndex) => {
-                calcAllOptions.push({
-                    ...option,
-                    sectionIndex,
-                    index: optionIndex,
-                });
+                // eslint-disable-next-line no-param-reassign -- using param reassignment to avoid unnecessary copy of every option that would happen if we used spread instead
+                option.sectionIndex = sectionIndex;
+                // eslint-disable-next-line no-param-reassign
+                option.index = optionIndex;
+                options.push(option);
+
                 if (section.isDisabled || option.isDisabled) {
-                    calcDisabledOptionsIndexes.push(index);
+                    calcDisabledOptionIndexes.push(index);
                 }
-                index += 1;
+
+                index++;
             });
         });
-
-        setDisabledOptionsIndexes(calcDisabledOptionsIndexes);
-        return calcAllOptions;
+        setDisabledOptionsIndexes(calcDisabledOptionIndexes);
+        return options;
     }, [props.sections]);
-
-    const [allOptions, setAllOptions] = useState(() => flattenSections());
     const prevOptions = usePrevious(allOptions);
 
     const initialFocusedIndex = useMemo(() => {
@@ -412,25 +409,22 @@ function BaseOptionsSelector(props) {
 
     useEffect(() => {
         const newSections = sliceSections();
-        const newOptions = flattenSections();
 
         if (prevLocale.current !== props.preferredLocale) {
             prevLocale.current = props.preferredLocale;
-            setAllOptions(newOptions);
             setSections(newSections);
             return;
         }
 
         const newFocusedIndex = props.selectedOptions.length;
         const prevFocusedOption = prevOptions[focusedIndex];
-        const indexOfPrevFocusedOptionInCurrentList = _.findIndex(newOptions, (option) => prevFocusedOption && option.keyForList === prevFocusedOption.keyForList);
+        const indexOfPrevFocusedOptionInCurrentList = _.findIndex(allOptions, (option) => prevFocusedOption && option.keyForList === prevFocusedOption.keyForList);
 
         setSections(newSections);
-        setAllOptions(newOptions);
         setFocusedIndex(indexOfPrevFocusedOptionInCurrentList || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
         // we want to run this effect only when the sections change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.sections]);
+    }, [allOptions]);
 
     useEffect(() => {
         // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
