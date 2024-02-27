@@ -400,8 +400,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     const getBulkActionsButtonOptions = () => {
         const iconSettings = {
-            iconWidth: 40,
-            iconHeight: 40,
+            iconWidth: variables.iconSizeExtraLarge,
+            iconHeight: variables.iconSizeExtraLarge,
         };
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
