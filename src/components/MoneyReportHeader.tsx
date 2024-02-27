@@ -100,7 +100,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
-    const shouldDisableSettlementButton = shouldShowSettlementButton && shouldShowApproveButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
+    const shouldDisableSettlementButton =
+        !canAllowSettlement || (shouldShowSettlementButton && shouldShowApproveButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport));
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
@@ -155,7 +156,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
-                            isDisabled={!canAllowSettlement || shouldDisableSettlementButton}
+                            isDisabled={shouldDisableSettlementButton}
                         />
                     </View>
                 )}
@@ -187,7 +188,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={formattedAmount}
-                            isDisabled={!canAllowSettlement || shouldDisableSettlementButton}
+                            isDisabled={shouldDisableSettlementButton}
                         />
                     </View>
                 )}
