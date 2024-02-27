@@ -80,7 +80,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             title=""
                         >
                             <Image
-                                style={StyleSheet.flatten([styles.br4, styles.wAuto, styles.h68, imageStyle])}
+                                style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
                                 source={isDarkTheme ? WorkspaceProfile : WorkspaceProfileLight}
                                 resizeMode="cover"
                             />

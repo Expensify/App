@@ -216,7 +216,7 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
-    workspaceProfileName: 20,
+    workspaceProfileName: 22,
 
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
