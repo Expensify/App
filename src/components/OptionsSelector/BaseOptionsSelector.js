@@ -306,10 +306,13 @@ function BaseOptionsSelector(props) {
     }, [isFocused, props.autoFocus]);
 
     useEffect(() => {
+        if (_.isEqual(allOptions, prevOptions)) {
+            return;
+        }
+
         const newFocusedIndex = props.selectedOptions.length;
         const prevFocusedOption = prevOptions[focusedIndex];
         const indexOfPrevFocusedOptionInCurrentList = _.findIndex(allOptions, (option) => prevFocusedOption && option.keyForList === prevFocusedOption.keyForList);
-
         setFocusedIndex(indexOfPrevFocusedOptionInCurrentList || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
         // we want to run this effect only when the sections change
         // eslint-disable-next-line react-hooks/exhaustive-deps
