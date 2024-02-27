@@ -40,10 +40,10 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
     const styles = useThemeStyles();
     const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
     useEffect(() => {
-        if (value === checkedValue) {
+        if (value === checkedValue || value === undefined) {
             return;
         }
-        setCheckedValue(value ?? '');
+        setCheckedValue(value);
     }, [checkedValue, value]);
 
     return (
