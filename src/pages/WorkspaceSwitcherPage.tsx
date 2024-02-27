@@ -218,6 +218,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                             accessible={false}
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
+                                Navigation.goBack();
                                 App.createWorkspaceWithPolicyDraftAndNavigateToIt();
                             }}
                         >
