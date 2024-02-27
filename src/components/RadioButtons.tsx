@@ -39,11 +39,12 @@ type RadioButtonsProps = {
 function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyle, errorText, onInputChange = () => {}, value}: RadioButtonsProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
+
     useEffect(() => {
         if (value === checkedValue || value === undefined) {
             return;
         }
-        setCheckedValue(value);
+        setCheckedValue(value ?? '');
     }, [checkedValue, value]);
 
     return (
