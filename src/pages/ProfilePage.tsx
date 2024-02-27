@@ -78,7 +78,7 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const avatar = details?.avatar || UserUtils.getDefaultAvatar();
+    const avatar = details?.avatar || UserUtils.getDefaultAvatar(); // we can have an empty string and in this case, we need to show the default avatar
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
