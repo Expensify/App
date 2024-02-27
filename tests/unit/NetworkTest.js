@@ -164,7 +164,7 @@ describe('NetworkTests', () => {
                         }),
                     );
 
-                // And then make 3 API requests in quick succession with an expired authToken and handle the response
+                // And then make 3 API READ requests in quick succession with an expired authToken and handle the response
                 // It doesn't matter which requests these are really as all the response is mocked we just want to see
                 // that we get re-authenticated
                 PersonalDetails.openPersonalDetails();
