@@ -8,7 +8,7 @@ export default PropTypes.shape({
     routingNumber: PropTypes.string,
     acceptTerms: PropTypes.bool,
     plaidAccountID: PropTypes.string,
-    plaidMask: PropTypes.string,
+    mask: PropTypes.string,
 
     /** Props needed for CompanyStep */
     companyName: PropTypes.string,

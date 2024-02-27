@@ -64,22 +64,13 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
     let details = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === login.toLowerCase());
 
     if (!details) {
-        if (login === CONST.EMAIL.CONCIERGE) {
-            details = {
-                accountID: CONST.ACCOUNT_ID.CONCIERGE,
-                login,
-                displayName: 'Concierge',
-                avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
-            };
-        } else {
-            const optimisticAccountID = UserUtils.generateAccountID(login);
-            details = {
-                accountID: optimisticAccountID,
-                login,
-                displayName: login,
-                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
-            };
-        }
+        const optimisticAccountID = UserUtils.generateAccountID(login);
+        details = {
+            accountID: optimisticAccountID,
+            login,
+            displayName: login,
+            avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
+        };
     }
 
     const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
@@ -100,7 +91,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
 
     return (
         <ScreenWrapper testID={DetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={!login}>
+            <FullPageNotFoundView shouldShow={!login || CONST.RESTRICTED_EMAILS.includes(login)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {details ? (

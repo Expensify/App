@@ -14,28 +14,29 @@ type CustomStatusBarAndBackgroundProps = {
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
-    const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarAndBackgroundContext);
+    const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState(theme.statusBarStyle);
 
-    const isDisabled = !isNested && isRootStatusBarDisabled;
+    const isDisabled = !isNested && !isRootStatusBarEnabled;
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
         if (isNested) {
-            disableRootStatusBar(true);
+            setRootStatusBarEnabled(false);
         }
 
         return () => {
             if (!isNested) {
                 return;
             }
-            disableRootStatusBar(false);
+            setRootStatusBarEnabled(true);
         };
-    }, [disableRootStatusBar, isNested]);
+    }, [isNested, setRootStatusBarEnabled]);
 
-    const prevStatusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarBackgroundColor = useRef(theme.appBG);
+    // The prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
+    const prevStatusBarBackgroundColor = useRef(theme.splashBG);
+    const statusBarBackgroundColor = useRef(theme.splashBG);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
@@ -57,7 +58,9 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     // This callback is triggered everytime the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
         (listenerId?: number) => {
-            // Check if this function is either called through the current navigation listener or the general useEffect which listens for theme changes.
+            // Check if this function is either called through the current navigation listener
+            // react-navigation library has a bug internally, where it can't keep track of the listeners, therefore, sometimes when the useEffect would re-render and we run navigationRef.removeListener the listener isn't removed and we end up with two or more listeners.
+            // https://github.com/Expensify/App/issues/34154#issuecomment-1898519399
             if (listenerId !== undefined && listenerId !== listenerCount.current) {
                 return;
             }
