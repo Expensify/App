@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -54,7 +54,7 @@ const defaultProps = {
     ...optionsSelectorDefaultProps,
 };
 
-function BaseOptionsSelector(props) {
+function BaseOptionsSelector(props, textInputRef) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
@@ -69,12 +69,9 @@ function BaseOptionsSelector(props) {
     const shouldDisableRowSelection = useRef(false);
     const relatedTarget = useRef(null);
     const listRef = useRef();
-    const textInputRef = useRef();
     const focusTimeout = useRef();
     const prevSelectedOptions = useRef(props.selectedOptions);
     const prevValue = useRef(value);
-
-    useImperativeHandle(props.forwardedRef, () => textInputRef.current);
 
     /**
      * Paginate props.sections to only allow a certain number of items per section.
@@ -537,17 +534,8 @@ function BaseOptionsSelector(props) {
     );
 }
 
-BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
+BaseOptionsSelector.defaultProps = defaultProps;
+BaseOptionsSelector.displayName = 'BaseOptionsSelector';
 
-const BaseOptionsSelectorWithRef = forwardRef((props, ref) => (
-    <BaseOptionsSelector
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-BaseOptionsSelectorWithRef.displayName = 'BaseOptionsSelectorWithRef';
-
-export default BaseOptionsSelectorWithRef;
+export default forwardRef(BaseOptionsSelector);
