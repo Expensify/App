@@ -179,7 +179,7 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
                                         </Text>
                                         <CommunicationsLink value={phoneOrEmail ?? ''}>
                                             <UserDetailsTooltip accountID={details.accountID}>
-                                                <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber) : login}</Text>
+                                                <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
                                             </UserDetailsTooltip>
                                         </CommunicationsLink>
                                     </View>
