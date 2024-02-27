@@ -63,7 +63,6 @@ function BaseOptionsSelector(props) {
     const accessibilityRoles = _.values(CONST.ROLE);
 
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
-    const [sections, setSections] = useState();
     const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [value, setValue] = useState('');
@@ -82,6 +81,23 @@ function BaseOptionsSelector(props) {
     const prevValue = useRef(value);
 
     useImperativeHandle(props.forwardedRef, () => textInputRef.current);
+
+    /**
+     * Paginate props.sections to only allow a certain number of items per section.
+     */
+    const sections = useMemo(
+        () =>
+            _.map(props.sections, (section) => {
+                if (_.isEmpty(section.data)) {
+                    return section;
+                }
+
+                // eslint-disable-next-line no-param-reassign
+                section.data = section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * (paginationPage || 1));
+                return section;
+            }),
+        [paginationPage, props.sections],
+    );
 
     /**
      * Flatten the sections into a single array of options.
@@ -137,28 +153,6 @@ function BaseOptionsSelector(props) {
         isActive: !props.disableArrowKeysActions,
         disableHorizontalKeys: true,
     });
-
-    /**
-     * Maps sections to render only allowed count of them per section.
-     *
-     * @returns {Objects[]}
-     */
-    const sliceSections = useCallback(
-        () =>
-            _.map(props.sections, (section) => {
-                if (_.isEmpty(section.data)) {
-                    return section;
-                }
-
-                const pagination = paginationPage || 1;
-
-                return {
-                    ...section,
-                    data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * pagination),
-                };
-            }),
-        [paginationPage, props.sections],
-    );
 
     /**
      * Completes the follow-up actions after a row is selected
@@ -384,16 +378,6 @@ function BaseOptionsSelector(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isFocused]);
 
-    useEffect(() => {
-        const newSections = sliceSections();
-
-        if (prevPaginationPage.current !== paginationPage) {
-            prevPaginationPage.current = paginationPage;
-            setSections(newSections);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [paginationPage]);
-
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // Screen coming back into focus, for example
@@ -408,11 +392,8 @@ function BaseOptionsSelector(props) {
     }, [isFocused, props.autoFocus]);
 
     useEffect(() => {
-        const newSections = sliceSections();
-
         if (prevLocale.current !== props.preferredLocale) {
             prevLocale.current = props.preferredLocale;
-            setSections(newSections);
             return;
         }
 
@@ -420,7 +401,6 @@ function BaseOptionsSelector(props) {
         const prevFocusedOption = prevOptions[focusedIndex];
         const indexOfPrevFocusedOptionInCurrentList = _.findIndex(allOptions, (option) => prevFocusedOption && option.keyForList === prevFocusedOption.keyForList);
 
-        setSections(newSections);
         setFocusedIndex(indexOfPrevFocusedOptionInCurrentList || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
         // we want to run this effect only when the sections change
         // eslint-disable-next-line react-hooks/exhaustive-deps
