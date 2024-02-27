@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 

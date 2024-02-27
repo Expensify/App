@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Picker from '@components/Picker';
 import TextInput from '@components/TextInput';
@@ -21,6 +21,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,7 +29,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 type WorkspaceRateAndUnitPageProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RATE_AND_UNIT>;
 
-type ValidationError = {rate?: string};
+type ValidationError = {rate?: TranslationPaths | undefined};
 
 function WorkspaceRateAndUnitPage({policy, route}: WorkspaceRateAndUnitPageProps) {
     const {translate, toLocaleDigit} = useLocalize();
@@ -71,13 +72,13 @@ function WorkspaceRateAndUnitPage({policy, route}: WorkspaceRateAndUnitPageProps
         Policy.updateWorkspaceCustomUnitAndRate(policy?.id ?? '', distanceCustomUnit, newCustomUnit, policy?.lastModified);
     };
 
-    const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
-        saveUnitAndRate(values.unit, values.rate);
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
+        saveUnitAndRate(values.unit as Unit, values.rate);
         Keyboard.dismiss();
         Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy?.id ?? ''));
     };
 
-    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>): ValidationError => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>): ValidationError => {
         const errors: ValidationError = {};
         const decimalSeparator = toLocaleDigit('.');
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
