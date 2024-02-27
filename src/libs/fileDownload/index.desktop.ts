@@ -9,9 +9,6 @@ const fileDownload: FileDownload = (url, fileName) => {
     const options: Options = {
         filename: fileName,
         saveAs: true,
-        // showing badge and progress bar only supported on macos and linux, better to disable it
-        showBadge: false,
-        showProgressBar: false,
     };
     window.electron.send(ELECTRON_EVENTS.DOWNLOAD, {url, options});
 

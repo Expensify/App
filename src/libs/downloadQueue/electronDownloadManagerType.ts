@@ -1,16 +1,5 @@
 import type {DownloadItem, SaveDialogOptions} from 'electron';
 
-type Progress = {
-    // The percentage of the download that has been completed
-    percent: number;
-
-    // The number of bytes that have been downloaded so far
-    transferredBytes: number;
-
-    // The total number of bytes in the file being downloaded
-    totalBytes: number;
-};
-
 type File = {
     // The name of the file being downloaded
     filename: string;
@@ -73,25 +62,6 @@ type Options = {
     readonly errorMessage?: string;
 
     /**
-    Optional callback that receives the [download item](https://electronjs.org/docs/api/download-item).
-    You can use this for advanced handling such as canceling the item like `item.cancel()`.
-    */
-    readonly onStarted?: (item: DownloadItem) => void;
-
-    /**
-    Optional callback that receives an object containing information about the progress of the current download item.
-    */
-    readonly onProgress?: (progress: Progress) => void;
-
-    /**
-    Optional callback that receives an object containing information about the combined progress of all download items done within any registered window.
-
-    Each time a new download is started, the next callback will include it. The progress percentage could therefore become smaller again.
-    This callback provides the same data that is used for the progress bar on the app icon.
-    */
-    readonly onTotalProgress?: (progress: Progress) => void;
-
-    /**
     Optional callback that receives the [download item](https://electronjs.org/docs/api/download-item) for which the download has been cancelled.
     */
     readonly onCancel?: (item: DownloadItem) => void;
@@ -107,20 +77,6 @@ type Options = {
     @default false
     */
     readonly openFolderWhenDone?: boolean;
-
-    /**
-    Show a file count badge on the macOS/Linux dock/taskbar icon when a download is in progress.
-
-    @default true
-    */
-    readonly showBadge?: boolean;
-
-    /**
-    Show a progress bar on the dock/taskbar icon when a download is in progress.
-
-    @default true
-    */
-    readonly showProgressBar?: boolean;
 
     /**
     Allow downloaded files to overwrite files with the same name in the directory they are saved to.
@@ -144,4 +100,4 @@ type Options = {
     readonly unregisterWhenDone?: boolean;
 };
 
-export type {Options, File, Progress};
+export type {Options, File};

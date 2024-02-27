@@ -6,8 +6,8 @@
  * We decided to replicate the functionality of the `electron-dl` package for easier maintenance.
  * More context: https://github.com/Expensify/App/issues/35189#issuecomment-1959681109
  */
-import type {BrowserView, DownloadItem, Event, Session, WebContents} from 'electron';
-import {app, BrowserWindow, dialog, shell} from 'electron';
+import type {BrowserView, BrowserWindow, DownloadItem, Event, Session} from 'electron';
+import {app, shell} from 'electron';
 import * as path from 'path';
 import type {Options} from './electronDownloadManagerType';
 
@@ -28,78 +28,16 @@ const getFilenameFromMime = (name: string, mime: string): string => {
 };
 
 /**
- * Returns the major version number of Electron.
- * @returns The major version number of Electron.
- */
-const majorElectronVersion = (): number => {
-    const version = process.versions.electron.split('.');
-    return Number.parseInt(version[0], 10);
-};
-
-/**
- * Retrieves the parent BrowserWindow associated with the given WebContents.
- * @param webContents The WebContents object to find the parent BrowserWindow for.
- * @returns The parent BrowserWindow if found, otherwise undefined.
- */
-const getWindowFromBrowserView = (webContents: WebContents): BrowserWindow | undefined => {
-    for (const currentWindow of BrowserWindow.getAllWindows()) {
-        for (const currentBrowserView of currentWindow.getBrowserViews()) {
-            if (currentBrowserView.webContents.id === webContents.id) {
-                return currentWindow;
-            }
-        }
-    }
-};
-
-/**
- * Retrieves the Electron BrowserWindow associated with the given WebContents.
- * @param webContents The WebContents object to retrieve the BrowserWindow from.
- * @returns The associated BrowserWindow, or undefined if not found.
- */
-const getWindowFromWebContents = (webContents: WebContents): BrowserWindow | undefined | null => {
-    let electronWindow: BrowserWindow | undefined | null;
-    const webContentsType = webContents.getType();
-    switch (webContentsType) {
-        case 'webview':
-            electronWindow = BrowserWindow.fromWebContents(webContents.hostWebContents);
-            break;
-        case 'browserView':
-            electronWindow = getWindowFromBrowserView(webContents);
-            break;
-        default:
-            electronWindow = BrowserWindow.fromWebContents(webContents);
-            break;
-    }
-
-    return electronWindow;
-};
-
-/**
  * Registers a listener for download events in Electron session.
  *
  * @param session - The Electron session to register the listener on.
- * @param prevOptions - The previous options for the download manager.
+ * @param options - The previous options for the download manager.
  * @param callback - The callback function to be called when a download event occurs.
  */
-const registerListener = (session: Session, prevOptions: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => {}): void => {
+const registerListener = (session: Session, options: Options, callback: (error: Error | null, item?: DownloadItem) => void = () => {}): void => {
     const downloadItems = new Set<DownloadItem>();
-    let receivedBytes = 0;
-    let completedBytes = 0;
-    let totalBytes = 0;
-    const activeDownloadItems = (): number => downloadItems.size;
-    const progressDownloadItems = (): number => receivedBytes / totalBytes;
-
-    const options = {
-        showBadge: true,
-        showProgressBar: true,
-        ...prevOptions,
-    };
-
-    const listener = (event: Event, item: DownloadItem, webContents: WebContents): void => {
+    const listener = (event: Event, item: DownloadItem): void => {
         downloadItems.add(item);
-        totalBytes += item.getTotalBytes();
-
-        const electronWindow = majorElectronVersion() >= 12 ? BrowserWindow.fromWebContents(webContents) : getWindowFromWebContents(webContents);
 
         if (options.directory && !path.isAbsolute(options.directory)) {
             throw new Error('The `directory` option must be an absolute path');
@@ -123,54 +61,8 @@ const registerListener = (session: Session, prevOptions: Options, callback: (err
             item.setSavePath(filePath);
         }
 
-        item.on('updated', () => {
-            receivedBytes = completedBytes;
-            for (const downloadItem of downloadItems) {
-                receivedBytes += downloadItem.getReceivedBytes();
-            }
-
-            if (options.showBadge && ['darwin', 'linux'].includes(process.platform)) {
-                app.badgeCount = activeDownloadItems();
-            }
-
-            if (!electronWindow?.isDestroyed() && options.showProgressBar) {
-                electronWindow?.setProgressBar(progressDownloadItems());
-            }
-
-            if (typeof options.onProgress === 'function') {
-                const itemTransferredBytes = item.getReceivedBytes();
-                const itemTotalBytes = item.getTotalBytes();
-
-                options.onProgress({
-                    percent: itemTotalBytes ? itemTransferredBytes / itemTotalBytes : 0,
-                    transferredBytes: itemTransferredBytes,
-                    totalBytes: itemTotalBytes,
-                });
-            }
-
-            if (typeof options.onTotalProgress === 'function') {
-                options.onTotalProgress({
-                    percent: progressDownloadItems(),
-                    transferredBytes: receivedBytes,
-                    totalBytes,
-                });
-            }
-        });
-
         item.on('done', (doneEvent: Event, state: string) => {
-            completedBytes += item.getTotalBytes();
             downloadItems.delete(item);
-
-            if (options.showBadge && ['darwin', 'linux'].includes(process.platform)) {
-                app.badgeCount = activeDownloadItems();
-            }
-
-            if (!electronWindow?.isDestroyed() && !activeDownloadItems()) {
-                electronWindow?.setProgressBar(-1);
-                receivedBytes = 0;
-                completedBytes = 0;
-                totalBytes = 0;
-            }
 
             if (options.unregisterWhenDone) {
                 session.removeListener('will-download', listener);
@@ -209,43 +101,9 @@ const registerListener = (session: Session, prevOptions: Options, callback: (err
                 callback(null, item);
             }
         });
-
-        if (typeof options.onStarted === 'function') {
-            options.onStarted(item);
-        }
     };
 
     session.on('will-download', listener);
-};
-
-/**
-Register the helper for all windows.
-
-@example
-```
-import {app, BrowserWindow} from 'electron';
-import electronDownloadManager = require('./electronDownloadManager');
-
-electronDownloadManager();
-
-let win;
-(async () => {
-    await app.whenReady();
-    win = new BrowserWindow();
-})();
-```
-*/
-export default (options: Options = {}): void => {
-    app.on('session-created', (session: Session) => {
-        registerListener(session, options, (error: Error | null) => {
-            if (!error || error instanceof CancelError) {
-                return;
-            }
-
-            const errorTitle = options.errorMessage ?? 'Download Error';
-            dialog.showErrorBox(errorTitle, error.message);
-        });
-    });
 };
 
 /**
@@ -289,5 +147,4 @@ const download = (electronWindow: BrowserWindow | BrowserView, url: string, prev
     });
 };
 
-export {download};
-export type {CancelError, Options};
+export default download;

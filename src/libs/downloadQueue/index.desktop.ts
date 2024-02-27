@@ -1,5 +1,5 @@
 import type {BrowserWindow} from 'electron';
-import {download as electronDownload} from './electronDownloadManager';
+import electronDownload from './electronDownloadManager';
 import type {Options} from './electronDownloadManagerType';
 
 type DownloadItem = {
