@@ -66,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
 
     return (
         <View>
-            {alwaysShowDropdownMenu || options.length > 1 ? (
+            {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
                         success={success}
@@ -135,10 +135,12 @@ function ButtonWithDropdownMenu<IValueType>({
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
-                        onSelected: item.onSelected ?? (() => {
-                            onOptionSelected?.(item);
-                            setSelectedItemIndex(index);
-                        }),
+                        onSelected:
+                            item.onSelected ??
+                            (() => {
+                                onOptionSelected?.(item);
+                                setSelectedItemIndex(index);
+                            }),
                     }))}
                 />
             )}

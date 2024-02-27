@@ -67,7 +67,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     success?: boolean;
 
     /** Whether the dropdown menu should be shown even if it has only one option */
-    alwaysShowDropdownMenu?: boolean;
+    shouldAlwaysShowDropdownMenu?: boolean;
 };
 
 export type {PaymentType, WorkspaceMemberBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};

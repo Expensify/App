@@ -36,6 +36,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
+import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +47,6 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
 
 type WorkspaceMembersPageOnyxProps = {
     /** Personal details of all users */
@@ -390,13 +390,13 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         // TODO: Implement this
         // eslint-disable-next-line no-console
         console.log('Make member action');
-    }
+    };
 
     const handleMakeAdminAction = () => {
         // TODO: Implement this
         // eslint-disable-next-line no-console
         console.log('Make admin action');
-    }
+    };
 
     const getBulkActionsButtonOptions = () => {
         const iconSettings = {
@@ -439,11 +439,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         <View style={[styles.w100]}>
             {selectedEmployees.length > 0 ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                    alwaysShowDropdownMenu
+                    shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    onPress={(event, value) => handleBulkAction(value)}
+                    onPress={() => null}
                     options={getBulkActionsButtonOptions()}
                     buttonRef={dropdownButtonRef}
                     style={[isSmallScreenWidth && styles.flexGrow1]}
