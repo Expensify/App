@@ -45,7 +45,7 @@ function parseAndLogRoute(state: NavigationState) {
 
     const focusedRoute = findFocusedRoute(state);
 
-    if (focusedRoute?.name !== SCREENS.NOT_FOUND) {
+    if (focusedRoute?.name !== SCREENS.NOT_FOUND && focusedRoute?.name !== SCREENS.SAML_SIGN_IN) {
         updateLastVisitedPath(currentPath);
     }
 
@@ -70,6 +70,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(
         () => {
+            Log.info('Navigating lastVisitedPath', false, { lastVisitedPath: lastVisitedPath});
+
             if (!lastVisitedPath) {
                 return undefined;
             }
@@ -82,6 +84,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             }
 
             const {adaptedState} = getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+
+            Log.info('Navigating initialState', false, {initialState: initialState, lastVisitedPath: lastVisitedPath});
+
             return adaptedState;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
