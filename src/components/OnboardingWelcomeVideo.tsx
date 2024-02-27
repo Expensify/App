@@ -30,7 +30,7 @@ type VideoPlaybackStatusEventType = {
 
 type VideoStatus = 'video' | 'animation';
 
-function OnboardingWelcomeVideoModal() {
+function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight, windowWidth} = useWindowDimensions();
@@ -133,6 +133,6 @@ function OnboardingWelcomeVideoModal() {
     );
 }
 
-OnboardingWelcomeVideoModal.displayName = 'OnboardingWelcomeVideoModal';
+OnboardingWelcomeVideo.displayName = 'OnboardingWelcomeVideo';
 
-export default OnboardingWelcomeVideoModal;
+export default OnboardingWelcomeVideo;
