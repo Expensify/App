@@ -68,7 +68,7 @@ function Template(args) {
                 label="Street"
                 inputID="street"
                 containerStyles={[defaultStyles.mt4]}
-                hint="No PO box"
+                hint="common.noPO"
             />
             <InputWrapper
                 InputComponent={DatePicker}
@@ -130,6 +130,7 @@ function Template(args) {
                 InputComponent={CheckboxWithLabel}
                 inputID="checkbox"
                 style={[defaultStyles.mb4, defaultStyles.mt5]}
+                // eslint-disable-next-line react/no-unstable-nested-components
                 LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
         </FormProvider>

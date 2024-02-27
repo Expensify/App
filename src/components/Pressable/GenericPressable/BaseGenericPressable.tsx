@@ -68,7 +68,7 @@ function GenericPressable(
         if (shouldUseDisabledCursor) {
             return styles.cursorDisabled;
         }
-        if ([rest.accessibilityRole, rest.role].includes('text')) {
+        if ([rest.accessibilityRole, rest.role].includes(CONST.ROLE.PRESENTATION)) {
             return styles.cursorText;
         }
         return styles.cursorPointer;

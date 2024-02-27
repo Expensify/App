@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -33,21 +34,28 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
-
     /** The policy of the report */
     policy: PropTypes.shape({
-        /** Is Tax tracking Enabled */
+        /**
+         * Whether or not the policy has tax tracking enabled
+         *
+         * @deprecated - use tax.trackingEnabled instead
+         */
         isTaxTrackingEnabled: PropTypes.bool,
+
+        /** Whether or not the policy has tax tracking enabled */
+        tax: PropTypes.shape({
+            trackingEnabled: PropTypes.bool,
+        }),
+
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
     }),
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
-    policyTaxRates: {},
     policy: {},
 };
 
@@ -59,21 +67,22 @@ const getTaxAmount = (transaction, defaultTaxValue, amount) => {
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+        params: {iouType, reportID, transactionID, backTo},
     },
     transaction,
-    transaction: {currency: originalCurrency},
-    policyTaxRates,
+    transaction: {currency},
     policy,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
+    const isSaveButtonPressed = useRef(false);
+    const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
-    const currency = selectedCurrency || originalCurrency;
 
+    const taxRates = lodashGet(policy, 'taxRates', {});
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+    const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
 
     useFocusEffect(
         useCallback(() => {
@@ -87,8 +96,24 @@ function IOURequestStepAmount({
         }, []),
     );
 
+    useEffect(() => {
+        if (transaction.originalCurrency) {
+            originalCurrency.current = transaction.originalCurrency;
+        } else {
+            originalCurrency.current = currency;
+            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currency);
+        }
+        return () => {
+            if (isSaveButtonPressed.current) {
+                return;
+            }
+            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(backTo);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -99,15 +124,16 @@ function IOURequestStepAmount({
      * @param {Number} amount
      */
     const navigateToNextPage = ({amount}) => {
+        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
-            const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue, amountInSmallestCurrencyUnits);
+            const taxAmount = getTaxAmount(transaction, taxRates.defaultValue, amountInSmallestCurrencyUnits);
             const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
             IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -157,9 +183,6 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
-        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },

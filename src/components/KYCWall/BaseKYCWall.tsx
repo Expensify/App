@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {SyntheticEvent} from 'react';
 import {Dimensions} from 'react-native';
-import type {EmitterSubscription, NativeTouchEvent} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -18,7 +17,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
-import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod, TransferMethod} from './types';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import viewRef from '@src/types/utils/viewRef';
+import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
@@ -69,7 +70,7 @@ function KYCWall({
     shouldShowPersonalBankAccountOption = false,
 }: BaseKYCWallProps) {
     const anchorRef = useRef<HTMLDivElement>(null);
-    const transferBalanceButtonRef = useRef<HTMLDivElement | null>(null);
+    const transferBalanceButtonRef = useRef<HTMLElement | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
 
@@ -146,7 +147,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => {
+        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -161,7 +162,7 @@ function KYCWall({
             }
 
             // Use event target as fallback if anchorRef is null for safety
-            const targetElement = anchorRef.current ?? (event?.nativeEvent.target as HTMLDivElement);
+            const targetElement = anchorRef.current ?? (event?.currentTarget as HTMLElement);
 
             transferBalanceButtonRef.current = targetElement;
 
@@ -203,7 +204,7 @@ function KYCWall({
 
             Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
 
-            onSuccessfulKYC(currentSource, iouPaymentType);
+            onSuccessfulKYC(iouPaymentType, currentSource);
         },
         [
             bankAccountList,
@@ -244,7 +245,6 @@ function KYCWall({
     return (
         <>
             <AddPaymentMethodMenu
-                // @ts-expect-error TODO: Remove this once AddPaymentMethodMenu (https://github.com/Expensify/App/issues/25073) is migrated to TypeScript.
                 isVisible={shouldShowAddPaymentMenu}
                 iouReport={iouReport}
                 onClose={() => setShouldShowAddPaymentMenu(false)}
@@ -260,7 +260,7 @@ function KYCWall({
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />
-            {children(continueAction, anchorRef)}
+            {children(continueAction, viewRef(anchorRef))}
         </>
     );
 }
@@ -280,6 +280,7 @@ export default withOnyx<BaseKYCWallProps, BaseKYCWallOnyxProps>({
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
