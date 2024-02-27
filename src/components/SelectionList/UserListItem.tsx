@@ -86,7 +86,7 @@ function UserListItem({
                             textStyles={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkTextBold,
+                                item.isBold !== false && styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}

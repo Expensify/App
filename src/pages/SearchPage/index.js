@@ -93,7 +93,7 @@ function SearchPage({betas, reports, isSearchingForReports}) {
 
         if (recentReports.length > 0) {
             newSections.push({
-                data: recentReports,
+                data: recentReports.map((report) => ({...report, isBold: report.isUnread})),
                 shouldShow: true,
                 indexOffset,
             });
