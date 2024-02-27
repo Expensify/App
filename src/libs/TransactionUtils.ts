@@ -2,6 +2,7 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {getCleanedTagName} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -409,7 +410,7 @@ function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string 
 }
 
 function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
-    return getTag(transaction, tagIndex).replace(/[\\\\]:/g, ':');
+    return getCleanedTagName(getTag(transaction, tagIndex));
 }
 
 /**
