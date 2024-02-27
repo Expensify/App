@@ -13,7 +13,7 @@ Onyx.connect({
 /**
  * Checks whether the given string contains any numbers.
  * It uses indexOf instead of regex and includes for performance reasons.
- * 
+ *
  * @param text
  * @returns boolean
  */
