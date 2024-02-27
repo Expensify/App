@@ -235,7 +235,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
      * @param {Object} fileData
      * @returns {Promise}
      */
-    const validateAttachment = useCallback(
+    const validateAndCompleteAttachmentSelection = useCallback(
         (fileData) => {
             if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
