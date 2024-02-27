@@ -92,7 +92,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy}: WorkspaceAutoReportin
 
                 <SelectionList
                     sections={[{data: filteredDaysOfMonth, indexOffset: 0}]}
-                    textInputLabel={translate('workflowsPage.submissionFrequencyDayOfMonth')}
+                    textInputLabel={translate('workflowsPage.submissionFrequencyDateOfMonth')}
                     textInputValue={searchText}
                     onChangeText={setSearchText}
                     headerMessage={headerMessage}
