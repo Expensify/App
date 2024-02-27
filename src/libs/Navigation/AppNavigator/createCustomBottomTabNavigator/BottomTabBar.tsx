@@ -64,9 +64,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
-    const shouldShowWorkspaceRedBrickRoad = checkIfWorkspaceSettingsTabHasRBR(activeWorkspaceID) && currentTabName === SCREENS.HOME;
-
-    const chatTabBrickRoad = currentTabName !== SCREENS.HOME ? getChatTabBrickRoad(activeWorkspaceID) : undefined;
+    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     return (
         <View style={styles.bottomTabBarContainer}>
