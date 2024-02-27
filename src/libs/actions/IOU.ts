@@ -3621,15 +3621,16 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function shouldShowSettlementButton(iouReportID: string, isPaidGroupPolicy: boolean, isPolicyExpenseChat: boolean, iouCanceled: boolean) {
-    const iouReport = ReportUtils.getReport(iouReportID) as OnyxTypes.Report;
-    const isApproved = ReportUtils.isReportApproved(iouReport);
-    const policy = ReportUtils.getPolicy(iouReport.policyID);
+function shouldShowPayButton(iouReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
     const policyType = policy?.type;
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
+    const isApproved = ReportUtils.isReportApproved(iouReport);
     const managerID = iouReport?.managerID ?? 0;
     const isCurrentUserManager = managerID === userAccountID;
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
 
     const isPayer = isPaidGroupPolicy
         ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
@@ -3637,28 +3638,44 @@ function shouldShowSettlementButton(iouReportID: string, isPaidGroupPolicy: bool
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
 
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
-    const iouSettled = ReportUtils.isSettled(iouReport.reportID);
+    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
+
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
-    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy as OnyxEntry<OnyxTypes.Policy>);
+    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
+    return isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable;
+}
 
-    const shouldShowPayButton = isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable;
+function shouldShowApproveButton(iouReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
+    const managerID = iouReport?.managerID ?? 0;
+    const isCurrentUserManager = managerID === userAccountID;
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
-    const shouldShowApproveButton = isPaidGroupPolicy && isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
+    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
+    const isApproved = ReportUtils.isReportApproved(iouReport);
+    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
+    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
+    if (!isPaidGroupPolicy) {
+        return false;
+    }
+    if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
+        return false;
+    }
 
-    return shouldShowPayButton || shouldShowApproveButton;
+    return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
 }
 
 function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): boolean {
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
     const chatReportActions = ReportActionsUtils.getAllReportActions(chatReport?.reportID ?? '');
-    return !!Object.values(chatReportActions).find(
-        (action) =>
-            action.childReportID?.toString() !== excludedIOUReportID &&
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
-            shouldShowSettlementButton(action.childReportID ?? '', isPaidGroupPolicy, isPolicyExpenseChat, iouCanceled),
-    );
+
+    return !!Object.values(chatReportActions).find((action) => {
+        const iouReport = ReportUtils.getReport(action.childReportID ?? '') as OnyxEntry<OnyxTypes.Report>;
+        const policy = ReportUtils.getPolicy(iouReport?.policyID) as OnyxEntry<OnyxTypes.Policy>;
+
+        const shouldShowSettlementButton = shouldShowPayButton(iouReport, chatReport, policy) || shouldShowApproveButton(iouReport, chatReport, policy);
+        return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && shouldShowSettlementButton;
+    });
 }
 
 function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
@@ -4338,5 +4355,6 @@ export {
     cancelPayment,
     navigateToStartStepIfScanFileCannotBeRead,
     savePreferredPaymentMethod,
-    shouldShowSettlementButton,
+    shouldShowPayButton,
+    shouldShowApproveButton,
 };
