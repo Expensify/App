@@ -1,3 +1,4 @@
+import type Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**
@@ -7,10 +8,8 @@ import waitForBatchedUpdates from './waitForBatchedUpdates';
  * are rendered with the onyx data.
  * This is a convinience function, which wraps the onyxInstance's
  * functions, to for the promises to resolve.
- *
- * @param {Object} onyxInstance
  */
-export default function wrapOnyxWithWaitForBatchedUpdates(onyxInstance) {
+function wrapOnyxWithWaitForBatchedUpdates(onyxInstance: typeof Onyx) {
     const multiSetImpl = onyxInstance.multiSet;
     // eslint-disable-next-line no-param-reassign
     onyxInstance.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForBatchedUpdates().then(() => result));
@@ -18,3 +17,5 @@ export default function wrapOnyxWithWaitForBatchedUpdates(onyxInstance) {
     // eslint-disable-next-line no-param-reassign
     onyxInstance.merge = (...args) => mergeImpl(...args).then((result) => waitForBatchedUpdates().then(() => result));
 }
+
+export default wrapOnyxWithWaitForBatchedUpdates;
