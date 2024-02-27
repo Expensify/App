@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {LOG_FILE} from '../config';
+import * as config from '../config';
 
 let isVerbose = true;
 const setLogLevelVerbose = (value: boolean) => {
@@ -23,18 +23,18 @@ const log = (...args: string[]) => {
     }
 
     // Write to log file
-    if (!fs.existsSync(LOG_FILE)) {
+    if (!fs.existsSync(config.default.LOG_FILE)) {
         // Check that the directory exists
-        const logDir = path.dirname(LOG_FILE);
+        const logDir = path.dirname(config.default.LOG_FILE);
         if (!fs.existsSync(logDir)) {
             fs.mkdirSync(logDir);
         }
 
-        fs.writeFileSync(LOG_FILE, '');
+        fs.writeFileSync(config.default.LOG_FILE, '');
     }
     const time = new Date();
     const timeStr = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} ${time.getMilliseconds()}`;
-    fs.appendFileSync(LOG_FILE, `[${timeStr}]   ${args.join(' ')}\n`);
+    fs.appendFileSync(config.default.LOG_FILE, `[${timeStr}]   ${args.join(' ')}\n`);
 };
 
 const info = (...args: string[]) => {

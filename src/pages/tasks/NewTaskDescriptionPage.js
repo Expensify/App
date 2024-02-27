@@ -19,6 +19,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 const propTypes = {
     /** Grab the Share description of the Task */
@@ -85,7 +86,7 @@ function NewTaskDescriptionPage(props) {
                         <InputWrapperWithRef
                             InputComponent={TextInput}
                             defaultValue={parser.htmlToMarkdown(parser.replace(props.task.description))}
-                            inputID="taskDescription"
+                            inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}

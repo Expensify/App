@@ -49,17 +49,15 @@ type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
 function useViolations(violations: TransactionViolation[]) {
     const violationsByField = useMemo((): ViolationsMap => {
+        const filteredViolations = violations.filter((violation) => violation.type === 'violation');
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
-
-        for (const violation of violations) {
+        for (const violation of filteredViolations) {
             const field = violationFields[violation.name];
             const existingViolations = violationGroups.get(field) ?? [];
             violationGroups.set(field, [...existingViolations, violation]);
         }
-
         return violationGroups ?? new Map();
     }, [violations]);
-
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {

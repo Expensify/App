@@ -8,7 +8,7 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.jsx?$': 'babel-jest',
+        '^.+\\.[jt]sx?$': 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-native)/'],
@@ -26,6 +26,6 @@ module.exports = {
     setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect', '<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.js'],
     cacheDirectory: '<rootDir>/.jest-cache',
     moduleNameMapper: {
-        '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.js',
+        '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
     },
 };

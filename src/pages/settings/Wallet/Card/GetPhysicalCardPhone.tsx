@@ -1,18 +1,18 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as LoginUtils from '@libs/LoginUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 type OnValidateResult = {
@@ -41,7 +41,7 @@ function GetPhysicalCardPhone({
 
         const errors: OnValidateResult = {};
 
-        if (!(parsePhoneNumber(phoneNumberToValidate).possible && Str.isValidPhone(phoneNumberToValidate))) {
+        if (!LoginUtils.validateNumber(phoneNumberToValidate)) {
             errors.phoneNumber = 'common.error.phoneNumber';
         } else if (!phoneNumberToValidate) {
             errors.phoneNumber = 'common.error.fieldRequired';
@@ -61,8 +61,8 @@ function GetPhysicalCardPhone({
         >
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="phoneNumber"
-                name="phoneNumber"
+                inputID={INPUT_IDS.PHONE_NUMBER}
+                name={INPUT_IDS.PHONE_NUMBER}
                 label={translate('getPhysicalCard.phoneNumber')}
                 aria-label={translate('getPhysicalCard.phoneNumber')}
                 role={CONST.ROLE.PRESENTATION}
