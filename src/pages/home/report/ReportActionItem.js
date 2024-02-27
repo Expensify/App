@@ -666,13 +666,16 @@ function ReportActionItem(props) {
                     <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)]}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
-                            <ReportActionItemSingle
-                                action={parentReportAction}
-                                showHeader={_.isUndefined(props.draftMessage)}
-                                report={props.report}
-                            >
-                                <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                            </ReportActionItemSingle>
+                            <OfflineWithFeedback pendingAction={parentReportAction.pendingAction}>
+                                <ReportActionItemSingle
+                                    action={parentReportAction}
+                                    showHeader={_.isUndefined(props.draftMessage)}
+                                    report={props.report}
+                                >
+                                    <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                                </ReportActionItemSingle>
+                            </OfflineWithFeedback>
+                            <View style={styles.reportHorizontalRule} />
                         </View>
                     </View>
                 );
