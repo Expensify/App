@@ -64,7 +64,7 @@ function filterDisplayName(displayName: string): string {
     if (CONST.REGEX.INVALID_DISPLAY_NAME_ONLY_LHN.test(displayName)) {
         return displayName;
     }
-    return displayName.replace(CONST.REGEX.INVALID_DISPLAY_NAME_LHN, '');
+    return displayName.replace(CONST.REGEX.INVALID_DISPLAY_NAME_LHN, '').trim();
 }
 
 /**
