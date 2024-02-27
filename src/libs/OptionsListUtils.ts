@@ -22,12 +22,14 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -113,8 +115,8 @@ type GetOptionsConfig = {
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
-    includePolicyTaxRates?: boolean;
-    policyTaxRates?: PolicyTaxRateWithDefault;
+    includeTaxRates?: boolean;
+    taxRates?: TaxRatesWithDefault;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
@@ -143,7 +145,7 @@ type GetOptions = {
     currentUserOption: ReportUtils.OptionData | null | undefined;
     categoryOptions: CategorySection[];
     tagOptions: CategorySection[];
-    policyTaxRatesOptions: CategorySection[];
+    taxRatesOptions: CategorySection[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
@@ -1172,31 +1174,23 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
     return hasEnabledOptions(policyTagValueList);
 }
 
-type PolicyTaxRateWithDefault = {
-    name: string;
-    defaultExternalID: string;
-    defaultValue: string;
-    foreignTaxDefault: string;
-    taxes: PolicyTaxRates;
-};
-
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
- * @param  policyTaxRates - The original tax rates object.
+ * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policyTaxRates: PolicyTaxRateWithDefault | undefined): Record<string, PolicyTaxRate> {
-    const defaultTaxKey = policyTaxRates?.defaultExternalID;
-    const getModifiedName = (data: PolicyTaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(Object.entries(policyTaxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
+    const defaultTaxKey = taxRates?.defaultExternalID;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
 
 /**
  * Sorts tax rates alphabetically by name.
  */
-function sortTaxRates(taxRates: PolicyTaxRates): PolicyTaxRate[] {
+function sortTaxRates(taxRates: TaxRates): TaxRate[] {
     const sortedtaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
     return sortedtaxRates;
 }
@@ -1204,7 +1198,7 @@ function sortTaxRates(taxRates: PolicyTaxRates): PolicyTaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.code,
@@ -1218,10 +1212,10 @@ function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(policyTaxRates);
+    const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
@@ -1360,8 +1354,8 @@ function getOptions(
         canInviteUser = true,
         includeSelectedOptions = false,
         transactionViolations = {},
-        includePolicyTaxRates,
-        policyTaxRates,
+        includeTaxRates,
+        taxRates,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1374,7 +1368,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1388,12 +1382,12 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
-    if (includePolicyTaxRates) {
-        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions as Category[], searchInputValue);
+    if (includeTaxRates) {
+        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Category[], searchInputValue);
 
         return {
             recentReports: [],
@@ -1402,7 +1396,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions,
+            taxRatesOptions,
         };
     }
 
@@ -1414,7 +1408,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions: [],
+            taxRatesOptions: [],
         };
     }
 
@@ -1703,7 +1697,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
-        policyTaxRatesOptions: [],
+        taxRatesOptions: [],
     };
 }
 
@@ -1800,8 +1794,8 @@ function getFilteredOptions(
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
-    includePolicyTaxRates = false,
-    policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
+    includeTaxRates = false,
+    taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1821,8 +1815,8 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
-        includePolicyTaxRates,
-        policyTaxRates,
+        includeTaxRates,
+        taxRates,
     });
 }
 
