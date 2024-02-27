@@ -253,6 +253,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require('../../../pages/settings/Wallet/ReportCardLostPage').default as React.ComponentType,
     [SCREENS.KEYBOARD_SHORTCUTS]: () => require('../../../pages/KeyboardShortcutsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyResponsePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
