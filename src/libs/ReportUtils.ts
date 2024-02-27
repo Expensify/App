@@ -4248,6 +4248,10 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
+function isSelfDM(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
+}
+
 /**
  * Helper method to define what money request options we want to show for particular method.
  * There are 3 money request options: Request, Split and Send:
@@ -4283,6 +4287,10 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
     const hasMultipleOtherParticipants = otherParticipants.length > 1;
     let options: Array<ValueOf<typeof CONST.IOU.TYPE>> = [];
+
+    if (isSelfDM(report)) {
+        options = [CONST.IOU.TYPE.TRACK_EXPENSE];
+    }
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)

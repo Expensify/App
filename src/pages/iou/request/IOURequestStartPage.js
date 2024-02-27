@@ -75,6 +75,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
+        [CONST.IOU.TYPE.TRACK_EXPENSE]: 'Track Expense',
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
@@ -103,7 +104,7 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
+    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate || iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);

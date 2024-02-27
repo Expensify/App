@@ -51,6 +51,12 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
+    /** The account details for the logged in user */
+    account: PropTypes.shape({
+        /** Whether or not the user is a policy admin */
+        selfDMReportID: PropTypes.string,
+    }),
+
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
@@ -63,6 +69,7 @@ const defaultProps = {
     allPolicies: {},
     isLoading: false,
     innerRef: null,
+    account: {},
 };
 
 /**
@@ -186,7 +193,15 @@ function FloatingActionButtonAndPopover(props) {
                               {
                                   icon: Expensicons.TrackExpense,
                                   text: 'Track Expense',
-                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest_temporaryForRefactor(
+                                              CONST.IOU.TYPE.TRACK_EXPENSE,
+                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                              props.account.selfDMReportID || ReportUtils.generateReportID(),
+                                          ),
+                                      ),
                               },
                           ]
                         : []),
@@ -254,6 +269,9 @@ export default compose(
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_APP,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
 )(FloatingActionButtonAndPopoverWithRef);
