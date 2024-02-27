@@ -201,10 +201,12 @@ function IOURequestStepScan({
                     advanced: [{torch: true}],
                 })
                 .then(() => {
-                    getScreenshot();
-                    trackRef.current.applyConstraints({
-                        advanced: [{torch: false}],
-                    });
+                    setTimeout(() => {
+                        getScreenshot();
+                        trackRef.current.applyConstraints({
+                            advanced: [{torch: false}],
+                        });
+                    }, 2000);
                 });
             return;
         }
