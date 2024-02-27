@@ -5,16 +5,15 @@ import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-type ReportCollectionDataSet = Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, OnyxTypes.Report>;
-
 // Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
-jest.mock('../../src/libs/Permissions');
-jest.mock('../../src/hooks/usePermissions.ts');
-jest.mock('../../src/components/Icon/Expensicons');
+jest.mock('@libs/Permissions');
+jest.mock('@hooks/usePermissions.ts');
+jest.mock('@components/Icon/Expensicons');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
