@@ -1,5 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -21,7 +21,7 @@ function OnboardingModalNavigator() {
 
     return (
         <NoDropZone>
-            <Overlay onPress={() => {}} />
+            <Overlay />
             <View
                 onClick={() => {
                     isModalFocused.current = false;
