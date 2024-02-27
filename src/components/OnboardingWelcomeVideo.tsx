@@ -2,8 +2,10 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import Button from './Button';
 import Lottie from './Lottie';
@@ -34,6 +36,7 @@ function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight, windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [isModalOpen, setIsModalOpen] = useState(true);
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
@@ -57,6 +60,7 @@ function OnboardingWelcomeVideo() {
 
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
+        Navigation.goBack();
     }, []);
 
     const onVideoLoaded = (e: VideoLoadedEventType) => {
@@ -72,15 +76,11 @@ function OnboardingWelcomeVideo() {
 
     const getWelcomeVideo = () => {
         if (welcomeVideoStatus === 'video') {
-            let videoWidth = isSmallScreenWidth ? windowWidth - MODAL_PADDING : BASE_VIDEO_WIDTH;
-
-            if (!videoWidth) {
-                videoWidth = BASE_VIDEO_WIDTH;
-            }
+            const videoWidth = 500;
 
             // Temporary file supplied for testing purposes, to be changed when correct one gets uploaded on backend
             return (
-                <View style={[styles.pRelative, styles.onboardingVideoContainer]}>
+                <View style={styles.pRelative}>
                     <VideoPlayer
                         url="https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4"
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {width: videoWidth, height: videoWidth / videoAspectRatio}]}
@@ -93,18 +93,25 @@ function OnboardingWelcomeVideo() {
                 </View>
             );
         }
+
         return (
-            <View style={[styles.onboardingVideoContainer]}>
-                <Lottie
-                    source={LottieAnimations.Hands}
-                    style={styles.w100}
-                    webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
-                    autoPlay
-                    loop
-                />
-            </View>
+            <Lottie
+                source={LottieAnimations.Hands}
+                style={styles.w100}
+                webStyle={isSmallScreenWidth ? styles.h100 : styles.w100}
+                autoPlay
+                loop
+            />
         );
     };
+
+    return (
+        <View
+            style={styles.defaultModalContainer}
+        >
+            {getWelcomeVideo()}
+        </View>
+    );
 
     return (
         <Modal

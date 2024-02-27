@@ -90,6 +90,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PURPOSE,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.WELCOME_VIDEO]: {
+                    path: ROUTES.ONBOARDING_WELCOME_VIDEO,
+                    exact: true,
+                },
             },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {

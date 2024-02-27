@@ -170,7 +170,7 @@ function BaseVideoPlayer({
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
-        if(!shouldPlay) {
+        if (!shouldPlay) {
             return;
         }
         updateCurrentlyPlayingURL(url);

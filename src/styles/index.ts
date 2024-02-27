@@ -4144,12 +4144,12 @@ const styles = (theme: ThemeColors) =>
             fontSize: 9,
         },
 
-        onboardingVideoContainer: {
-            backgroundColor: theme.onboardingVideoBG,
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 10,
-        },
+        // onboardingVideoContainer: {
+        //     backgroundColor: theme.onboardingVideoBG,
+        //     justifyContent: 'center',
+        //     alignItems: 'center',
+        //     borderRadius: 10,
+        // },
 
         onboardingVideoPlayer: {
             borderRadius: 10,
