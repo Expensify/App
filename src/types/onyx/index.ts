@@ -26,7 +26,6 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
-import type {PaymentMethodType} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -38,7 +37,6 @@ import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
-import type {PolicyTaxRate, PolicyTaxRates} from './PolicyTaxRates';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -155,8 +153,5 @@ export type {
     RecentlyUsedReportFields,
     LastPaymentMethod,
     InvitedEmailsToAccountIDs,
-    PaymentMethodType,
-    PolicyTaxRate,
-    PolicyTaxRates,
     Log,
 };

@@ -29,6 +29,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {MileageRate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -63,9 +64,6 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: OnyxEntry<OnyxTypes.IOU>;
 
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: OnyxEntry<OnyxTypes.PolicyTaxRate>;
-
     /** Unit and rate used for if the money request is a distance request */
     mileageRate: OnyxEntry<MileageRate>;
 
@@ -88,7 +86,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         onConfirm?: (selectedParticipants: Participant[]) => void;
 
         /** Callback to parent modal to send money */
-        onSendMoney?: (paymentMethod: OnyxTypes.PaymentMethodType) => void;
+        onSendMoney?: (paymentMethod: PaymentMethodType) => void;
 
         /** Callback to inform a participant is selected */
         onSelectParticipant?: (option: Participant) => void;
@@ -212,7 +210,6 @@ function MoneyRequestConfirmationList({
     policyTags,
     policyCategories,
     policy,
-    policyTaxRates,
     iouCurrencyCode,
     isEditingSplitBill,
     hasSmartScanFailed,
@@ -240,6 +237,7 @@ function MoneyRequestConfirmationList({
 
     const distance = transaction?.routes?.route0.distance ?? 0;
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
+    const taxRates = policy?.taxRates;
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -275,8 +273,8 @@ function MoneyRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = policyTaxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
+    const defaultTaxKey = taxRates?.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 
@@ -481,7 +479,7 @@ function MoneyRequestConfirmationList({
     };
 
     const confirm = useCallback(
-        (paymentMethod: OnyxTypes.PaymentMethodType | undefined) => {
+        (paymentMethod: PaymentMethodType | undefined) => {
             if (selectedParticipantsMemo.length === 0) {
                 return;
             }
@@ -565,7 +563,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                onPress={(_, value) => confirm(value as OnyxTypes.PaymentMethodType)}
+                onPress={(_, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
@@ -833,7 +831,7 @@ function MoneyRequestConfirmationList({
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={taxRateTitle}
-                            description={policyTaxRates?.name}
+                            description={taxRates?.name}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() =>
@@ -850,7 +848,7 @@ function MoneyRequestConfirmationList({
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={formattedTaxAmount}
-                            description={policyTaxRates?.name}
+                            description={taxRates?.name}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() =>
@@ -895,9 +893,6 @@ export default withCurrentUserPersonalDetails(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        policyTaxRates: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
         iou: {
             key: ONYXKEYS.IOU,
