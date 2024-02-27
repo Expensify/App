@@ -856,7 +856,7 @@ function handleExitToNavigation(exitTo: Routes | HybridAppRoute) {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
                 const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
-                Navigation.navigate(url, CONST.NAVIGATION.TYPE.FORCED_UP);
+                Navigation.navigate(url);
             });
         });
     });
@@ -890,7 +890,7 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
-    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
 
     if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
         return true;

@@ -20,6 +20,7 @@ type RenamedInputKeysProps = {
     lat?: string;
     lng?: string;
     zipCode: string;
+    address?: string;
     country?: string;
 };
 
@@ -75,10 +76,10 @@ type AddressSearchProps = {
     canUseCurrentLocation?: boolean;
 
     /** A list of predefined places that can be shown when the user isn't searching for something */
-    predefinedPlaces?: Place[];
+    predefinedPlaces?: Place[] | null;
 
     /** A map of inputID key names */
-    renamedInputKeys: RenamedInputKeysProps;
+    renamedInputKeys?: RenamedInputKeysProps;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;

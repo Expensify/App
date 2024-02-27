@@ -2,6 +2,7 @@ import type {Country} from '@src/CONST';
 
 type Address = {
     street: string;
+    street2?: string;
     city: string;
     state: string;
     zip: string;
