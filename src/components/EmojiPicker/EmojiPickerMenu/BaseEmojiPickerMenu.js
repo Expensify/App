@@ -131,6 +131,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     ref={forwardedRef}
                     keyboardShouldPersistTaps="handled"
                     data={data}
+                    drawDistance={CONST.EMOJI_DRAW_AMOUNT}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
