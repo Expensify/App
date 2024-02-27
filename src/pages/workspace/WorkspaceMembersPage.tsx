@@ -390,8 +390,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         if (!isEmptyObject(errors)) {
             return;
         }
-
-        // Remove the admin from the list
+        
         const accountIDsToRemove = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToRemove, role);
