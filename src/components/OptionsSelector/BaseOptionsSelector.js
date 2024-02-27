@@ -85,7 +85,6 @@ function BaseOptionsSelector(props) {
     const accessibilityRoles = _.values(CONST.ROLE);
 
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
-    const [sections, setSections] = useState();
     const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [value, setValue] = useState('');
@@ -137,12 +136,6 @@ function BaseOptionsSelector(props) {
         return calcAllOptions;
     }, [props.sections]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initialAllOptions = useMemo(() => flattenSections(), []);
-    const [allOptions, setAllOptions] = useState(initialAllOptions);
-    const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
-    const [focusedOption, setFocusedOption] = useState(allOptions[focusedIndex]);
-
     /**
      * Maps sections to render only allowed count of them per section.
      *
@@ -164,6 +157,13 @@ function BaseOptionsSelector(props) {
             }),
         [paginationPage, props.sections],
     );
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const initialAllOptions = useMemo(() => flattenSections(), []);
+    const [sections, setSections] = useState(sliceSections());
+    const [allOptions, setAllOptions] = useState(initialAllOptions);
+    const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
+    const [focusedOption, setFocusedOption] = useState(allOptions[focusedIndex]);
 
     /**
      * Completes the follow-up actions after a row is selected
@@ -345,9 +345,6 @@ function BaseOptionsSelector(props) {
         },
         [allOptions, sections],
     );
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => setSections(sliceSections()), []);
 
     useEffect(() => {
         subscribeToEnterShortcut();
