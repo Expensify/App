@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, ScrollView, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,6 +7,7 @@ import WorkspaceProfile from '@assets/images/workspace-profile.png';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -56,7 +57,21 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const policyDescription = policy?.description ?? '';
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5] : [styles.mhv8, styles.mhn8];
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+    const confirmDeleteAndHideModal = useCallback(() => {
+        if (!policy?.id || !policyName) {
+            return;
+        }
+
+        Policy.deleteWorkspace(policy?.id, policyName);
+
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+
+        setIsDeleteModalOpen(false);
+    }, [policy?.id, policyName]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -160,17 +175,32 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 </View>
                             </OfflineWithFeedback>
                             {!readOnly && (
-                                <View style={[styles.flexRow, styles.mnw120]}>
+                                <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                     <Button
                                         accessibilityLabel={translate('common.share')}
-                                        style={styles.mt6}
                                         text={translate('common.share')}
                                         onPress={onPressShare}
+                                        medium
+                                    />
+                                    <Button
+                                        accessibilityLabel={translate('common.delete')}
+                                        text={translate('common.delete')}
+                                        onPress={() => setIsDeleteModalOpen(true)}
                                         medium
                                     />
                                 </View>
                             )}
                         </Section>
+                        <ConfirmModal
+                            title={translate('common.delete')}
+                            isVisible={isDeleteModalOpen}
+                            onConfirm={confirmDeleteAndHideModal}
+                            onCancel={() => setIsDeleteModalOpen(false)}
+                            prompt={translate('workspace.common.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
                     </View>
                 </ScrollView>
             )}
