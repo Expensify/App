@@ -85,7 +85,7 @@ function IOURequestStepWaypoint({
             default:
                 return 'distance.waypointDescription.stop';
         }
-    }, [parsedWaypointIndex, waypointCount]);
+    }, [parsedWaypointIndex]);
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = currentWaypoint.address ?? '';
