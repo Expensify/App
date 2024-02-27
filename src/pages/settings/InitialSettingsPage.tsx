@@ -25,7 +25,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
@@ -225,13 +224,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     translationKey: 'sidebarScreen.saveTheWorld',
                     icon: Expensicons.Heart,
                     routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                    action: () => {
-                        interceptAnonymousUser(
-                            waitForNavigate(() => {
-                                Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD);
-                            }),
-                        );
-                    },
                 },
             ],
         }),
