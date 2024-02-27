@@ -56,7 +56,7 @@ function SaveTheWorldPage() {
                 title={translate('sidebarScreen.saveTheWorld')}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack()}
-                icon={Illustrations.LockClosed}
+                icon={Illustrations.TeachersUnite}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
