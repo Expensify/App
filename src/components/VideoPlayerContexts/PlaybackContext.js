@@ -56,17 +56,23 @@ function PlaybackContextProvider({children}) {
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref, parent, child) => {
+        (ref, parent, child, isUploading) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
-            playVideo();
+            // Prevents autoplay when uploading the attachment
+            if (!isUploading) {
+                playVideo();
+            }
         },
         [playVideo],
     );
 
     const checkVideoPlaying = useCallback(
         (statusCallback) => {
+            if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.getStatusAsync)) {
+                return;
+            }
             currentVideoPlayerRef.current.getStatusAsync().then((status) => {
                 statusCallback(status.isPlaying);
             });

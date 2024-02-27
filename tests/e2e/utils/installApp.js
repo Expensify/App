@@ -1,5 +1,5 @@
-const execAsync = require('./execAsync');
-const Logger = require('./logger');
+import execAsync from './execAsync';
+import * as Logger from './logger';
 
 /**
  * Installs the app on the currently connected device for the given platform.
@@ -10,7 +10,8 @@ const Logger = require('./logger');
  * @param {String} path
  * @returns {Promise<void>}
  */
-module.exports = function (platform = 'android', packageName, path) {
+// eslint-disable-next-line default-param-last
+export default function (platform = 'android', packageName, path) {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
@@ -22,4 +23,4 @@ module.exports = function (platform = 'android', packageName, path) {
             Logger.warn('Failed to uninstall app:', e);
         })
         .finally(() => execAsync(`adb install ${path}`));
-};
+}

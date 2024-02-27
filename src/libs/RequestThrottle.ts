@@ -26,9 +26,10 @@ function sleep(): Promise<void> {
     requestRetryCount++;
     return new Promise((resolve, reject) => {
         if (requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-            return setTimeout(resolve, getRequestWaitTime());
+            setTimeout(resolve, getRequestWaitTime());
+            return;
         }
-        return reject();
+        reject();
     });
 }
 

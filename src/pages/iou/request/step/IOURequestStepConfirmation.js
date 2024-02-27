@@ -92,6 +92,7 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState();
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
+    const receiptType = lodashGet(transaction, 'receipt.type');
     const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
@@ -132,8 +133,8 @@ function IOURequestStepConfirmation({
         if (!transaction.category) {
             return;
         }
-        if (policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
-            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        if (policyCategories && policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
+            IOU.setMoneyRequestCategory(transactionID, '');
         }
     }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
@@ -145,7 +146,7 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
             return;
         }
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+        IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);
@@ -179,8 +180,8 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
-    }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -417,9 +418,8 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {isLoading ? (
-                        <FullScreenLoadingIndicator />
-                    ) : (
+                    {isLoading && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, isLoading && styles.opacity0]}>
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
@@ -451,7 +451,7 @@ function IOURequestStepConfirmation({
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
-                    )}
+                    </View>
                 </View>
             )}
         </ScreenWrapper>
