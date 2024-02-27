@@ -159,6 +159,17 @@ const ROUTES = {
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
     },
 
+    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
+    SETTINGS_EXIT_SURVEY_RESPONSE: {
+        route: 'settings/exit-survey/response',
+        getRoute: (reason?: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo?: string) =>
+            getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
+    },
+    SETTINGS_EXIT_SURVEY_CONFIRM: {
+        route: 'settings/exit-survey/confirm',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
+    },
+
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
@@ -471,6 +482,10 @@ const ROUTES = {
         route: 'workspace/:policyID/settings/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
     },
+    WORKSPACE_WORKFLOWS: {
+        route: 'workspace/:policyID/workflows',
+        getRoute: (policyID: string) => `workspace/${policyID}/workflows` as const,
+    },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
         getRoute: (policyID: string) => `workspace/${policyID}/card` as const,
@@ -507,6 +522,15 @@ const ROUTES = {
         route: 'workspace/:policyID/members',
         getRoute: (policyID: string) => `workspace/${policyID}/members` as const,
     },
+    WORKSPACE_CATEGORIES: {
+        route: 'workspace/:policyID/categories',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories` as const,
+    },
+    WORKSPACE_CATEGORIES_SETTINGS: {
+        route: 'workspace/:policyID/categories/settings',
+        getRoute: (policyID: string) => `workspace/${policyID}/categories/settings` as const,
+    },
+
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
@@ -546,4 +570,4 @@ type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute};
+export type {Route, HybridAppRoute, AllRoutes};

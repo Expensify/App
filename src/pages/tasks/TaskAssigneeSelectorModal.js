@@ -77,7 +77,11 @@ function useOptions({reports}) {
             true,
         );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), debouncedSearchValue);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (recentReports.length || 0 + personalDetails.length || 0) !== 0 || currentUserOption,
+            Boolean(userToInvite),
+            debouncedSearchValue,
+        );
 
         if (isLoading) {
             setIsLoading(false);
