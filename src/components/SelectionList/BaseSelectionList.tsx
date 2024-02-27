@@ -18,6 +18,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -77,6 +78,8 @@ function BaseSelectionList<TItem extends ListItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
+
+    const sectionsWithIndexOffset = getSectionsWithIndexOffset(sections);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -375,11 +378,6 @@ function BaseSelectionList<TItem extends ListItem>(
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         isActive: !disableKeyboardShortcuts && isFocused,
-    });
-
-    const sectionsWithIndexOffset = sections.map((section, index) => {
-        const indexOffset = [...sections].splice(0, index).reduce((acc, curr) => acc + curr.data.length, 0);
-        return {...section, indexOffset};
     });
 
     return (

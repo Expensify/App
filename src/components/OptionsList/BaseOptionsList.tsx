@@ -9,6 +9,7 @@ import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
@@ -67,6 +68,7 @@ function BaseOptionsList(
 
     const listContainerStyles = useMemo(() => listContainerStylesProp ?? [styles.flex1], [listContainerStylesProp, styles.flex1]);
     const contentContainerStyles = useMemo(() => [safeAreaPaddingBottomStyle, contentContainerStylesProp], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
+    const sectionsWithIndexOffset = getSectionsWithIndexOffset(sections);
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -222,11 +224,6 @@ function BaseOptionsList(
 
         return <View />;
     };
-
-    const sectionsWithIndexOffset = sections.map((section, index) => {
-        const indexOffset = [...sections].splice(0, index).reduce((acc, curr) => acc + curr.data.length, 0);
-        return {...section, indexOffset};
-    });
 
     return (
         <View style={listContainerStyles}>
