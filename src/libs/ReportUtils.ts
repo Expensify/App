@@ -1201,33 +1201,20 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report has only one transaction associated with it
  */
-function isOneTransactionReport(reportOrID: OnyxEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
-
-    // Check the parent report (which would be the IOU or expense report if the passed report is an IOU or expense request)
-    // to see how many IOU report actions it contains
-    const iouReportActions = ReportActionsUtils.getIOUReportActions(report?.reportID ?? '');
-    return (iouReportActions?.length ?? 0) === 1;
-}
-
-/**
- * Returns the reportID of the first transaction thread associated with a report
- */
-function getOneTransactionThreadReportID(reportOrID: OnyxEntry<Report> | string): string | undefined {
-    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
-
-    // Get all IOU report actions for the report.
-    const iouReportAction = ReportActionsUtils.getIOUReportActions(report?.reportID ?? '')?.find(reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.childReportID);
-    return iouReportAction ? String(iouReportAction.childReportID) : '0'
+function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
+    return report?.transactionThreadReportID !== undefined;
 }
 
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
-function isOneTransactionThread(reportOrID: OnyxEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
-    const parentReport = getParentReport(report);
-    return isOneTransactionReport(parentReport?.reportID ?? '');
+function isOneTransactionThread(reportID: string, parentReport: OnyxEntry<Report> | EmptyObject): boolean {
+    if (isEmptyObject(parentReport)) {
+        return false;
+    }
+
+    const transactionThreadReportID = parentReport?.transactionThreadReportID ?? undefined;
+    return reportID === transactionThreadReportID;
 }
 
 /**
@@ -3967,7 +3954,8 @@ function shouldReportBeInOptionList({
     }
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
-    if (isOneTransactionThread(report)) {
+    const parentReport = getParentReport(report);
+    if (isOneTransactionThread(report.reportID, parentReport)) {
         return false;
     }
 
@@ -5206,7 +5194,6 @@ export {
     getReportRecipientAccountIDs,
     isOneOnOneChat,
     isOneTransactionReport,
-    getOneTransactionThreadReportID,
     isOneTransactionThread,
     goBackToDetailsPage,
     getTransactionReportName,

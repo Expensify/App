@@ -878,10 +878,7 @@ export default compose(
             initialValue: {},
         },
         transactionThreadReport: {
-            key: ({report}) => {
-                const transactionThreadReportID = ReportUtils.isOneTransactionReport(report) ? ReportUtils.getOneTransactionThreadReportID(report) : '';
-                return transactionThreadReportID ? `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}` : undefined;
-            },
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.transactionThreadReportID || 0}`,
             initialValue: {},
         },
         policyReportFields: {

@@ -212,6 +212,7 @@ function ReportScreen({
             policyName: reportProp.policyName,
             isOptimisticReport: reportProp.isOptimisticReport,
             lastMentionedTime: reportProp.lastMentionedTime,
+            transactionThreadReportID: reportProp.transactionThreadReportID
         }),
         [
             reportProp.lastReadTime,
@@ -617,11 +618,7 @@ export default compose(
                 selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
             transactionThreadReportActions: {
-                key: ({route}) => {
-                    const reportID = getReportID(route);
-                    const transactionThreadReportID = reportID && ReportUtils.isOneTransactionReport(reportID) ? ReportUtils.getOneTransactionThreadReportID(reportID) : '0';
-                    return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`
-                },
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.transactionThreadReportID : 0}`,
                 canEvict: false,
                 selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
