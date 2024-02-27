@@ -232,6 +232,28 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     };
 
     /**
+     * @param {Object} fileData
+     * @returns {Promise}
+     */
+    const validateAttachment = useCallback(
+        (fileData) => {
+            if (fileData.width === -1 || fileData.height === -1) {
+                showImageCorruptionAlert();
+                return Promise.resolve();
+            }
+            return getDataForUpload(fileData)
+                .then((result) => {
+                    completeAttachmentSelection.current(result);
+                })
+                .catch((error) => {
+                    showGeneralAlert(error.message);
+                    throw error;
+                });
+        },
+        [showGeneralAlert, showImageCorruptionAlert],
+    );
+
+    /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
      *
@@ -249,36 +271,13 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
                     fileData.width = width;
                     fileData.height = height;
-
-                    if (fileData.width === -1 || fileData.height === -1) {
-                        showImageCorruptionAlert();
-                        return Promise.resolve();
-                    }
-                    return getDataForUpload(fileData)
-                        .then((result) => {
-                            completeAttachmentSelection.current(result);
-                        })
-                        .catch((error) => {
-                            showGeneralAlert(error.message);
-                            throw error;
-                        });
+                    return validateAttachment(fileData);
                 });
             } else {
-                if (fileData.width === -1 || fileData.height === -1) {
-                    showImageCorruptionAlert();
-                    return Promise.resolve();
-                }
-                return getDataForUpload(fileData)
-                    .then((result) => {
-                        completeAttachmentSelection.current(result);
-                    })
-                    .catch((error) => {
-                        showGeneralAlert(error.message);
-                        throw error;
-                    });
+                return validateAttachment(fileData);
             }
         },
-        [showGeneralAlert, showImageCorruptionAlert],
+        [validateAttachment],
     );
 
     /**
