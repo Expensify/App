@@ -407,6 +407,9 @@ function ReportScreen({
         }
 
         fetchReportIfNeeded();
+
+        // We only want to call fetchReportIfNeeded once the Onyx is hydrated
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isHydrated]);
 
     useEffect(() => {
