@@ -34,6 +34,8 @@ const propTypes = {
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
+    /* Onyx Props */
+    /** Last selected mention from the mention suggestion list */
     // eslint-disable-next-line react/require-default-props
     lastSelectedMentionSuggestion: PropTypes.string,
 
