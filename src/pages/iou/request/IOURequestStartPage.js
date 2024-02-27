@@ -82,14 +82,6 @@ function IOURequestStartPage({
     const previousIOURequestType = usePrevious(transactionRequestType.current);
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
-    // Clear out the temporary money request when this component is unmounted
-    useEffect(
-        () => () => {
-            IOU.clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        },
-        [reportID],
-    );
-
     useEffect(() => {
         const handler = (event) => {
             if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
@@ -108,7 +100,7 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, transactionRequestType.current);
+        IOU.initMoneyRequest(reportID, isFromGlobalCreate, transactionRequestType.current);
     }, [transaction, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -130,7 +122,7 @@ function IOURequestStartPage({
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
             }
-            IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
+            IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
         [previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation],

@@ -35,17 +35,25 @@ const propTypes = {
 
         /** The id of the transaction related to the attachment */
         transactionID: PropTypes.string,
+
+        duration: PropTypes.number,
     }).isRequired,
 
     /** onPress callback */
     onPress: PropTypes.func,
+
+    isModalHovered: PropTypes.bool,
+
+    /** Whether the attachment is currently being viewed in the carousel */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
     onPress: undefined,
+    isModalHovered: false,
 };
 
-function CarouselItem({item, onPress}) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -97,6 +105,9 @@ function CarouselItem({item, onPress}) {
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     onPress={onPress}
                     transactionID={item.transactionID}
+                    isHovered={isModalHovered}
+                    isFocused={isFocused}
+                    optionalVideoDuration={item.duration}
                 />
             </View>
 

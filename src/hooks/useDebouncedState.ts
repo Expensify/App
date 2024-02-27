@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
  * @example
  * const [value, debouncedValue, setValue] = useDebouncedState<string>("", 300);
  */
-function useDebouncedState<T>(initialValue: T, delay = CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME): [T, T, (value: T) => void] {
+function useDebouncedState<T>(initialValue: T, delay: number = CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME): [T, T, (value: T) => void] {
     const [value, setValue] = useState(initialValue);
     const [debouncedValue, setDebouncedValue] = useState(initialValue);
     const debouncedSetDebouncedValue = useRef(debounce(setDebouncedValue, delay)).current;

@@ -132,8 +132,8 @@ function IOURequestStepConfirmation({
         if (!transaction.category) {
             return;
         }
-        if (policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
-            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        if (policyCategories && policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
+            IOU.setMoneyRequestCategory(transactionID, '');
         }
     }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
@@ -145,7 +145,7 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
             return;
         }
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+        IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);
@@ -280,6 +280,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     report.reportID,
@@ -298,6 +299,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
@@ -410,9 +412,8 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {isLoading ? (
-                        <FullScreenLoadingIndicator />
-                    ) : (
+                    {isLoading && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, isLoading && styles.opacity0]}>
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
@@ -423,7 +424,6 @@ function IOURequestStepConfirmation({
                             iouIsBillable={transaction.billable}
                             onToggleBillable={setBillable}
                             iouCategory={transaction.category}
-                            iouTag={transaction.tag}
                             onConfirm={createTransaction}
                             onSendMoney={sendMoney}
                             onSelectParticipant={addNewParticipant}
@@ -445,7 +445,7 @@ function IOURequestStepConfirmation({
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
-                    )}
+                    </View>
                 </View>
             )}
         </ScreenWrapper>

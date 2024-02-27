@@ -32,6 +32,9 @@ PODS:
     - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
+  - EXAV (13.10.4):
+    - ExpoModulesCore
+    - ReactCommon/turbomodule/core
   - Expo (50.0.4):
     - ExpoModulesCore
   - ExpoImage (1.10.1):
@@ -263,12 +266,12 @@ PODS:
   - lottie-react-native (6.4.1):
     - lottie-ios (~> 4.3.3)
     - React-Core
-  - MapboxCommon (23.6.0)
-  - MapboxCoreMaps (10.14.0):
-    - MapboxCommon (~> 23.6)
-  - MapboxMaps (10.14.0):
-    - MapboxCommon (= 23.6.0)
-    - MapboxCoreMaps (= 10.14.0)
+  - MapboxCommon (23.8.6)
+  - MapboxCoreMaps (10.16.4):
+    - MapboxCommon (~> 23.8)
+  - MapboxMaps (10.16.4):
+    - MapboxCommon (= 23.8.6)
+    - MapboxCoreMaps (= 10.16.4)
     - MapboxMobileEvents (= 1.0.10)
     - Turf (~> 2.0)
   - MapboxMobileEvents (1.0.10)
@@ -277,9 +280,9 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (28.3.1)
-  - onfido-react-native-sdk (8.3.0):
-    - Onfido (~> 28.3.0)
+  - Onfido (29.6.0)
+  - onfido-react-native-sdk (10.6.0):
+    - Onfido (~> 29.6.0)
     - React
   - OpenSSL-Universal (1.1.1100)
   - Plaid (4.7.0)
@@ -1172,7 +1175,7 @@ PODS:
     - React-Core
   - react-native-image-manipulator (1.0.5):
     - React
-  - react-native-image-picker (5.1.0):
+  - react-native-image-picker (7.0.3):
     - React-Core
   - react-native-key-command (1.0.6):
     - React-Core
@@ -1195,7 +1198,7 @@ PODS:
     - React-Core
   - react-native-render-html (6.3.1):
     - React-Core
-  - react-native-safe-area-context (4.7.4):
+  - react-native-safe-area-context (4.8.2):
     - React-Core
   - react-native-view-shot (3.8.0):
     - React-Core
@@ -1414,20 +1417,20 @@ PODS:
     - React-Core
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.0.11):
-    - MapboxMaps (~> 10.14.0)
+  - rnmapbox-maps (10.1.11):
+    - MapboxMaps (~> 10.16.4)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.0.11)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.11)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.0.11):
-    - MapboxMaps (~> 10.14.0)
+  - rnmapbox-maps/DynamicLibrary (10.1.11):
+    - MapboxMaps (~> 10.16.4)
     - React
     - React-Core
     - Turf
   - RNPermissions (3.9.3):
     - React-Core
-  - RNReactNativeHapticFeedback (1.14.0):
+  - RNReactNativeHapticFeedback (2.2.0):
     - React-Core
   - RNReanimated (3.6.1):
     - glog
@@ -1443,7 +1446,7 @@ PODS:
     - RNSound/Core (= 0.11.2)
   - RNSound/Core (0.11.2):
     - React-Core
-  - RNSVG (14.0.0):
+  - RNSVG (14.1.0):
     - React-Core
   - SDWebImage (5.17.0):
     - SDWebImage/Core (= 5.17.0)
@@ -1458,7 +1461,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
-  - VisionCamera (2.16.5):
+  - VisionCamera (2.16.8):
     - React
     - React-callinvoker
     - React-Core
@@ -1469,6 +1472,7 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXAV (from `../node_modules/expo-av/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
@@ -1650,6 +1654,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXAV:
+    :path: "../node_modules/expo-av/ios"
   Expo:
     :path: "../node_modules/expo"
   ExpoImage:
@@ -1851,6 +1857,7 @@ SPEC CHECKSUMS:
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
+  EXAV: 09a4d87fa6b113fbb0ada3aade6799f78271cb44
   Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
   ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
@@ -1889,13 +1896,13 @@ SPEC CHECKSUMS:
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: a2ae9c27c273b060b2affff2957bc0ff7fdca353
-  MapboxCommon: 4a0251dd470ee37e7fadda8e285c01921a5e1eb0
-  MapboxCoreMaps: eb07203bbb0b1509395db5ab89cd3ad6c2e3c04c
-  MapboxMaps: af50ec61a7eb3b032c3f7962c6bd671d93d2a209
+  MapboxCommon: 90f76693dc02438acbb5ea9a5b266a4c0eb1c875
+  MapboxCoreMaps: 7b07d1ca8c454a4381daf09df901b9d6bf90bce0
+  MapboxMaps: cbb38845a9bf49b124f0e937975d560a4e01894e
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: 564f60c39819635ec5b549285a1eec278cc9ba67
-  onfido-react-native-sdk: b346a620af5669f9fecb6dc3052314a35a94ad9f
+  Onfido: c52e797b10cc9e6d29ba91996cb62e501000bfdd
+  onfido-react-native-sdk: 4e7f0a7a986ed93cb906d2e0b67a6aab9202de0b
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Plaid: 431ef9be5314a1345efb451bc5e6b067bfb3b4c6
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
@@ -1927,7 +1934,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 3599b238843369026201d2ef466df53f77ae0452
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
-  react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
+  react-native-image-picker: 2381c008bbb09e72395a2d043c147b11bd1523d9
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
@@ -1937,7 +1944,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: df1618a85a615d62ff34e34b76abb7a56497fbc1
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
-  react-native-safe-area-context: 2cd91d532de12acdb0a9cbc8d43ac72a8e4c897c
+  react-native-safe-area-context: 0ee144a6170530ccc37a0fd9388e28d06f516a89
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
   react-native-webview: 88293a0f23eca8465c0433c023ec632930e644d0
   React-nativeconfig: d753fbbc8cecc8ae413d615599ac378bbf6999bb
@@ -1976,21 +1983,21 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: 35eeecf7e57eb26fdc279d5d4815982a9a9f7beb
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
+  rnmapbox-maps: fcf7f1cbdc8bd7569c267d07284e8a5c7bee06ed
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
-  RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
+  RNReactNativeHapticFeedback: ec56a5f81c3941206fd85625fa669ffc7b4545f9
   RNReanimated: 57f436e7aa3d277fbfed05e003230b43428157c0
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 255767813dac22db1ec2062c8b7e7b856d4e5ae6
+  RNSVG: ba3e7232f45e34b7b47e74472386cf4e1a676d0a
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: fda554d8751e395effcc87749f8b7c198c1031be
-  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
+  VisionCamera: 0a6794d1974aed5d653d0d0cb900493e2583e35a
+  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: 0ccbb4f2406893c6e9f266dc1e7470dcd72885d2
 

@@ -108,7 +108,7 @@ function IOURequestStepParticipants({
         (isSplit) => {
             const nextStepIOUType = !isSplit && iouType !== CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.REQUEST : iouType;
             IOU.setMoneyRequestTag(transactionID, '');
-            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+            IOU.setMoneyRequestCategory(transactionID, '');
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
         },
         [iouType, transactionID, reportID],
