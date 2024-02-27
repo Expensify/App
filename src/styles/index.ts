@@ -4631,7 +4631,7 @@ const styles = (theme: ThemeColors) =>
 
         workspaceTitleStyle: {
             ...headlineFont,
-            fontSize: variables.workspaceProfileName,
+            fontSize: variables.fontSizeXLarge,
         },
     } satisfies Styles);
 
