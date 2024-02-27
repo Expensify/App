@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
@@ -43,8 +44,10 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         left: 0,
         bottom: 0,
     });
+    const StyleUtils = useStyleUtils();
+    const insets = useSafeAreaInsets();
     const {keyboardHeight} = useKeyboardState();
-    const {bottom: bottomInset} = useSafeAreaInsets();
+    const {paddingBottom: bottomInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -72,7 +75,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
                     : xCoordinatesOfCursor;
 
-            let bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - bottomInset;
+            let bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - (keyboardHeight || bottomInset);
             const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const contentMaxHeight = measureHeightOfSuggestionRows(props.suggestions.length, true);
@@ -102,7 +105,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             setSuggestionHeight(measuredHeight);
             setContainerState({
                 left: leftValue.current,
-                bottom: bottomValue - keyboardHeight,
+                bottom: bottomValue,
                 width: widthValue,
             });
         });

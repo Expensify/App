@@ -5,8 +5,8 @@ import {View} from 'react-native';
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import type {AutoCompleteSuggestionsPortalProps} from './types';
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
+import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -47,7 +47,10 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
     return (
         !!width &&
         bodyElement &&
-        ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>, bodyElement)
+        ReactDOM.createPortal(
+            <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>,
+            bodyElement,
+        )
     );
 }
 
