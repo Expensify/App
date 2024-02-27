@@ -2,6 +2,7 @@
 import {Video, VideoFullscreenUpdate} from 'expo-av';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -12,6 +13,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import shouldReplayVideo from './shouldReplayVideo';
 import VideoPlayerControls from './VideoPlayerControls';
@@ -59,6 +61,7 @@ function BaseVideoPlayer({
     const videoResumeTryNumber = useRef(0);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
+    const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -144,8 +147,8 @@ function BaseVideoPlayer({
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
-        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url]);
+        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
