@@ -1,29 +1,41 @@
 import React, {useMemo, useState} from 'react';
+import {SectionListData} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import type {Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import withPolicy, {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import type {Section} from '@components/SelectionList/types';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
-import { SectionListData } from 'react-native';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Beta, InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import withPolicyAndFullscreenLoading from '../withPolicyAndFullscreenLoading';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
-type WorkspaceWorkflowsApproverPageProps = WithPolicyOnyxProps;
+type WorkspaceWorkflowsApproverPageOnyxProps = {
+    /** All of the personal details for everyone */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+};
+
+type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps & WithPolicyProps;
 type MembersSection = SectionListData<OptionsListUtils.MemberForList, Section<MemberForList>>;
 
-function WorkspaceWorkflowsApproverPage({policy, policyMembers}: WorkspaceWorkflowsApproverPageProps) {
+function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
@@ -31,12 +43,16 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers}: WorkspaceWorkfl
         const searchValue = searchTerm.trim().toLowerCase();
         return OptionsListUtils.getHeaderMessage(true, false, searchValue);
     }, [translate, searchTerm, policyName]);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    console.log(policy, policyMembers);
+    const policyMemberAccountIDs = Object.keys(policyMembers ?? {}).map((accountId) => parseInt(accountId));
+    const workspaceMembers = PersonalDetailsUtils.getPersonalDetailsByIDs(policyMemberAccountIDs, currentUserPersonalDetails.accountID);
+    console.log('[workspaceMembers]: ', workspaceMembers);
 
-    const sections: MembersSection[] = () => {
-        
-    }
+    // const sections: MembersSection[] = () => {
+    //     const sectionsArr: MembersSection[] = [];
+
+    // };
 
     return (
         <ScreenWrapper
@@ -49,7 +65,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers}: WorkspaceWorkfl
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
-                sections={sections}
+                sections={[]}
                 textInputLabel={translate('common.all')}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
@@ -65,4 +81,11 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers}: WorkspaceWorkfl
 
 WorkspaceWorkflowsApproverPage.displayName = 'WorkspaceWorkflowsApproverPage';
 
-export default withPolicy(WorkspaceWorkflowsApproverPage);
+export default compose(
+    withOnyx<WorkspaceWorkflowsApproverPageProps, WorkspaceWorkflowsApproverPageOnyxProps>({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    }),
+    withPolicy,
+)(WorkspaceWorkflowsApproverPage);
