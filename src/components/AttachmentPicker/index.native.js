@@ -271,13 +271,13 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
                     fileData.width = width;
                     fileData.height = height;
-                    return validateAttachment(fileData);
+                    return validateAndCompleteAttachmentSelection(fileData);
                 });
             } else {
-                return validateAttachment(fileData);
+                return validateAndCompleteAttachmentSelection(fileData);
             }
         },
-        [validateAttachment],
+        [validateAndCompleteAttachmentSelection],
     );
 
     /**
