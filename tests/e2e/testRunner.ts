@@ -16,7 +16,6 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';
-import _ from 'underscore';
 import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
@@ -30,7 +29,7 @@ import withFailTimeout from './utils/withFailTimeout';
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
-const getArg = (argName) => {
+const getArg = (argName: string): string | undefined => {
     const argIndex = args.indexOf(argName);
     if (argIndex === -1) {
         return undefined;
@@ -39,13 +38,13 @@ const getArg = (argName) => {
 };
 
 let config = defaultConfig;
-const setConfigPath = (configPathParam) => {
+const setConfigPath = (configPathParam: string | undefined): void => {
     let configPath = configPathParam;
-    if (!configPath.startsWith('.')) {
+    if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
     }
     const customConfig = require(configPath).default;
-    config = _.extend(defaultConfig, customConfig);
+    config = Object.assign(defaultConfig, customConfig);
 };
 
 if (args.includes('--config')) {
@@ -54,8 +53,8 @@ if (args.includes('--config')) {
 }
 
 // Important: set app path only after correct config file has been loaded
-const mainAppPath = getArg('--mainAppPath') || config.MAIN_APP_PATH;
-const deltaAppPath = getArg('--deltaAppPath') || config.DELTA_APP_PATH;
+const mainAppPath = getArg('--mainAppPath') ?? config.MAIN_APP_PATH;
+const deltaAppPath = getArg('--deltaAppPath') ?? config.DELTA_APP_PATH;
 // Check if files exists:
 if (!fs.existsSync(mainAppPath)) {
     throw new Error(`Main app path does not exist: ${mainAppPath}`);
@@ -117,7 +116,7 @@ const runTests = async () => {
     });
 
     // Function to run a single test iteration
-    async function runTestIteration(appPackage, iterationText, launchArgs) {
+    async function runTestIteration(appPackage: string, iterationText: string, launchArgs: Record<string, boolean> = {}) {
         Logger.info(iterationText);
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
@@ -143,9 +142,9 @@ const runTests = async () => {
     }
 
     // Run the tests
-    const tests = _.values(config.TESTS_CONFIG);
+    const tests = Object.keys(config.TESTS_CONFIG);
     for (let testIndex = 0; testIndex < tests.length; testIndex++) {
-        const test = _.values(config.TESTS_CONFIG)[testIndex];
+        const test = Object.values(config.TESTS_CONFIG)[testIndex];
 
         // check if we want to skip the test
         if (args.includes('--includes')) {
