@@ -2224,7 +2224,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
 
     const parameters = {
         policyID,
-        categories: Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key]),
+        categories: JSON.stringify(Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key])),
     };
 
     API.write('SetWorkspaceCategoriesEnabled', parameters, onyxData);

@@ -1,6 +1,10 @@
 type SetWorkspaceCategoriesEnabledParams = {
     policyID: string;
-    categories: Array<{name: string; enabled: boolean}>;
+    /**
+     * Stringified JSON object with type of following structure:
+     * Array<{name: string; enabled: boolean}>
+     */
+    categories: string;
 };
 
 export default SetWorkspaceCategoriesEnabledParams;
