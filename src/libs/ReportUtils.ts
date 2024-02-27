@@ -1697,8 +1697,9 @@ function getDisplayNamesWithTooltips(
 /**
  * Returns the the display names of the given user accountIDs
  */
-function getUserDetailsTooltipText(accountIDs: number[]): string {
-    return accountIDs.map((accountID) => getDisplayNameForParticipant(accountID)).join(', ');
+function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = ''): string {
+    const displayNameForParticipant = getDisplayNameForParticipant(accountID);
+    return displayNameForParticipant || fallbackUserDisplayName;
 }
 
 /**
@@ -5202,7 +5203,7 @@ export {
     buildOptimisticUnHoldReportAction,
     shouldDisplayThreadReplies,
     shouldDisableThread,
-    getUserDetailsTooltipText,
+    getUserDetailTooltipText,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
     getAllAncestorReportActions,

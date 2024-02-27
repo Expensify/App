@@ -107,6 +107,8 @@ function MultipleAvatars({
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
+    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => ReportUtils.getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+
     const avatarSize = useMemo(() => {
         if (isFocusMode) {
             return CONST.AVATAR_SIZE.MID_SUBSCRIPT;
@@ -215,13 +217,7 @@ function MultipleAvatars({
                         {avatars.length > maxAvatarsInRow && (
                             <Tooltip
                                 // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={
-                                    shouldShowTooltip
-                                        ? ReportUtils.getUserDetailsTooltipText(
-                                              icons.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).map((icon) => Number(icon.id)),
-                                          )
-                                        : ''
-                                }
+                                text={tooltipTexts.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).join(', ')}
                             >
                                 <View
                                     style={[
@@ -302,7 +298,7 @@ function MultipleAvatars({
                                     </View>
                                 </UserDetailsTooltip>
                             ) : (
-                                <Tooltip text={shouldShowTooltip ? ReportUtils.getUserDetailsTooltipText(icons.slice(1).map((icon) => Number(icon.id))) : ''}>
+                                <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                     <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Text
                                             style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}

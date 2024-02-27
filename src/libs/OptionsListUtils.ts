@@ -289,7 +289,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
             type: CONST.ICON_TYPE_AVATAR,
-            name: ReportUtils.getDisplayNameForParticipant(accountID),
+            name: userPersonalDetail.login ?? '',
         };
     });
 }
