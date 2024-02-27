@@ -390,10 +390,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         if (!isEmptyObject(errors)) {
             return;
         }
-        
-        const accountIDsToRemove = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
 
-        Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToRemove, role);
+        const accountIDsToUpdate = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
+
+        Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
     };
 
