@@ -6,6 +6,7 @@ import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
 import type {BottomTabNavigatorParamList, CentralPaneNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
@@ -80,6 +81,9 @@ const policyPropTypes = {
         tax: PropTypes.shape({
             trackingEnabled: PropTypes.bool,
         }),
+
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
     }),
 
     /** The employee list of this policy */

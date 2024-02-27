@@ -59,22 +59,6 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     return 0;
 }
 
-// Define a cache object to store the memoized results
-const reportIDsCache = new Map<string, string[]>();
-
-// Function to set a key-value pair while maintaining the maximum key limit
-function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TValue) {
-    if (map.size >= 5) {
-        // If the map has reached its limit, remove the first (oldest) key-value pair
-        const firstKey = map.keys().next().value;
-        map.delete(firstKey);
-    }
-    map.set(key, value);
-}
-
-// Variable to verify if ONYX actions are loaded
-let hasInitialReportActions = false;
-
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -89,26 +73,6 @@ function getOrderedReportIDs(
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
-    const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`];
-    let reportActionCount = currentReportActions?.length ?? 0;
-    reportActionCount = Math.max(reportActionCount, 1);
-
-    // Generate a unique cache key based on the function arguments
-    const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount, currentPolicyID, policyMemberAccountIDs],
-        // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
-        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
-    );
-
-    // Check if the result is already in the cache
-    const cachedIDs = reportIDsCache.get(cachedReportsKey);
-    if (cachedIDs && hasInitialReportActions) {
-        return cachedIDs;
-    }
-
-    // This is needed to prevent caching when Onyx is empty for a second render
-    hasInitialReportActions = Object.values(lastReportActions).length > 0;
-
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
@@ -197,7 +161,6 @@ function getOrderedReportIDs(
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
     const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report.reportID);
-    setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
 
@@ -271,7 +234,7 @@ function getOptionData({
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
-    result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
+    result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
@@ -279,7 +242,9 @@ function getOptionData({
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
-    result.isUnread = ReportUtils.isUnread(report);
+    // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
+    // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
+    result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;

@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -308,7 +309,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     type: policy.type,
                 }),
             )
-            .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+            .sort((a, b) => localeCompare(a.title, b.title));
     }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers, policyRooms]);
 
     if (isEmptyObject(workspaces)) {
