@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -116,6 +117,7 @@ function BaseOptionsSelector(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const initialAllOptions = useMemo(() => flattenSections(), []);
     const [allOptions, setAllOptions] = useState(initialAllOptions);
+    const prevOptions = usePrevious(allOptions);
 
     const initialFocusedIndex = useMemo(() => {
         if (!_.isUndefined(props.initiallyFocusedOptionKey)) {
@@ -140,8 +142,6 @@ function BaseOptionsSelector(props) {
         isActive: !props.disableArrowKeysActions,
         disableHorizontalKeys: true,
     });
-
-    const [focusedOption, setFocusedOption] = useState(allOptions[focusedIndex]);
 
     /**
      * Maps sections to render only allowed count of them per section.
@@ -399,11 +399,6 @@ function BaseOptionsSelector(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [paginationPage]);
 
-    useEffect(() => {
-        setFocusedOption(allOptions[focusedIndex]);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [focusedIndex]);
-
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // Screen coming back into focus, for example
@@ -429,12 +424,12 @@ function BaseOptionsSelector(props) {
         }
 
         const newFocusedIndex = props.selectedOptions.length;
-        const prevFocusedOption = _.find(newOptions, (option) => focusedOption && option.keyForList === focusedOption.keyForList);
-        const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => focusedOption && option.keyForList === focusedOption.keyForList) : undefined;
+        const prevFocusedOption = prevOptions[focusedIndex];
+        const indexOfPrevFocusedOptionInCurrentList = _.findIndex(newOptions, (option) => prevFocusedOption && option.keyForList === prevFocusedOption.keyForList);
 
         setSections(newSections);
         setAllOptions(newOptions);
-        setFocusedIndex(prevFocusedOptionIndex || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
+        setFocusedIndex(indexOfPrevFocusedOptionInCurrentList || (_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex));
         // we want to run this effect only when the sections change
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.sections]);
