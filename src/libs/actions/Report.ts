@@ -1051,11 +1051,6 @@ function saveReportCommentNumberOfLines(reportID: string, numberOfLines: number)
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
 }
 
-/** Immediate indication whether the report has a draft comment. */
-function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void> {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
-}
-
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -2923,7 +2918,6 @@ export {
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
-    setReportWithDraft,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,

@@ -121,7 +121,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         parentReportID?: string;
         parentReportActionID?: string;
         isOptimisticReport?: boolean;
-        hasDraft?: boolean;
         managerID?: number;
         lastVisibleActionLastModified?: string;
         displayName?: string;

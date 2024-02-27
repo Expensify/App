@@ -223,7 +223,6 @@ const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
-        hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,

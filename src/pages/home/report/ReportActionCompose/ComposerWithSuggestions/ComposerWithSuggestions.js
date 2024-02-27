@@ -284,16 +284,6 @@ function ComposerWithSuggestions({
                 });
             }
 
-            // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
-                Report.setReportWithDraft(reportID, true);
-            }
-
-            // The draft has been deleted.
-            if (newCommentConverted.length === 0) {
-                Report.setReportWithDraft(reportID, false);
-            }
-
             commentRef.current = newCommentConverted;
             if (shouldDebounceSaveComment) {
                 debouncedSaveReportComment(reportID, newCommentConverted);
@@ -543,12 +533,6 @@ function ComposerWithSuggestions({
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
-
-        if (value.length === 0) {
-            return;
-        }
-
-        Report.setReportWithDraft(reportID, true);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
