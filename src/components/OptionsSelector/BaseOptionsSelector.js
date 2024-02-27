@@ -63,12 +63,12 @@ function BaseOptionsSelector(props) {
     const accessibilityRoles = _.values(CONST.ROLE);
 
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
-    const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
     const [disableEnterShortCut, setDisableEnterShortCut] = useState(false);
 
+    const shouldDisableRowSelection = useRef(false);
     const relatedTarget = useRef(null);
     const listRef = useRef();
     const textInputRef = useRef();
@@ -110,7 +110,7 @@ function BaseOptionsSelector(props) {
         let index = 0;
         _.each(props.sections, (section, sectionIndex) => {
             _.each(section.data, (option, optionIndex) => {
-                // eslint-disable-next-line no-param-reassign -- using param reassignment to avoid unnecessary copy of every option that would happen if we used spread instead
+                // eslint-disable-next-line no-param-reassign
                 option.sectionIndex = sectionIndex;
                 // eslint-disable-next-line no-param-reassign
                 option.index = optionIndex;
@@ -196,8 +196,8 @@ function BaseOptionsSelector(props) {
 
             if (props.canSelectMultipleOptions) {
                 selectRow(localFocusedOption);
-            } else if (!shouldDisableRowSelection) {
-                setShouldDisableRowSelection(true);
+            } else if (!shouldDisableRowSelection.current) {
+                shouldDisableRowSelection.current = true;
 
                 let result = selectRow(localFocusedOption);
                 if (!(result instanceof Promise)) {
@@ -206,12 +206,12 @@ function BaseOptionsSelector(props) {
 
                 setTimeout(() => {
                     result.finally(() => {
-                        setShouldDisableRowSelection(false);
+                        shouldDisableRowSelection.current = false;
                     });
                 }, 500);
             }
         },
-        [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow, shouldDisableRowSelection],
+        [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow],
     );
 
     const handleFocusIn = () => {
