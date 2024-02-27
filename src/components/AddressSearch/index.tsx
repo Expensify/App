@@ -515,6 +515,7 @@ function AddressSearch(
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={isOffline}
+                                        innerRef={currentLocationButtonRef}
                                     />
                                 </View>
                             )
