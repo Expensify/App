@@ -86,7 +86,7 @@ type ListItem = {
     reportID?: string;
 
     /** Whether this option should show subscript */
-    shouldShowSubscript?: boolean;
+    shouldShowSubscript?: boolean | null;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {

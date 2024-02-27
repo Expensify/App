@@ -292,7 +292,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList}
+                keyForList={item.keyForList ?? ''}
             />
         );
     };

@@ -60,7 +60,7 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
     const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
-    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage = isOffline ? ([`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] as unknown as string) : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
