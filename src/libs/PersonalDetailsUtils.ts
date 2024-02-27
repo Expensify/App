@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import CommonTranslationUtils from './CommonTranslationUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
@@ -24,10 +25,16 @@ Onyx.connect({
     },
 });
 
-const hiddenText = Localize.translateLocal('common.hidden');
+/**
+ * Index for the substring method to remove the merged account prefix.
+ */
 const substringStartIndex = CONST.MERGED_ACCOUNT_PREFIX.length;
+
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
+    /**
+     * If the displayName starts with the merged account prefix, remove it.
+     */
     if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
         displayName = displayName.substring(substringStartIndex);
     }
@@ -39,7 +46,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     if (displayName) {
         return displayName;
     }
-    const fallbackValue = shouldFallbackToHidden ? hiddenText : '';
+    const fallbackValue = shouldFallbackToHidden ? CommonTranslationUtils.hiddenText() : '';
     return defaultValue || fallbackValue;
 }
 

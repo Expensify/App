@@ -49,6 +49,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as CollectionUtils from './CollectionUtils';
+import CommonTranslationUtils from './CommonTranslationUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -575,18 +576,17 @@ function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Polic
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
 }
 
-const unavailableWorkspaceText = Localize.translateLocal('workspace.common.unavailable');
 /**
  * Get the policy name from a given report
  */
 function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> | undefined = undefined): string {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableWorkspaceText;
+    const noPolicyFound = returnEmptyIfNotFound ? '' : CommonTranslationUtils.unavailableWorkspaceText();
     if (isEmptyObject(report)) {
         return noPolicyFound;
     }
 
     if ((!allPolicies || Object.keys(allPolicies).length === 0) && !report?.policyName) {
-        return unavailableWorkspaceText;
+        return CommonTranslationUtils.unavailableWorkspaceText();
     }
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
@@ -1627,7 +1627,6 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
     );
 }
 
-const hiddenText = Localize.translateLocal('common.hidden');
 /**
  * Get the displayName for a single report participant.
  */
@@ -1649,7 +1648,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden);
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === hiddenText) {
+    if (shouldFallbackToHidden && longName === CommonTranslationUtils.hiddenText()) {
         return longName;
     }
 
@@ -2498,10 +2497,6 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
 }
 
-const deletedTaskText = Localize.translateLocal('parentReportAction.deletedTask');
-const deletedMessageText = Localize.translateLocal('parentReportAction.deletedMessage');
-const attachmentText = Localize.translateLocal('common.attachment');
-const archivedText = Localize.translateLocal('common.archived');
 /**
  * Get the title for a report.
  */
@@ -2514,13 +2509,13 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
-            return deletedMessageText;
+            return CommonTranslationUtils.deletedMessageText();
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
         const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
-            return `[${attachmentText}]`;
+            return `[${CommonTranslationUtils.attachmentText()}]`;
         }
         if (
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
@@ -2536,7 +2531,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
-        return deletedTaskText;
+        return CommonTranslationUtils.deletedTaskText();
     }
 
     if (isChatRoom(report) || isTaskReport(report)) {
@@ -2552,7 +2547,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isArchivedRoom(report)) {
-        formattedName += ` (${archivedText})`;
+        formattedName += ` (${CommonTranslationUtils.archivedText()})`;
     }
 
     if (formattedName) {
