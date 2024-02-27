@@ -14,6 +14,14 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+type PriorityModeItem = {
+    value: ValueOf<typeof CONST.PRIORITY_MODE>;
+    text: string;
+    alternateText: string;
+    keyForList: ValueOf<typeof CONST.PRIORITY_MODE>;
+    isSelected: boolean;
+};
+
 type PriorityModePageOnyxProps = {
     /** The chat priority mode */
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
@@ -24,7 +32,7 @@ type PriorityModePageProps = PriorityModePageOnyxProps;
 function PriorityModePage({priorityMode}: PriorityModePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const priorityModes = Object.values(CONST.PRIORITY_MODE).map((mode) => ({
+    const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
         text: translate(`priorityModePage.priorityModes.${mode}.label`),
         alternateText: translate(`priorityModePage.priorityModes.${mode}.description`),
@@ -33,7 +41,7 @@ function PriorityModePage({priorityMode}: PriorityModePageProps) {
     }));
 
     const updateMode = useCallback(
-        (mode: (typeof priorityModes)[number]) => {
+        (mode: PriorityModeItem) => {
             if (mode.value === priorityMode) {
                 Navigation.goBack();
                 return;
