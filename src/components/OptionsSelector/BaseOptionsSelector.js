@@ -346,6 +346,9 @@ function BaseOptionsSelector(props) {
         [allOptions, sections],
     );
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => setSections(sliceSections()), []);
+
     useEffect(() => {
         subscribeToEnterShortcut();
         subscribeToCtrlEnterShortcut();
