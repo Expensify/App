@@ -16,30 +16,31 @@ type CustomStatusBarAndBackgroundProps = {
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
-    const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarAndBackgroundContext);
+    const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
 
-    const isDisabled = !isNested && isRootStatusBarDisabled;
+    const isDisabled = !isNested && !isRootStatusBarEnabled;
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
         if (isNested) {
-            disableRootStatusBar(true);
+            setRootStatusBarEnabled(false);
         }
 
         return () => {
             if (!isNested) {
                 return;
             }
-            disableRootStatusBar(false);
+            setRootStatusBarEnabled(true);
         };
-    }, [disableRootStatusBar, isNested]);
+    }, [isNested, setRootStatusBarEnabled]);
 
     const didForceUpdateStatusBarRef = useRef(false);
-    const prevIsRootStatusBarDisabled = usePrevious(isRootStatusBarDisabled);
-    const prevStatusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarBackgroundColor = useRef(theme.appBG);
+    const prevIsRootStatusBarEnabled = usePrevious(isRootStatusBarEnabled);
+    // The prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
+    const prevStatusBarBackgroundColor = useRef(theme.splashBG);
+    const statusBarBackgroundColor = useRef(theme.splashBG);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
@@ -61,7 +62,9 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     // This callback is triggered everytime the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
         (listenerID?: number) => {
-            // Check if this function is either called through the current navigation listener or the general useEffect which listens for theme changes.
+            // Check if this function is either called through the current navigation listener
+            // react-navigation library has a bug internally, where it can't keep track of the listeners, therefore, sometimes when the useEffect would re-render and we run navigationRef.removeListener the listener isn't removed and we end up with two or more listeners.
+            // https://github.com/Expensify/App/issues/34154#issuecomment-1898519399
             if (listenerID !== undefined && listenerID !== listenerCount.current) {
                 return;
             }
@@ -99,21 +102,21 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
             // Force update if the root status bar is back on active or it won't overwirte the nested status bar style
-            if ((!didForceUpdateStatusBarRef.current && prevIsRootStatusBarDisabled && !isRootStatusBarDisabled) || newStatusBarStyle !== statusBarStyle) {
+            if ((!didForceUpdateStatusBarRef.current && !prevIsRootStatusBarEnabled && isRootStatusBarEnabled) || newStatusBarStyle !== statusBarStyle) {
                 updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
 
-                if (prevIsRootStatusBarDisabled && !isRootStatusBarDisabled) {
+                if (!prevIsRootStatusBarEnabled && isRootStatusBarEnabled) {
                     didForceUpdateStatusBarRef.current = true;
                 }
             }
         },
-        [prevIsRootStatusBarDisabled, isRootStatusBarDisabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
+        [prevIsRootStatusBarEnabled, isRootStatusBarEnabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
     );
 
     useEffect(() => {
         didForceUpdateStatusBarRef.current = false;
-    }, [isRootStatusBarDisabled]);
+    }, [isRootStatusBarEnabled]);
 
     useEffect(() => {
         if (isDisabled) {
