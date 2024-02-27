@@ -25,14 +25,22 @@ Onyx.connect({
 });
 
 const hiddenText = Localize.translateLocal('common.hidden');
-const substringStartIndex = 8;
+const substringStartIndex = CONST.MERGED_ACCOUNT_PREFIX.length;
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
     if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
         displayName = displayName.substring(substringStartIndex);
     }
+
+    /**
+     * If displayName exists, return it early so we don't have to allocate
+     * memory for the fallback string.
+     */
+    if (displayName) {
+        return displayName;
+    }
     const fallbackValue = shouldFallbackToHidden ? hiddenText : '';
-    return displayName || defaultValue || fallbackValue;
+    return defaultValue || fallbackValue;
 }
 
 /**
