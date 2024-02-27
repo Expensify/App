@@ -7,7 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TextPicker from '@components/TextPicker';
+// import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspaceTax} from '@libs/actions/TaxRate';
@@ -49,7 +49,7 @@ function WorkspaceNewTaxPage({
                 ...values,
                 code: `tax_${Date.now()}`,
             } satisfies TaxRate;
-            createWorkspaceTax({policyID, taxRate});
+            createWorkspaceTax(policyID, taxRate);
             Navigation.goBack();
         },
         [policyID],
