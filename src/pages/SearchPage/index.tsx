@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -39,7 +38,7 @@ type SearchPageOnyxProps = {
 type SearchPageProps = SearchPageOnyxProps & StackScreenProps<SearchNavigatorParamList, typeof SCREENS.SEARCH_ROOT>;
 
 type SearchPageSectionItem = {
-    data: ListItem[];
+    data: ReportUtils.OptionData[];
     shouldShow: boolean;
     indexOffset: number;
 };
@@ -98,7 +97,7 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
 
         if (recentReports?.length > 0) {
             newSections.push({
-                data: recentReports as ListItem[],
+                data: recentReports,
                 shouldShow: true,
                 indexOffset,
             });
@@ -107,7 +106,7 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
 
         if (localPersonalDetails.length > 0) {
             newSections.push({
-                data: localPersonalDetails as ListItem[],
+                data: localPersonalDetails,
                 shouldShow: true,
                 indexOffset,
             });
@@ -116,7 +115,7 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
 
         if (userToInvite) {
             newSections.push({
-                data: [userToInvite as ListItem],
+                data: [userToInvite],
                 shouldShow: true,
                 indexOffset,
             });
@@ -125,7 +124,7 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
         return newSections;
     }, [localPersonalDetails, recentReports, userToInvite]);
 
-    const selectReport = (option: ListItem) => {
+    const selectReport = (option: ReportUtils.OptionData) => {
         if (!option) {
             return;
         }
@@ -157,11 +156,11 @@ function SearchPage({betas, reports, isSearchingForReports}: SearchPageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList
+                        <SelectionList<ReportUtils.OptionData>
                             sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={offlineMessage as string}
+                            textInputHint={offlineMessage}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
                             onLayout={setPerformanceTimersEnd}
