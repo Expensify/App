@@ -3,7 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {RootStackParamList} from '@navigation/types';
+import type {RootStackParamList, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -125,7 +125,7 @@ Onyx.connect({
 /**
  * Shows a welcome action on first login
  */
-function show(routes: NavigationState<RootStackParamList>['routes'], showEngagementModal = () => {}) {
+function show(routes: State<RootStackParamList>['routes'] | undefined, showEngagementModal = () => {}) {
     isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
@@ -133,7 +133,7 @@ function show(routes: NavigationState<RootStackParamList>['routes'], showEngagem
 
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
-        const transitionRoute = routes.find(
+        const transitionRoute = routes?.find(
             (route): route is NavigationState<Pick<RootStackParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>>['routes'][number] => route.name === SCREENS.TRANSITION_BETWEEN_APPS,
         );
         const isExitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
